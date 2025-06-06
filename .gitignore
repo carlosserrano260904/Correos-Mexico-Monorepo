@@ -27,6 +27,7 @@ turbo/
 tmp/
 temp/
 *.tsbuildinfo
+.turbo
 
 # === OS files ===
 .DS_Store

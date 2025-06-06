@@ -22,7 +22,9 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-native-fontawesome": "^0.3.2",
     "@nestjs/common": "^11.1.2",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.2",
+    "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/testing": "^11.1.2",
 <<<<<<< HEAD

@@ -1,0 +1,84 @@
+# === Node Modules ===
+node_modules/
+**/node_modules/
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === Env files ===
+.env
+.env.*
+!.env.example
+
+# === Build output ===
+dist/
+build/
+out/
+www/
+
+# === Cache ===
+.cache/
+.next/
+turbo/
+.vite/
+tmp/
+temp/
+*.tsbuildinfo
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# === IDEs ===
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# === React Native ===
+# Android
+android/app/build/
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/local.properties
+android/.DS_Store
+*.iml
+
+# iOS
+ios/build/
+ios/Pods/
+ios/DerivedData/
+ios/.DS_Store
+
+# === Metro bundler cache ===
+.expo/
+.expo-shared/
+*.expo
+
+# === React Native fastlane ===
+**/fastlane/report.xml
+**/fastlane/screenshots
+**/fastlane/test_output
+
+# === Test coverage ===
+coverage/
+*.lcov
+
+# === Monorepo tools ===
+*.tgz
+.pnp.*
+.pnpm-debug.log
+
+# === Optional lockfiles ===
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# === Ignore generated Prisma (if using) ===
+prisma/migrations/

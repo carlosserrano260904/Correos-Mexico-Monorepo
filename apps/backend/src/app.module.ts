@@ -8,6 +8,8 @@ import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
 
 @Module({
+
+  //prueba
   imports: [
      ConfigModule.forRoot({
       isGlobal:true

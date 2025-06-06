@@ -14,8 +14,7 @@ Se subira cualquier avance que se tenga en el proyecto
 ## Test Branch
 * Rama meramente para pruebas y contenido no finalizado, no completamente testeado o que podria romper otras funcionalidades o similar (merge del contenido solamente cuando se encuentre en un estado estable) 
 
-
-#Iniciar el Proyecto
+##Iniciar el Proyecto
 ##Instalar NPM
 Para empezar el proyecto debemos instalar los node_modules de npm, entonces utilizamos este comando:
 * npm install

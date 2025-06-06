@@ -27,7 +27,6 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/testing": "^11.1.2",
-<<<<<<< HEAD
     "@react-navigation/native": "^7.1.10",
     "@react-navigation/native-stack": "^7.3.14",
     "react": "19.0.0",
@@ -35,9 +34,7 @@
     "react-native-reanimated": "3.17.4",
     "react-native-reanimated-carousel": "^4.0.2",
     "react-native-size-matters": "^0.4.2",
-=======
     "class-validator": "^0.14.2",
->>>>>>> 8db7d75 (Login)
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },

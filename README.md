@@ -12,7 +12,7 @@ Se subira cualquier avance que se tenga en el proyecto
 ## Main Branch
 * Solamente subir contenido terminado o que se pruebe funcione (o al menos constar con la menor cantidad de errores a corregir posible)
 ## Test Branch
-* Rama meramente para pruebas y contenido no finalizado, no completamente testeado o que podria romper otras funcionalidades o similar (merge del contenido solamente cuando se encuentre en un estado estable) 
+* Rama meramente para pruebas y contenido no finalizado, no completamente testeado o que podria romper otras funcionalidades o similar (merge del contenido solamente cuando se encuentre en un estado estable)
 
 ##Iniciar el Proyecto
 ##Instalar NPM

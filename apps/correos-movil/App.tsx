@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ProductView from './screens/usuario/e-commerce/ProductView';
 import example from './screens/usuario/example';
+import RoutesView from './screens/repartidor/RoutesView';
+import PackageScreen from './screens/repartidor/PackageScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +16,8 @@ export default function App() {
       <Stack.Navigator initialRouteName='Example'>
         <Stack.Screen name="Example" component={example} />
         <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
+        <Stack.Screen name="RoutesView" component={RoutesView} />
+        <Stack.Screen name="Package" component={PackageScreen} />
       </Stack.Navigator>
     </NavigationContainer>
     

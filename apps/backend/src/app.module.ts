@@ -6,10 +6,9 @@ import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
+import { RoutesModule } from './routes/routes.module';
 
 @Module({
-
-  //prueba
   imports: [
      ConfigModule.forRoot({
       isGlobal:true
@@ -19,7 +18,8 @@ import { CreateAccountModule } from './create-account/create-account.module';
       inject:[ConfigService]
     }),
     LoginModule,
-    CreateAccountModule
+    CreateAccountModule,
+    RoutesModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,8 +6,8 @@ import { CreateAccount } from './entities/create-account.entity';
 import { EnviarCorreosService } from 'src/enviar-correos/enviar-correos.service';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([CreateAccount])],
+  imports: [TypeOrmModule.forFeature([CreateAccount])],
   controllers: [CreateAccountController],
-  providers: [CreateAccountService,EnviarCorreosService,TypeOrmModule],
+  providers: [CreateAccountService, EnviarCorreosService, TypeOrmModule],
 })
 export class CreateAccountModule {}

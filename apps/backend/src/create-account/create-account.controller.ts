@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CreateAccountService } from './create-account.service';
 import { CreateCreateAccountDto } from './dto/create-create-account.dto';
 import { UpdateCreateAccountDto } from './dto/update-create-account.dto';
@@ -26,7 +34,10 @@ export class CreateAccountController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCreateAccountDto: UpdateCreateAccountDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCreateAccountDto: UpdateCreateAccountDto,
+  ) {
     return this.createAccountService.update(+id, updateCreateAccountDto);
   }
 
@@ -36,18 +47,26 @@ export class CreateAccountController {
   }
 
   @Post('/check-coupon')
-  checkCoupon(@Body() checkCouponDto:CheckCouponDto){
-    return this.createAccountService.checkCoupon(checkCouponDto.token)
+  checkCoupon(@Body() checkCouponDto: CheckCouponDto) {
+    return this.createAccountService.checkCoupon(checkCouponDto.token);
   }
 
   @Post('/complete-name/:id')
-  completeName(@Param('id') id:string,@Body() completeNameAccountDto:CompleteNameDto){
-    return this.createAccountService.completeName(+id,completeNameAccountDto)
+  completeName(
+    @Param('id') id: string,
+    @Body() completeNameAccountDto: CompleteNameDto,
+  ) {
+    return this.createAccountService.completeName(+id, completeNameAccountDto);
   }
 
   @Post('/complete-password/:id')
-  completePassword(@Param('id') id:string,@Body() completePasswordAccountDto:CompletePasswordDto){
-    return this.createAccountService.completePassword(+id,completePasswordAccountDto)
+  completePassword(
+    @Param('id') id: string,
+    @Body() completePasswordAccountDto: CompletePasswordDto,
+  ) {
+    return this.createAccountService.completePassword(
+      +id,
+      completePasswordAccountDto,
+    );
   }
-
 }

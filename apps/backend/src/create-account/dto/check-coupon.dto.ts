@@ -1,6 +1,6 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty } from 'class-validator';
 
-export class CheckCouponDto{
-    @IsNotEmpty({message:'El token es obligatorio'})
-    token:string
+export class CheckCouponDto {
+  @IsNotEmpty({ message: 'El token es obligatorio' })
+  token: string;
 }

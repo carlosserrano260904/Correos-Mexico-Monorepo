@@ -8,9 +8,8 @@ import { LoginService } from './login.service';
 import { CreateAccountModule } from 'src/create-account/create-account.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([CreateAccount]),
-CreateAccountModule],
+  imports: [TypeOrmModule.forFeature([CreateAccount]), CreateAccountModule],
   controllers: [LoginController],
-  providers:[LoginService,EnviarCorreosService,CreateAccountService]
+  providers: [LoginService, EnviarCorreosService, CreateAccountService],
 })
 export class LoginModule {}

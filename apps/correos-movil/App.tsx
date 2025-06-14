@@ -7,6 +7,7 @@ import ProductView from './screens/usuario/e-commerce/ProductView';
 import RoutesView from './screens/repartidor/RoutesView';
 import PackageScreen from './screens/repartidor/PackageScreen';
 import HomeUser from './screens/usuario/HomePage/HomeUser';
+import ProfileUser from './screens/usuario/profile/ProfileUser';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ export default function App() {
         <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
         <Stack.Screen name="RoutesView" component={RoutesView} />
         <Stack.Screen name="Package" component={PackageScreen} />
+        <Stack.Screen name="ProfileUser" component={ProfileUser} />
       </Stack.Navigator>
     </NavigationContainer>
     

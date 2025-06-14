@@ -7,8 +7,8 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.setGlobalPrefix('api');
     const configDocs = new DocumentBuilder()
-      .setTitle('Mi API con NestJs')
-      .setDescription('Descripcion de mi API')
+      .setTitle('Correos de Mexico')
+      .setDescription('Documentacion sobre las APIS del proyecto')
       .setVersion('1.0')
       .addTag('Usuarios')
       .build()

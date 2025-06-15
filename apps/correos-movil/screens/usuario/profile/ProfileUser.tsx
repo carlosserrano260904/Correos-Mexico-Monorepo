@@ -68,7 +68,7 @@ export default function ProfileUser() {
           }
         }}
       >
-        <Image source={{ uri: usuario?.avatarUri }} style={styles.avatar} />
+        <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
         <View style={styles.textContainer}>
           <Text style={styles.name}>
             {usuario?.nombre} {usuario?.apellido}

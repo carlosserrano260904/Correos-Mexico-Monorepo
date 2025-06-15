@@ -9,6 +9,7 @@ import { CreateAccountModule } from './create-account/create-account.module';
 import { RoutesModule } from './routes/routes.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProductsModule } from './products/products.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { ProductsModule } from './products/products.module';
     CreateAccountModule,
     RoutesModule,
     ProfileModule,
-    ProductsModule
+    ProductsModule,
+    TransactionsModule
   ],
   controllers: [AppController],
   providers: [AppService],

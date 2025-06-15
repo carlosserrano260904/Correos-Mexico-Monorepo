@@ -10,10 +10,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { actualizarUsuarioPorId, idUser } from '../../../api/profile';
+import { actualizarUsuarioPorId, idUser, uploadAvatar } from '../../../api/profile';
 
 const ACCENT = '#E6007E';
 const BACKGROUND = '#F2F2F5';
@@ -30,23 +31,45 @@ export default function UserDetailsScreen({ route,navigation }: Props) {
     setUserData({ ...userData, [field]: value });
   };
 
-  const handleSave = async() => {
-    const usuario = await actualizarUsuarioPorId(userData,idUser)
-    if(usuario?.ok){
-      Alert.alert(
-        'Exito',
-        'Tu perfil se ha actualizado correctamente',
-        [
-          {
-            text:'OK',
-            onPress:()=>navigation.goBack()
-          }
-        ],
-        {cancelable:false}
-      )
+  const pickImage = async()=>{
+    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if(status !=='granted'){
+      return Alert.alert('Permiso denegado', 'Necesitamos acceso a tus fotos para cambiar la foto de perfil.');
     }
-    
-  };
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes:ImagePicker.MediaTypeOptions.Images,
+      allowsEditing:true,
+      aspect:[1,1],
+      quality:0.7
+    })
+    if (!result.canceled && result.assets.length) {
+      // 1.c) actualizar estado
+      setUserData({ ...userData, imagen: result.assets[0].uri });
+    }
+  }
+
+  const handleSave = async () => {
+  try {
+    // 1) Si la URI cambió, sube primero el avatar y obtén la URL remota
+    if (isEditing && userData.imagen !== user.imagen) {
+      const remoteUrl = await uploadAvatar(userData.imagen, idUser);
+      userData.imagen = remoteUrl;
+    }
+
+    // 2) Ahora sí actualiza el resto del perfil
+    const usuario = await actualizarUsuarioPorId(userData, idUser);
+    if (usuario?.ok) {
+      Alert.alert('Éxito', 'Perfil actualizado', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      Alert.alert('Error', 'No se pudo actualizar tu perfil.');
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -57,7 +80,17 @@ export default function UserDetailsScreen({ route,navigation }: Props) {
             <Ionicons name={isEditing ? 'close-outline' : 'create-outline'} size={24} color={ACCENT} />
           </TouchableOpacity>
 
-          <Image source={{ uri: userData.avatarUri }} style={styles.avatar} />
+           <TouchableOpacity onPress={isEditing ? pickImage : undefined}>
+            <Image
+              source={{ uri: userData.imagen }}
+              style={styles.avatar}
+            />
+            {isEditing && (
+              <View style={styles.cameraOverlay}>
+                <Ionicons name="camera" size={20} color="#fff" />
+              </View>
+            )}
+          </TouchableOpacity>
 
           {/* Nombre y apellido */}
           {isEditing ? (
@@ -169,6 +202,14 @@ export default function UserDetailsScreen({ route,navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: ACCENT,
+    padding: 6,
+    borderRadius: 20,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: BACKGROUND,

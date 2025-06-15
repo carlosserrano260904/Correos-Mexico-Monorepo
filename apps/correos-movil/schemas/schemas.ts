@@ -8,7 +8,8 @@ export const ProfileUserSchema = z.object({
     ciudad:z.string(),
     fraccionamiento:z.string(),
     calle:z.string(),
-    codigoPostal:z.string()
+    codigoPostal:z.string(),
+    imagen:z.string()
 })
 
 export const ProfilesSchema=z.array(ProfileUserSchema)

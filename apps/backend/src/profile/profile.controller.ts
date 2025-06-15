@@ -1,12 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, NotFoundException } from '@nestjs/common';
 import { ProfileService } from './profile.service';
+import { FileInterceptor } from '@nestjs/platform-express';  
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { memoryStorage } from 'multer';
 
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(private readonly profileService: ProfileService,
+    private readonly uploadImageService: UploadImageService
+  ) {}
 
   @Post()
   @ApiOperation({summary:'Creacion de un nuevo perfil en base a un login'})
@@ -77,5 +82,27 @@ export class ProfileController {
 
   remove(@Param('id') id: string) {
     return this.profileService.remove(+id);
+  }
+
+  @Post(':id/avatar')
+  @UseInterceptors(FileInterceptor('imagen',{
+     storage: memoryStorage(),       // ← así multer guarda file.buffer
+      limits: { fileSize: 5 * 1024 * 1024 }, // opcional: límite 5MB
+  }))
+  async uploadAvatar(
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // 1) Sube a Cloudinary
+    const { secure_url } = await this.uploadImageService.uploadFile(file);
+
+    // 2) Busca el perfil y actualiza el campo imagen
+    const perfil = await this.profileService.findOne(id);
+    if (!perfil) throw new NotFoundException('Perfil no encontrado');
+
+    perfil.imagen = secure_url;
+    await this.profileService.save(perfil);   // necesitas exponer un save()
+
+    return { avatarUrl: secure_url };
   }
 }

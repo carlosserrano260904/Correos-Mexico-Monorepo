@@ -1,4 +1,5 @@
-import {Column,Entity,PrimaryGeneratedColumn} from 'typeorm'
+import { Transaction } from 'src/transactions/entities/transaction.entity'
+import {Column,Entity,OneToMany,PrimaryGeneratedColumn} from 'typeorm'
 @Entity()
 export class Profile {
     @PrimaryGeneratedColumn()
@@ -26,4 +27,10 @@ export class Profile {
     
     @Column({type:'varchar',length:5})
     codigoPostal:string
+
+    @Column({type:'varchar',length:120,default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
+    imagen:string
+
+    @OneToMany(()=>Transaction,tx=>tx.profile)
+    transactions:Transaction[];
 }

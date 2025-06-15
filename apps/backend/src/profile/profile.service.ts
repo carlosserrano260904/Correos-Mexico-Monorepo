@@ -54,4 +54,7 @@ export class ProfileService {
     await this.profileRepository.remove(perfil)
     return "Perfil eliminado correctamente";
   }
+  async save(profile: Profile): Promise<Profile> {
+    return this.profileRepository.save(profile);
+  }
 }

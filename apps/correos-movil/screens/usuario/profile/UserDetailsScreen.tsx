@@ -9,28 +9,19 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { actualizarUsuarioPorId, idUser } from '../../../api/profile';
 
 const ACCENT = '#E6007E';
 const BACKGROUND = '#F2F2F5';
 
-// Datos iniciales (pueden venir de props o context)
-const initialUser = {
-  nombre: 'Diego',
-  apellido: 'Trejo',
-  numero: '6182583019',
-  ciudad: 'Durango',
-  estado: 'Durango',
-  fraccionamiento: 'Los Encinos',
-  calle: 'Calle Ejemplo',
-  codigoPostal: '34227',
-  avatarUri: 'https://via.placeholder.com/120',
-};
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
-export default function UserDetailsScreen({ route }: Props) {
+export default function UserDetailsScreen({ route,navigation }: Props) {
    const { user } = route.params;
   const [userData, setUserData] = useState(user);
   const [isEditing, setIsEditing] = useState(false);
@@ -39,9 +30,22 @@ export default function UserDetailsScreen({ route }: Props) {
     setUserData({ ...userData, [field]: value });
   };
 
-  const handleSave = () => {
-    // Aquí iría la lógica para persistir los cambios (API, Context, etc.)
-    setIsEditing(false);
+  const handleSave = async() => {
+    const usuario = await actualizarUsuarioPorId(userData,idUser)
+    if(usuario?.ok){
+      Alert.alert(
+        'Exito',
+        'Tu perfil se ha actualizado correctamente',
+        [
+          {
+            text:'OK',
+            onPress:()=>navigation.goBack()
+          }
+        ],
+        {cancelable:false}
+      )
+    }
+    
   };
 
   return (

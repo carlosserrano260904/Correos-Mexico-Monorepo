@@ -1,33 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import {ScrollView,View,Text,StyleSheet,TouchableOpacity,Image,} from 'react-native';
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useIsFocused } from '@react-navigation/native';
 import { idUser, usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type ProfileNavProp = NativeStackNavigationProp<
-RootStackParamList,
-'ProfileUser'
->;
+type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
+
 export default function ProfileUser() {
+  const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const[usuario,setUsuario]=useState<SchemaProfileUser | null>(null)
-  const [loading,setLoading] = useState(false)
+  const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
-
-  useEffect(()=>{
-    (async()=>{
-        try {
-            const perfil = await usuarioPorId(idUser)
-            setUsuario(perfil)
-        } catch (error) {
-            console.log("No se ha podido cargar el perfil")
-        }
+  useEffect(() => {
+    if (!isFocused) return;  
+    (async () => {
+      try {
+        const perfil = await usuarioPorId(idUser);
+        setUsuario(perfil);
+      } catch {
+        console.log('No se ha podido cargar el perfil');
+      }
     })();
-  },[])
-
-  
+  }, [isFocused]); // <-- mejor dejar el array vacío para que no itere constantemente
 
   const sections = [
     {
@@ -59,14 +62,13 @@ export default function ProfileUser() {
       {/* Cabecera "Mi perfil" */}
       <TouchableOpacity
         style={styles.header}
-        onPress={() =>{
-          if(usuario){
-           navigation.navigate('UserDetailsScreen', { user: usuario });
+        onPress={() => {
+          if (usuario) {
+            navigation.navigate('UserDetailsScreen', { user: usuario });
           }
-        } 
-      }
+        }}
       >
-        <Image source={{ uri: usuario?.numero }} style={styles.avatar} />
+        <Image source={{ uri: usuario?.avatarUri }} style={styles.avatar} />
         <View style={styles.textContainer}>
           <Text style={styles.name}>
             {usuario?.nombre} {usuario?.apellido}
@@ -77,6 +79,7 @@ export default function ProfileUser() {
           </View>
         </View>
       </TouchableOpacity>
+
       {sections.map((sec, si) => (
         <View key={si} style={styles.section}>
           <Text style={styles.sectionTitle}>{sec.title}</Text>
@@ -84,6 +87,7 @@ export default function ProfileUser() {
             <TouchableOpacity
               key={i}
               style={styles.item}
+              onPress={() => navigation.navigate(item.to)} // ← aquí
             >
               <View style={styles.itemLeft}>
                 <Icon name={item.icon} size={20} />
@@ -100,7 +104,6 @@ export default function ProfileUser() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-
   header: {
     flexDirection: 'row',
     backgroundColor: '#FFE600',
@@ -132,7 +135,6 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: 4,
   },
-
   section: {
     paddingHorizontal: 16,
     paddingTop: 24,

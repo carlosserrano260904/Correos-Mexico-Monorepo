@@ -10,6 +10,7 @@ import HomeUser from './screens/usuario/HomePage/HomeUser';
 import ProfileUser from './screens/usuario/profile/ProfileUser';
 import UserDetailsScreen from './screens/usuario/profile/UserDetailsScreen';
 import { RootStackParamList } from './schemas/schemas';
+import MisCompras from './screens/usuario/mis-compras/MisCompras';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,6 +24,7 @@ export default function App() {
         <Stack.Screen name="Package" component={PackageScreen} />
         <Stack.Screen name="ProfileUser" component={ProfileUser} />
         <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} />
+        <Stack.Screen name="MisCompras" component={MisCompras} />
       </Stack.Navigator>
     </NavigationContainer>
     

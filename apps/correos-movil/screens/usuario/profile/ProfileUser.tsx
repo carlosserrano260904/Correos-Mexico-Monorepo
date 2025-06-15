@@ -1,20 +1,38 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {ScrollView,View,Text,StyleSheet,TouchableOpacity,Image,} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { Link } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { idUser, usuarioPorId } from '../../../api/profile';
+import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-interface SectionItem {
-  label: string;
-  icon: string;
-  to: string; // nombre de la ruta
-}
+type ProfileNavProp = NativeStackNavigationProp<
+RootStackParamList,
+'ProfileUser'
+>;
+export default function ProfileUser() {
+  const navigation = useNavigation<ProfileNavProp>();
+  const[usuario,setUsuario]=useState<SchemaProfileUser | null>(null)
+  const [loading,setLoading] = useState(false)
 
-function ProfileUser() {
-  const sections: { title: string; items: SectionItem[] }[] = [
+
+  useEffect(()=>{
+    (async()=>{
+        try {
+            const perfil = await usuarioPorId(idUser)
+            setUsuario(perfil)
+        } catch (error) {
+            console.log("No se ha podido cargar el perfil")
+        }
+    })();
+  },[])
+
+  
+
+  const sections = [
     {
       title: 'Cuenta',
       items: [
-        { label: 'Perfil', icon: 'user', to: 'Perfil' },
         { label: 'Mis pedidos', icon: 'box', to: 'Pedidos' },
         { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
       ],
@@ -38,21 +56,41 @@ function ProfileUser() {
 
   return (
     <ScrollView style={styles.container}>
-      {sections.map(({ title, items }, si) => (
+      {/* Cabecera "Mi perfil" */}
+      <TouchableOpacity
+        style={styles.header}
+        onPress={() =>{
+          if(usuario){
+           navigation.navigate('UserDetailsScreen', { user: usuario });
+          }
+        } 
+      }
+      >
+        <Image source={{ uri: usuario?.numero }} style={styles.avatar} />
+        <View style={styles.textContainer}>
+          <Text style={styles.name}>
+            {usuario?.nombre} {usuario?.apellido}
+          </Text>
+          <View style={styles.subtitleRow}>
+            <Text style={styles.subtitle}>Mi perfil</Text>
+            <Icon name="chevron-right" size={16} style={styles.chevron} />
+          </View>
+        </View>
+      </TouchableOpacity>
+      {sections.map((sec, si) => (
         <View key={si} style={styles.section}>
-          <Text style={styles.sectionTitle}>{title}</Text>
-          {items.map(({ label, icon, to }, i) => (
-            <Link
+          <Text style={styles.sectionTitle}>{sec.title}</Text>
+          {sec.items.map((item, i) => (
+            <TouchableOpacity
               key={i}
-              to={{ screen: to }}
               style={styles.item}
             >
               <View style={styles.itemLeft}>
-                <Icon name={icon} size={20} />
-                <Text style={styles.itemText}>{label}</Text>
+                <Icon name={item.icon} size={20} />
+                <Text style={styles.itemText}>{item.label}</Text>
               </View>
               <Icon name="chevron-right" size={20} />
-            </Link>
+            </TouchableOpacity>
           ))}
         </View>
       ))}
@@ -62,8 +100,48 @@ function ProfileUser() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  section: { paddingHorizontal: 16, paddingTop: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
+
+  header: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE600',
+    padding: 16,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+  },
+  textContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  subtitle: {
+    fontSize: 14,
+  },
+  chevron: {
+    marginLeft: 4,
+  },
+
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -73,9 +151,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 10,
   },
-  itemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemText: { fontSize: 16, marginLeft: 10 },
+  itemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  itemText: {
+    fontSize: 16,
+    marginLeft: 10,
+  },
 });
-
-
-export default ProfileUser

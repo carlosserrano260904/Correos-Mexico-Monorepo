@@ -8,8 +8,10 @@ import RoutesView from './screens/repartidor/RoutesView';
 import PackageScreen from './screens/repartidor/PackageScreen';
 import HomeUser from './screens/usuario/HomePage/HomeUser';
 import ProfileUser from './screens/usuario/profile/ProfileUser';
+import UserDetailsScreen from './screens/usuario/profile/UserDetailsScreen';
+import { RootStackParamList } from './schemas/schemas';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
@@ -20,6 +22,7 @@ export default function App() {
         <Stack.Screen name="RoutesView" component={RoutesView} />
         <Stack.Screen name="Package" component={PackageScreen} />
         <Stack.Screen name="ProfileUser" component={ProfileUser} />
+        <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
     

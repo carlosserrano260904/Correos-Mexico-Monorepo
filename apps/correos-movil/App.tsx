@@ -18,7 +18,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='HomeUser'>
-        <Stack.Screen name="HomeUser" component={HomeUser} />
+        <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}}/>
         <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
         <Stack.Screen name="RoutesView" component={RoutesView} />
         <Stack.Screen name="Package" component={PackageScreen} />

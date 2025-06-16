@@ -46,7 +46,7 @@ export default function PackageScreen({ route }) {
 
   const getRoute = async (origin: LatLng, destination: LatLng) => {
     try {
-      const response = await axios.post('http://<TU_IP>:3000/api/routes', {
+      const response = await axios.post('http://192.168.0.170:3000/api/routes', {
         origin,
         destination,
       });

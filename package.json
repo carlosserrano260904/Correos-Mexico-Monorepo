@@ -37,12 +37,14 @@
     "class-validator": "^0.14.2",
     "cloudinary": "^2.6.1",
     "expo-location": "~18.1.5",
+    "lucide-react-native": "^0.515.0",
     "nodemailer": "^7.0.3",
     "pg": "^8.16.0",
     "react": "19.0.0",
     "react-native": "0.79.3",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-maps": "1.20.1",
+    "react-native-paper": "^5.14.5",
     "react-native-reanimated": "3.17.4",
     "react-native-reanimated-carousel": "^4.0.2",
     "react-native-size-matters": "^0.4.2",
@@ -52,7 +54,8 @@
     "streamifier": "^0.1.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.24",
-    "zod": "^3.25.64"
+    "zod": "^3.25.64",
+    "expo-image-picker": "~16.1.4"
   },
   "overrides": {
     "multer": "^2.0.0"

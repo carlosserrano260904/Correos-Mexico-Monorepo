@@ -4,7 +4,7 @@ export const idUser = 3
 
 
 export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
-    const url = `http://192.168.1.10:3000/api/profile/${id}`
+    const url = `http://192.168.100.5:3000/api/profile/${id}`
     const response = await fetch(url)
     const json = await response.json();
     const perfil = ProfileUserSchema.parse(json)
@@ -14,7 +14,7 @@ export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
 
 export async function actualizarUsuarioPorId(userData:SchemaProfileUser,id:number) {
     try {
-      const response = await fetch(`http://192.168.1.10:3000/api/profile/${id}`,{
+      const response = await fetch(`http://192.168.100.5:3000/api/profile/${id}`,{
         method:'PATCH',
         headers:{
           'Content-Type':'application/json'
@@ -36,7 +36,7 @@ export async function uploadAvatar(uri: string, id: number): Promise<string> {
   } as any);
 
   const res = await fetch(
-    `http://192.168.1.10:3000/api/profile/${id}/avatar`,
+    `http://192.168.100.5:3000/api/profile/${id}/avatar`,
     {
       method: 'POST',
       headers: {

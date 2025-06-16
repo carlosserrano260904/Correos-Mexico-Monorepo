@@ -20,7 +20,6 @@ export default function RoutesView() {
     { latitude: 24.03607544743889, longitude: -104.65042708051433 },
     { latitude: 24.030763356272793, longitude: -104.61984483069332 },
     { latitude: 24.026240946925842, longitude: -104.62899847198052 },
-    { latitude: 24.013220484720815, longitude: -104.63420024451614 }
   ]);
 
   const [optimizedIntermediates, setOptimizedIntermediates] = React.useState<LatLng[]>([]);
@@ -64,7 +63,7 @@ export default function RoutesView() {
 
     const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
       try {
-        const response = await axios.post('http://<TU_IP>:3000/api/routes', {
+        const response = await axios.post('http://192.168.0.170:3000/api/routes', {
           origin,
           destination,
           intermediates

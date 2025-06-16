@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ScrollView } from "react-native";
-import { Extrapolation, interpolate, useSharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -295,7 +295,8 @@ const styles = StyleSheet.create({
 	forYouContainer: {
 		width: screenWidth,
 		paddingHorizontal: moderateScale(12),
-		marginVertical: moderateScale(20)
+		marginVertical: moderateScale(20),
+		marginBottom: moderateScale(52)
 	}
 });
 

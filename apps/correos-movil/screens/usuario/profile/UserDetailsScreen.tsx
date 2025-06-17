@@ -24,6 +24,7 @@ const BACKGROUND = '#F2F2F5';
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 export default function UserDetailsScreen({ route,navigation }: Props) {
    const { user } = route.params;
+   console.log(user)
   const [userData, setUserData] = useState(user);
   const [isEditing, setIsEditing] = useState(false);
 

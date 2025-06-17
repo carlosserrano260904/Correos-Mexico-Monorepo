@@ -10,13 +10,13 @@ import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
 
 
 const imageData = [
-	{ id: '1', name: 'Item 1', image: require('../../../assets/RegaloMama.png') },
+  { id: '1', name: 'Item 1', image: require('../../../assets/RegaloMama.png') },
   { id: '2', name: 'Item 2', image: require('../../../assets/publicidad1.png') },
   { id: '3', name: 'Item 3', image: require('../../../assets/publicidad3.png') },
 ];
 
 const imageData2 = [
-	{ id: '1', name: 'Item 1', image: require('../../../assets/publicidad2.png') },
+  { id: '1', name: 'Item 1', image: require('../../../assets/publicidad2.png') },
   { id: '2', name: 'Item 2', image: require('../../../assets/mensaje-correos-clic.png') },
   { id: '3', name: 'Item 3', image: require('../../../assets/publicidad-correos-clic.jpg') },
 ];
@@ -128,48 +128,48 @@ export default function HomeUser() {
 
   const progress = useSharedValue<number>(0);
 
-    const renderItem = ({ item }) => (
-      <View style={[styles.itemContainer, { backgroundColor: item }]}>
-        <Image source={item.image} style={styles.image} />
-      </View>
-    );
+  const renderItem = ({ item }) => (
+    <View style={[styles.itemContainer, { backgroundColor: item }]}>
+      <Image source={item.image} style={styles.image} />
+    </View>
+  );
 
-    const ref = React.useRef<ICarouselInstance>(null);
+  const ref = React.useRef<ICarouselInstance>(null);
 
-    const onPressPagination = (index: number) => {
-		ref.current?.scrollTo({
-			count: index - progress.value,
-			animated: true,
-		});
-	};
+  const onPressPagination = (index: number) => {
+    ref.current?.scrollTo({
+      count: index - progress.value,
+      animated: true,
+    });
+  };
 
-  
+
 
   return (
     <View >
-      <ScrollView style={{backgroundColor: "white", width: screenWidth, position: "relative"}} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
 
           <View>
-            <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")}/>
+            <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
           </View>
 
           <View style={styles.iconsHeaderContainer}>
             <TouchableOpacity style={styles.iconsHeader}>
               <Text style={styles.textLenguage}>ES</Text>
             </TouchableOpacity>
-            <TouchableOpacity  style={styles.iconsHeader}>
-              <Heart color={"#DE1484"} size={moderateScale(24)}/>
+            <TouchableOpacity style={styles.iconsHeader}>
+              <Heart color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
-            <TouchableOpacity  style={styles.iconsHeader}>
-              <ShoppingBag color={"#DE1484"} size={moderateScale(24)}/>
+            <TouchableOpacity style={styles.iconsHeader}>
+              <ShoppingBag color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
           </View>
 
         </View>
 
         <View style={styles.searchBarContainer}>
-          <SearchBarComponent/>
+          <SearchBarComponent />
         </View>
 
         <CorreosClicButton />
@@ -194,7 +194,7 @@ export default function HomeUser() {
             }}
             onProgressChange={progress}
             renderItem={renderItem}
-			    />
+          />
 
           <Pagination.Basic<{ color: string }>
             progress={progress}
@@ -221,67 +221,67 @@ export default function HomeUser() {
           <Text style={styles.textCategories}>Categorias</Text>
           <ScrollView style={styles.modulesCategoriesContainer} horizontal={true} showsHorizontalScrollIndicator={false}>
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Ropa, moda y calzado</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Joyería y bisuteria</Text>
             </View>
-            
+
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Juegos y juguetes</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hogar y decoración</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Belleza y cuidado personal</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Artesanías mexicanas</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Fonart-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Fonart-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>FONART</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Original-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Original-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Original</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Jóvenes construyendo el futuro</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hecho en Tamaulipas</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>SEDECO Michoacán</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Filatelia mexicana</Text>
             </View>
 
             <View style={styles.modulesCategories}>
-                <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png")}/>
+              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png")} />
               <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Sabores artesanales</Text>
             </View>
           </ScrollView>
@@ -330,7 +330,7 @@ export default function HomeUser() {
             }}
             onProgressChange={progress}
             renderItem={renderItem}
-			    />
+          />
 
           <Pagination.Basic<{ color: string }>
             progress={progress}
@@ -366,10 +366,19 @@ export default function HomeUser() {
           </View>
         </View>
       </ScrollView>
-      
+
       <TouchableOpacity onPress={() => navigation.navigate('RoutesView')} style={styles.customerServiceContainer}>
-        <Headset color={"#fff"} size={moderateScale(24)}/>
+        <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
+
+      <TouchableOpacity
+      style={styles.customerServiceContainer}
+      activeOpacity={0.7}
+      onPress={() => navigation.navigate('ProfileUser')}
+    >
+      <Text>Ver Perfil</Text>
+    </TouchableOpacity>
+
     </View >
   )
 }
@@ -403,7 +412,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     fontSize: moderateScale(16),
   },
-  searchBarContainer:{
+  searchBarContainer: {
     marginTop: moderateScale(20),
     paddingHorizontal: moderateScale(12)
   },
@@ -433,20 +442,20 @@ const styles = StyleSheet.create({
     color: "#121212"
   },
   itemContainer: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	itemText: {
-		color: "#fff",
-		fontWeight: "bold",
-	},
-	image: {
-		width: "100%",
-		height: "100%",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  itemText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
     resizeMode: "cover",
     borderRadius: moderateScale(8)
-	},
+  },
   categoriesContainer: {
     marginVertical: moderateScale(20),
     flexDirection: "column",
@@ -467,7 +476,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     resizeMode: "contain"
   },
-  modulesCategories:{
+  modulesCategories: {
     flexDirection: "column",
     justifyContent: "flex-start",
     width: moderateScale(72),
@@ -517,7 +526,7 @@ const styles = StyleSheet.create({
     fontWeight: 400,
     color: "#DE1484"
   },
-  featuredProductContainer:{
+  featuredProductContainer: {
     marginHorizontal: moderateScale(12),
     marginTop: moderateScale(20),
     flexDirection: "column",
@@ -537,8 +546,8 @@ const styles = StyleSheet.create({
     width: moderateScale(60),
     height: moderateScale(60),
     backgroundColor: "#DE1484",
-    position: "absolute", 
-    bottom: moderateScale(52), 
+    position: "absolute",
+    bottom: moderateScale(52),
     right: moderateScale(12),
     borderRadius: 100,
     alignItems: "center",

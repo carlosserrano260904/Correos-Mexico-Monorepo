@@ -27,7 +27,7 @@ export default function ProfileUser() {
         const perfil = await usuarioPorId(idUser);
         setUsuario(perfil);
       } catch {
-        console.log('No se ha podido cargar el perfil');
+        console.log('No se ha podido cargar el perfil aqui componente ');
       }
     })();
   }, [isFocused]); // <-- mejor dejar el array vacío para que no itere constantemente
@@ -65,6 +65,7 @@ export default function ProfileUser() {
         onPress={() => {
           if (usuario) {
             navigation.navigate('UserDetailsScreen', { user: usuario });
+            console.log(usuario)
           }
         }}
       >
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
-    backgroundColor: '#FFE600',
+    backgroundColor: '#E6007A',
     padding: 16,
     alignItems: 'center',
   },

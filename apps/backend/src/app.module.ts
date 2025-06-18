@@ -10,6 +10,7 @@ import { RoutesModule } from './routes/routes.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProductsModule } from './products/products.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { UploadImageModule } from './upload-image/upload-image.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { TransactionsModule } from './transactions/transactions.module';
     RoutesModule,
     ProfileModule,
     ProductsModule,
-    TransactionsModule
+    TransactionsModule,
+    UploadImageModule
   ],
   controllers: [AppController],
   providers: [AppService],

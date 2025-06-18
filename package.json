@@ -17,6 +17,7 @@
     "apps/backend"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.830.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -26,8 +27,12 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.2",
     "@nestjs/mapped-types": "^2.1.0",
+<<<<<<< HEAD
     "@nestjs/microservices": "^11.1.3",
     "@nestjs/platform-express": "^11.1.2",
+=======
+    "@nestjs/platform-express": "^11.1.3",
+>>>>>>> b784e18 (AWS Integration)
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/testing": "^11.1.2",
     "@nestjs/typeorm": "^11.0.0",

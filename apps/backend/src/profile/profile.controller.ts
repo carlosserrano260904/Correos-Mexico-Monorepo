@@ -85,24 +85,22 @@ export class ProfileController {
   }
 
   @Post(':id/avatar')
-  @UseInterceptors(FileInterceptor('imagen',{
-     storage: memoryStorage(),       // ← así multer guarda file.buffer
-      limits: { fileSize: 5 * 1024 * 1024 }, // opcional: límite 5MB
-  }))
+  @UseInterceptors(
+    FileInterceptor('imagen', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async uploadAvatar(
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    // 1) Sube a Cloudinary
-    const { secure_url } = await this.uploadImageService.uploadFile(file);
+    // 1) Sube a S3
+    const url = await this.uploadImageService.uploadFile(file);
 
-    // 2) Busca el perfil y actualiza el campo imagen
-    const perfil = await this.profileService.findOne(id);
-    if (!perfil) throw new NotFoundException('Perfil no encontrado');
+    // 2) Actualiza sólo el campo `imagen` en la base
+    const actualizado = await this.profileService.updateAvatar(id, url);
 
-    perfil.imagen = secure_url;
-    await this.profileService.save(perfil);   // necesitas exponer un save()
-
-    return { avatarUrl: secure_url };
+    return { avatarUrl: actualizado.imagen };
   }
 }

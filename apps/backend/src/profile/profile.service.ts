@@ -37,14 +37,14 @@ export class ProfileService {
 
   async update(id: number, updateProfileDto: UpdateProfileDto) {
     const perfil = await this.findOne(id)
-    perfil.nombre = updateProfileDto.nombre
-    perfil.apellido = updateProfileDto.apellido
-    perfil.numero = updateProfileDto.numero
-    perfil.estado = updateProfileDto.estado
-    perfil.ciudad = updateProfileDto.ciudad
-    perfil.fraccionamiento = updateProfileDto.fraccionamiento
-    perfil.calle = updateProfileDto.calle
-    perfil.codigoPostal = updateProfileDto.codigoPostal
+    perfil.nombre = updateProfileDto.nombre!
+    perfil.apellido = updateProfileDto.apellido!
+    perfil.numero = updateProfileDto.numero!
+    perfil.estado = updateProfileDto.estado!
+    perfil.ciudad = updateProfileDto.ciudad!
+    perfil.fraccionamiento = updateProfileDto.fraccionamiento!
+    perfil.calle = updateProfileDto.calle!
+    perfil.codigoPostal = updateProfileDto.codigoPostal!
     await this.profileRepository.save(perfil)
     return `Perfil actualizado correctamente`;
   }
@@ -56,5 +56,10 @@ export class ProfileService {
   }
   async save(profile: Profile): Promise<Profile> {
     return this.profileRepository.save(profile);
+  }
+  async updateAvatar(id: number, imageUrl: string): Promise<Profile> {
+    const perfil = await this.findOne(id);
+    perfil.imagen = imageUrl;
+    return this.profileRepository.save(perfil);
   }
 }

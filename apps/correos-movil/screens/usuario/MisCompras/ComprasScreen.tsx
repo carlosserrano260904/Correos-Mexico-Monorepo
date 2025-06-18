@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
 
-// This screen displays the user's purchases
 
 const purchases = [
   {
@@ -30,7 +29,7 @@ const purchases = [
 export default function ComprasScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🛍️ Mis Compras</Text>
+      <Text style={styles.title}>Mis Compras</Text>
       <FlatList
         data={purchases}
         keyExtractor={(item) => item.id}

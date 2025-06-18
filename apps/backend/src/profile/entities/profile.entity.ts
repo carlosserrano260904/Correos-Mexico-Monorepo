@@ -6,7 +6,7 @@ export class Profile {
     id:number
     @Column({type:'varchar',length:30})
     nombre:string
-
+//prueba 
     @Column({type:'varchar',length:30})
     apellido:string
 

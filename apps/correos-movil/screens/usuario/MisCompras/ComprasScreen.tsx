@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
 
+// This screen displays the user's purchases
+
 const purchases = [
   {
     id: '1',

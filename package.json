@@ -32,7 +32,8 @@
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/testing": "^11.1.2",
     "@nestjs/typeorm": "^11.0.0",
-    "@react-navigation/native": "^7.1.10",
+    "@react-navigation/bottom-tabs": "^7.3.16",
+    "@react-navigation/native": "^7.1.12",
     "@react-navigation/native-stack": "^7.3.14",
     "axios": "^1.9.0",
     "class-transformer": "^0.5.1",
@@ -57,7 +58,10 @@
     "streamifier": "^0.1.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.24",
-    "zod": "^3.25.64"
+    "zod": "^3.25.64",
+    "react-native-screens": "~4.11.1",
+    "react-native-safe-area-context": "5.4.0",
+    "expo-router": "~5.1.0"
   },
   "overrides": {
     "multer": "^2.0.0"

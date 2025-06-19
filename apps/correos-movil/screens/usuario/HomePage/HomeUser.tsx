@@ -1,4 +1,3 @@
-
 import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
@@ -6,7 +5,8 @@ import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated
 import { moderateScale } from 'react-native-size-matters';
 import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
 import { useNavigation } from '@react-navigation/native';
-import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
+import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
+import HomeTabs from '../../../components/Tabs/HomeTabs';
 
 
 const imageData = [
@@ -91,12 +91,12 @@ const CorreosClicButton = () => {
     const layout = event.nativeEvent.layout;
     setButtonLayout(layout);
   };
-
+  const navigation = useNavigation();
   return (
     <View style={styles.correosClicButtonContainer}>
       <View onLayout={handleLayout}>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8} onPress={() => navigation.navigate('RoutesView')}>
             <Image
               style={styles.correosClicImage}
               source={require("../../../assets/icons_correos_mexico/correos_clic_regularLogo.png")}
@@ -371,14 +371,6 @@ export default function HomeUser() {
         <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
 
-      <TouchableOpacity
-      style={styles.customerServiceContainer}
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate('ProfileUser')}
-    >
-      <Text>Ver Perfil</Text>
-    </TouchableOpacity>
-
     </View >
   )
 }
@@ -530,7 +522,7 @@ const styles = StyleSheet.create({
     marginHorizontal: moderateScale(12),
     marginTop: moderateScale(20),
     flexDirection: "column",
-    marginBottom: moderateScale(52)
+    marginBottom: moderateScale(120),
   },
   textFeaturedProductContainer: {
     flexDirection: "row",
@@ -547,7 +539,7 @@ const styles = StyleSheet.create({
     height: moderateScale(60),
     backgroundColor: "#DE1484",
     position: "absolute",
-    bottom: moderateScale(52),
+    bottom: moderateScale(128),
     right: moderateScale(12),
     borderRadius: 100,
     alignItems: "center",

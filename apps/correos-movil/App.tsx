@@ -11,20 +11,21 @@ import ProfileUser from './screens/usuario/profile/ProfileUser';
 import UserDetailsScreen from './screens/usuario/profile/UserDetailsScreen';
 import { RootStackParamList } from './schemas/schemas';
 import MisCompras from './screens/usuario/mis-compras/MisCompras';
+import HomeTabs from './components/Tabs/HomeTabs';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='HomeUser'>
-        <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}}/>
+      <Stack.Navigator initialRouteName="Tabs">
         <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
-        <Stack.Screen name="RoutesView" component={RoutesView} />
-        <Stack.Screen name="Package" component={PackageScreen} />
-        <Stack.Screen name="ProfileUser" component={ProfileUser} />
-        <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} />
-        <Stack.Screen name="MisCompras" component={MisCompras} />
+        <Stack.Screen name="RoutesView" component={RoutesView} options={{headerShown: false}}/>
+        <Stack.Screen name="Package" component={PackageScreen} options={{headerShown: false}}/>
+        <Stack.Screen name="ProfileUser" component={ProfileUser} options={{headerShown: false}}/>
+        <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} options={{headerShown: false}}/>
+        <Stack.Screen name="MisCompras" component={MisCompras} options={{headerShown: false}}/>
+        <Stack.Screen name="Tabs" component={HomeTabs} options={{headerShown: false}}/>
       </Stack.Navigator>
     </NavigationContainer>
     

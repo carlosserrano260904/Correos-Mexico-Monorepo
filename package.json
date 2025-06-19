@@ -39,8 +39,10 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cloudinary": "^2.6.1",
+    "expo-camera": "~16.1.8",
     "expo-image-picker": "~16.1.4",
     "expo-location": "~18.1.5",
+    "expo-router": "~5.1.0",
     "lucide-react-native": "^0.515.0",
     "nodemailer": "^7.0.3",
     "pg": "^8.16.0",
@@ -51,6 +53,8 @@
     "react-native-paper": "^5.14.5",
     "react-native-reanimated": "3.17.4",
     "react-native-reanimated-carousel": "^4.0.2",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
     "react-native-size-matters": "^0.4.2",
     "react-native-vector-icons": "^10.2.0",
     "reflect-metadata": "^0.1.13",
@@ -58,11 +62,7 @@
     "streamifier": "^0.1.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.24",
-    "zod": "^3.25.64",
-    "react-native-screens": "~4.11.1",
-    "react-native-safe-area-context": "5.4.0",
-    "expo-router": "~5.1.0",
-    "expo-camera": "~16.1.8"
+    "zod": "^3.25.64"
   },
   "overrides": {
     "multer": "^2.0.0"

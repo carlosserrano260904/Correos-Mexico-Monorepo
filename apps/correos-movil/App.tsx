@@ -15,6 +15,9 @@ import HomeTabs from './components/Tabs/HomeTabs';
 import MainPageDistributor from './screens/repartidor/MainPageDistributor';
 import QRScannerScreen from './screens/repartidor/QRScannerScreen';
 import LoadPackages from './screens/repartidor/LoadPackages';
+import MisTarjetasScreen from './screens/usuario/MisTarjetas/MisTarjetasScreen';
+import AgregarTarjetaScreen from './screens/usuario/MisTarjetas/AgregarTarjetaScreen';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +35,8 @@ export default function App() {
         <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{headerShown: false}} />
         <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{headerShown: false}} />
         <Stack.Screen name="LoadPackages" component={LoadPackages} options={{headerShown: false}} />
+        <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen}   options={{ headerShown: false }} />
+        <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
     

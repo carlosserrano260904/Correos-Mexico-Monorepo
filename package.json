@@ -61,7 +61,8 @@
     "zod": "^3.25.64",
     "react-native-screens": "~4.11.1",
     "react-native-safe-area-context": "5.4.0",
-    "expo-router": "~5.1.0"
+    "expo-router": "~5.1.0",
+    "expo-camera": "~16.1.8"
   },
   "overrides": {
     "multer": "^2.0.0"

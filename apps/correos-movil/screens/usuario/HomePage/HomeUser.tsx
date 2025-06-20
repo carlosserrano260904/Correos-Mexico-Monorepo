@@ -1,13 +1,16 @@
-
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, Button } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { moderateScale } from 'react-native-size-matters';
 import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
 import { useNavigation } from '@react-navigation/native';
-import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
+import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
+import HomeTabs from '../../../components/Tabs/HomeTabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../schemas/schemas'; 
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const imageData = [
   { id: '1', name: 'Item 1', image: require('../../../assets/RegaloMama.png') },
@@ -91,12 +94,12 @@ const CorreosClicButton = () => {
     const layout = event.nativeEvent.layout;
     setButtonLayout(layout);
   };
-
+  const navigation = useNavigation();
   return (
     <View style={styles.correosClicButtonContainer}>
       <View onLayout={handleLayout}>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8} onPress={() => navigation.navigate('RoutesView')}>
             <Image
               style={styles.correosClicImage}
               source={require("../../../assets/icons_correos_mexico/correos_clic_regularLogo.png")}
@@ -124,7 +127,7 @@ const CorreosClicButton = () => {
 
 export default function HomeUser() {
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   const progress = useSharedValue<number>(0);
 
@@ -148,6 +151,7 @@ export default function HomeUser() {
   return (
     <View >
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
+        
         <View style={styles.headerContainer}>
 
           <View>
@@ -171,6 +175,14 @@ export default function HomeUser() {
         <View style={styles.searchBarContainer}>
           <SearchBarComponent />
         </View>
+
+        <View style={[styles.product]}>
+              <Button
+                title="Ir a Productos"
+                color="#007bff" // color azul
+                onPress={() => navigation.navigate('ProductsScreen')}
+              />
+       </View>
 
         <CorreosClicButton />
 
@@ -367,17 +379,9 @@ export default function HomeUser() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity onPress={() => navigation.navigate('RoutesView')} style={styles.customerServiceContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
         <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
-
-      <TouchableOpacity
-      style={styles.customerServiceContainer}
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate('ProfileUser')}
-    >
-      <Text>Ver Perfil</Text>
-    </TouchableOpacity>
 
     </View >
   )
@@ -530,7 +534,7 @@ const styles = StyleSheet.create({
     marginHorizontal: moderateScale(12),
     marginTop: moderateScale(20),
     flexDirection: "column",
-    marginBottom: moderateScale(52)
+    marginBottom: moderateScale(120),
   },
   textFeaturedProductContainer: {
     flexDirection: "row",
@@ -547,11 +551,15 @@ const styles = StyleSheet.create({
     height: moderateScale(60),
     backgroundColor: "#DE1484",
     position: "absolute",
-    bottom: moderateScale(52),
+    bottom: moderateScale(128),
     right: moderateScale(12),
     borderRadius: 100,
     alignItems: "center",
     justifyContent: "center"
+  },
+  product: {
+    margin: 10,
+    borderRadius: 10,
   }
 
 });

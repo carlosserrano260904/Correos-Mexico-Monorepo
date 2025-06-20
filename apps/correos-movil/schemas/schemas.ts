@@ -20,6 +20,7 @@ export type SchemaProfileUser = z.infer<typeof ProfileUserSchema>;
 export type RootStackParamList = {
   HomeUser: undefined;
   Product: undefined;
+  ProductsScreen: undefined;
   RoutesView: undefined;
   Package: undefined;
   ProfileUser: undefined;

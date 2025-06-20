@@ -11,6 +11,8 @@ import { ProfileModule } from './profile/profile.module';
 import { ProductsModule } from './products/products.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UploadImageModule } from './upload-image/upload-image.module';
+import { PostalService } from './postal/postal.service';
+import { PostalController } from './postal/postal.controller'; 
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { UploadImageModule } from './upload-image/upload-image.module';
     TransactionsModule,
     UploadImageModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, PostalController],
+  providers: [AppService, PostalService],
 })
 export class AppModule {}

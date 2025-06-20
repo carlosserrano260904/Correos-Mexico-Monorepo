@@ -99,7 +99,7 @@ const CorreosClicButton = () => {
     <View style={styles.correosClicButtonContainer}>
       <View onLayout={handleLayout}>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8} onPress={() => navigation.navigate('RoutesView')}>
+          <TouchableOpacity style={styles.correosClicButton} activeOpacity={0.8} onPress={() => navigation.navigate('ProductsScreen')}>
             <Image
               style={styles.correosClicImage}
               source={require("../../../assets/icons_correos_mexico/correos_clic_regularLogo.png")}
@@ -175,14 +175,6 @@ export default function HomeUser() {
         <View style={styles.searchBarContainer}>
           <SearchBarComponent />
         </View>
-
-        <View style={[styles.product]}>
-              <Button
-                title="Ir a Productos"
-                color="#007bff" // color azul
-                onPress={() => navigation.navigate('ProductsScreen')}
-              />
-       </View>
 
         <CorreosClicButton />
 
@@ -557,9 +549,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
-  product: {
-    margin: 10,
-    borderRadius: 10,
-  }
 
 });

@@ -1,12 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ProductView from './screens/usuario/e-commerce/ProductView';
 import RoutesView from './screens/repartidor/RoutesView';
 import PackageScreen from './screens/repartidor/PackageScreen';
-import HomeUser from './screens/usuario/HomePage/HomeUser';
 import ProductsScreen from './screens/producto/productosColor';
 import ProfileUser from './screens/usuario/profile/ProfileUser';
 import UserDetailsScreen from './screens/usuario/profile/UserDetailsScreen';
@@ -18,7 +15,7 @@ import QRScannerScreen from './screens/repartidor/QRScannerScreen';
 import LoadPackages from './screens/repartidor/LoadPackages';
 import MisTarjetasScreen from './screens/usuario/MisTarjetas/MisTarjetasScreen';
 import AgregarTarjetaScreen from './screens/usuario/MisTarjetas/AgregarTarjetaScreen';
-
+import PackagesListDistributor from './screens/repartidor/PackagesListDistributor';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -27,7 +24,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Tabs">
         <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
-        <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
+        <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{headerShown: false}} />
         <Stack.Screen name="RoutesView" component={RoutesView} options={{headerShown: false}}/>
         <Stack.Screen name="Package" component={PackageScreen} options={{headerShown: false}}/>
         <Stack.Screen name="ProfileUser" component={ProfileUser} options={{headerShown: false}}/>
@@ -39,6 +36,7 @@ export default function App() {
         <Stack.Screen name="LoadPackages" component={LoadPackages} options={{headerShown: false}} />
         <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen}   options={{ headerShown: false }} />
         <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
     

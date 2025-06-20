@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, Button } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
@@ -7,7 +7,10 @@ import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent
 import { useNavigation } from '@react-navigation/native';
 import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
 import HomeTabs from '../../../components/Tabs/HomeTabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../schemas/schemas'; 
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const imageData = [
   { id: '1', name: 'Item 1', image: require('../../../assets/RegaloMama.png') },
@@ -124,7 +127,7 @@ const CorreosClicButton = () => {
 
 export default function HomeUser() {
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   const progress = useSharedValue<number>(0);
 
@@ -148,6 +151,7 @@ export default function HomeUser() {
   return (
     <View >
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
+        
         <View style={styles.headerContainer}>
 
           <View>
@@ -171,6 +175,14 @@ export default function HomeUser() {
         <View style={styles.searchBarContainer}>
           <SearchBarComponent />
         </View>
+
+        <View style={[styles.product]}>
+              <Button
+                title="Ir a Productos"
+                color="#007bff" // color azul
+                onPress={() => navigation.navigate('ProductsScreen')}
+              />
+       </View>
 
         <CorreosClicButton />
 
@@ -544,6 +556,10 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     justifyContent: "center"
+  },
+  product: {
+    margin: 10,
+    borderRadius: 10,
   }
 
 });

@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
+  SafeAreaView,
   ScrollView,
   View,
   Text,
+  TextInput,
   StyleSheet,
   ActivityIndicator,
+  Image,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { idUser } from '../../../api/profile';
 import { obtenerMisCompras } from '../../../api/miscompras';
 import { MisComprasType } from '../../../schemas/schemas';
@@ -13,6 +19,7 @@ import { MisComprasType } from '../../../schemas/schemas';
 export default function MisCompras() {
   const [misCompras, setMisCompras] = useState<MisComprasType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -27,6 +34,25 @@ export default function MisCompras() {
     })();
   }, []);
 
+  const comprasFiltradas = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return misCompras;
+    return misCompras.filter(tx => {
+      const dateStr = new Date(tx.diaTransaccion)
+        .toLocaleDateString('es-MX', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+        .toLowerCase();
+      const matchDate = dateStr.includes(term);
+      const matchProduct = tx.contenidos.some(item =>
+        item.producto.nombre.toLowerCase().includes(term)
+      );
+      return matchDate || matchProduct;
+    });
+  }, [misCompras, searchTerm]);
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -36,83 +62,135 @@ export default function MisCompras() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {misCompras.map(tx => (
-        <View key={tx.id} style={styles.transactionCard}>
-          <Text style={styles.txHeader}>
-            Compra #{tx.id} — {new Date(tx.diaTransaccion).toLocaleString()}
-          </Text>
-          <Text style={styles.txTotal}>Total: ${tx.total}</Text>
-          <View style={styles.itemsContainer}>
+    <SafeAreaView style={styles.safe}>
+      {/* Solo barra de búsqueda */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <Icon name="magnify" size={20} color="#999" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor="#999"
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.filterBtn}
+          onPress={() => Alert.alert('Filtro', 'Aún no hay filtros avanzados')}
+        >
+          <Icon name="filter-variant" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Lista de compras */}
+      <ScrollView style={styles.container}>
+        {comprasFiltradas.map(tx => (
+          <View key={tx.id} style={styles.compraCard}>
+            <Text style={styles.fecha}>
+              {new Date(tx.diaTransaccion).toLocaleDateString('es-MX', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </Text>
+            <Text style={styles.total}>Total: ${tx.total}</Text>
+
             {tx.contenidos.map(item => (
-              <View key={item.id} style={styles.itemRow}>
-                <Text style={styles.itemName}>{item.producto.nombre}</Text>
-                <Text style={styles.itemDetail}>
-                  Cantidad: {item.cantidad}
-                </Text>
-                <Text style={styles.itemDetail}>
-                  Precio: ${item.precio}
-                </Text>
+              <View key={item.id} style={styles.productCard}>
+                <Image
+                  source={{ uri: item.producto.imagen }}
+                  style={styles.imagen}
+                />
+                <View style={styles.detalles}>
+                  <Text style={styles.nombre}>{item.producto.nombre}</Text>
+                  <Text style={styles.descripcion}>
+                    {item.producto.descripcion}
+                  </Text>
+                  <Text style={styles.texto}>
+                    Cantidad: {item.cantidad}
+                  </Text>
+                  <Text style={styles.texto}>Precio: ${item.precio}</Text>
+                </View>
               </View>
             ))}
           </View>
-        </View>
-      ))}
-      {misCompras.length === 0 && (
-        <Text style={styles.empty}>Aún no tienes compras.</Text>
-      )}
-    </ScrollView>
+        ))}
+        {comprasFiltradas.length === 0 && (
+          <Text style={styles.empty}>No hay compras que coincidan.</Text>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
+  safe: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  searchContainer: {
+    flexDirection: 'row',
+    padding: 8,
+    backgroundColor: '#DE1484',
     alignItems: 'center',
   },
-  transactionCard: {
-    marginBottom: 24,
-    padding: 16,
+  searchBox: {
+    flex: 1,
+    flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    // sombra en iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    // sombra en Android
-    elevation: 2,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    height: 36,
   },
-  txHeader: {
+  searchInput: {
+    flex: 1,
+    marginLeft: 6,
+    fontSize: 14,
+    color: '#333',
+  },
+  filterBtn: {
+    marginLeft: 8,
+    padding: 4,
+  },
+  container: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: '#f3f3f3',
+  },
+  compraCard: { marginBottom: 20 },
+  fecha: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  txTotal: {
-    fontSize: 14,
-    marginBottom: 8,
+  total: { fontSize: 14, marginBottom: 12 },
+  productCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  itemsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 8,
+  imagen: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#eee',
   },
-  itemRow: {
-    marginBottom: 8,
-  },
-  itemName: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  itemDetail: {
+  detalles: { flex: 1, justifyContent: 'center' },
+  nombre: { fontSize: 14, fontWeight: '600' },
+  descripcion: {
     fontSize: 12,
-    color: '#555',
+    color: '#888',
+    marginBottom: 4,
   },
+  texto: { fontSize: 12, color: '#555' },
   empty: {
     textAlign: 'center',
     color: '#777',

@@ -1,6 +1,6 @@
 import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas"
 
-export const myIp="192.168.0.149"
+export const myIp="192.168.0.121"
 
 export async function obtenerMisCompras(id:number):Promise<MisComprasType> {
         const url = `http://${myIp}:3000/api/transactions/${id}` 

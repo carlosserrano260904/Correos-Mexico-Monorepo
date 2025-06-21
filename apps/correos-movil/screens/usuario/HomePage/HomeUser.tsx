@@ -176,22 +176,6 @@ export default function HomeUser() {
           <SearchBarComponent />
         </View>
 
-        <View
-          style={{
-            margin: 20,
-            padding: 10,
-            backgroundColor: '#f0f0f0',
-            borderRadius: 10,
-            alignItems: 'center',
-          }}
-        >
-          <Button
-            title="Ir a Productos"
-            color="#007bff" // color azul
-            onPress={() => navigation.navigate('ProductsScreen')}
-          />
-        </View>
-
         <CorreosClicButton />
 
         <View id="carousel-component" dataSet={{ kind: "basic-layouts", name: "parallax" }}>

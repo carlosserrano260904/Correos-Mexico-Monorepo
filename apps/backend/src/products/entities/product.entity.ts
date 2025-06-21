@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Like } from '../../likes/entities/like.entity';
 
 @Entity()
 export class Product {
@@ -19,4 +20,15 @@ export class Product {
 
     @Column({type:'decimal'})
     precio:number
+
+    @Column({type:'varchar', nullable: true})
+    categoria:string
+
+    @Column({type:'varchar', nullable: true})
+    color:string
+
+    @OneToMany(() => Like, like => like.producto)
+    likes: Like[];
+
+    
 }

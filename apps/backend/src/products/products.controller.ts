@@ -45,23 +45,23 @@ export class ProductsController {
     return this.productsService.findOne(+id);
   }
 
-  @Patch(':id')
-  @ApiOperation({summary:'Actualizar un producto por su ID'})
-  @ApiParam({
-    name:'id',
-    type:Number,
-    description:'Identificador unico del producto',
-    example:2
-  })
-  @ApiResponse({
-    status:200,
-    description:'Producto actualizado correctamente',
-    type:UpdateProductDto
-  })
-  @ApiResponse({status:404,description:'Producto no encontrado'})
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
-  }
+@Patch(':id')
+@ApiOperation({ summary: 'Actualizar un producto por su ID' })
+@ApiParam({
+  name: 'id',
+  type: Number,
+  description: 'Identificador unico del producto',
+  example: 2
+})
+@ApiResponse({
+  status: 200,
+  description: 'Producto actualizado correctamente',
+  type: UpdateProductDto
+})
+@ApiResponse({ status: 404, description: 'Producto no encontrado' })
+update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  return this.productsService.update(+id, updateProductDto);
+}
 
   @Delete(':id')
    @ApiOperation({summary:'Eliminar un producto por su ID'})

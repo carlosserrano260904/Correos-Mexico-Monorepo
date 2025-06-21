@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
 import HomeTabs from '../../../components/Tabs/HomeTabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../schemas/schemas'; 
+import { RootStackParamList } from '../../../schemas/schemas';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -151,7 +151,7 @@ export default function HomeUser() {
   return (
     <View >
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
-        
+
         <View style={styles.headerContainer}>
 
           <View>
@@ -174,6 +174,22 @@ export default function HomeUser() {
 
         <View style={styles.searchBarContainer}>
           <SearchBarComponent />
+        </View>
+
+        <View
+          style={{
+            margin: 20,
+            padding: 10,
+            backgroundColor: '#f0f0f0',
+            borderRadius: 10,
+            alignItems: 'center',
+          }}
+        >
+          <Button
+            title="Ir a Productos"
+            color="#007bff" // color azul
+            onPress={() => navigation.navigate('ProductsScreen')}
+          />
         </View>
 
         <CorreosClicButton />

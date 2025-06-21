@@ -12,7 +12,9 @@ import { ProductsModule } from './products/products.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UploadImageModule } from './upload-image/upload-image.module';
 import { PostalService } from './postal/postal.service';
-import { PostalController } from './postal/postal.controller'; 
+import { PostalController } from './postal/postal.controller';
+import { UserModule } from './usuarios/user.module';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -29,7 +31,9 @@ import { PostalController } from './postal/postal.controller';
     ProfileModule,
     ProductsModule,
     TransactionsModule,
-    UploadImageModule
+    UploadImageModule,
+    UserModule,
+    LikesModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

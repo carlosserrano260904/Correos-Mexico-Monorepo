@@ -1,225 +1,175 @@
+// productosColor.tsx
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  TextInput,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, Headset, Mic, Search } from 'lucide-react-native';
-
-import { ProductoCard } from '../../components/Products/ProductoCardCompleto';
-
-type RootStackParamList = {
-  productos: undefined;
-  explore: undefined;
-};
-
-type ProductosScreenProp = NativeStackNavigationProp<RootStackParamList, 'productos'>;
-
-export type Article = {
-  id: number;
-  nombre: string;
-  precio: string;
-  imagen: any;
-  color: string[];
-  like: boolean;
-};
-
-function dividirEnFilas<T>(array: T[], tamaño: number): T[][] {
-  const resultado: T[][] = [];
-  for (let i = 0; i < array.length; i += tamaño) {
-    resultado.push(array.slice(i, i + tamaño));
-  }
-  return resultado;
-}
+import { ArrowLeft, Headset, Search } from 'lucide-react-native';
+import ProductListScreen, { Articulo } from '../../components/Products/ProductListScreen';
+import { RootStackParamList } from '../../schemas/schemas';
+import { moderateScale } from 'react-native-size-matters';
 
 export default function ProductsScreen() {
-  const navigation = useNavigation<ProductosScreenProp>();
-  const [articulos, setArticulos] = useState<Article[]>([]);
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  const navigation = useNavigation<NavigationProp>();
+
+  const [productos, setProductos] = useState<Articulo[]>([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Todos');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://192.168.1.69:3000/api/products')
-      .then((res) => res.json())
-      .then((data) => {
-        const productosConExtras = data.map((item: any) => ({
-          ...item,
-          color: ['#000'],
-          like: false,
-        }));
-        setArticulos(productosConExtras);
-      })
-      .catch((error) => {
+    const fetchProductos = async () => {
+      try {
+        const response = await fetch('http://192.168.1.69:3000/api/products');
+        const data = await response.json();
+        setProductos(data);
+      } catch (error) {
         console.error('Error al cargar productos:', error);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProductos();
   }, []);
 
-  const filas = dividirEnFilas(articulos, 2);
+  const categorias = ['Todos', ...Array.from(new Set(productos.map(p => p.categoria)))];
+  const [searchText, setSearchText] = useState('');
+
+  const productosFiltrados =
+    categoriaSeleccionada === 'Todos'
+      ? productos
+      : productos.filter(p => p.categoria === categoriaSeleccionada);
 
   return (
-    <View style={styles.contenedor}>
+    <SafeAreaView style={styles.contenedor}>
       <View style={[styles.fila, styles.encabezado]}>
-        <Pressable onPress={() => navigation.navigate('explore')}>
-          <ArrowLeft size={28} color='gray' />
-        </Pressable>
+        <View style={[{display: 'flex', flexDirection: 'column'  ,alignItems: 'center', justifyContent: 'center' }]}>
+          <Pressable onPress={() => navigation.navigate('HomeUser')}>
+            <ArrowLeft size={28} color="gray" />
+          </Pressable>
+        </View>
 
-        <View style={[styles.fila, styles.buscador]}>
+
+        <View style={[styles.buscador]}>
           <View style={styles.iconoBuscar}>
-            <Search size={28} color="gray" />
+            <Search size={20} color="gray" />
           </View>
           <TextInput
             style={styles.entradaBuscar}
             placeholder="Buscar un producto..."
             placeholderTextColor="#999"
+            onChangeText={setSearchText}
           />
-          <View style={styles.iconoAudio}>
-            <Mic size={28} color="gray" />
-          </View>
         </View>
       </View>
 
-      <View style={styles.fila}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {['Inicio', 'Ropa', 'Electronicos', 'Productos destacados'].map((filtro, index) => (
-            <Pressable key={index} style={styles.botonFiltro}>
-              <Text style={styles.textoFiltro}>{filtro}</Text>
+      <Text style={styles.titulo}>Productos</Text>
+
+      <View style={[styles.filtrosContainer]}>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {categorias.map((categoria, index) => (
+            <Pressable
+              key={index}
+              style={[
+                styles.botonFiltro,
+                categoria === categoriaSeleccionada && styles.botonFiltroActivo,
+              ]}
+              onPress={() => setCategoriaSeleccionada(categoria)}
+            >
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[
+                  styles.textoFiltro,
+                  categoria === categoriaSeleccionada && styles.textoFiltroActivo,
+                ]}
+              >
+                {categoria}
+              </Text>
             </Pressable>
           ))}
         </ScrollView>
       </View>
 
-      <View style={[styles.seccionProductos, styles.columna]}>
-        <View style={[styles.columna, styles.encabezadoProductos]}>
-          <Text style={styles.textoPrincipal}>Productos destacados</Text>
-          <Text style={styles.textoSecundario}>{articulos.length} artículos</Text>
-        </View>
-
-        <View style={styles.contenedorPrincipal}>
-          {loading ? (
-            <ActivityIndicator size="large" color="#de1484" />
-          ) : (
-            <ScrollView contentContainerStyle={styles.scrollContenido} showsVerticalScrollIndicator={false}>
-              {filas.map((fila, filaIndex) => (
-                <View key={filaIndex} style={[styles.fila, styles.filaProductos]}>
-                  {fila.map((item) => (
-                    <ProductoCard key={item.id} articulo={item} />
-                  ))}
-                  {fila.length < 2 && <View style={{ flex: 1 }} />}
-                </View>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        <View style={styles.botonSoporte}>
-          <Headset size={30} color="white" />
-        </View>
+      <View style={styles.listContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#000" />
+        ) : (
+          <ProductListScreen productos={productosFiltrados} search={searchText} />
+        )}
       </View>
-    </View>
+
+      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
+        <Headset color={"#fff"} size={moderateScale(24)} />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedor: {
-    backgroundColor: '#fff',
-    flex: 1,
-    padding: '5%',
-    marginTop: 40,
+  contenedor: { marginTop: 40, flex: 1, backgroundColor: '#fff' },
+  fila: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 },
+  encabezado: { marginTop: 10, marginBottom: 10, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  titulo: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 16, marginVertical: 8 },
+  filtrosContainer: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  fila: {
-    flexDirection: 'row',
-  },
-  columna: {
-    flexDirection: 'column',
-  },
-  encabezado: {
-    justifyContent: 'space-between',
+  fila: { display: 'flex', flexDirection: 'row' },
+  botonFiltro: {
+    marginRight: 6,
+    backgroundColor: '#eee',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 16,
     alignItems: 'center',
-    gap: 25,
-    marginBottom: 10,
+    justifyContent: 'center',
+    maxWidth: 100,
+    height: 50,
+  },
+  botonFiltroActivo: { backgroundColor: '#DE1484' },
+  textoFiltro: { fontSize: 13, color: '#333' },
+  textoFiltroActivo: { color: 'white', fontWeight: 'bold' },
+  listContainer: { flex: 1, padding: 8, marginBottom: 50, },
+  customerServiceContainer: {
+    width: moderateScale(60),
+    height: moderateScale(60),
+    backgroundColor: "#DE1484",
+    position: "absolute",
+    bottom: moderateScale(128),
+    right: moderateScale(12),
+    borderRadius: 100,
+    alignItems: "center",
+    justifyContent: "center"
   },
   buscador: {
     flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    marginTop: 10,
+    borderRadius: 20,
+    height: 40,
     alignItems: 'center',
+    marginLeft: 16,
   },
   entradaBuscar: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
-    width: 200,
-    height: 50,
-    fontSize: 15,
-    paddingHorizontal: 15,
-    color: '#333',
-  },
-  iconoBuscar: {
-    backgroundColor: '#f3f4f6',
-    width: 40,
-    height: 50,
-    borderTopLeftRadius: 25,
-    borderBottomLeftRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  iconoAudio: {
-    backgroundColor: '#f3f4f6',
-    width: 40,
-    height: 50,
-    borderTopRightRadius: 25,
-    borderBottomRightRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  botonFiltro: {
-    backgroundColor: '#de1484',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-    height: 50,
-    margin: 5,
-    borderRadius: 8,
-  },
-  textoFiltro: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  seccionProductos: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  encabezadoProductos: {
-    marginBottom: 20,
-  },
-  textoPrincipal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  textoSecundario: {
     fontSize: 14,
-    color: '#666',
+    paddingHorizontal: 12,
+    color: '#333',
   },
-  contenedorPrincipal: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContenido: {
-    flexGrow: 1,
-    gap: 10,
-    paddingBottom: '5%',
-  },
-  filaProductos: {
-    width: '100%',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  botonSoporte: {
-    position: 'absolute',
-    backgroundColor: '#de1484',
-    width: 60,
-    height: 60,
-    borderRadius: 60,
-    bottom: '5%',
-    right: '0%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  iconoBuscar: { paddingHorizontal: 8 },
 });

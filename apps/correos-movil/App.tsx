@@ -16,6 +16,7 @@ import LoadPackages from './screens/repartidor/LoadPackages';
 import MisTarjetasScreen from './screens/usuario/MisTarjetas/MisTarjetasScreen';
 import AgregarTarjetaScreen from './screens/usuario/MisTarjetas/AgregarTarjetaScreen';
 import PackagesListDistributor from './screens/repartidor/PackagesListDistributor';
+import HomeUser from './screens/usuario/HomePage/HomeUser';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,7 +24,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Tabs">
-        <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
+        <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}} />
+        <Stack.Screen name="ProductView" component={ProductView}/>
         <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{headerShown: false}} />
         <Stack.Screen name="RoutesView" component={RoutesView} options={{headerShown: false}}/>
         <Stack.Screen name="Package" component={PackageScreen} options={{headerShown: false}}/>

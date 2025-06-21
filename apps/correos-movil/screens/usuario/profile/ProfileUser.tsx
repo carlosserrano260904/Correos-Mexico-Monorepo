@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
+  SafeAreaView,
   ScrollView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation,useIsFocused } from '@react-navigation/native';
@@ -58,52 +61,57 @@ export default function ProfileUser() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Cabecera "Mi perfil" */}
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => {
-          if (usuario) {
-            navigation.navigate('UserDetailsScreen', { user: usuario });
-            console.log(usuario)
-          }
-        }}
-      >
-        <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
-        <View style={styles.textContainer}>
-          <Text style={styles.name}>
-            {usuario?.nombre} {usuario?.apellido}
-          </Text>
-          <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>Mi perfil</Text>
-            <Icon name="chevron-right" size={16} style={styles.chevron} />
+    <SafeAreaView style={styles.safe}>
+      <ScrollView style={styles.container}>
+        {/* Cabecera "Mi perfil" */}
+        <TouchableOpacity
+          style={styles.header}
+          onPress={() => {
+            if (usuario) {
+              navigation.navigate('UserDetailsScreen', { user: usuario });
+              console.log(usuario)
+            }
+          }}
+        >
+          <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
+          <View style={styles.textContainer}>
+            <Text style={styles.name}>
+              {usuario?.nombre} {usuario?.apellido}
+            </Text>
+            <View style={styles.subtitleRow}>
+              <Text style={styles.subtitle}>Mi perfil</Text>
+              <Icon name="chevron-right" size={16} style={styles.chevron} />
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
-      {sections.map((sec, si) => (
-        <View key={si} style={styles.section}>
-          <Text style={styles.sectionTitle}>{sec.title}</Text>
-          {sec.items.map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.item}
-              onPress={() => navigation.navigate(item.to)} // ← aquí
-            >
-              <View style={styles.itemLeft}>
-                <Icon name={item.icon} size={20} />
-                <Text style={styles.itemText}>{item.label}</Text>
-              </View>
-              <Icon name="chevron-right" size={20} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      ))}
-    </ScrollView>
+        {sections.map((sec, si) => (
+          <View key={si} style={styles.section}>
+            <Text style={styles.sectionTitle}>{sec.title}</Text>
+            {sec.items.map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.item}
+                onPress={() => navigation.navigate(item.to)} // ← aquí
+              >
+                <View style={styles.itemLeft}>
+                  <Icon name={item.icon} size={20} />
+                  <Text style={styles.itemText}>{item.label}</Text>
+                </View>
+                <Icon name="chevron-right" size={20} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',

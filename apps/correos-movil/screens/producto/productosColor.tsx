@@ -17,6 +17,7 @@ import { ArrowLeft, Headset, Search } from 'lucide-react-native';
 import ProductListScreen, { Articulo } from '../../components/Products/ProductListScreen';
 import { RootStackParamList } from '../../schemas/schemas';
 import { moderateScale } from 'react-native-size-matters';
+import { StatusBar } from 'react-native';
 
 export default function ProductsScreen() {
   type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -51,6 +52,11 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={styles.contenedor}>
+    <StatusBar
+        backgroundColor="#fff" // color de fondo del área del notch (Android)
+        barStyle="dark-content"  // color del texto (light-content o dark-content)
+        translucent={false}
+      />
       <View style={[styles.fila, styles.encabezado]}>
         <View style={[{display: 'flex', flexDirection: 'column'  ,alignItems: 'center', justifyContent: 'center' }]}>
           <Pressable onPress={() => navigation.navigate('HomeUser')}>
@@ -120,12 +126,12 @@ export default function ProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  contenedor: { marginTop: 40, flex: 1, backgroundColor: '#fff' },
+  contenedor: { flex: 1, backgroundColor: '#fff', paddingHorizontal:5 },
   fila: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 },
   encabezado: { marginTop: 10, marginBottom: 10, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   titulo: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 16, marginVertical: 8 },
   filtrosContainer: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 15,
     paddingVertical: 4,
   },
   fila: { display: 'flex', flexDirection: 'row' },
@@ -143,14 +149,14 @@ const styles = StyleSheet.create({
   botonFiltroActivo: { backgroundColor: '#DE1484' },
   textoFiltro: { fontSize: 13, color: '#333' },
   textoFiltroActivo: { color: 'white', fontWeight: 'bold' },
-  listContainer: { flex: 1, padding: 8, marginBottom: 50, },
+  listContainer: { flex: 1, paddingTop: 10, marginBottom: 0, },
   customerServiceContainer: {
     width: moderateScale(60),
     height: moderateScale(60),
     backgroundColor: "#DE1484",
     position: "absolute",
-    bottom: moderateScale(128),
-    right: moderateScale(12),
+    bottom: '5%',
+    right: '5%',
     borderRadius: 100,
     alignItems: "center",
     justifyContent: "center"

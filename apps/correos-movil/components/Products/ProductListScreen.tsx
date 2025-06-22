@@ -129,6 +129,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         numColumns={numCols}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.listContentContainer}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -144,6 +145,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3,
+    maxWidth: '48%'
   },
   imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
   estadoProducto: {
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 8,
   },
-  iconosAccion: { flexDirection: 'row' },
+  iconosAccion: { flexDirection: 'row', gap: 10 },
   datosProducto: { padding: 8 },
   textoNombre: { fontSize: 14, marginBottom: 4 },
   textoPrecio: { fontSize: 16, fontWeight: 'bold' },

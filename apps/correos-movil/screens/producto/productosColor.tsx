@@ -17,6 +17,9 @@ import { ArrowLeft, Headset, Search } from 'lucide-react-native';
 import ProductListScreen, { Articulo } from '../../components/Products/ProductListScreen';
 import { RootStackParamList } from '../../schemas/schemas';
 import { moderateScale } from 'react-native-size-matters';
+import Constants from 'expo-constants';
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 export default function ProductsScreen() {
   type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -29,7 +32,7 @@ export default function ProductsScreen() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch('http://192.168.1.69:3000/api/products');
+        const response = await fetch(`http://${IP}:3000/api/products`);
         const data = await response.json();
         setProductos(data);
       } catch (error) {
@@ -53,7 +56,7 @@ export default function ProductsScreen() {
     <SafeAreaView style={styles.contenedor}>
       <View style={[styles.fila, styles.encabezado]}>
         <View style={[{display: 'flex', flexDirection: 'column'  ,alignItems: 'center', justifyContent: 'center' }]}>
-          <Pressable onPress={() => navigation.navigate('HomeUser')}>
+          <Pressable onPress={() => navigation.goBack()}>
             <ArrowLeft size={28} color="gray" />
           </Pressable>
         </View>

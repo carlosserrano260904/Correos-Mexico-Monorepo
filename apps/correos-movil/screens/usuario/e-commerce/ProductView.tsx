@@ -7,13 +7,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight} from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import DropdownComponent from "../../../components/DropDown/DropDownComponent";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import Constants from 'expo-constants';
+
 
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+
 function ProductView() {
+	const navigation = useNavigation();
 	const route = useRoute();
 	// Extrae el ID del producto de los parámetros de la ruta
 	const { id } = route.params as { id: string }; // Asumiendo que el ID puede ser una cadena ahora
@@ -36,7 +41,7 @@ function ProductView() {
 				// Para iOS Simulator, 'localhost' generalmente funciona, pero usar tu IP real es más consistente.
 				// Asegúrate también que tu servidor backend esté escuchando en '0.0.0.0' para aceptar conexiones externas,
 				// no solo en '127.0.0.1' (localhost).
-				const API_BASE_URL = 'http://192.168.1.69:3000'; // <<--- VERIFICA Y MODIFICA ESTA LÍNEA SEGÚN TU ENTORNO ---
+				const API_BASE_URL = `http://${IP}:3000`; // <<--- VERIFICA Y MODIFICA ESTA LÍNEA SEGÚN TU ENTORNO ---
 
 				// Implementar un controlador de Abort para el tiempo de espera
 				const controller = new AbortController();
@@ -253,7 +258,7 @@ function ProductView() {
 				onPress={onPressPagination}
 			/>
 
-				<TouchableOpacity style={styles.xmarkerContainer}>
+				<TouchableOpacity  style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
 					<FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black"/>
 				</TouchableOpacity>
 
@@ -381,7 +386,7 @@ const styles = StyleSheet.create({
 		position: "absolute", 
 		zIndex: 10, 
 		top: moderateScale(40), 
-		left: moderateScale(20),
+		left: moderateScale(12),
 		backgroundColor: "rgba(255,255,255,0.8)",
 		borderRadius: "100%",
 		width: moderateScale(24),
@@ -393,7 +398,7 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		zIndex: 11,
 		bottom: moderateScale(20),
-		right: moderateScale(20),
+		right: moderateScale(12),
 		backgroundColor: "rgba(255,255,255,0.8)",
 		borderRadius: "100%",
 		width: moderateScale(50),

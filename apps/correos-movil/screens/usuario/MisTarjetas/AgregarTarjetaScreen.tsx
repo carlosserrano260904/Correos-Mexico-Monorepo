@@ -1,10 +1,8 @@
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function AgregarTarjetaScreen() {
-  const router = useRouter();
 
   const [numero, setNumero] = useState('');
   const [nombre, setNombre] = useState('');
@@ -14,14 +12,13 @@ export default function AgregarTarjetaScreen() {
   const handleAddCard = () => {
     // Aquí puedes manejar el guardado/envío de datos
     console.log({ numero, nombre, fecha, cvv });
-    router.back();
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity>
           <Icon name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Agregar Tarjetas</Text>

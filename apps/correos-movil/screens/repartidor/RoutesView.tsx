@@ -4,6 +4,9 @@ import { ScrollView, StyleSheet, Text, View, Image, TouchableOpacity } from 'rea
 import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import Constants from 'expo-constants';
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 //imagen del DOT de la ubicacion del usuario
 const carImage = require('../../assets/icon_maps/flecha-gps.png')
@@ -63,7 +66,7 @@ export default function RoutesView() {
 
     const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
       try {
-        const response = await axios.post('http://192.168.0.170:3000/api/routes', {
+        const response = await axios.post(`http://${IP}:3000/api/routes`, {
           origin,
           destination,
           intermediates

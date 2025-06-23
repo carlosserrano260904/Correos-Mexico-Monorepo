@@ -11,10 +11,11 @@ import {
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation,useIsFocused } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { idUser, usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { moderateScale } from 'react-native-size-matters';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
@@ -24,16 +25,16 @@ export default function ProfileUser() {
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
-    if (!isFocused) return;  
+    if (!isFocused) return;
     (async () => {
       try {
         const perfil = await usuarioPorId(idUser);
         setUsuario(perfil);
       } catch {
-        console.log('No se ha podido cargar el perfil aqui componente ');
+        console.log('No se ha podido cargar el perfil');
       }
     })();
-  }, [isFocused]); // <-- mejor dejar el array vacío para que no itere constantemente
+  }, [isFocused]);
 
   const sections = [
     {
@@ -61,114 +62,139 @@ export default function ProfileUser() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.container}>
-        {/* Cabecera "Mi perfil" */}
-        <TouchableOpacity
-          style={styles.header}
-          onPress={() => {
-            if (usuario) {
-              navigation.navigate('UserDetailsScreen', { user: usuario });
-              console.log(usuario)
-            }
-          }}
-        >
-          <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
-          <View style={styles.textContainer}>
-            <Text style={styles.name}>
-              {usuario?.nombre} {usuario?.apellido}
-            </Text>
-            <View style={styles.subtitleRow}>
-              <Text style={styles.subtitle}>Mi perfil</Text>
-              <Icon name="chevron-right" size={16} style={styles.chevron} />
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#E6007A" />
+      <SafeAreaView style={styles.headerSafe}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            activeOpacity={0.8}
+            onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
+          >
+            <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
+            <View style={styles.textContainer}>
+              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                {usuario?.nombre} {usuario?.apellido}
+              </Text>
+              <View style={styles.subtitleRow}>
+                <Text style={styles.subtitle}>Mi perfil</Text>
+                <Icon
+                  name="chevron-right"
+                  size={16}
+                  color="#fff"
+                  style={{ marginLeft: moderateScale(4) }}
+                />
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
-        {sections.map((sec, si) => (
-          <View key={si} style={styles.section}>
-            <Text style={styles.sectionTitle}>{sec.title}</Text>
-            {sec.items.map((item, i) => (
-              <TouchableOpacity
-                key={i}
-                style={styles.item}
-                onPress={() => navigation.navigate(item.to)} // ← aquí
-              >
-                <View style={styles.itemLeft}>
-                  <Icon name={item.icon} size={20} />
-                  <Text style={styles.itemText}>{item.label}</Text>
-                </View>
-                <Icon name="chevron-right" size={20} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+      <SafeAreaView style={styles.contentSafe}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator
+        >
+          {sections.map((sec, si) => (
+            <View key={si} style={styles.section}>
+              <Text style={styles.sectionTitle}>{sec.title}</Text>
+              {sec.items.map((item, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.item}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate(item.to)}
+                >
+                  <View style={styles.itemLeft}>
+                    <Icon name={item.icon} size={20} />
+                    <Text style={styles.itemText}>{item.label}</Text>
+                  </View>
+                  <Icon name="chevron-right" size={20} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  headerSafe: {
+    backgroundColor: '#E6007A',
   },
-  container: { flex: 1, backgroundColor: '#fff' },
+  contentSafe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   header: {
     flexDirection: 'row',
-    backgroundColor: '#E6007A',
-    padding: 16,
     alignItems: 'center',
+    marginTop:20,
+    padding: moderateScale(16),
+  },
+  profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: moderateScale(48),
+    height: moderateScale(48),
+    borderRadius: moderateScale(24),
     backgroundColor: '#fff',
   },
   textContainer: {
-    marginLeft: 12,
+    marginLeft: moderateScale(12),
     flex: 1,
   },
   name: {
-    fontSize: 18,
+    fontSize: moderateScale(18),
     fontWeight: 'bold',
+    color: '#fff',
   },
   subtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: moderateScale(4),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
+    color: '#fff',
   },
-  chevron: {
-    marginLeft: 4,
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(24),
+    paddingBottom: moderateScale(120),
   },
   section: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+    marginBottom: moderateScale(24),
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: moderateScale(12),
   },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
-    padding: 14,
-    marginBottom: 10,
-    borderRadius: 10,
+    padding: moderateScale(14),
+    marginBottom: moderateScale(10),
+    borderRadius: moderateScale(10),
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   itemText: {
-    fontSize: 16,
-    marginLeft: 10,
+    fontSize: moderateScale(16),
+    marginLeft: moderateScale(10),
   },
 });

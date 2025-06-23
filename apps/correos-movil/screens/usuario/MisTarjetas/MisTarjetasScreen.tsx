@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -9,10 +9,9 @@ const tarjetas = [
 ];
 
 export default function MistarjetasScreen() {
-  const router = useRouter();
+  
 
   const showTarjetas = () => {
-    router.push('./AgregarTarjetaScreen');  // <-- usa la ruta del archivo .js
   }
 
 

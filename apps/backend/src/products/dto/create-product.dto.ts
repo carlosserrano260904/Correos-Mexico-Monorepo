@@ -30,4 +30,7 @@ export class CreateProductDto {
     @IsNotEmpty({message:'El color del producto es necesaria'})
     @IsString({message:'Color no valido'})
     color:string
+
+
+    imagen:string
 }

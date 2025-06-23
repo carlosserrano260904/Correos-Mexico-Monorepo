@@ -40,7 +40,7 @@ export default function ProfileUser() {
     {
       title: 'Cuenta',
       items: [
-        { label: 'Mis pedidos', icon: 'box', to: 'Pedidos' },
+        { label: 'Publicar producto', icon: 'box', to: 'PublicarProducto' },
         { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
       ],
     },
@@ -54,7 +54,7 @@ export default function ProfileUser() {
     {
       title: 'Políticas',
       items: [
-        { label: 'Uso', icon: 'file-text', to: 'Uso' },
+        { label: 'Prueba productos', icon: 'file-text', to: 'Productos' },
         { label: 'Privacidad', icon: 'file-text', to: 'Privacidad' },
         { label: 'Devoluciones', icon: 'file-text', to: 'Devoluciones' },
       ],
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop:20,
+    marginTop:30,
     padding: moderateScale(16),
   },
   profileButton: {

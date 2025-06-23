@@ -12,9 +12,10 @@ export class ProductsService {
   ){
 
   }
-  create(createProductDto: CreateProductDto) {
-    this.productRepository.save(createProductDto)
-    return 'Producto creado correctamente';
+  async create(createProductDto: CreateProductDto,url:string) {
+    createProductDto.imagen = url
+   
+    return  await  this.productRepository.save(createProductDto);
   }
 
   findAll() {

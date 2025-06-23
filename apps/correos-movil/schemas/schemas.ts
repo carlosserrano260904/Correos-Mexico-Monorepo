@@ -24,6 +24,8 @@ export type RootStackParamList = {
   RoutesView: undefined;
   Package: undefined;
   ProfileUser: undefined;
+  PublicarProducto:undefined
+  PackagesList:undefined
   UserDetailsScreen: { user: SchemaProfileUser };
   MisCompras: undefined;
 };

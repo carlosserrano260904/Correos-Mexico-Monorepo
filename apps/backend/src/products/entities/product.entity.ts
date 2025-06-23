@@ -12,7 +12,7 @@ export class Product {
     @Column({type:'varchar',length:120})
     descripcion:string
 
-    @Column({type:'varchar',length:120,default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
+    @Column({type:'varchar',length:250,default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
     imagen:string
 
     @Column({type:'int'})

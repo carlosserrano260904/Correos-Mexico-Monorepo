@@ -1,18 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService,
+    private readonly uploadImageService: UploadImageService
+  ) {}
 
   @Post()
   @ApiOperation({summary:'Creacion de un nuevo producto'})
   @ApiResponse({status:201,description:'Producto creado correctamente'})
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+   @UseInterceptors(FileInterceptor('imagen'))
+  async create(@Body() createProductDto: CreateProductDto,
+  @UploadedFile() file: Express.Multer.File,
+) {
+    const url = await this.uploadImageService.uploadFile(file);
+    return this.productsService.create(createProductDto,url);
   }
 
   @Get()

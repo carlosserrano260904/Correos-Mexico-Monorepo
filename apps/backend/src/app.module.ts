@@ -13,6 +13,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { UploadImageModule } from './upload-image/upload-image.module';
 import { PostalService } from './postal/postal.service';
 import { PostalController } from './postal/postal.controller'; 
+import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/guias_trazabilidad.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { PostalController } from './postal/postal.controller';
     ProfileModule,
     ProductsModule,
     TransactionsModule,
-    UploadImageModule
+    UploadImageModule,
+    GuiasTrazabilidadModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

@@ -12,8 +12,10 @@ import { ProductsModule } from './products/products.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UploadImageModule } from './upload-image/upload-image.module';
 import { PostalService } from './postal/postal.service';
-import { PostalController } from './postal/postal.controller'; 
 import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/guias_trazabilidad.module';
+import { PostalController } from './postal/postal.controller';
+import { UserModule } from './usuarios/user.module';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/gui
     TransactionsModule,
     UploadImageModule,
     GuiasTrazabilidadModule
+    UserModule,
+    LikesModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

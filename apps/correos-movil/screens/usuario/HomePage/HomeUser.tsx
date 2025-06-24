@@ -6,9 +6,8 @@ import { moderateScale } from 'react-native-size-matters';
 import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
 import { useNavigation } from '@react-navigation/native';
 import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
-import HomeTabs from '../../../components/Tabs/HomeTabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../schemas/schemas'; 
+import { RootStackParamList } from '../../../schemas/schemas';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -151,7 +150,7 @@ export default function HomeUser() {
   return (
     <View >
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
-        
+
         <View style={styles.headerContainer}>
 
           <View>

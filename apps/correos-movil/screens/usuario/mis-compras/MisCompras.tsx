@@ -1,3 +1,4 @@
+//MisCompras.tsx
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   SafeAreaView,
@@ -10,6 +11,8 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { idUser } from '../../../api/profile';
@@ -125,7 +128,9 @@ export default function MisCompras() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   searchContainer: {
     flexDirection: 'row',

@@ -12,9 +12,10 @@ export class ProductsService {
   ){
 
   }
-  create(createProductDto: CreateProductDto) {
-    this.productRepository.save(createProductDto)
-    return 'Producto creado correctamente';
+  async create(createProductDto: CreateProductDto,url:string) {
+    createProductDto.imagen = url
+   
+    return  await  this.productRepository.save(createProductDto);
   }
 
   findAll() {
@@ -40,6 +41,8 @@ export class ProductsService {
     producto.imagen = updateProductDto.imagen
     producto.inventario = updateProductDto.inventario
     producto.precio = updateProductDto.precio
+    producto.categoria = updateProductDto.categoria;
+    producto.color = updateProductDto.color;
     await this.productRepository.save(producto)
     return `Producto actualizado correctamente`;
   }

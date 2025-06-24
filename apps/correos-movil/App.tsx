@@ -16,6 +16,9 @@ import LoadPackages from './screens/repartidor/LoadPackages';
 import MisTarjetasScreen from './screens/usuario/MisTarjetas/MisTarjetasScreen';
 import AgregarTarjetaScreen from './screens/usuario/MisTarjetas/AgregarTarjetaScreen';
 import PackagesListDistributor from './screens/repartidor/PackagesListDistributor';
+import HomeUser from './screens/usuario/HomePage/HomeUser';
+import PrublicarProducto from './screens/usuario/vendedor/PublicarProducto';
+import Productos from './screens/usuario/vendedor/Productos';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,7 +26,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Tabs">
-        <Stack.Screen name="Product" component={ProductView} options={{headerShown: false}} />
+        <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}} />
+        <Stack.Screen name="ProductView" component={ProductView} options={{headerShown: false}}/>
         <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{headerShown: false}} />
         <Stack.Screen name="RoutesView" component={RoutesView} options={{headerShown: false}}/>
         <Stack.Screen name="Package" component={PackageScreen} options={{headerShown: false}}/>
@@ -37,6 +41,8 @@ export default function App() {
         <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen}   options={{ headerShown: false }} />
         <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false}} />
+        <Stack.Screen name="PublicarProducto" component={PrublicarProducto} options={{headerShown: false}} />
+        <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
     

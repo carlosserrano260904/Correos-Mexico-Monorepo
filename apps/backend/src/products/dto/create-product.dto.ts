@@ -20,4 +20,17 @@ export class CreateProductDto {
     @IsNotEmpty({message:'El precion del producto es obligatorio'})
     @IsNumber({maxDecimalPlaces:2},{message:'Precio no valido'})
     precio:number
+
+    @ApiProperty({example:'Blancos',description:'El tipo de producto que es'})
+    @IsNotEmpty({message:'La categoria del producto es necesaria'})
+    @IsString({message:'Categoria no valida'})
+    categoria:string
+
+    @ApiProperty({example:'#000',description:'El color es'})
+    @IsNotEmpty({message:'El color del producto es necesaria'})
+    @IsString({message:'Color no valido'})
+    color:string
+
+
+    imagen:string
 }

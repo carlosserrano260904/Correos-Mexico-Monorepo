@@ -1,6 +1,4 @@
 //MisCompras.tsx
-// para hacer funcionar esta parte debes ir a api>miscompras.ts y cambiar la ip de la linea 4 por la de tu maquina
-// para ver tu ip ve a cmd ejecuta el comando ipconfig y sera la que diga ipv4: algo como 192.168.1.69
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   SafeAreaView,

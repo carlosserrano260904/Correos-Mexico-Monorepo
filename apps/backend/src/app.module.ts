@@ -33,7 +33,7 @@ import { LikesModule } from './likes/likes.module';
     ProductsModule,
     TransactionsModule,
     UploadImageModule,
-    GuiasTrazabilidadModule
+    GuiasTrazabilidadModule,
     UserModule,
     LikesModule
   ],

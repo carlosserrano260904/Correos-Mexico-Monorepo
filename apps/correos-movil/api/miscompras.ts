@@ -1,7 +1,7 @@
 // api/miscompras.ts
 import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
 
-export const myIp = "192.168.0.167";
+export const myIp = "192.168.0.125";
 
 
 export async function obtenerMisCompras(id: number): Promise<MisComprasType[]> {

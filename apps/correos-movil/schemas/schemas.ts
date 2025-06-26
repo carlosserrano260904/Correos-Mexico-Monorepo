@@ -1,4 +1,4 @@
-// schemas/schemas.ts
+  // schemas/schemas.ts
 import { z } from 'zod';
 
 // Perfil de usuario
@@ -39,6 +39,7 @@ export const ProductoSchema = z.object({
   nombre: z.string(),
   descripcion: z.string(),
   imagen: z.string(),
+  categoria: z.string().nullable(),
   inventario: z.number(),
   precio: z.string(),
 });

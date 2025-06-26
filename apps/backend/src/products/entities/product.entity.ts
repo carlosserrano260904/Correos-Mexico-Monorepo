@@ -22,7 +22,7 @@ export class Product {
     precio:number
 
     @Column({type:'varchar', nullable: true})
-    categoria:string
+    categoria:string 
 
     @Column({type:'varchar', nullable: true})
     color:string

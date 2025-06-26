@@ -28,6 +28,9 @@ export type RootStackParamList = {
   PackagesList:undefined
   UserDetailsScreen: { user: SchemaProfileUser };
   MisCompras: undefined;
+  PackagesListDistributor: undefined;
+  PackageScreen: { package: any };
+
 };
 
 // Producto y contenidos

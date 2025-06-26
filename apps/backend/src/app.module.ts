@@ -16,6 +16,7 @@ import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/gui
 import { PostalController } from './postal/postal.controller';
 import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
+import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
 
 @Module({
   imports: [
@@ -35,7 +36,9 @@ import { LikesModule } from './likes/likes.module';
     UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,
-    LikesModule
+    LikesModule,
+    AsignacionPaquetesModule
+
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

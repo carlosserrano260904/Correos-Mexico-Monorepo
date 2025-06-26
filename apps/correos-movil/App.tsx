@@ -26,6 +26,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Tabs">
+        <Stack.Screen name="PackagesListDistributor" component={PackagesListDistributor} />
+        <Stack.Screen name="PackageScreen" component={PackageScreen} options={{headerShown: false}}/>
         <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}} />
         <Stack.Screen name="ProductView" component={ProductView} options={{headerShown: false}}/>
         <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{headerShown: false}} />

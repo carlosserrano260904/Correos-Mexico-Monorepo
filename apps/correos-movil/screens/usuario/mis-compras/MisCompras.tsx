@@ -10,157 +10,236 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
-  Alert,
   Platform,
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
 import { idUser } from '../../../api/profile';
 import { obtenerMisCompras } from '../../../api/miscompras';
 import { MisComprasType } from '../../../schemas/schemas';
 
 export default function MisCompras() {
-  const navigation = useNavigation();
   const [misCompras, setMisCompras] = useState<MisComprasType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [order, setOrder] = useState<'reciente' | 'antiguo'>('reciente');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
 
+  // 1) Extraer categorías dinámicamente de los productos en misCompras
+  const categories = useMemo(() => {
+    const cats = misCompras
+      .flatMap(tx =>
+        tx.contenidos
+          .map(item => item.producto.categoria ?? '')
+          .filter(c => c.trim().length > 0)
+      );
+    return Array.from(new Set(cats));
+  }, [misCompras]);
+
+  // 2) Filtrado: búsqueda, categoría y orden
+  const comprasFiltradas = useMemo(() => {
+    let result = [...misCompras];
+    const term = searchTerm.trim().toLowerCase();
+
+    // Búsqueda por fecha o nombre de producto
+    if (term) {
+      result = result.filter(tx => {
+        const dateStr = new Date(tx.diaTransaccion)
+          .toLocaleDateString('es-MX', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })
+          .toLowerCase();
+        const matchDate = dateStr.includes(term);
+        const matchProduct = tx.contenidos.some(item =>
+          item.producto.nombre.toLowerCase().includes(term)
+        );
+        return matchDate || matchProduct;
+      });
+    }
+
+    // Filtrado por categoría
+    if (selectedCategory) {
+      result = result
+        .map(tx => ({
+          ...tx,
+          contenidos: tx.contenidos.filter(
+            item => item.producto.categoria === selectedCategory
+          ),
+        }))
+        .filter(tx => tx.contenidos.length > 0);
+    }
+
+    // Ordenar por fecha
+    result.sort((a, b) => {
+      const tA = new Date(a.diaTransaccion).getTime();
+      const tB = new Date(b.diaTransaccion).getTime();
+      return sortOrder === 'recent' ? tB - tA : tA - tB;
+    });
+
+    return result;
+  }, [misCompras, searchTerm, selectedCategory, sortOrder]);
+
+  // Cargar datos al montar
   useEffect(() => {
     (async () => {
       try {
         const data = await obtenerMisCompras(idUser);
         setMisCompras(data);
       } catch (err) {
-        Alert.alert('Error', 'No se ha podido cargar tus compras');
-        console.error(err);
+        console.error('No se ha podido cargar mis compras', err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // Filtrar productos y luego ordenar según inserción original
-  const comprasVisibles = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-
-    // Mapear compras y filtrar contenidos por término
-    const filtradas = misCompras
-      .map(compra => {
-        // Si no hay término, mantener todos los contenidos
-        if (!term) return compra;
-        // Filtrar contenidos que coinciden con búsqueda
-        const contenidos = compra.contenidos.filter(item =>
-          item.producto.nombre.toLowerCase().includes(term)
-        );
-        return contenidos.length > 0
-          ? { ...compra, contenidos }
-          : null;
-      })
-      .filter(Boolean) as MisComprasType[];
-
-    // Orden: antiguo = original, reciente = invertido
-    return order === 'reciente' ? filtradas.slice().reverse() : filtradas;
-  }, [misCompras, searchTerm, order]);
-
-  // Calcular total global sumando precio * cantidad de contenidos visibles
-  const totalGeneral = useMemo(() => {
-    return comprasVisibles.reduce((acc, compra) => {
-      const subtotal = compra.contenidos.reduce(
-        (sum, item) => sum + Number(item.precio) * Number(item.cantidad),
-        0
-      );
-      return acc + subtotal;
-    }, 0);
-  }, [comprasVisibles]);
-
-  const mostrarFiltro = () => {
-    Alert.alert('Ordenar', '', [
-      { text: 'Más antiguo', onPress: () => setOrder('antiguo') },
-      { text: 'Más reciente', onPress: () => setOrder('reciente') },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  };
-
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#DE1484" />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mis Compras</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
+      {/* Búsqueda + botón de filtros */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
           <Icon name="magnify" size={20} color="#999" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar productos"
-            placeholderTextColor="#999"
+            placeholder="Buscar por fecha o producto"
             value={searchTerm}
             onChangeText={setSearchTerm}
+            placeholderTextColor="#999"
           />
         </View>
-        <TouchableOpacity style={styles.filterBtn} onPress={mostrarFiltro}>
+        <TouchableOpacity
+          style={styles.filterBtn}
+          onPress={() => setShowFilters(v => !v)}
+        >
           <Icon name="filter-variant" size={24} color="#000" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryBox}>
-        <Text style={styles.summaryText}>Total: ${totalGeneral}</Text>
-        <Text style={styles.summaryText}>
-          Orden: {order === 'reciente' ? 'Más reciente' : 'Más antiguo'}
-        </Text>
-      </View>
+      {/* Panel de filtros avanzados */}
+      {showFilters && (
+        <View style={styles.advancedFilters}>
+          {/* Orden */}
+          <View style={styles.sortContainer}>
+            <Text style={styles.filterLabel}>Ordenar:</Text>
+            <TouchableOpacity
+              onPress={() => setSortOrder('recent')}
+              style={[
+                styles.sortBtn,
+                sortOrder === 'recent' && styles.activeSortBtn,
+              ]}
+            >
+              <Text
+                style={sortOrder === 'recent' ? styles.activeSortText : {}}
+              >
+                Más reciente
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSortOrder('oldest')}
+              style={[
+                styles.sortBtn,
+                sortOrder === 'oldest' && styles.activeSortBtn,
+              ]}
+            >
+              <Text
+                style={sortOrder === 'oldest' ? styles.activeSortText : {}}
+              >
+                Más antiguo
+              </Text>
+            </TouchableOpacity>
+          </View>
 
+          {/* Categorías */}
+          <View style={styles.categoryContainer}>
+            <Text style={styles.filterLabel}>Categoría:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity
+                onPress={() => setSelectedCategory('')}
+                style={[
+                  styles.categoryBtn,
+                  !selectedCategory && styles.activeCategoryBtn,
+                ]}
+              >
+                <Text
+                  style={!selectedCategory ? styles.activeCategoryText : {}}
+                >
+                  Todas
+                </Text>
+              </TouchableOpacity>
+              {categories.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setSelectedCategory(cat)}
+                  style={[
+                    styles.categoryBtn,
+                    selectedCategory === cat && styles.activeCategoryBtn,
+                  ]}
+                >
+                  <Text
+                    style={
+                      selectedCategory === cat
+                        ? styles.activeCategoryText
+                        : {}
+                    }
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Lista de compras */}
       <ScrollView style={styles.container}>
-        {comprasVisibles.length > 0 ? (
-          comprasVisibles.map((tx, idx) => {
-            const subtotal = tx.contenidos.reduce(
-              (s, item) => s + Number(item.precio) * Number(item.cantidad),
-              0
-            );
-            return (
-              <View key={tx.id} style={styles.compraCard}>
-                <Text style={styles.compraTitle}>Compra #{idx + 1}</Text>
-                <Text style={styles.compraTotal}>Total: ${subtotal}</Text>
-                {tx.contenidos.map(item => (
-                  <View key={item.id} style={styles.productCard}>
-                    <Image
-                      source={{ uri: item.producto.imagen }}
-                      style={styles.image}
-                    />
-                    <View style={styles.details}>
-                      <Text style={styles.productName}>
-                        {item.producto.nombre}
-                      </Text>
-                      <Text style={styles.productDesc}>
-                        {item.producto.descripcion}
-                      </Text>
-                      <Text style={styles.productInfo}>
-                        Cant: {item.cantidad}
-                      </Text>
-                      <Text style={styles.productInfo}>
-                        Precio: ${item.precio}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
+        {comprasFiltradas.map(tx => (
+          <View key={tx.id} style={styles.compraCard}>
+            <Text style={styles.fecha}>
+              {new Date(tx.diaTransaccion).toLocaleDateString('es-MX', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </Text>
+            <Text style={styles.total}>Total: ${tx.total}</Text>
+
+            {tx.contenidos.map(item => (
+              <View key={item.id} style={styles.productCard}>
+                <Image
+                  source={{ uri: item.producto.imagen }}
+                  style={styles.imagen}
+                />
+                <View style={styles.detalles}>
+                  <Text style={styles.nombre}>{item.producto.nombre}</Text>
+                  <Text style={styles.descripcion}>
+                    {item.producto.descripcion}
+                  </Text>
+                  <Text style={styles.texto}>
+                    Cantidad: {item.cantidad}
+                  </Text>
+                  <Text style={styles.texto}>Precio: ${item.precio}</Text>
+                  <Text style={styles.texto}>
+                    Categoría: {item.producto.categoria}
+                  </Text>
+                </View>
               </View>
-            );
-          })
-        ) : (
+            ))}
+          </View>
+        ))}
+
+        {comprasFiltradas.length === 0 && (
           <Text style={styles.empty}>No hay compras que coincidan.</Text>
         )}
       </ScrollView>
@@ -175,18 +254,6 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#DE1484',
-    padding: 12,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   searchContainer: {
     flexDirection: 'row',
     padding: 8,
@@ -202,35 +269,110 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 36,
   },
-  searchInput: { flex: 1, marginLeft: 6, fontSize: 14, color: '#333' },
-  filterBtn: { marginLeft: 8 },
-  summaryBox: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+  searchInput: {
+    flex: 1,
+    marginLeft: 6,
+    fontSize: 14,
+    color: '#333',
   },
-  summaryText: { fontSize: 14, fontWeight: '600' },
-  container: { flex: 1, backgroundColor: '#f3f3f3', padding: 12 },
-  compraCard: { marginBottom: 20 },
-  compraTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  compraTotal: { fontSize: 14, marginBottom: 12 },
-  productCard: {
+  filterBtn: {
+    marginLeft: 8,
+    padding: 4,
+  },
+  advancedFilters: {
+    backgroundColor: '#fafafa',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomColor: '#ddd',
+    borderBottomWidth: 1,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  sortContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sortBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 8,
+  },
+  activeSortBtn: {
+    borderColor: '#DE1484',
+  },
+  activeSortText: {
+    color: '#DE1484',
+    fontWeight: '600',
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 8,
+  },
+  activeCategoryBtn: {
+    borderColor: '#DE1484',
+  },
+  activeCategoryText: {
+    color: '#DE1484',
+    fontWeight: '600',
+  },
+  container: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: '#f3f3f3',
+  },
+  compraCard: { marginBottom: 20 },
+  fecha: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  total: { fontSize: 14, marginBottom: 12 },
+  productCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 12,
     marginBottom: 12,
+    flexDirection: 'row',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  image: { width: 60, height: 60, borderRadius: 8, marginRight: 12, backgroundColor: '#eee' },
-  details: { flex: 1, justifyContent: 'center' },
-  productName: { fontSize: 14, fontWeight: '600' },
-  productDesc: { fontSize: 12, color: '#888', marginBottom: 4 },
-  productInfo: { fontSize: 12, color: '#555' },
-  empty: { textAlign: 'center', color: '#777', marginTop: 32 },
+  imagen: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#eee',
+  },
+  detalles: { flex: 1, justifyContent: 'center' },
+  nombre: { fontSize: 14, fontWeight: '600' },
+  descripcion: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 4,
+  },
+  texto: { fontSize: 12, color: '#555' },
+  empty: {
+    textAlign: 'center',
+    color: '#777',
+    marginTop: 32,
+  },
 });

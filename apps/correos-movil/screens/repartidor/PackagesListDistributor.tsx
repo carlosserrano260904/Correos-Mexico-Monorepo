@@ -74,7 +74,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://192.168.1.69:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
+        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
       );
       
       const packagesData = response.data;

@@ -11,26 +11,31 @@ export class TransportesController {
     return this.transportesService.findAll();
   }
 
-@Get(':id')
-findOne(@Param('id') id: string): Promise<Transporte | null> {
-  return this.transportesService.findOne(id);
-}
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Transporte | null> {
+    return this.transportesService.findOne(id);
+  }
 
   @Post()
   create(@Body() data: Partial<Transporte>): Promise<Transporte> {
     return this.transportesService.create(data);
   }
 
-@Put(':id')
-update(
-  @Param('id') id: string,
-  @Body() data: Partial<Transporte>,
-): Promise<Transporte | null> {
-  return this.transportesService.update(id, data);
-}
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() data: Partial<Transporte>,
+  ): Promise<Transporte | null> {
+    return this.transportesService.update(id, data);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.transportesService.remove(id);
+  }
+
+  @Get('qrs/all')
+  generarQrs() {
+    return this.transportesService.generarQRsDeTransportes();
   }
 }

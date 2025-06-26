@@ -17,6 +17,7 @@ import { PostalController } from './postal/postal.controller';
 import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
 import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
+import { TransportesModule } from './transportes/transportes.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paque
     GuiasTrazabilidadModule,
     UserModule,
     LikesModule,
-    AsignacionPaquetesModule
+    AsignacionPaquetesModule,
+    TransportesModule
 
   ],
   controllers: [AppController, PostalController],

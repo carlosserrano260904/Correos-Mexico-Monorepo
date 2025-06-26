@@ -2,14 +2,24 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../schemas/schemas';
+
 
 const tarjetas = [
   { id: '1', tipo: 'Mastercard', ultimos: '2398', marca: 'nu' },
   { id: '2', tipo: 'Visa', ultimos: '4581', marca: 'spin' },
 ];
+type MisTarjetasNavProp = NativeStackNavigationProp<RootStackParamList, 'MisTarjetasScreen'>;
+
+const showTarjetas = () => {}
 
 export default function MistarjetasScreen() {
-  
+  const navigation = useNavigation<MisTarjetasNavProp>();
+
+
+  const handleAddCard = () => navigation.navigate('AgregarTarjetaScreen');
 
   const showTarjetas = () => {
   }
@@ -36,7 +46,7 @@ export default function MistarjetasScreen() {
     <View style={styles.container}>
       {/* Encabezado */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mis Tarjetas</Text>
@@ -51,7 +61,8 @@ export default function MistarjetasScreen() {
       />
 
       {/* Botón añadir tarjeta */}
-      <TouchableOpacity style={styles.addCard} onPress={showTarjetas}>
+      <TouchableOpacity style={styles.addCard} onPress={handleAddCard}>
+
         <Icon name="add-circle-outline" size={24} color="#555" />
         <Text style={{ marginLeft: 8, color: '#555' }}>Añadir tarjeta</Text>
       </TouchableOpacity>

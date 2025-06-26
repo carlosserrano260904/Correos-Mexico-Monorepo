@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../schemas/schemas';
+
+type AgregarTarjetaNavProp = NativeStackNavigationProp<RootStackParamList, 'AgregarTarjetaScreen'>;
 
 export default function AgregarTarjetaScreen() {
 
@@ -8,6 +13,8 @@ export default function AgregarTarjetaScreen() {
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
   const [cvv, setCvv] = useState('');
+  const navigation = useNavigation<AgregarTarjetaNavProp>();
+
 
   const handleAddCard = () => {
     // Aquí puedes manejar el guardado/envío de datos
@@ -18,7 +25,7 @@ export default function AgregarTarjetaScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Agregar Tarjetas</Text>

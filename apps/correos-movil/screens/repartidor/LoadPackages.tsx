@@ -2,13 +2,38 @@ import * as React from 'react'
 import { Text, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native'
 import { moderateScale } from 'react-native-size-matters'
 import { ArrowLeft, Truck } from 'lucide-react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import Constants from 'expo-constants';
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
 export default function LoadPackages() {
     const navigation = useNavigation();
+    const route = useRoute();
+    const { transporteId } = route.params as { transporteId: string };
+
+    const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
+
+    React.useEffect(() => {
+        const fetchNombre = async () => {
+        try {
+            const res = await fetch(`http://${IP}:3000/api/transportes/${transporteId}`);
+            const transporte = await res.json();
+            setNombreVehiculo(transporte.nombre ?? 'Vehículo no encontrado');
+        } catch (error) {
+            console.error(error);
+            setNombreVehiculo('Error al obtener vehículo');
+        }
+        };
+
+        if (transporteId) {
+        fetchNombre();
+        }
+    }, [transporteId]);
+
   return (
     <View style={styles.container}>
         <View style={styles.arrowContainer}>
@@ -20,7 +45,7 @@ export default function LoadPackages() {
         <View style={styles.intructionsContainer}>
             <View style={styles.textContainer}>
                 <Text style={styles.textup}>Escaneaste el vehículo:</Text>
-                <Text style={styles.textMiddle}>VH-204</Text>
+                <Text style={styles.textMiddle}>{nombreVehiculo}</Text>
             </View>
 
             <View style={styles.iconContainer}>

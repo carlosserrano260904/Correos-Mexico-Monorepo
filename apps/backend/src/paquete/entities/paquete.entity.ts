@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-
 @Entity('paquetes')
 export class Paquete {
   @PrimaryGeneratedColumn('uuid')

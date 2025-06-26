@@ -8,7 +8,9 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert
+  Alert,
+  StatusBar,
+  Platform
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +19,7 @@ import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { actualizarUsuarioPorId, idUser, uploadAvatar } from '../../../api/profile';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
+import { moderateScale } from 'react-native-size-matters';
 
 const ACCENT = '#E6007E';
 const BACKGROUND = '#F2F2F5';
@@ -86,180 +89,211 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       console.error(err);
     }
   };
+  const handleCancel = () => {
+    setUserData(user);
+    setIsEditing(false);
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.editIcon} onPress={() => setIsEditing(!isEditing)}>
-            <Ionicons name={isEditing ? 'close-outline' : 'create-outline'} size={24} color={ACCENT} />
-          </TouchableOpacity>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor={ACCENT} />
 
-          <TouchableOpacity onPress={isEditing ? pickImage : undefined}>
-            <Image source={{ uri: userData.imagen }} style={styles.avatar} />
-            {isEditing && (
-              <View style={styles.cameraOverlay}>
-                <Ionicons name="camera" size={20} color="#fff" />
+      {/* Header */}
+      <SafeAreaView style={styles.headerSafe}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mi perfil</Text>
+        </View>
+      </SafeAreaView>
+
+      {/* Contenido principal */}
+      <SafeAreaView style={styles.contentSafe}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator
+        >
+          <View style={styles.content}>
+            <TouchableOpacity onPress={isEditing ? pickImage : undefined}>
+              <Image source={{ uri: userData.imagen }} style={styles.avatar} />
+              {isEditing && (
+                <View style={styles.cameraOverlay}>
+                  <Ionicons name="camera" size={20} color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Nombre y apellido */}
+            {isEditing ? (
+              <>
+                <TextInput
+                  style={[styles.name, styles.input]}
+                  value={userData.nombre}
+                  onChangeText={text => handleChange('nombre', text)}
+                  placeholder="Nombre"
+                />
+                <TextInput
+                  style={[styles.name, styles.input]}
+                  value={userData.apellido}
+                  onChangeText={text => handleChange('apellido', text)}
+                  placeholder="Apellido"
+                />
+              </>
+            ) : (
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <Text style={styles.name}>{userData.nombre}</Text>
+                <Text style={styles.lastname}>{userData.apellido}</Text>
               </View>
             )}
-          </TouchableOpacity>
 
-          {/* Nombre y apellido */}
-          {isEditing ? (
-            <TextInput
-              style={[styles.name, styles.input]}
-              value={userData.nombre}
-              onChangeText={text => handleChange('nombre', text)}
-              placeholder="Nombre"
-            />
-          ) : (
-            <Text style={styles.name}>{userData.nombre} {userData.apellido}</Text>
-          )}
-          {isEditing && (
-            <TextInput
-              style={[styles.name, styles.input]}
-              value={userData.apellido}
-              onChangeText={text => handleChange('apellido', text)}
-              placeholder="Apellido"
-            />
-          )}
-
-          {/* Contacto */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contacto</Text>
-            <View style={styles.infoRow}>
-              <Ionicons name="call" size={18} color={ACCENT} style={styles.icon} />
-              {isEditing ? (
-                <TextInput
-                  style={[styles.infoText, styles.input]}
-                  value={userData.numero}
-                  onChangeText={text => handleChange('numero', text)}
-                  keyboardType="phone-pad"
-                  placeholder="Teléfono"
-                />
-              ) : (
-                <Text style={styles.infoText}>{userData.numero}</Text>
-              )}
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="location" size={18} color={ACCENT} style={styles.icon} />
-              {isEditing ? (
-                <TextInput
-                  style={[styles.infoText, styles.input]}
-                  value={userData.ciudad}
-                  onChangeText={text => handleChange('ciudad', text)}
-                  placeholder="Ciudad"
-                />
-              ) : (
-                <Text style={styles.infoText}>{userData.ciudad}, {userData.estado}</Text>
-              )}
-            </View>
-          </View>
-
-          {/* Dirección */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dirección</Text>
-
-            {/* Picker de Fraccionamiento */}
-            <View style={styles.infoRow}>
-              <Ionicons name="home" size={18} color={ACCENT} style={styles.icon} />
-              {isEditing ? (
-                colonias.length > 0 ? (
-                  <Picker
-                    selectedValue={selectedColonia}
-                    onValueChange={(itemValue) => {
-                      setSelectedColonia(itemValue);
-                      setUserData(prev => ({ ...prev, fraccionamiento: itemValue }));
-                    }}
-                    style={{ flex: 1 }}
-                  >
-                    {colonias.map((colonia, index) => (
-                      <Picker.Item key={index} label={colonia} value={colonia} />
-                    ))}
-                  </Picker>
-                ) : (
+            <View style={styles.divider} />
+            {/* Contacto */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Contacto</Text>
+              <View style={styles.infoRow}>
+                <Ionicons name="call" size={18} color={ACCENT} style={styles.icon} />
+                {isEditing ? (
                   <TextInput
                     style={[styles.infoText, styles.input]}
-                    value={userData.fraccionamiento}
-                    onChangeText={text => handleChange('fraccionamiento', text)}
-                    placeholder="Fraccionamiento"
+                    value={userData.numero}
+                    onChangeText={text => handleChange('numero', text)}
+                    keyboardType="phone-pad"
+                    placeholder="Teléfono"
                   />
-                )
-              ) : (
-                <Text style={styles.infoText}>{userData.fraccionamiento}</Text>
-              )}
+                ) : (
+                  <Text style={styles.infoText}>{userData.numero}</Text>
+                )}
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="location" size={18} color={ACCENT} style={styles.icon} />
+                {isEditing ? (
+                  <TextInput
+                    style={[styles.infoText, styles.input]}
+                    value={userData.ciudad}
+                    onChangeText={text => handleChange('ciudad', text)}
+                    placeholder="Ciudad"
+                  />
+                ) : (
+                  <Text style={styles.infoText}>{userData.ciudad}, {userData.estado}</Text>
+                )}
+              </View>
             </View>
 
-            <View style={styles.infoRow}>
-              <Ionicons name="business" size={18} color={ACCENT} style={styles.icon} />
-              {isEditing ? (
-                <TextInput
-                  style={[styles.infoText, styles.input]}
-                  value={userData.calle}
-                  onChangeText={text => handleChange('calle', text)}
-                  placeholder="Calle"
-                />
-              ) : (
-                <Text style={styles.infoText}>{userData.calle}</Text>
-              )}
+            {/* Dirección */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Dirección</Text>
+              <View style={styles.infoRow}>
+                <Ionicons name="home" size={18} color={ACCENT} style={styles.icon} />
+                {isEditing ? (
+                  colonias.length > 0 ? (
+                    <Picker
+                      selectedValue={selectedColonia}
+                      onValueChange={(itemValue) => {
+                        setSelectedColonia(itemValue);
+                        setUserData(prev => ({ ...prev, fraccionamiento: itemValue }));
+                      }}
+                      style={{ flex: 1 }}
+                    >
+                      {colonias.map((colonia, index) => (
+                        <Picker.Item key={index} label={colonia} value={colonia} />
+                      ))}
+                    </Picker>
+                  ) : (
+                    <TextInput
+                      style={[styles.infoText, styles.input]}
+                      value={userData.fraccionamiento}
+                      onChangeText={text => handleChange('fraccionamiento', text)}
+                      placeholder="Fraccionamiento"
+                    />
+                  )
+                ) : (
+                  <Text style={styles.infoText}>{userData.fraccionamiento}</Text>
+                )}
+              </View>
+
+              <View style={styles.infoRow}>
+                <Ionicons name="business" size={18} color={ACCENT} style={styles.icon} />
+                {isEditing ? (
+                  <TextInput
+                    style={[styles.infoText, styles.input]}
+                    value={userData.calle}
+                    onChangeText={text => handleChange('calle', text)}
+                    placeholder="Calle"
+                  />
+                ) : (
+                  <Text style={styles.infoText}>{userData.calle}</Text>
+                )}
+              </View>
+
+              <View style={styles.infoRow}>
+                <Ionicons name="pricetag" size={18} color={ACCENT} style={styles.icon} />
+                {isEditing ? (
+                  <TextInput
+                    style={[styles.infoText, styles.input]}
+                    value={userData.codigoPostal}
+                    onChangeText={text => handleChange('codigoPostal', text)}
+                    keyboardType="numeric"
+                    placeholder="CP"
+                  />
+                ) : (
+                  <Text style={styles.infoText}>{userData.codigoPostal}</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="pricetag" size={18} color={ACCENT} style={styles.icon} />
+            
+            <View style={styles.buttonsContainer}>
               {isEditing ? (
-                <TextInput
-                  style={[styles.infoText, styles.input]}
-                  value={userData.codigoPostal}
-                  onChangeText={text => handleChange('codigoPostal', text)}
-                  keyboardType="numeric"
-                  placeholder="CP"
-                />
+                <>
+                  <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
+                    <Text style={styles.cancelText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
+                    <Text style={styles.saveText}>Guardar Cambios</Text>
+                  </TouchableOpacity>
+                </>
               ) : (
-                <Text style={styles.infoText}>{userData.codigoPostal}</Text>
+                <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={() => setIsEditing(true)}>
+                  <Text style={styles.saveText}>Editar</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
-
-          {isEditing && (
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveText}>Guardar Cambios</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   cameraOverlay: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 30,
     right: 0,
     backgroundColor: ACCENT,
-    padding: 6,
+    padding: 8,
     borderRadius: 20,
   },
   safeArea: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: ACCENT,
   },
   content: {
-    padding: 16,
     alignItems: 'center',
-    paddingTop: 32,
   },
-  card: {
+  container: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
+    padding: 16,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
     position: 'relative',
+  },
+  scrollContent: {
+    paddingHorizontal: moderateScale(12),
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(80),
   },
   editIcon: {
     position: 'absolute',
@@ -276,7 +310,31 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#333',
-    marginBottom: 16,
+    marginBottom: 8,
+  },
+  lastname: {
+    fontSize: 20,
+    fontWeight: '400',
+    color: '#666',
+    marginTop: 2,
+  },
+  headerSafe: {
+    backgroundColor: ACCENT,
+  },
+  contentSafe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    padding: moderateScale(26),
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 30 : 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: moderateScale(20),
+    fontWeight: '700',
   },
   section: {
     width: '100%',
@@ -313,7 +371,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     backgroundColor: ACCENT,
     paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingHorizontal: 12,
     borderRadius: 24,
   },
   saveText: {
@@ -321,4 +379,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  cancelText: {
+    color: '#000',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  buttonsContainer: {
+    marginTop: 24,
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+    marginRight: 8,
+  },
+  divider: {
+    width: '100%',
+    height: 2,
+    backgroundColor: ACCENT,
+    marginVertical: 16,
+  },  
 });

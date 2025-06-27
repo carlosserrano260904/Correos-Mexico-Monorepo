@@ -21,8 +21,7 @@ import { actualizarUsuarioPorId, idUser, uploadAvatar } from '../../../api/profi
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 
-const ACCENT = '#E6007E';
-const BACKGROUND = '#F2F2F5';
+const PINK = '#E6007E';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 
@@ -96,12 +95,19 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={ACCENT} />
+      <StatusBar barStyle="light-content" backgroundColor={PINK} />
 
-      {/* Header */}
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Mi perfil</Text>
+          {/* View vacío para balancear el espacio y centrar el título */}
+          <View style={{ width: 40 }} />
         </View>
       </SafeAreaView>
 
@@ -150,7 +156,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Contacto</Text>
               <View style={styles.infoRow}>
-                <Ionicons name="call" size={18} color={ACCENT} style={styles.icon} />
+                <Ionicons name="call" size={18} color={PINK} style={styles.icon} />
                 {isEditing ? (
                   <TextInput
                     style={[styles.infoText, styles.input]}
@@ -164,7 +170,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                 )}
               </View>
               <View style={styles.infoRow}>
-                <Ionicons name="location" size={18} color={ACCENT} style={styles.icon} />
+                <Ionicons name="location" size={18} color={PINK} style={styles.icon} />
                 {isEditing ? (
                   <TextInput
                     style={[styles.infoText, styles.input]}
@@ -182,7 +188,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Dirección</Text>
               <View style={styles.infoRow}>
-                <Ionicons name="home" size={18} color={ACCENT} style={styles.icon} />
+                <Ionicons name="home" size={18} color={PINK} style={styles.icon} />
                 {isEditing ? (
                   colonias.length > 0 ? (
                     <Picker
@@ -211,7 +217,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
               </View>
 
               <View style={styles.infoRow}>
-                <Ionicons name="business" size={18} color={ACCENT} style={styles.icon} />
+                <Ionicons name="business" size={18} color={PINK} style={styles.icon} />
                 {isEditing ? (
                   <TextInput
                     style={[styles.infoText, styles.input]}
@@ -225,7 +231,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
               </View>
 
               <View style={styles.infoRow}>
-                <Ionicons name="pricetag" size={18} color={ACCENT} style={styles.icon} />
+                <Ionicons name="pricetag" size={18} color={PINK} style={styles.icon} />
                 {isEditing ? (
                   <TextInput
                     style={[styles.infoText, styles.input]}
@@ -239,7 +245,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                 )}
               </View>
             </View>
-            
+
             <View style={styles.buttonsContainer}>
               {isEditing ? (
                 <>
@@ -268,13 +274,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 0,
-    backgroundColor: ACCENT,
+    backgroundColor: PINK,
     padding: 8,
     borderRadius: 20,
   },
   safeArea: {
     flex: 1,
-    backgroundColor: ACCENT,
+    backgroundColor: PINK,
   },
   content: {
     alignItems: 'center',
@@ -319,23 +325,30 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerSafe: {
-    backgroundColor: ACCENT,
+    backgroundColor: PINK,
   },
   contentSafe: {
     flex: 1,
     backgroundColor: '#fff',
   },
   header: {
-    padding: moderateScale(26),
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: moderateScale(20),
     marginTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 30 : 0,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
+    flex: 1,
     color: 'white',
     fontSize: moderateScale(20),
     fontWeight: '700',
+    textAlign: 'center',
   },
+  backButton: {
+    padding: 8,
+  },  
   section: {
     width: '100%',
     marginTop: 16,
@@ -369,7 +382,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: 24,
-    backgroundColor: ACCENT,
+    backgroundColor: PINK,
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 24,
@@ -401,7 +414,7 @@ const styles = StyleSheet.create({
   divider: {
     width: '100%',
     height: 2,
-    backgroundColor: ACCENT,
+    backgroundColor: PINK,
     marginVertical: 16,
-  },  
+  },
 });

@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop:30,
+    marginTop: 30,
     padding: moderateScale(16),
   },
   profileButton: {

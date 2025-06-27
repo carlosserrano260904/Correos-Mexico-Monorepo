@@ -1,6 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import ProductView from './screens/usuario/e-commerce/ProductView';
 import RoutesView from './screens/repartidor/RoutesView';
 import PackageScreen from './screens/repartidor/PackageScreen';
@@ -19,6 +18,7 @@ import PackagesListDistributor from './screens/repartidor/PackagesListDistributo
 import HomeUser from './screens/usuario/HomePage/HomeUser';
 import PrublicarProducto from './screens/usuario/vendedor/PublicarProducto';
 import Productos from './screens/usuario/vendedor/Productos';
+import DetalleProducto from './screens/usuario/mis-compras/DetalleProducto';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,6 +45,7 @@ export default function App() {
         <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false}} />
         <Stack.Screen name="PublicarProducto" component={PrublicarProducto} options={{headerShown: false}} />
         <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}} />
+        <Stack.Screen name="DetalleProducto" component={DetalleProducto} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
     

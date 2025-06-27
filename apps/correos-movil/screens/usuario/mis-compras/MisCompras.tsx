@@ -1,4 +1,3 @@
-//MisCompras.tsx
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   SafeAreaView,
@@ -13,20 +12,31 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { idUser } from '../../../api/profile';
 import { obtenerMisCompras } from '../../../api/miscompras';
 import { MisComprasType } from '../../../schemas/schemas';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../schemas/schemas';
+import { moderateScale } from 'react-native-size-matters';
+
+const PINK = '#E6007E';
+
+type MisComprasScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'MisCompras'
+>;
 
 export default function MisCompras() {
   const [misCompras, setMisCompras] = useState<MisComprasType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+  const navigation = useNavigation<MisComprasScreenNavigationProp>();
+  const [error, setError] = useState<string | null>(null);
 
-  // 1) Extraer categorías dinámicamente de los productos en misCompras
   const categories = useMemo(() => {
     const cats = misCompras
       .flatMap(tx =>
@@ -37,12 +47,10 @@ export default function MisCompras() {
     return Array.from(new Set(cats));
   }, [misCompras]);
 
-  // 2) Filtrado: búsqueda, categoría y orden
   const comprasFiltradas = useMemo(() => {
     let result = [...misCompras];
     const term = searchTerm.trim().toLowerCase();
 
-    // Búsqueda por fecha o nombre de producto
     if (term) {
       result = result.filter(tx => {
         const dateStr = new Date(tx.diaTransaccion)
@@ -58,9 +66,21 @@ export default function MisCompras() {
         );
         return matchDate || matchProduct;
       });
+      
+      result = result.map(tx => {
+        const productosCoincidentes = tx.contenidos.filter(item =>
+          item.producto.nombre.toLowerCase().includes(term)
+        );
+        const productosNoCoincidentes = tx.contenidos.filter(
+          item => !item.producto.nombre.toLowerCase().includes(term)
+        );
+        return {
+          ...tx,
+          contenidos: [...productosCoincidentes, ...productosNoCoincidentes],
+        };
+      });
     }
 
-    // Filtrado por categoría
     if (selectedCategory) {
       result = result
         .map(tx => ({
@@ -72,7 +92,6 @@ export default function MisCompras() {
         .filter(tx => tx.contenidos.length > 0);
     }
 
-    // Ordenar por fecha
     result.sort((a, b) => {
       const tA = new Date(a.diaTransaccion).getTime();
       const tB = new Date(b.diaTransaccion).getTime();
@@ -82,14 +101,15 @@ export default function MisCompras() {
     return result;
   }, [misCompras, searchTerm, selectedCategory, sortOrder]);
 
-  // Cargar datos al montar
   useEffect(() => {
     (async () => {
       try {
         const data = await obtenerMisCompras(idUser);
         setMisCompras(data);
+        setError(null);
       } catch (err) {
         console.error('No se ha podido cargar mis compras', err);
+        setError('No se pudo cargar la información. Intenta más tarde.');
       } finally {
         setLoading(false);
       }
@@ -99,110 +119,112 @@ export default function MisCompras() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={PINK} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Búsqueda + botón de filtros */}
+    <>
+      <StatusBar barStyle="light-content" backgroundColor={PINK} />
+      <SafeAreaView style={{ backgroundColor: PINK }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel="Regresar"
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Mis Compras</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      </SafeAreaView>
+
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Icon name="magnify" size={20} color="#999" />
+          <Ionicons name="search" size={20} color="#999" />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por fecha o producto"
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholderTextColor="#999"
+            accessible={true}
+            accessibilityLabel="Buscar compras por fecha o producto"
           />
         </View>
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => setShowFilters(v => !v)}
-        >
-          <Icon name="filter-variant" size={24} color="#000" />
-        </TouchableOpacity>
       </View>
 
-      {/* Panel de filtros avanzados */}
-      {showFilters && (
-        <View style={styles.advancedFilters}>
-          {/* Orden */}
-          <View style={styles.sortContainer}>
-            <Text style={styles.filterLabel}>Ordenar:</Text>
-            <TouchableOpacity
-              onPress={() => setSortOrder('recent')}
-              style={[
-                styles.sortBtn,
-                sortOrder === 'recent' && styles.activeSortBtn,
-              ]}
-            >
-              <Text
-                style={sortOrder === 'recent' ? styles.activeSortText : {}}
-              >
-                Más reciente
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setSortOrder('oldest')}
-              style={[
-                styles.sortBtn,
-                sortOrder === 'oldest' && styles.activeSortBtn,
-              ]}
-            >
-              <Text
-                style={sortOrder === 'oldest' ? styles.activeSortText : {}}
-              >
-                Más antiguo
-              </Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.advancedFilters}>
+        <View style={styles.sortContainer}>
+          <Text style={styles.filterLabel}>Ordenar:</Text>
+          <TouchableOpacity
+            onPress={() => setSortOrder('recent')}
+            style={[styles.sortBtn, sortOrder === 'recent' && styles.activeSortBtn]}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityState={{ selected: sortOrder === 'recent' }}
+          >
+            <Text style={sortOrder === 'recent' ? styles.activeSortText : {}}>
+              Más reciente
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSortOrder('oldest')}
+            style={[styles.sortBtn, sortOrder === 'oldest' && styles.activeSortBtn]}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityState={{ selected: sortOrder === 'oldest' }}
+          >
+            <Text style={sortOrder === 'oldest' ? styles.activeSortText : {}}>
+              Más antiguo
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-          {/* Categorías */}
-          <View style={styles.categoryContainer}>
-            <Text style={styles.filterLabel}>Categoría:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.categoryContainer}>
+          <Text style={styles.filterLabel}>Categoría:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              onPress={() => setSelectedCategory('')}
+              style={[styles.categoryBtn, !selectedCategory && styles.activeCategoryBtn]}
+              accessibilityRole="button"
+              accessible={true}
+              accessibilityState={{ selected: selectedCategory === '' }}
+            >
+              <Text style={!selectedCategory ? styles.activeCategoryText : {}}>
+                Todas
+              </Text>
+            </TouchableOpacity>
+            {categories.map(cat => (
               <TouchableOpacity
-                onPress={() => setSelectedCategory('')}
-                style={[
-                  styles.categoryBtn,
-                  !selectedCategory && styles.activeCategoryBtn,
-                ]}
+                key={cat}
+                onPress={() => setSelectedCategory(cat)}
+                style={[styles.categoryBtn, selectedCategory === cat && styles.activeCategoryBtn]}
+                accessibilityRole="button"
+                accessible={true}
+                accessibilityState={{ selected: selectedCategory === cat }}
               >
-                <Text
-                  style={!selectedCategory ? styles.activeCategoryText : {}}
-                >
-                  Todas
+                <Text style={selectedCategory === cat ? styles.activeCategoryText : {}}>
+                  {cat}
                 </Text>
               </TouchableOpacity>
-              {categories.map(cat => (
-                <TouchableOpacity
-                  key={cat}
-                  onPress={() => setSelectedCategory(cat)}
-                  style={[
-                    styles.categoryBtn,
-                    selectedCategory === cat && styles.activeCategoryBtn,
-                  ]}
-                >
-                  <Text
-                    style={
-                      selectedCategory === cat
-                        ? styles.activeCategoryText
-                        : {}
-                    }
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+            ))}
+          </ScrollView>
         </View>
-      )}
+      </View>
 
-      {/* Lista de compras */}
       <ScrollView style={styles.container}>
         {comprasFiltradas.map(tx => (
           <View key={tx.id} style={styles.compraCard}>
@@ -216,25 +238,24 @@ export default function MisCompras() {
             <Text style={styles.total}>Total: ${tx.total}</Text>
 
             {tx.contenidos.map(item => (
-              <View key={item.id} style={styles.productCard}>
-                <Image
-                  source={{ uri: item.producto.imagen }}
-                  style={styles.imagen}
-                />
+              <TouchableOpacity
+                key={item.id}
+                style={styles.productCard}
+                onPress={() =>
+                  navigation.navigate('DetalleProducto', { contenido: item })
+                }
+                accessibilityRole="button"
+                accessible={true}
+              >
+                <Image source={{ uri: item.producto.imagen }} style={styles.imagen} />
                 <View style={styles.detalles}>
                   <Text style={styles.nombre}>{item.producto.nombre}</Text>
-                  <Text style={styles.descripcion}>
-                    {item.producto.descripcion}
-                  </Text>
-                  <Text style={styles.texto}>
-                    Cantidad: {item.cantidad}
-                  </Text>
+                  <Text style={styles.descripcion}>{item.producto.descripcion}</Text>
+                  <Text style={styles.texto}>Cantidad: {item.cantidad}</Text>
                   <Text style={styles.texto}>Precio: ${item.precio}</Text>
-                  <Text style={styles.texto}>
-                    Categoría: {item.producto.categoria}
-                  </Text>
+                  <Text style={styles.texto}>Categoría: {item.producto.categoria}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         ))}
@@ -243,22 +264,48 @@ export default function MisCompras() {
           <Text style={styles.empty}>No hay compras que coincidan.</Text>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
+    height: Platform.OS === 'ios' ? 70 : 60,
+    justifyContent: 'space-between',
+    backgroundColor: PINK,
+  },
+  backButton: {
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+    textAlign: 'center',
+    flex: 1,
+  },
   safe: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    backgroundColor: PINK,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: {
+    color: PINK,
+    fontSize: 16,
+    paddingHorizontal: 20,
+    textAlign: 'center',
+  },
   searchContainer: {
     flexDirection: 'row',
-    padding: 8,
-    backgroundColor: '#DE1484',
+    backgroundColor: PINK,
     alignItems: 'center',
+    padding: moderateScale(26),
   },
   searchBox: {
     flex: 1,
@@ -274,10 +321,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
     color: '#333',
-  },
-  filterBtn: {
-    marginLeft: 8,
-    padding: 4,
   },
   advancedFilters: {
     backgroundColor: '#fafafa',
@@ -305,10 +348,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   activeSortBtn: {
-    borderColor: '#DE1484',
+    borderColor: PINK,
   },
   activeSortText: {
-    color: '#DE1484',
+    color: PINK,
     fontWeight: '600',
   },
   categoryContainer: {
@@ -325,10 +368,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   activeCategoryBtn: {
-    borderColor: '#DE1484',
+    borderColor: PINK,
   },
   activeCategoryText: {
-    color: '#DE1484',
+    color: PINK,
     fontWeight: '600',
   },
   container: {
@@ -355,24 +398,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  imagen: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 12,
-    backgroundColor: '#eee',
-  },
-  detalles: { flex: 1, justifyContent: 'center' },
-  nombre: { fontSize: 14, fontWeight: '600' },
-  descripcion: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 4,
-  },
-  texto: { fontSize: 12, color: '#555' },
+  imagen: { width: 80, height: 80, borderRadius: 10 },
+  detalles: { flex: 1, marginLeft: 12, justifyContent: 'center' },
+  nombre: { fontSize: 16, fontWeight: 'bold' },
+  descripcion: { fontSize: 14, color: '#555' },
+  texto: { fontSize: 14, marginTop: 4 },
   empty: {
+    marginTop: 40,
     textAlign: 'center',
-    color: '#777',
-    marginTop: 32,
+    fontSize: 16,
+    color: '#999',
   },
 });

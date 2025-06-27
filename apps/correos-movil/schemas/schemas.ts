@@ -30,7 +30,22 @@ export type RootStackParamList = {
   MisCompras: undefined;
   PackagesListDistributor: undefined;
   PackageScreen: { package: any };
-
+  DetalleProducto: {
+    contenido: {
+      id: number;
+      precio: string;
+      cantidad: number;
+      producto: {
+        id: number;
+        precio: string;
+        nombre: string;
+        descripcion: string;
+        imagen: string;
+        categoria: string | null;
+        inventario: number;
+      };
+    };
+  };
 };
 
 // Producto y contenidos

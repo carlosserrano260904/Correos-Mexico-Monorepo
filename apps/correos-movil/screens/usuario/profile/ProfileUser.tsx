@@ -48,7 +48,7 @@ export default function ProfileUser() {
       title: 'Información de pago',
       items: [
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
-        { label: 'Mis tarjetas', icon: 'credit-card', to: 'Tarjetas' },
+        { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
       ],
     },
     {

@@ -74,7 +74,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://192.168.1.69:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
+        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
       );
       
       const packagesData = response.data;
@@ -336,16 +336,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
     paddingBottom: moderateScale(20),
-    borderBottomLeftRadius: moderateScale(20),
-    borderBottomRightRadius: moderateScale(20),
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
   },
   packagesAndUserContainer: {
     flexDirection: 'row',

@@ -336,16 +336,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
     paddingBottom: moderateScale(20),
-    borderBottomLeftRadius: moderateScale(20),
-    borderBottomRightRadius: moderateScale(20),
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
   },
   packagesAndUserContainer: {
     flexDirection: 'row',

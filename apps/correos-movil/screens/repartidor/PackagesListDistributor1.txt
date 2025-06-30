@@ -83,14 +83,10 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       // Guardar en AsyncStorage
       await AsyncStorage.setItem('packages', JSON.stringify(packagesData));
       
-      // Calcular estadísticas dinámicamente basado en el estatus
+      // Calcular estadísticas
       const total = packagesData.length;
-      const entregados = packagesData.filter((pkg: Package) => 
-        pkg.estatus.toLowerCase() === 'entregado'
-      ).length;
-      const fallidos = packagesData.filter((pkg: Package) => 
-        pkg.estatus.toLowerCase() === 'fallido'
-      ).length;
+      const entregados = packagesData.filter((pkg: Package) => pkg.estatus === 'entregado').length;
+      const fallidos = packagesData.filter((pkg: Package) => pkg.estatus === 'fallido').length;
       
       setPaquetesTotal(total);
       setPaquetesEntregados(entregados);
@@ -106,19 +102,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         if (storedPackages) {
           const packagesData = JSON.parse(storedPackages);
           setPackages(packagesData);
-          
-          // Recalcular estadísticas desde storage
-          const total = packagesData.length;
-          const entregados = packagesData.filter((pkg: Package) => 
-            pkg.estatus.toLowerCase() === 'entregado'
-          ).length;
-          const fallidos = packagesData.filter((pkg: Package) => 
-            pkg.estatus.toLowerCase() === 'fallido'
-          ).length;
-          
-          setPaquetesTotal(total);
-          setPaquetesEntregados(entregados);
-          setPaquetesFallidos(fallidos);
+          setPaquetesTotal(packagesData.length);
         }
       } catch (storageError) {
         console.error('Error al cargar desde storage:', storageError);
@@ -261,7 +245,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
             {paquetesRestantes} paquetes restantes
           </Text>
           <TouchableOpacity style={styles.userButton}>
-            <User color="white" size={moderateScale(20)} />
+            <User color="white" size={moderateScale(24)} />
           </TouchableOpacity>
         </View>
 
@@ -348,65 +332,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerContainer: {
-    paddingTop: moderateScale(40), // Reducido de 52 a 40
+    paddingTop: moderateScale(52),
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(12), // Reducido de 20 a 12
+    paddingBottom: moderateScale(20),
   },
   packagesAndUserContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: moderateScale(10), // Reducido de 16 a 10
+    marginBottom: moderateScale(16),
   },
   packagesText: {
     fontWeight: '700',
     color: 'white',
-    fontSize: moderateScale(20), // Reducido de 22 a 20
+    fontSize: moderateScale(22),
   },
   userButton: {
-    padding: moderateScale(6), // Reducido de 8 a 6
-    borderRadius: moderateScale(16), // Reducido de 20 a 16
+    padding: moderateScale(8),
+    borderRadius: moderateScale(20),
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   packetCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: moderateScale(10), // Reducido de 16 a 10
+    marginBottom: moderateScale(16),
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: moderateScale(10), // Reducido de 12 a 10
-    paddingVertical: moderateScale(8), // Reducido de 12 a 8
+    borderRadius: moderateScale(12),
+    paddingVertical: moderateScale(12),
   },
   packetCounterItemLeft: {
-    paddingRight: moderateScale(12), // Reducido de 16 a 12
+    paddingRight: moderateScale(16),
     borderRightWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   packetCounterItemRight: {
-    paddingLeft: moderateScale(12), // Reducido de 16 a 12
+    paddingLeft: moderateScale(16),
   },
   counterText: {
     fontWeight: '400',
     color: 'white',
-    fontSize: moderateScale(14), // Reducido de 16 a 14
+    fontSize: moderateScale(16),
   },
   counterNumber: {
     fontWeight: '700',
-    fontSize: moderateScale(16), // Reducido de 18 a 16
+    fontSize: moderateScale(18),
   },
   progressContainer: {
     alignItems: 'center',
   },
   progressBar: {
-    height: moderateScale(6), // Reducido de 8 a 6
-    borderRadius: moderateScale(3), // Reducido de 4 a 3
+    height: moderateScale(8),
+    borderRadius: moderateScale(4),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   progressText: {
     color: 'white',
-    fontSize: moderateScale(11), // Reducido de 12 a 11
-    marginTop: moderateScale(6), // Reducido de 8 a 6
+    fontSize: moderateScale(12),
+    marginTop: moderateScale(8),
     fontWeight: '500',
   },
   tabBar: {
@@ -422,7 +406,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontWeight: '600',
     textTransform: 'none',
-    fontSize: moderateScale(14), // Reducido de 16 a 14
+    fontSize: moderateScale(16),
   },
   packagesContainer: {
     flex: 1,

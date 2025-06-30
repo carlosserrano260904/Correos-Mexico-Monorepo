@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import Constants from 'expo-constants';
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 export type Articulo = {
   id: string;
@@ -55,7 +58,10 @@ const ProductoCard: React.FC<{
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
   const isLiked = liked.includes(idNum);
-  const colores = articulo.color.split(',').map(s => s.trim()).filter(Boolean);
+const colores = (articulo.color ?? '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
   return (
     <View style={styles.tarjetaProducto}>
@@ -88,7 +94,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   const [liked, setLiked] = useState<number[]>([]);
 
   useEffect(() => {
-    fetch('http://192.168.1.69:3000/api/likes/usuario/1')
+    fetch(`http://${IP}:3000/api/likes/usuario/1`)
       .then(r => r.json())
       .then(data => setLiked(data.map((l: any) => l.producto.id)))
       .catch(console.error);
@@ -103,7 +109,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   }, [productos, search]);
 
   const toggleLike = async (id: number) => {
-    const url = `http://192.168.1.69:3000/api/likes/1/${id}`;
+    const url = `http://${IP}:3000/api/likes/1/${id}`;
     try {
       const method = liked.includes(id) ? 'DELETE' : 'POST';
       await fetch(url, { method });

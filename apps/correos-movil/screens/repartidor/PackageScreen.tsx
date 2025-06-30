@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,14 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../schemas/schemas';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
 
 interface Package {
@@ -28,6 +31,11 @@ interface Package {
   cp: string;
 }
 
+interface LocationCoords {
+  latitude: number;
+  longitude: number;
+}
+
 type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'> & {
   route: {
     params: {
@@ -38,6 +46,160 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'> & {
 
 const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
   const { package: packageData } = route.params;
+  const [currentLocation, setCurrentLocation] = useState<LocationCoords | null>(null);
+  const [routeCoordinates, setRouteCoordinates] = useState<LocationCoords[]>([]);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [distance, setDistance] = useState<string>('');
+  const [duration, setDuration] = useState<string>('');
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  useEffect(() => {
+    if (currentLocation) {
+      getDirections();
+    }
+  }, [currentLocation]);
+
+  const getCurrentLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos de Ubicación',
+          'Se necesitan permisos de ubicación para mostrar tu posición actual y calcular la ruta.',
+          [{ text: 'OK' }]
+        );
+        setIsLoadingLocation(false);
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      setCurrentLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+      setIsLoadingLocation(false);
+    } catch (error) {
+      console.error('Error obteniendo ubicación:', error);
+      Alert.alert('Error', 'No se pudo obtener la ubicación actual');
+      setIsLoadingLocation(false);
+    }
+  };
+
+  const getDirections = async () => {
+    if (!currentLocation) return;
+
+    // Siempre establecer una línea directa como fallback inmediato
+    const directRoute = [
+      currentLocation,
+      { latitude: packageData.latitud, longitude: packageData.longitud }
+    ];
+    setRouteCoordinates(directRoute);
+
+    try {
+      // Usar Google Directions API
+      const origin = `${currentLocation.latitude},${currentLocation.longitude}`;
+      const destination = `${packageData.latitud},${packageData.longitud}`;
+      
+      // Nota: Necesitarás una API key de Google Maps Platform
+      const API_KEY = 'TU_GOOGLE_MAPS_API_KEY'; // Reemplazar con tu API key
+      
+      // Solo intentar la API si hay una API key válida
+      if (API_KEY && API_KEY !== 'TU_GOOGLE_MAPS_API_KEY') {
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${API_KEY}&mode=driving&language=es`
+        );
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          const points = decodePolyline(route.overview_polyline.points);
+          setRouteCoordinates(points);
+          
+          // Extraer distancia y duración
+          const leg = route.legs[0];
+          setDistance(leg.distance.text);
+          setDuration(leg.duration.text);
+        }
+      } else {
+        console.log('Usando línea directa - API key no configurada');
+        // Calcular distancia aproximada para línea directa
+        const distance = calculateDistance(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          packageData.latitud,
+          packageData.longitud
+        );
+        setDistance(`${distance.toFixed(1)} km`);
+        setDuration('Ruta directa');
+      }
+    } catch (error) {
+      console.error('Error obteniendo direcciones:', error);
+      // Ya tenemos el fallback establecido arriba
+    }
+  };
+
+  // Función para calcular distancia aproximada entre dos puntos
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Función para decodificar polyline de Google Maps
+  const decodePolyline = (encoded: string): LocationCoords[] => {
+    const points: LocationCoords[] = [];
+    let index = 0;
+    let lat = 0;
+    let lng = 0;
+
+    while (index < encoded.length) {
+      let shift = 0;
+      let result = 0;
+      let byte;
+
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+
+      const deltaLat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+      lat += deltaLat;
+
+      shift = 0;
+      result = 0;
+
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+
+      const deltaLng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+      lng += deltaLng;
+
+      points.push({
+        latitude: lat / 1e5,
+        longitude: lng / 1e5,
+      });
+    }
+
+    return points;
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -55,16 +217,15 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const handleOpenMap = () => {
-    // Lógica para abrir el mapa
-    console.log('Abrir mapa con coordenadas:', packageData.latitud, packageData.longitud);
+    if (currentLocation) {
+      const url = `https://www.google.com/maps/dir/${currentLocation.latitude},${currentLocation.longitude}/${packageData.latitud},${packageData.longitud}`;
+      console.log('Abrir mapa externo:', url);
+    }
   };
 
   const handleDelivery = () => {
-    // Lógica para confirmar entrega
     console.log('Confirmar entrega del paquete:', packageData.id);
   };
-
-  type StatusType = 'entregado' | 'fallido' | 'pendiente' | 'en_ruta';
 
   const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
@@ -96,6 +257,31 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   };
 
+  const getMapRegion = () => {
+    if (!currentLocation) {
+      return {
+        latitude: packageData.latitud,
+        longitude: packageData.longitud,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      };
+    }
+
+    // Calcular región que incluya ambos puntos
+    const midLat = (currentLocation.latitude + packageData.latitud) / 2;
+    const midLng = (currentLocation.longitude + packageData.longitud) / 2;
+    
+    const latDelta = Math.abs(currentLocation.latitude - packageData.latitud) * 1.5;
+    const lngDelta = Math.abs(currentLocation.longitude - packageData.longitud) * 1.5;
+
+    return {
+      latitude: midLat,
+      longitude: midLng,
+      latitudeDelta: Math.max(latDelta, 0.01),
+      longitudeDelta: Math.max(lngDelta, 0.01),
+    };
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -112,18 +298,37 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Mapa */}
+        {/* Mapa con Ruta */}
         <View style={styles.mapContainer}>
+          {isLoadingLocation && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="#DE1484" />
+              <Text style={styles.loadingText}>Obteniendo ubicación...</Text>
+            </View>
+          )}
+          
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.map}
-            initialRegion={{
-              latitude: packageData.latitud,
-              longitude: packageData.longitud,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
+            initialRegion={getMapRegion()}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
           >
+            {/* Marcador de ubicación actual */}
+            {currentLocation && (
+              <Marker
+                coordinate={currentLocation}
+                title="Tu ubicación"
+                description="Ubicación actual"
+                pinColor="#2196F3"
+              >
+                <View style={styles.currentLocationMarker}>
+                  <Ionicons name="location" size={20} color="#FFFFFF" />
+                </View>
+              </Marker>
+            )}
+
+            {/* Marcador de destino */}
             <Marker
               coordinate={{
                 latitude: packageData.latitud,
@@ -131,8 +336,47 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
               }}
               title={`SKU: ${packageData.sku}`}
               description={`${packageData.calle}, ${packageData.colonia}`}
-            />
+              pinColor="#DE1484"
+            >
+              <View style={styles.destinationMarker}>
+                <Ionicons name="location" size={20} color="#FFFFFF" />
+              </View>
+            </Marker>
+
+            {/* Ruta - Siempre visible */}
+            {currentLocation && (
+              <Polyline
+                coordinates={routeCoordinates.length > 0 ? routeCoordinates : [
+                  currentLocation,
+                  { latitude: packageData.latitud, longitude: packageData.longitud }
+                ]}
+                strokeColor="#DE1484"
+                strokeWidth={5}
+                strokeOpacity={0.8}
+                lineDashPattern={[0]}
+                lineJoin="round"
+                lineCap="round"
+              />
+            )}
           </MapView>
+
+          {/* Información de ruta */}
+          {(distance || duration) && (
+            <View style={styles.routeInfo}>
+              {distance && (
+                <View style={styles.routeInfoItem}>
+                  <Ionicons name="resize" size={16} color="#666" />
+                  <Text style={styles.routeInfoText}>{distance}</Text>
+                </View>
+              )}
+              {duration && (
+                <View style={styles.routeInfoItem}>
+                  <Ionicons name="time" size={16} color="#666" />
+                  <Text style={styles.routeInfoText}>{duration}</Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Status */}
@@ -211,7 +455,6 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text style={styles.addressValue}>{packageData.longitud.toFixed(6)}</Text>
               </View>
               <View style={styles.addressItem}>
-                {/* Espacio vacío para mantener el grid */}
                 <Text style={styles.addressLabel}></Text>
                 <Text style={styles.addressValue}></Text>
               </View>
@@ -229,24 +472,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
       </View>
     </SafeAreaView>
   );
-}
-
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}
-
-const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value }) => (
-  <View style={styles.infoItem}>
-    <View style={styles.infoItemHeader}>
-      {icon}
-      <Text style={styles.infoLabel}>{label}</Text>
-    </View>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
-
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -279,6 +505,72 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  mapContainer: {
+    height: 250,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginVertical: 16,
+    position: 'relative',
+  },
+  map: {
+    flex: 1,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+  },
+  currentLocationMarker: {
+    backgroundColor: '#2196F3',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  destinationMarker: {
+    backgroundColor: '#DE1484',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  routeInfo: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 8,
+    padding: 8,
+    flexDirection: 'row',
+    gap: 16,
+  },
+  routeInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  routeInfoText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   statusContainer: {
     alignItems: 'center',

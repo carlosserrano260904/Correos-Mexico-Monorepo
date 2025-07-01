@@ -1,3 +1,5 @@
+//ProfileUser.tsx
+
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -55,8 +57,7 @@ export default function ProfileUser() {
       title: 'Políticas',
       items: [
         { label: 'Prueba productos', icon: 'file-text', to: 'Productos' },
-        { label: 'Privacidad', icon: 'file-text', to: 'Privacidad' },
-        { label: 'Devoluciones', icon: 'file-text', to: 'Devoluciones' },
+        { label: 'Terminos y condiciones', icon: 'file-text', to: 'Politicas' },
       ],
     },
   ];

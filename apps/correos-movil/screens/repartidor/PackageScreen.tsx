@@ -9,6 +9,7 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,6 +17,10 @@ import { RootStackParamList } from '../../schemas/schemas';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
+import { ScanQrCode, ArrowLeft } from 'lucide-react-native';
+
+const screenWidth = Dimensions.get("screen").width;
+const screenHeight = Dimensions.get("screen").height
 
 interface Package {
   id: string;
@@ -289,11 +294,11 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <ArrowLeft size={moderateScale(24)} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalles del Paquete</Text>
-        <TouchableOpacity onPress={handleOpenMap} style={styles.mapButton}>
-          <Ionicons name="map" size={24} color="#DE1484" />
+        <TouchableOpacity>
+          <ScanQrCode color={"#DE1484"} size={moderateScale(24)}/>
         </TouchableOpacity>
       </View>
 
@@ -314,19 +319,6 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
             showsUserLocation={true}
             showsMyLocationButton={true}
           >
-            {/* Marcador de ubicación actual */}
-            {currentLocation && (
-              <Marker
-                coordinate={currentLocation}
-                title="Tu ubicación"
-                description="Ubicación actual"
-                pinColor="#2196F3"
-              >
-                <View style={styles.currentLocationMarker}>
-                  <Ionicons name="location" size={20} color="#FFFFFF" />
-                </View>
-              </Marker>
-            )}
 
             {/* Marcador de destino */}
             <Marker
@@ -402,16 +394,6 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
             <Text style={styles.label}>ID del Paquete:</Text>
             <Text style={styles.value}>{packageData.id}</Text>
           </View>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Fecha de Creación:</Text>
-            <Text style={styles.value}>{formatDate(packageData.fecha_creacion)}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Estatus:</Text>
-            <Text style={styles.value}>{getStatusText(packageData.estatus)}</Text>
-          </View>
         </View>
 
         {/* Indicaciones */}
@@ -432,6 +414,9 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text style={styles.addressLabel}>Calle</Text>
                 <Text style={styles.addressValue}>{packageData.calle}</Text>
               </View>
+            </View>
+
+            <View style={styles.addressRow}>
               <View style={styles.addressItem}>
                 <Text style={styles.addressLabel}>Colonia</Text>
                 <Text style={styles.addressValue}>{packageData.colonia}</Text>
@@ -443,22 +428,8 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text style={styles.addressLabel}>Código Postal</Text>
                 <Text style={styles.addressValue}>{packageData.cp}</Text>
               </View>
-              <View style={styles.addressItem}>
-                <Text style={styles.addressLabel}>Latitud</Text>
-                <Text style={styles.addressValue}>{packageData.latitud.toFixed(6)}</Text>
-              </View>
             </View>
-            
-            <View style={styles.addressRow}>
-              <View style={styles.addressItem}>
-                <Text style={styles.addressLabel}>Longitud</Text>
-                <Text style={styles.addressValue}>{packageData.longitud.toFixed(6)}</Text>
-              </View>
-              <View style={styles.addressItem}>
-                <Text style={styles.addressLabel}></Text>
-                <Text style={styles.addressValue}></Text>
-              </View>
-            </View>
+        
           </View>
         </View>
       </ScrollView>
@@ -483,34 +454,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: moderateScale(12),
+    paddingTop: moderateScale(40),
+    paddingBottom: moderateScale(12),
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   backButton: {
-    padding: 8,
+    
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: moderateScale(18),
     fontWeight: '600',
     color: '#000',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 16,
   },
   mapButton: {
-    padding: 8,
+    padding: moderateScale(8),
   },
   content: {
-    flex: 1,
-    paddingHorizontal: 16,
+    
   },
   mapContainer: {
-    height: 250,
-    borderRadius: 12,
+    height: screenHeight * 0.3,
     overflow: 'hidden',
-    marginVertical: 16,
     position: 'relative',
   },
   map: {
@@ -528,15 +494,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   loadingText: {
-    marginTop: 8,
-    fontSize: 14,
+    marginTop: moderateScale(8),
+    fontSize: moderateScale(14),
     color: '#666',
   },
   currentLocationMarker: {
     backgroundColor: '#2196F3',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+    borderRadius: moderateScale(20),
+    width: moderateScale(40),
+    height: moderateScale(40),
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
@@ -544,9 +510,9 @@ const styles = StyleSheet.create({
   },
   destinationMarker: {
     backgroundColor: '#DE1484',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+    borderRadius: moderateScale(20),
+    width: moderateScale(40),
+    height: moderateScale(40),
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
@@ -557,40 +523,40 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 8,
-    padding: 8,
+    borderRadius: moderateScale(8),
+    padding: moderateScale(8),
     flexDirection: 'row',
-    gap: 16,
+    gap: moderateScale(16),
   },
   routeInfoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: moderateScale(4),
   },
   routeInfoText: {
-    fontSize: 12,
+    fontSize: moderateScale(12),
     color: '#666',
     fontWeight: '500',
   },
   statusContainer: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: moderateScale(16),
   },
   statusBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: moderateScale(8),
+    borderRadius: moderateScale(20),
   },
   statusText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: moderateScale(14),
     fontWeight: '600',
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: moderateScale(12),
+    padding: moderateScale(16),
+    marginBottom: moderateScale(16),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -599,66 +565,69 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    marginHorizontal: moderateScale(12)
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: moderateScale(8),
     borderBottomWidth: 1,
     borderBottomColor: '#F5F5F5',
   },
   label: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: '#666',
     fontWeight: '500',
     flex: 1,
   },
   value: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: '#000',
     fontWeight: '600',
     flex: 1,
     textAlign: 'right',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: '600',
     color: '#000',
-    marginBottom: 12,
+    marginBottom: moderateScale(12),
   },
   instructions: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: '#666',
     lineHeight: 20,
   },
   addressGrid: {
-    gap: 12,
+    gap: moderateScale(12),
   },
   addressRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: moderateScale(12),
   },
   addressItem: {
     flex: 1,
   },
   addressLabel: {
-    fontSize: 12,
+    fontSize: moderateScale(12),
     color: '#666',
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: moderateScale(4),
   },
   addressValue: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: '#000',
     fontWeight: '600',
     backgroundColor: '#F8F9FA',
-    padding: 8,
-    borderRadius: 6,
-    textAlign: 'center',
+    padding: moderateScale(8),
+    borderRadius: moderateScale(6),
+    textAlign: 'left',
   },
   buttonContainer: {
-    padding: 16,
+    paddingHorizontal: moderateScale(12),
+    paddingBottom: moderateScale(52),
+    paddingTop: moderateScale(12),
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
@@ -668,13 +637,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: moderateScale(16),
+    borderRadius: moderateScale(12),
+    gap: moderateScale(8),
   },
   deliveryButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: '600',
   },
 });

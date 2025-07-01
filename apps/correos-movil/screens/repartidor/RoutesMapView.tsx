@@ -20,10 +20,7 @@ export default function RoutesMapView({ userLocation, destination, optimizedInte
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView style={StyleSheet.absoluteFillObject} region={mapRegion}>
-        {userLocation && (
-          <Marker coordinate={userLocation} title="Tu ubicación" image={carImage} />
-        )}
+      <MapView style={StyleSheet.absoluteFillObject} initialRegion={mapRegion} showsUserLocation={true} showsMyLocationButton={true}>
 
         <Marker coordinate={destination} title="Destino" />
 

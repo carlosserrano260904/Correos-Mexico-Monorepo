@@ -18,6 +18,8 @@ import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
 import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
 import { TransportesModule } from './transportes/transportes.module';
+import { CarritoModule } from './carrito/carrito.module';
+import { FavoritosModule } from './favoritos/favoritos.module';
 
 @Module({
   imports: [
@@ -39,7 +41,9 @@ import { TransportesModule } from './transportes/transportes.module';
     UserModule,
     LikesModule,
     AsignacionPaquetesModule,
-    TransportesModule
+    TransportesModule,
+    CarritoModule,
+    FavoritosModule
 
   ],
   controllers: [AppController, PostalController],

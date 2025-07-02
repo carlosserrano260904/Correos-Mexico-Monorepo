@@ -1,4 +1,6 @@
 import { Transaction } from 'src/transactions/entities/transaction.entity'
+import { Favorito } from 'src/favoritos/entities/favorito.entity'
+import { Carrito } from 'src/carrito/entities/carrito.entity'
 import {Column,Entity,OneToMany,PrimaryGeneratedColumn} from 'typeorm'
 @Entity()
 export class Profile {
@@ -33,4 +35,10 @@ export class Profile {
 
     @OneToMany(()=>Transaction,tx=>tx.profile)
     transactions:Transaction[];
+
+    @OneToMany(() => Favorito, favorito => favorito.usuario )
+    favoritos: Favorito[];
+
+    @OneToMany(() => Carrito, carrito => carrito.usuario)
+    carrito: Carrito[];
 }

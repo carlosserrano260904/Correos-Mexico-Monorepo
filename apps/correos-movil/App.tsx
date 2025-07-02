@@ -21,6 +21,8 @@ import Productos from './screens/usuario/vendedor/Productos';
 import DetalleProducto from './screens/usuario/mis-compras/DetalleProducto';
 import Politicas from './screens/usuario/vendedor/Politicas';
 
+
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {

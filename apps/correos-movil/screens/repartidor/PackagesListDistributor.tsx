@@ -1,3 +1,4 @@
+
 import * as React from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert } from 'react-native'
 import { User, Package, MapPin } from 'lucide-react-native'
@@ -40,6 +41,8 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   const [paquetesFallidos, setPaquetesFallidos] = React.useState(0);
   const [packages, setPackages] = React.useState<Package[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [routeInitialized, setRouteInitialized] = React.useState(false); // NUEVO
+  const [isRecalculating, setIsRecalculating] = React.useState(false);
 
   const layout = useWindowDimensions();
 
@@ -54,7 +57,12 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     longitude: -104.44447330485218,
   });
 
-  const [intermediates, setIntermediates] = React.useState<LatLng[]>([]);
+  const [intermediates] = React.useState<LatLng[]>([
+    { latitude: 24.03607544743889, longitude: -104.65042708051433 },
+    { latitude: 24.030763356272793, longitude: -104.61984483069332 },
+    { latitude: 24.026240946925842, longitude: -104.62899847198052 },
+    { latitude: 24.03607544743889, longitude: -104.62899847198045 },
+  ]);
 
   const [optimizedIntermediates, setOptimizedIntermediates] = React.useState<LatLng[]>([]);
   const [userLocation, setUserLocation] = React.useState<LatLng | null>(null);
@@ -71,42 +79,49 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       const response = await axios.get(
         `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
       );
-
-      const packagesData: Package[] = response.data;
+      
+      const packagesData = response.data;
       setPackages(packagesData);
-
-  
+      
+      // Guardar en AsyncStorage
       await AsyncStorage.setItem('packages', JSON.stringify(packagesData));
-
-    
+      
+      // Calcular estadísticas dinámicamente basado en el estatus
       const total = packagesData.length;
-      const entregados = packagesData.filter(pkg => pkg.estatus === 'entregado').length;
-      const fallidos = packagesData.filter(pkg => pkg.estatus === 'fallido').length;
-
+      const entregados = packagesData.filter((pkg: Package) => 
+        pkg.estatus.toLowerCase() === 'entregado'
+      ).length;
+      const fallidos = packagesData.filter((pkg: Package) => 
+        pkg.estatus.toLowerCase() === 'fallido'
+      ).length;
+      
       setPaquetesTotal(total);
       setPaquetesEntregados(entregados);
       setPaquetesFallidos(fallidos);
-
       
-      const coords: LatLng[] = packagesData.map(pkg => ({
-        latitude: pkg.latitud,
-        longitude: pkg.longitud,
-      }));
-
-      console.log(coords);
-
-      setIntermediates(coords);
     } catch (error) {
       console.error('Error al obtener paquetes:', error);
       Alert.alert('Error', 'No se pudieron cargar los paquetes');
-
+      
       // Intentar cargar desde AsyncStorage
       try {
         const storedPackages = await AsyncStorage.getItem('packages');
         if (storedPackages) {
           const packagesData = JSON.parse(storedPackages);
           setPackages(packagesData);
-          setPaquetesTotal(packagesData.length);
+          
+          // Recalcular estadísticas desde storage
+          const total = packagesData.length;
+          const entregados = packagesData.filter((pkg: Package) => 
+            pkg.estatus.toLowerCase() === 'entregado'
+          ).length;
+          const fallidos = packagesData.filter((pkg: Package) => 
+            pkg.estatus.toLowerCase() === 'fallido'
+          ).length;
+          
+          setPaquetesTotal(total);
+          setPaquetesEntregados(entregados);
+          setPaquetesFallidos(fallidos);
         }
       } catch (storageError) {
         console.error('Error al cargar desde storage:', storageError);
@@ -115,6 +130,19 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       setLoading(false);
     }
   };
+
+  React.useEffect(() => {
+  if (userLocation) {
+    // Solo calcula ruta si aún no se hizo
+    if (!routeInitialized) {
+      getRoute(userLocation, destination, intermediates);
+      setRouteInitialized(true);
+    } else if (isOffRoute(userLocation, routePoints)) {
+      console.log("Recalculando ruta, fuera del camino...");
+      getRoute(userLocation, destination, intermediates);
+    }
+  }
+  }, [userLocation, destination, intermediates, routeInitialized, routePoints]);
 
   const setupLocationTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -131,99 +159,92 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         };
-        setUserLocation(newLoc);
-        getRoute(newLoc, destination, intermediates);
+        setUserLocation(newLoc); // Solo actualizamos la posición del usuario
       }
     );
 
     return () => subscription.remove();
   };
 
-const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
-  try {
-    const response = await axios.post(`http://${IP}:3000/api/routes`, {
-      origin,
-      destination,
-      intermediates,
-    });
+  const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
+    if (isRecalculating) return;
+    setIsRecalculating(true);
 
-    const route = response.data.routes?.[0];
+    try {
+      const response = await axios.post(`http://${IP}:3000/api/routes`, {
+        origin,
+        destination,
+        intermediates,
+      });
 
-    if (!route) {
-      console.error("No se encontró una ruta en la respuesta.");
-      return;
-    }
+      const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
+      const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
 
-    const encodedPolyline = route.polyline?.encodedPolyline;
-
-    if (!encodedPolyline) {
-      console.error("No se encontró 'encodedPolyline' en la respuesta.");
-      return;
-    }
-
-    const optimizedOrder: number[] | undefined = route.optimizedIntermediateWaypointIndex;
-
-    if (optimizedOrder) {
-      const orderedPoints = optimizedOrder.map(i => intermediates[i]);
+      const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
-    } else {
-      console.warn("No se recibió un orden optimizado. Usando puntos intermedios como están.");
-      setOptimizedIntermediates(intermediates);
+      const points = decodePolyline(encodedPolyline);
+      setRoutePoints(points);
+    } catch (err) {
+      Alert.alert('Error', 'No se pudo recalcular la ruta. Revisa tu conexión.');
+    } finally {
+      setIsRecalculating(false);
     }
-
-    // Decodificar la ruta en puntos LatLng[]
-    const points = decodePolyline(encodedPolyline);
-    setRoutePoints(points);
-
-  } catch (error) {
-    console.error('Error al obtener la ruta:', error);
-  }
-};
-
-  const getPackageRouteIndex = (packageItem: Package): number => {
-    const orderedPackages = getOrderedPackages();
-    const packageIndex = orderedPackages.findIndex(pkg => pkg.id === packageItem.id);
-    return packageIndex >= 0 ? packageIndex + 1 : 0;
   };
 
-  const renderPackageItem = ({ item }: { item: Package }) => {
- const routeIndex = getPackageRouteIndex(item);
- 
- return (
-   <TouchableOpacity
-     style={styles.packageItem}
-     onPress={() => navigation?.navigate('PackageScreen', { package: item })}
-   >
-     <View style={styles.packageHeader}>
-       <View style={styles.packageIconContainer}>
-         <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
-       </View>
-       <View style={styles.packageInfo}>
-         <Text style={styles.packageSku}>SKU: {item.sku}</Text>
-         <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
-       </View>
-       <View style={styles.packageStatus}>
-         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
-           <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
-         </View>
-       </View>
-     </View>
+  function getDistanceMeters(p1: LatLng, p2: LatLng): number {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371000; // Radio de la tierra en metros
+    const dLat = toRad(p2.latitude - p1.latitude);
+    const dLng = toRad(p2.longitude - p1.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(p1.latitude)) *
+        Math.cos(toRad(p2.latitude)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
 
-     <View style={styles.packageAddress}>
-       <MapPin color="#666" size={moderateScale(16)} />
-       <Text style={styles.addressText} numberOfLines={2}>
-         {item.calle}, {item.colonia}, CP {item.cp}
-       </Text>
-     </View>
+  function isOffRoute(userLoc: LatLng, route: LatLng[], threshold = 100): boolean {
+    if (!route || route.length === 0) return true;
+    return !route.some(point => getDistanceMeters(userLoc, point) <= threshold);
+  }
 
-     {item.indicaciones && (
-       <Text style={styles.packageInstructions} numberOfLines={2}>
-         {item.indicaciones}
-       </Text>
-     )}
-   </TouchableOpacity>
- );
-};
+  const renderPackageItem = ({ item }: { item: Package }) => (
+    <TouchableOpacity
+      style={styles.packageItem}
+      onPress={() => navigation?.navigate('PackageScreen', { package: item })}
+    >
+      <View style={styles.packageHeader}>
+        <View style={styles.packageIconContainer}>
+          <Package color="#DE1484" size={moderateScale(24)} />
+        </View>
+        <View style={styles.packageInfo}>
+          <Text style={styles.packageSku}>SKU: {item.sku}</Text>
+          <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
+        </View>
+        <View style={styles.packageStatus}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
+            <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
+          </View>
+        </View>
+      </View>
+      
+      <View style={styles.packageAddress}>
+        <MapPin color="#666" size={moderateScale(16)} />
+        <Text style={styles.addressText} numberOfLines={2}>
+          {item.calle}, {item.colonia}, CP {item.cp}
+        </Text>
+      </View>
+      
+      {item.indicaciones && (
+        <Text style={styles.packageInstructions} numberOfLines={2}>
+          {item.indicaciones}
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -238,59 +259,25 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
     }
   };
 
-    const getOrderedPackages = (): Package[] => {
-    if (optimizedIntermediates.length === 0 || packages.length === 0) {
-      return packages;
-    }
-
-    const orderedPackages: Package[] = [];
-    
-    // Para cada coordenada optimizada, encontrar el paquete correspondiente
-    optimizedIntermediates.forEach(optimizedCoord => {
-      const matchingPackage = packages.find(pkg => 
-        Math.abs(pkg.latitud - optimizedCoord.latitude) < 0.0001 && 
-        Math.abs(pkg.longitud - optimizedCoord.longitude) < 0.0001
-      );
-      
-      if (matchingPackage && !orderedPackages.includes(matchingPackage)) {
-        orderedPackages.push(matchingPackage);
-      }
-    });
-
-    // Agregar cualquier paquete que no se haya incluido (por si acaso)
-    packages.forEach(pkg => {
-      if (!orderedPackages.includes(pkg)) {
-        orderedPackages.push(pkg);
-      }
-    });
-
-    return orderedPackages;
-  };
-  
-
-  const PackagesList = () => {
-    const orderedPackages = getOrderedPackages();
-    
-    return (
-      <View style={styles.packagesContainer}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Cargando paquetes...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={orderedPackages}
-            renderItem={renderPackageItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.packagesList}
-            showsVerticalScrollIndicator={false}
-            refreshing={loading}
-            onRefresh={fetchPackages}
-          />
-        )}
-      </View>
-    );
-  };
+  const PackagesList = () => (
+    <View style={styles.packagesContainer}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Cargando paquetes...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={packages}
+          renderItem={renderPackageItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.packagesList}
+          showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={fetchPackages}
+        />
+      )}
+    </View>
+  );
 
   const renderScene = SceneMap({
     mapa: () => (
@@ -299,7 +286,6 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
         destination={destination}
         optimizedIntermediates={optimizedIntermediates}
         routePoints={routePoints}
-        intermediates={intermediates}
       />
     ),
     lista: PackagesList,
@@ -315,7 +301,7 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
             {paquetesRestantes} paquetes restantes
           </Text>
           <TouchableOpacity style={styles.userButton}>
-            <User color="white" size={moderateScale(24)} />
+            <User color="white" size={moderateScale(20)} />
           </TouchableOpacity>
         </View>
 
@@ -333,8 +319,8 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
         </View>
 
         <View style={styles.progressContainer}>
-          <ProgressBar
-            progress={paquetesTotal > 0 ? (paquetesEntregados + paquetesFallidos) / paquetesTotal : 0}
+          <ProgressBar 
+            progress={paquetesTotal > 0 ? (paquetesEntregados + paquetesFallidos) / paquetesTotal : 0} 
             color="#fff"
             style={styles.progressBar}
           />
@@ -402,65 +388,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerContainer: {
-    paddingTop: moderateScale(52),
+    paddingTop: moderateScale(40), // Reducido de 52 a 40
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(20),
+    paddingBottom: moderateScale(12), // Reducido de 20 a 12
   },
   packagesAndUserContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: moderateScale(16),
+    marginBottom: moderateScale(10), // Reducido de 16 a 10
   },
   packagesText: {
     fontWeight: '700',
     color: 'white',
-    fontSize: moderateScale(22),
+    fontSize: moderateScale(20), // Reducido de 22 a 20
   },
   userButton: {
-    padding: moderateScale(8),
-    borderRadius: moderateScale(20),
+    padding: moderateScale(6), // Reducido de 8 a 6
+    borderRadius: moderateScale(16), // Reducido de 20 a 16
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   packetCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: moderateScale(16),
+    marginBottom: moderateScale(10), // Reducido de 16 a 10
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: moderateScale(12),
-    paddingVertical: moderateScale(12),
+    borderRadius: moderateScale(10), // Reducido de 12 a 10
+    paddingVertical: moderateScale(8), // Reducido de 12 a 8
   },
   packetCounterItemLeft: {
-    paddingRight: moderateScale(16),
+    paddingRight: moderateScale(12), // Reducido de 16 a 12
     borderRightWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   packetCounterItemRight: {
-    paddingLeft: moderateScale(16),
+    paddingLeft: moderateScale(12), // Reducido de 16 a 12
   },
   counterText: {
     fontWeight: '400',
     color: 'white',
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14), // Reducido de 16 a 14
   },
   counterNumber: {
     fontWeight: '700',
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(16), // Reducido de 18 a 16
   },
   progressContainer: {
     alignItems: 'center',
   },
   progressBar: {
-    height: moderateScale(8),
-    borderRadius: moderateScale(4),
+    height: moderateScale(6), // Reducido de 8 a 6
+    borderRadius: moderateScale(3), // Reducido de 4 a 3
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   progressText: {
     color: 'white',
-    fontSize: moderateScale(12),
-    marginTop: moderateScale(8),
+    fontSize: moderateScale(11), // Reducido de 12 a 11
+    marginTop: moderateScale(6), // Reducido de 8 a 6
     fontWeight: '500',
   },
   tabBar: {
@@ -476,7 +462,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontWeight: '600',
     textTransform: 'none',
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14), // Reducido de 16 a 14
   },
   packagesContainer: {
     flex: 1,
@@ -529,18 +515,6 @@ const styles = StyleSheet.create({
   packageStatus: {
     alignItems: 'flex-end',
   },
-  routeIndexContainer: {
-    backgroundColor: '#2196F3',
-    borderRadius: moderateScale(12),
-    paddingHorizontal: moderateScale(8),
-    paddingVertical: moderateScale(4),
-    marginBottom: moderateScale(4),
-  },
-  routeIndexText: {
-    color: '#fff',
-    fontSize: moderateScale(12),
-    fontWeight: '700',
-  },
   statusBadge: {
     paddingHorizontal: moderateScale(8),
     paddingVertical: moderateScale(4),
@@ -578,9 +552,4 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     color: '#666',
   },
-  routeNumber: {
-  fontSize: moderateScale(18),
-  fontWeight: '700',
-  color: '#DE1484',
-},
 });

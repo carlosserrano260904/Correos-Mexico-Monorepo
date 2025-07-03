@@ -18,6 +18,7 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
 import { ScanQrCode, ArrowLeft } from 'lucide-react-native';
+import { useNavigation, useRoute } from '@react-navigation/native'
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height
@@ -436,7 +437,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {/* Botón de Entrega */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.deliveryButton} onPress={handleDelivery}>
+        <TouchableOpacity style={styles.deliveryButton} onPress={() => navigation.navigate("RecibirPaquete")}>
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={styles.deliveryButtonText}>Confirmar Entrega</Text>
         </TouchableOpacity>

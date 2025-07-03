@@ -20,6 +20,8 @@ import PrublicarProducto from './screens/usuario/vendedor/PublicarProducto';
 import Productos from './screens/usuario/vendedor/Productos';
 import DetalleProducto from './screens/usuario/mis-compras/DetalleProducto';
 import Politicas from './screens/usuario/vendedor/Politicas';
+import ReceivePackage from './screens/repartidor/ReceivePackage';
+import TakeEvidenceScreen from './screens/repartidor/TakeEvidenceScreen';
 
 
 
@@ -49,6 +51,8 @@ export default function App() {
         <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}} />
         <Stack.Screen name="DetalleProducto" component={DetalleProducto} options={{headerShown: false}} />
         <Stack.Screen name="Politicas" component={Politicas} options={{headerShown: false}} />
+        <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{headerShown: false}} />
+        <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
     

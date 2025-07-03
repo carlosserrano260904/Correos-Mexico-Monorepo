@@ -6,6 +6,7 @@ export default{
     version: "1.0.0",
     orientation: "portrait",
     icon: "assets/icons_correos_mexico/square_correos_clic_Logo.png",
+    resizeMode: "cover",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {

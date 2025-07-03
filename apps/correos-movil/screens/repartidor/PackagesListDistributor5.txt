@@ -1,3 +1,4 @@
+
 import * as React from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert } from 'react-native'
 import { User, Package, MapPin } from 'lucide-react-native'
@@ -40,7 +41,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   const [paquetesFallidos, setPaquetesFallidos] = React.useState(0);
   const [packages, setPackages] = React.useState<Package[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [routeInitialized, setRouteInitialized] = React.useState(false);
+  const [routeInitialized, setRouteInitialized] = React.useState(false); // NUEVO
   const [isRecalculating, setIsRecalculating] = React.useState(false);
 
   const layout = useWindowDimensions();
@@ -57,13 +58,10 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   });
 
   const [intermediates, setIntermediates] = React.useState<LatLng[]>([]);
+
   const [optimizedIntermediates, setOptimizedIntermediates] = React.useState<LatLng[]>([]);
   const [userLocation, setUserLocation] = React.useState<LatLng | null>(null);
   const [routePoints, setRoutePoints] = React.useState<LatLng[]>([]);
-
-  // Ref para rastrear solicitudes en curso y evitar concurrencia
-  const fetchPackagesRequestId = React.useRef<number>(0);
-  const routeRequestId = React.useRef<number>(0);
 
   React.useEffect(() => {
     fetchPackages();
@@ -71,20 +69,11 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   }, []);
 
   const fetchPackages = async () => {
-    // Incrementar ID de solicitud para cancelar solicitudes anteriores
-    const currentRequestId = ++fetchPackagesRequestId.current;
-    
     try {
       setLoading(true);
       const response = await axios.get(
         `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
       );
-
-      // Verificar si esta solicitud sigue siendo la más reciente
-      if (currentRequestId !== fetchPackagesRequestId.current) {
-        console.log('Solicitud de paquetes cancelada, hay una más reciente');
-        return;
-      }
 
       const packagesData = response.data;
       setPackages(packagesData);
@@ -105,61 +94,47 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       setPaquetesEntregados(entregados);
       setPaquetesFallidos(fallidos);
 
-      // Generar coordenadas para paquetes que no están entregados ni fallidos
-      const coordsForRoute: LatLng[] = packagesData
-        .filter((pkg: Package) => 
-          pkg.estatus.toLowerCase() !== 'entregado' && 
-          pkg.estatus.toLowerCase() !== 'fallido'
-        )
-        .map((pkg: Package) => ({
-          latitude: pkg.latitud,
-          longitude: pkg.longitud,
-        }));
+      const coords: LatLng[] = packages.map(pkg => ({
+        latitude: pkg.latitud,
+        longitude: pkg.longitud,
+      }));
 
-      setIntermediates(coordsForRoute);
-      console.log("Coordenadas generadas para ruta:", coordsForRoute);
+      setIntermediates(coords);
 
     } catch (error) {
-        console.error('Error al obtener paquetes:', error);
-        
-        // Solo mostrar alerta si esta sigue siendo la solicitud más reciente
-        if (currentRequestId === fetchPackagesRequestId.current) {
-          Alert.alert('Error', 'No se pudieron cargar los paquetes');
+      console.error('Error al obtener paquetes:', error);
+      Alert.alert('Error', 'No se pudieron cargar los paquetes');
+
+      // Intentar cargar desde AsyncStorage
+      try {
+        const storedPackages = await AsyncStorage.getItem('packages');
+        if (storedPackages) {
+          const packagesData = JSON.parse(storedPackages);
+          setPackages(packagesData);
+
+          // Recalcular estadísticas desde storage
+          const total = packagesData.length;
+          const entregados = packagesData.filter((pkg: Package) =>
+            pkg.estatus.toLowerCase() === 'entregado'
+          ).length;
+          const fallidos = packagesData.filter((pkg: Package) =>
+            pkg.estatus.toLowerCase() === 'fallido'
+          ).length;
+
+          setPaquetesTotal(total);
+          setPaquetesEntregados(entregados);
+          setPaquetesFallidos(fallidos);
         }
-
-        // Intentar cargar desde AsyncStorage
-        try {
-          const storedPackages = await AsyncStorage.getItem('packages');
-          if (storedPackages && currentRequestId === fetchPackagesRequestId.current) {
-            const packagesData = JSON.parse(storedPackages);
-            setPackages(packagesData);
-
-            // Recalcular estadísticas desde storage
-            const total = packagesData.length;
-            const entregados = packagesData.filter((pkg: Package) =>
-              pkg.estatus.toLowerCase() === 'entregado'
-            ).length;
-            const fallidos = packagesData.filter((pkg: Package) =>
-              pkg.estatus.toLowerCase() === 'fallido'
-            ).length;
-
-            setPaquetesTotal(total);
-            setPaquetesEntregados(entregados);
-            setPaquetesFallidos(fallidos);
-          }
-        } catch (storageError) {
-          console.error('Error al cargar desde storage:', storageError);
-        }
-    } finally {
-      // Solo actualizar loading si esta es la solicitud más reciente
-      if (currentRequestId === fetchPackagesRequestId.current) {
-        setLoading(false);
+      } catch (storageError) {
+        console.error('Error al cargar desde storage:', storageError);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    if (userLocation && intermediates.length > 0) {
+    if (userLocation) {
       // Solo calcula ruta si aún no se hizo
       if (!routeInitialized) {
         getRoute(userLocation, destination, intermediates);
@@ -186,7 +161,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         };
-        setUserLocation(newLoc);
+        setUserLocation(newLoc); // Solo actualizamos la posición del usuario
       }
     );
 
@@ -194,10 +169,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   };
 
   const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
-    // Evitar múltiples solicitudes simultáneas de ruta
     if (isRecalculating) return;
-    
-    const currentRequestId = ++routeRequestId.current;
     setIsRecalculating(true);
 
     try {
@@ -207,34 +179,17 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         intermediates,
       });
 
-      // Verificar si esta solicitud sigue siendo la más reciente
-      if (currentRequestId !== routeRequestId.current) {
-        console.log('Solicitud de ruta cancelada, hay una más reciente');
-        return;
-      }
-
-      console.log("Respuesta de la ruta:", response.data);
-
       const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
       const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
-
-      console.log(optimizedOrder);
 
       const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
       const points = decodePolyline(encodedPolyline);
       setRoutePoints(points);
     } catch (err) {
-      // Solo mostrar alerta si esta sigue siendo la solicitud más reciente
-      if (currentRequestId === routeRequestId.current) {
-        Alert.alert('Error', 'No se pudo recalcular la ruta. Revisa tu conexión.');
-      }
-      console.log(err);
+      Alert.alert('Error', 'No se pudo recalcular la ruta. Revisa tu conexión.');
     } finally {
-      // Solo actualizar estado si esta es la solicitud más reciente
-      if (currentRequestId === routeRequestId.current) {
-        setIsRecalculating(false);
-      }
+      setIsRecalculating(false);
     }
   };
 
@@ -303,6 +258,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     );
   };
 
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'entregado':
@@ -344,6 +300,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
     return orderedPackages;
   };
+
 
   const PackagesList = () => {
     const orderedPackages = getOrderedPackages();
@@ -478,65 +435,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerContainer: {
-    paddingTop: moderateScale(40),
+    paddingTop: moderateScale(40), // Reducido de 52 a 40
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(12),
+    paddingBottom: moderateScale(12), // Reducido de 20 a 12
   },
   packagesAndUserContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: moderateScale(10),
+    marginBottom: moderateScale(10), // Reducido de 16 a 10
   },
   packagesText: {
     fontWeight: '700',
     color: 'white',
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(20), // Reducido de 22 a 20
   },
   userButton: {
-    padding: moderateScale(6),
-    borderRadius: moderateScale(16),
+    padding: moderateScale(6), // Reducido de 8 a 6
+    borderRadius: moderateScale(16), // Reducido de 20 a 16
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   packetCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: moderateScale(10),
+    marginBottom: moderateScale(10), // Reducido de 16 a 10
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: moderateScale(10),
-    paddingVertical: moderateScale(8),
+    borderRadius: moderateScale(10), // Reducido de 12 a 10
+    paddingVertical: moderateScale(8), // Reducido de 12 a 8
   },
   packetCounterItemLeft: {
-    paddingRight: moderateScale(12),
+    paddingRight: moderateScale(12), // Reducido de 16 a 12
     borderRightWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   packetCounterItemRight: {
-    paddingLeft: moderateScale(12),
+    paddingLeft: moderateScale(12), // Reducido de 16 a 12
   },
   counterText: {
     fontWeight: '400',
     color: 'white',
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(14), // Reducido de 16 a 14
   },
   counterNumber: {
     fontWeight: '700',
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(16), // Reducido de 18 a 16
   },
   progressContainer: {
     alignItems: 'center',
   },
   progressBar: {
-    height: moderateScale(6),
-    borderRadius: moderateScale(3),
+    height: moderateScale(6), // Reducido de 8 a 6
+    borderRadius: moderateScale(3), // Reducido de 4 a 3
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   progressText: {
     color: 'white',
-    fontSize: moderateScale(11),
-    marginTop: moderateScale(6),
+    fontSize: moderateScale(11), // Reducido de 12 a 11
+    marginTop: moderateScale(6), // Reducido de 8 a 6
     fontWeight: '500',
   },
   tabBar: {
@@ -552,7 +509,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontWeight: '600',
     textTransform: 'none',
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(14), // Reducido de 16 a 14
   },
   packagesContainer: {
     flex: 1,

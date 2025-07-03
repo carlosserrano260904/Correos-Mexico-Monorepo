@@ -4,7 +4,7 @@ import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 
 const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
-export default function RoutesMapView({ userLocation, destination, optimizedIntermediates, routePoints, intermediates }: {
+export default function RoutesMapView({ userLocation, destination, optimizedIntermediates, routePoints}: {
   userLocation: LatLng | null;
   destination: LatLng;
   optimizedIntermediates: LatLng[];

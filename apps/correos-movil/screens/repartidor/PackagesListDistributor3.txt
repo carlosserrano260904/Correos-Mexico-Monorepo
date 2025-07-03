@@ -163,7 +163,7 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
 
     const optimizedOrder: number[] | undefined = route.optimizedIntermediateWaypointIndex;
 
-    if (optimizedOrder) {
+    if (optimizedOrder && Array.isArray(optimizedOrder)) {
       const orderedPoints = optimizedOrder.map(i => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
     } else {
@@ -180,50 +180,41 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
   }
 };
 
-  const getPackageRouteIndex = (packageItem: Package): number => {
-    const orderedPackages = getOrderedPackages();
-    const packageIndex = orderedPackages.findIndex(pkg => pkg.id === packageItem.id);
-    return packageIndex >= 0 ? packageIndex + 1 : 0;
-  };
 
-  const renderPackageItem = ({ item }: { item: Package }) => {
- const routeIndex = getPackageRouteIndex(item);
- 
- return (
-   <TouchableOpacity
-     style={styles.packageItem}
-     onPress={() => navigation?.navigate('PackageScreen', { package: item })}
-   >
-     <View style={styles.packageHeader}>
-       <View style={styles.packageIconContainer}>
-         <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
-       </View>
-       <View style={styles.packageInfo}>
-         <Text style={styles.packageSku}>SKU: {item.sku}</Text>
-         <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
-       </View>
-       <View style={styles.packageStatus}>
-         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
-           <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
-         </View>
-       </View>
-     </View>
+  const renderPackageItem = ({ item }: { item: Package }) => (
+    <TouchableOpacity
+      style={styles.packageItem}
+      onPress={() => navigation?.navigate('PackageScreen', { package: item })}
+    >
+      <View style={styles.packageHeader}>
+        <View style={styles.packageIconContainer}>
+          <Package color="#DE1484" size={moderateScale(24)} />
+        </View>
+        <View style={styles.packageInfo}>
+          <Text style={styles.packageSku}>SKU: {item.sku}</Text>
+          <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
+        </View>
+        <View style={styles.packageStatus}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
+            <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
+          </View>
+        </View>
+      </View>
 
-     <View style={styles.packageAddress}>
-       <MapPin color="#666" size={moderateScale(16)} />
-       <Text style={styles.addressText} numberOfLines={2}>
-         {item.calle}, {item.colonia}, CP {item.cp}
-       </Text>
-     </View>
+      <View style={styles.packageAddress}>
+        <MapPin color="#666" size={moderateScale(16)} />
+        <Text style={styles.addressText} numberOfLines={2}>
+          {item.calle}, {item.colonia}, CP {item.cp}
+        </Text>
+      </View>
 
-     {item.indicaciones && (
-       <Text style={styles.packageInstructions} numberOfLines={2}>
-         {item.indicaciones}
-       </Text>
-     )}
-   </TouchableOpacity>
- );
-};
+      {item.indicaciones && (
+        <Text style={styles.packageInstructions} numberOfLines={2}>
+          {item.indicaciones}
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -237,60 +228,27 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
         return '#9E9E9E';
     }
   };
-
-    const getOrderedPackages = (): Package[] => {
-    if (optimizedIntermediates.length === 0 || packages.length === 0) {
-      return packages;
-    }
-
-    const orderedPackages: Package[] = [];
-    
-    // Para cada coordenada optimizada, encontrar el paquete correspondiente
-    optimizedIntermediates.forEach(optimizedCoord => {
-      const matchingPackage = packages.find(pkg => 
-        Math.abs(pkg.latitud - optimizedCoord.latitude) < 0.0001 && 
-        Math.abs(pkg.longitud - optimizedCoord.longitude) < 0.0001
-      );
-      
-      if (matchingPackage && !orderedPackages.includes(matchingPackage)) {
-        orderedPackages.push(matchingPackage);
-      }
-    });
-
-    // Agregar cualquier paquete que no se haya incluido (por si acaso)
-    packages.forEach(pkg => {
-      if (!orderedPackages.includes(pkg)) {
-        orderedPackages.push(pkg);
-      }
-    });
-
-    return orderedPackages;
-  };
   
 
-  const PackagesList = () => {
-    const orderedPackages = getOrderedPackages();
-    
-    return (
-      <View style={styles.packagesContainer}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Cargando paquetes...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={orderedPackages}
-            renderItem={renderPackageItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.packagesList}
-            showsVerticalScrollIndicator={false}
-            refreshing={loading}
-            onRefresh={fetchPackages}
-          />
-        )}
-      </View>
-    );
-  };
+  const PackagesList = () => (
+    <View style={styles.packagesContainer}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Cargando paquetes...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={packages}
+          renderItem={renderPackageItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.packagesList}
+          showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={fetchPackages}
+        />
+      )}
+    </View>
+  );
 
   const renderScene = SceneMap({
     mapa: () => (
@@ -529,18 +487,6 @@ const styles = StyleSheet.create({
   packageStatus: {
     alignItems: 'flex-end',
   },
-  routeIndexContainer: {
-    backgroundColor: '#2196F3',
-    borderRadius: moderateScale(12),
-    paddingHorizontal: moderateScale(8),
-    paddingVertical: moderateScale(4),
-    marginBottom: moderateScale(4),
-  },
-  routeIndexText: {
-    color: '#fff',
-    fontSize: moderateScale(12),
-    fontWeight: '700',
-  },
   statusBadge: {
     paddingHorizontal: moderateScale(8),
     paddingVertical: moderateScale(4),
@@ -578,9 +524,4 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     color: '#666',
   },
-  routeNumber: {
-  fontSize: moderateScale(18),
-  fontWeight: '700',
-  color: '#DE1484',
-},
 });

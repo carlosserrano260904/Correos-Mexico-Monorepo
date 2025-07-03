@@ -18,14 +18,14 @@ interface ContactoProps {
 interface DireccionProps {
     calle: string;
     numero: string;
+    numeroInterior?: string;
     ciudad: string;
     pais: string;
     codigoPostal: string;
     estado: string;
-    municipio?: string;
-    delegacion?: string;
-    colonia?: string;
-    fraccionamiento?: string;
+    municipioDelegacion: string;
+    asentamiento?: string;
+    referencia?: string;
 }
 
 interface DimensionesProps {

@@ -1,17 +1,15 @@
 export class IdVO {
-    private constructor(private readonly value: string) {
-    }
+    private constructor(private readonly id: string) { }
 
-    static create(): IdVO {
+    public static safeCreate(): IdVO {
         return new IdVO(crypto.randomUUID());
     }
 
-    static fromPersistence(value: string): IdVO {
-        return new IdVO(value)
+    public static fromPersistence(id: string): IdVO {
+        return new IdVO(id)
     }
 
-    get id(): string {
-        return this.value
+    get getId(): string {
+        return this.id
     }
-
 }

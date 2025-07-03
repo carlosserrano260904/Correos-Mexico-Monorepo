@@ -1,124 +1,144 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator"
-
-/*
-    ejemplo:
-    {
-    "remitente": {
-        "nombres": "Kitaro Jemmen",
-        "apellidos": "Cortes Herrera",
-        "telefono": "1234567890",
-        "direccion": {
-            "calle": "Calle 123",
-            "numero": "123",
-            "ciudad": "Durango",
-            "pais": "Mexico",
-            "codigoPostal": "12345",
-            "estado": "Durango",
-            "municipio": "Victoria de Durango",
-            "colonia": "Joyas del Valle"
-        }
-    },
-    "destinatario": {
-        "nombres": "Francisco Alejandro",
-        "apellidos": "Rivera Saucedo",
-        "telefono": "1234567890",
-        "direccion": {
-            "calle": "Calle 123",
-            "numero": "123",
-            "ciudad": "Monterrey",
-            "pais": "Mexico",
-            "codigoPostal": "12345",
-            "estado": "Nuevo Leon",
-            "municipio": "San Nicolas de los Garza",
-            "fraccionamiento": "Fraccionamiento los Alpes"
-        }
-    },
-    "dimensiones": {
-        "alto_cm": 10,
-        "ancho_cm": 10,
-        "largo_cm": 10
-    },
-  "peso": 10,
-  "valorDeclarado": 100
-}
-*/
 class DireccionDto {
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'Av. Reforma', description: 'El nombre de la calle' })
+    @IsString({ message: 'El campo calle debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo calle es requerido' })
     calle: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: '456', description: 'El numero de la vivienda' })
+    @IsString({ message: 'El campo numero debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo numero es requerido' })
     numero: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'Ciudad de Mexico', description: 'La ciudad de la direccion' })
+    @IsString({ message: 'El campo ciudad debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo ciudad es requerido' })
     ciudad: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'Mexico', description: 'El pais de la direccion' })
+    @IsString({ message: 'El campo pais debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo pais es requerido' })
     pais: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: '06600', description: 'El codigo postal de la direccion' })
+    @IsString({ message: 'El campo codigoPostal debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo codigoPostal es requerido' })
     codigoPostal: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'CDMX', description: 'El estado de la direccion' })
+    @IsString({ message: 'El campo estado debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo estado es requerido' })
     estado: string;
-    @IsString()
+    @ApiProperty({ example: 'Cuauhtemoc', description: 'La delegacion de la direccion' })
+    @IsString({ message: 'El campo municipio o delegacion debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo municipio o delegacion es requerido' })
+    municipioDelegacion: string;
+    @ApiProperty({ example: 'Juarez', required: false, nullable: true, description: 'El fraccionamiento, colonia, barrio, etc, de la direccion' })
+    @IsString({ message: 'El campo asentamiento (fraccionamiento, colonia, barrio, etc) debe ser una cadena de texto' })
     @IsOptional()
-    municipio?: string;
-    @IsString()
+    asentamiento?: string;
+    @ApiProperty({ example: 'Entre Niza y Florencia, edificio azul', required: false, nullable: true, description: 'La referencia de la direccion' })
+    @IsString({ message: 'El campo referencia debe ser una cadena de texto' })
     @IsOptional()
-    delegacion?: string;
-    @IsString()
+    referencia?: string;
+    @ApiProperty({ example: 'Depto 3B', required: false, nullable: true, description: 'El numero interior de la direccion' })
+    @IsString({ message: 'El campo numeroInterior debe ser una cadena de texto' })
     @IsOptional()
-    colonia?: string;
-    @IsString()
-    @IsOptional()
-    fraccionamiento?: string;
+    numeroInterior?: string;
 }
 
 class DimensionesDto {
-    @IsNumber()
-    @IsNotEmpty()
+    @ApiProperty({ example: 25, description: 'El alto de la caja en centimetros' })
+    @IsNumber({}, { message: 'El campo alto debe ser un numero' })
+    @IsPositive({ message: 'El campo alto debe ser un numero positivo' })
+    @IsNotEmpty({ message: 'El campo alto es requerido' })
     alto_cm: number;
-    @IsNumber()
-    @IsNotEmpty()
+    @ApiProperty({ example: 30, description: 'El ancho de la caja en centimetros' })
+    @IsNumber({}, { message: 'El campo ancho debe ser un numero' })
+    @IsPositive({ message: 'El campo ancho debe ser un numero positivo' })
+    @IsNotEmpty({ message: 'El campo ancho es requerido' })
     ancho_cm: number;
-    @IsNumber()
-    @IsNotEmpty()
+    @ApiProperty({ example: 40, description: 'El largo de la caja en centimetros' })
+    @IsNumber({}, { message: 'El campo largo debe ser un numero' })
+    @IsPositive({ message: 'El campo largo debe ser un numero positivo' })
+    @IsNotEmpty({ message: 'El campo largo es requerido' })
     largo_cm: number;
 }
 
 class ContactoDto {
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'Juan Carlos', description: 'Los nombres del contacto' })
+    @IsString({ message: 'El campo nombres debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo nombres es requerido' })
     nombres: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'Garcia Lopez', description: 'Los apellidos del contacto' })
+    @IsString({ message: 'El campo apellidos debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo apellidos es requerido' })
     apellidos: string;
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: '+525512345678', description: 'El telefono del contacto (sin espacios)' })
+    @IsString({ message: 'El campo telefono debe ser una cadena de texto' })
+    @IsNotEmpty({ message: 'El campo telefono es requerido' })
     telefono: string;
-    @ValidateNested()
+    @ApiProperty({ example: { calle: 'Av. Reforma', numero: '456', numeroInterior: 'Depto 3B', ciudad: 'Ciudad de Mexico', pais: 'Mexico', codigoPostal: '06600', estado: 'CDMX', municipioDelegacion: 'Cuauhtemoc', asentamiento: 'Juarez', referencia: 'Entre Niza y Florencia, edificio azul' }, description: 'La direccion del contacto' })
+    @ValidateNested({ message: 'El campo direccion debe ser un objeto' })
     @Type(() => DireccionDto)
     direccion: DireccionDto;
 }
 
 export class CrearGuiaDto {
-    @ValidateNested()
+    @ApiProperty({
+        example: {
+            nombres: 'Juan Carlos',
+            apellidos: 'Garcia Lopez',
+            telefono: '+525512345678',
+            direccion: {
+                calle: 'Av. Reforma',
+                numero: '456',
+                numeroInterior: 'Depto 3B',
+                ciudad: 'Ciudad de Mexico',
+                pais: 'Mexico',
+                codigoPostal: '06600',
+                estado: 'CDMX',
+                municipioDelegacion: 'Cuauhtemoc',
+                asentamiento: 'Juarez',
+                referencia: 'Entre Niza y Florencia, edificio azul'
+            }
+        },
+        description: 'El remitente de la guia'
+    })
+    @ValidateNested({ message: 'El campo remitente debe ser un objeto' })
     @Type(() => ContactoDto)
     remitente: ContactoDto;
-    @ValidateNested()
+    @ApiProperty({
+        example: {
+            nombres: 'Maria Elena',
+            apellidos: 'Rodriguez Martinez',
+            telefono: '+523398765432',
+            direccion: {
+                calle: 'Calle Independencia',
+                numero: '789',
+                ciudad: 'Guadalajara',
+                pais: 'Mexico',
+                codigoPostal: '44100',
+                estado: 'Jalisco',
+                municipioDelegacion: 'Guadalajara',
+                asentamiento: 'Centro Historico',
+                referencia: 'Frente a la Catedral'
+            }
+        },
+        description: 'El destinatario de la guia'
+    })
+    @ValidateNested({ message: 'El campo destinatario debe ser un objeto' })
     @Type(() => ContactoDto)
     destinatario: ContactoDto;
-    @ValidateNested()
+    @ApiProperty({ example: { alto_cm: 25, ancho_cm: 30, largo_cm: 40 }, description: 'Las dimensiones de la caja' })
+    @ValidateNested({ message: 'El campo dimensiones debe ser un objeto' })
     @Type(() => DimensionesDto)
     dimensiones: DimensionesDto;
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
+    @ApiProperty({ example: 2.5, description: 'El peso de la caja en kilogramos' })
+    @IsNumber({}, { message: 'El campo peso debe ser un numero' })
+    @IsNotEmpty({ message: 'El campo peso es requerido' })
+    @IsPositive({ message: 'El campo peso debe ser un numero positivo' })
     peso: number;
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
+    @ApiProperty({ example: 1500.00, description: 'El valor declarado de la guia en pesos mexicanos' })
+    @IsNumber({}, { message: 'El campo valorDeclarado debe ser un numero' })
+    @IsNotEmpty({ message: 'El campo valorDeclarado es requerido' })
+    @IsPositive({ message: 'El campo valorDeclarado debe ser un numero positivo' })
     valorDeclarado: number;
 }

@@ -7,7 +7,7 @@ export class GuiaTypeormEntity {
     id_guia: string;
 
     @Column({ type: 'varchar', unique: true, nullable: false })
-    numero_seguimiento: string;
+    numero_de_rastreo: string;
 
     @Column({ type: 'varchar', nullable: false })
     situacion_actual: string; // cambiar a enum

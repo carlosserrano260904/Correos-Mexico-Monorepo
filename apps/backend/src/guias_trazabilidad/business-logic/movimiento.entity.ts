@@ -1,83 +1,70 @@
-import { IdVO } from "./value-objects/id.vo"
+import { Result } from './result/result';
+import { IdVO } from './value-objects/id.vo';
+import { SituacionVO } from './value-objects/situacion.vo';
 
-interface Props {
-    idMovimiento: IdVO, // auto
-    idSucursal: string,
-    idRuta: string,
-    estado: string,
-    localizacion: string,
-    fecha_movimiento: Date // auto
+interface MovimientoProps {
+  idMovimiento: IdVO; // auto
+  idSucursal: string;
+  idRuta: string;
+  estado: SituacionVO; // El estado y la sincronizacion deben ser el mismo
+  localizacion: string;
+  fechaMovimiento: Date; // auto
 }
 
 export class MovimientoDomainEntity {
+  private constructor(private readonly props: MovimientoProps) {}
 
-    private constructor(private readonly props: Props) {
-        this.validate()
+  /**
+   * Crea el movimiento por primera vez
+   * @param props
+   * @returns {}
+   */
+  public static create(props: Omit<MovimientoProps, 'idMovimiento' | 'fechaMovimiento'>,): Result<MovimientoDomainEntity> {
+    if (!props.idSucursal.trim()) {
+      return Result.failure('Falta el Id de la sucursal para registrar el movimiento');
     }
-
-    static create(props: Omit<Props, 'idMovimiento' | 'fecha_movimiento'>): MovimientoDomainEntity {
-        const id = IdVO.create()
-        const fecha_movimiento = new Date()
-
-        return new MovimientoDomainEntity({
-            ...props,
-            idMovimiento: IdVO.create(),
-            fecha_movimiento
-        })
+    if (!props.localizacion.trim()) {
+      return Result.failure('Falta el campo localizacion para registrar el movimiento');
     }
-
-    static fromPersistence(props: Props): MovimientoDomainEntity {
-        return new MovimientoDomainEntity(props)
+    if (!props.idRuta.trim()) {
+      return Result.failure('Falta el Id de la ruta para registrar el movimiento');
     }
+    return Result.success(
+      new MovimientoDomainEntity({
+        ...props,
+        idMovimiento: IdVO.safeCreate(),
+        fechaMovimiento: new Date(),
+      }),
+    );
+  }
 
-    validate() {
-        // logica de validacion
-        if (!this.props.idSucursal?.trim()) {
-            throw new Error('ID de sucursal es requerido');
-        }
-        if (!this.props.estado?.trim()) {
-            throw new Error('Estado del movimiento es requerido');
-        }
-        if (!this.props.localizacion?.trim()) {
-            throw new Error('Localizacion es requerida');
-        }
-    }
+  public static fromPersistence(
+    props: MovimientoProps,
+  ): MovimientoDomainEntity {
+    return new MovimientoDomainEntity(props);
+  }
 
-    get idMovimiento(): IdVO {
-        return this.props.idMovimiento;
-    }
+  get idMovimiento(): IdVO {
+    return this.props.idMovimiento;
+  }
 
-    get idSucursal(): string {
-        return this.props.idSucursal;
-    }
+  get getIdSucursal(): string {
+    return this.props.idSucursal;
+  }
 
-    get idRuta(): string {
-        return this.props.idRuta;
-    }
+  get getIdRuta(): string {
+    return this.props.idRuta;
+  }
 
-    get estado(): string {
-        return this.props.estado;
-    }
+  get estado(): SituacionVO {
+    return this.props.estado;
+  }
 
-    get localizacion(): string {
-        return this.props.localizacion;
-    }
+  get getLocalizacion(): string {
+    return this.props.localizacion;
+  }
 
-    get fechaMovimiento(): Date {
-        return this.props.fecha_movimiento;
-    }
-
-    // metodos de negocio
-    esMovimientoDeEntrega(): boolean {
-        return this.props.estado.toLowerCase() === 'entregado';
-    }
-
-    esMovimientoEnRuta(): boolean {
-        return this.props.estado.toLowerCase() === 'en ruta' ||
-            this.props.estado.toLowerCase() === 'en reparto';
-    }
-
-    toObject(): Props {
-        return { ...this.props };
-    }
+  get getFechaMovimiento(): Date {
+    return this.props.fechaMovimiento;
+  }
 }

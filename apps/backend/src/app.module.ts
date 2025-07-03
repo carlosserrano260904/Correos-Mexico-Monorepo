@@ -22,6 +22,7 @@ import { CarritoModule } from './carrito/carrito.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
 import { SucursalesModule } from './sucursalesdummy/sucursales.module';
 import { ConductoresModule } from './conductores/conductores.module';
+import { OrdenModule } from './orden/orden.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
 import { PaquetesModule } from './paquete/paquetes.module'
@@ -52,6 +53,7 @@ import { PaquetesModule } from './paquete/paquetes.module'
     SucursalesModule,
     ConductoresModule,
     UnidadesModule,
+    OrdenModule,
     HistorialAsignacionesModule,
     PaquetesModule,
 

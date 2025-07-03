@@ -22,8 +22,9 @@ import DetalleProducto from './screens/usuario/mis-compras/DetalleProducto';
 import Politicas from './screens/usuario/vendedor/Politicas';
 import ReceivePackage from './screens/repartidor/ReceivePackage';
 import TakeEvidenceScreen from './screens/repartidor/TakeEvidenceScreen';
-
-
+import PantallaEnvio from './screens/usuario/detallesCompra/PantallaEnvio';
+import PantallaPago from './screens/usuario/detallesCompra/PantallaPago';
+import PantallaResumen from './screens/usuario/detallesCompra/PantallaResumen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -31,30 +32,32 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Tabs">
-        <Stack.Screen name="PackageScreen" component={PackageScreen} options={{headerShown: false}}/>
-        <Stack.Screen name="HomeUser" component={HomeUser} options={{headerShown: false}} />
-        <Stack.Screen name="ProductView" component={ProductView} options={{headerShown: false}}/>
-        <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{headerShown: false}} />
-        <Stack.Screen name="RoutesView" component={RoutesView} options={{headerShown: false}}/>
-        <Stack.Screen name="Package" component={PackageScreen} options={{headerShown: false}}/>
-        <Stack.Screen name="ProfileUser" component={ProfileUser} options={{headerShown: false}}/>
-        <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} options={{headerShown: false}}/>
-        <Stack.Screen name="MisCompras" component={MisCompras} options={{headerShown: false}}/>
         <Stack.Screen name="Tabs" component={HomeTabs} options={{headerShown: false}}/>
-        <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{headerShown: false}} />
-        <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{headerShown: false}} />
-        <Stack.Screen name="LoadPackages" component={LoadPackages} options={{headerShown: false}} />
-        <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen}   options={{ headerShown: false }} />
-        <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false}} />
-        <Stack.Screen name="PublicarProducto" component={PrublicarProducto} options={{headerShown: false}} />
-        <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}} />
-        <Stack.Screen name="DetalleProducto" component={DetalleProducto} options={{headerShown: false}} />
-        <Stack.Screen name="Politicas" component={Politicas} options={{headerShown: false}} />
-        <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{headerShown: false}} />
-        <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{headerShown: false}} />
+        <Stack.Screen name="PackageScreen" component={PackageScreen} />
+        <Stack.Screen name="HomeUser" component={HomeUser} />
+        <Stack.Screen name="ProductView" component={ProductView} />
+        <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
+        <Stack.Screen name="RoutesView" component={RoutesView} />
+        <Stack.Screen name="Package" component={PackageScreen} />
+        <Stack.Screen name="ProfileUser" component={ProfileUser} />
+        <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} />
+        <Stack.Screen name="MisCompras" component={MisCompras} />
+        <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+        <Stack.Screen name="DistributorPage" component={MainPageDistributor} />
+        <Stack.Screen name="LoadPackages" component={LoadPackages} />
+        <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen} />
+        <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} />
+        <Stack.Screen name="PackagesList" component={PackagesListDistributor} />
+        <Stack.Screen name="PublicarProducto" component={PrublicarProducto} />
+        <Stack.Screen name="Productos" component={Productos} />
+        <Stack.Screen name="DetalleProducto" component={DetalleProducto} />
+        <Stack.Screen name="Politicas" component={Politicas} />
+        <Stack.Screen name="RecibirPaquete" component={ReceivePackage} />
+        <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} />
+        <Stack.Screen name="Envio" component={PantallaEnvio} />
+        <Stack.Screen name="Pago" component={PantallaPago} />
+        <Stack.Screen name="Resumen" component={PantallaResumen} />
       </Stack.Navigator>
     </NavigationContainer>
-    
   );
 }

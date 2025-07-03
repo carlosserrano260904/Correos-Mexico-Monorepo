@@ -1,53 +1,76 @@
-interface Props {
-    alto_cm: number,
-    ancho_cm: number,
-    largo_cm: number,
-    peso: number,
+import { Result } from "../result/result";
+
+interface EmbalajeProps {
+  alto_cm: number;
+  ancho_cm: number;
+  largo_cm: number;
+  peso: number;
 }
 
 export class EmbalajeVO {
-    private constructor(private readonly props: Props) {
-        this.validate();
+  private constructor(private readonly props: EmbalajeProps) { }
+
+  public static create(props: EmbalajeProps): Result<EmbalajeVO> {
+
+    if (props.peso <= 0) {
+      return Result.failure("El peso no puede ser menor o igual a 0");
     }
 
-    static create(props: Props): EmbalajeVO {
-        return new EmbalajeVO(props)
+    if (props.largo_cm <= 0 || props.ancho_cm <= 0 || props.alto_cm <= 0) {
+      return Result.failure("No puede haber dimensiones menores o igual a 0")
+    };
+
+    const obj = new EmbalajeVO(props);
+
+    const pesoFisico = obj.calcularPeso();
+    const pesoVolumetrico = obj.calcularPesoVolumetrico();
+
+    if (pesoFisico > 25) {
+      return Result.failure(`Peso actual de: ${pesoFisico} excede los 25 KG`);
     }
 
-    static fromPersistence(props: Props): EmbalajeVO {
-        return new EmbalajeVO(props)
+    if (pesoVolumetrico > 40) {
+      return Result.failure(`Peso volumetrico actual de: ${pesoVolumetrico} excede los 40 KG`);
     }
 
-    //  TODO: validar que las dimenesiones no sean 0 o negativas
-    validate() {
-        // logica de validacion
-    }
+    return Result.success(obj)
 
-    get alto_cm(): number {
-        return this.props.alto_cm
-    }
+  }
 
-    get largo_cm(): number {
-        return this.props.largo_cm
-    }
+  public static safeCreate(props: EmbalajeProps): EmbalajeVO {
+    return new EmbalajeVO(props);
+  }
 
-    get peso(): number {
-        return this.props.peso
-    }
+  public static fromPersistence(props: EmbalajeProps): EmbalajeVO {
+    return new EmbalajeVO(props);
+  }
 
-    get ancho_cm(): number {
-        return this.props.ancho_cm
-    }
+  public calcularVolumen() {
+    return this.props.alto_cm * this.props.ancho_cm * this.props.largo_cm;
+  }
 
-    calcularVolumen() {
-        return this.props.alto_cm * this.props.ancho_cm * this.props.largo_cm
-    }
+  public calcularPesoVolumetrico() {
+    return this.calcularVolumen() / 6000;
+  }
 
-    calcularPesoVolumetrico() {
-        return this.calcularVolumen() / 6000
-    }
+  public calcularPeso() {
+    return this.props.peso;
+  }
 
-    calcularPeso() {
-        return this.props.peso
-    }
+  get getAltoCm(): number {
+    return this.props.alto_cm;
+  }
+
+  get getLargoCm(): number {
+    return this.props.largo_cm;
+  }
+
+  get getPeso(): number {
+    return this.props.peso;
+  }
+
+  get getAnchoCm(): number {
+    return this.props.ancho_cm;
+  }
+
 }

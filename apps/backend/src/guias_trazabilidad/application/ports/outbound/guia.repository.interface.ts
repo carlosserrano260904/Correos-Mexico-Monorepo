@@ -1,11 +1,9 @@
 import { GuiaDomainEntity } from 'src/guias_trazabilidad/business-logic/guia.domain-entity-root';
-import { NumeroSeguimientoVO } from 'src/guias_trazabilidad/business-logic/value-objects/numeroSeguimiento.vo';
+import { NumeroDeRastreoVO } from 'src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo';
 
 export const GUIAREPOSITORYINTERFACE = Symbol('GuiaRepositoryInterface');
 
 export interface GuiaRepositoryInterface {
-  // CRUD
   save(guia: GuiaDomainEntity): Promise<void>;
-  findByNumeroSeguimiento(numeroSeguimiento: NumeroSeguimientoVO): Promise<GuiaDomainEntity | null>;
-  // delete(id: IdVO): Promise<void>;
+  findByNumeroRastreo(numeroRastreo: NumeroDeRastreoVO): Promise<GuiaDomainEntity | null>;
 }

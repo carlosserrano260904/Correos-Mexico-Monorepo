@@ -14,6 +14,7 @@ export default function LoadPackages() {
     const navigation = useNavigation();
     const route = useRoute();
     const { transporteId } = route.params as { transporteId: string };
+    const [paquetesTotal, setPaquetesTotal] = React.useState(0);
 
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
 
@@ -21,6 +22,7 @@ export default function LoadPackages() {
         const fetchNombre = async () => {
         try {
             const res = await fetch(`http://${IP}:3000/api/transportes/${transporteId}`);
+
             const transporte = await res.json();
             setNombreVehiculo(transporte.nombre ?? 'Vehículo no encontrado');
         } catch (error) {
@@ -29,10 +31,25 @@ export default function LoadPackages() {
         }
         };
 
+        const fetchPaquetes = async () => {
+        try {
+            const paq = await fetch(`http://${IP}:3000/api/asignacion-paquetes/paquetes/${transporteId}/c010bb71-4b19-4e56-bff3-f6c73061927a`);
+
+            const paquete = await paq.json();
+            setPaquetesTotal(paquete.length)
+        } catch (err) {
+            console.log(err);
+            setPaquetesTotal(0);
+        }
+        };
+
         if (transporteId) {
         fetchNombre();
+        fetchPaquetes();
         }
+
     }, [transporteId]);
+
 
   return (
     <View style={styles.container}>
@@ -50,7 +67,7 @@ export default function LoadPackages() {
 
             <View style={styles.iconContainer}>
                 <Truck color={"white"} size={moderateScale(120)}/>
-                <Text style={styles.textIcon}>Cargar <Text style={{ fontWeight: 'bold' }}>0 bolsas</Text> y <Text style={{ fontWeight: 'bold' }}>69 paquetes</Text></Text>
+                <Text style={styles.textIcon}>Cargar <Text style={{ fontWeight: 'bold' }}>0 bolsas</Text> y <Text style={{ fontWeight: 'bold' }}>{paquetesTotal} paquetes</Text></Text>
             </View>
         </View>
 

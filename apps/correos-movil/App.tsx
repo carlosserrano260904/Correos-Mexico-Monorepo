@@ -19,6 +19,9 @@ import HomeUser from './screens/usuario/HomePage/HomeUser';
 import PrublicarProducto from './screens/usuario/vendedor/PublicarProducto';
 import Productos from './screens/usuario/vendedor/Productos';
 import DetalleProducto from './screens/usuario/mis-compras/DetalleProducto';
+import Politicas from './screens/usuario/vendedor/Politicas';
+
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,6 +48,7 @@ export default function App() {
         <Stack.Screen name="PublicarProducto" component={PrublicarProducto} options={{headerShown: false}} />
         <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}} />
         <Stack.Screen name="DetalleProducto" component={DetalleProducto} options={{headerShown: false}} />
+        <Stack.Screen name="Politicas" component={Politicas} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
     

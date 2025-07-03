@@ -117,7 +117,6 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         }));
 
       setIntermediates(coordsForRoute);
-      console.log("Coordenadas generadas para ruta:", coordsForRoute);
 
     } catch (error) {
         console.error('Error al obtener paquetes:', error);
@@ -213,12 +212,8 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         return;
       }
 
-      console.log("Respuesta de la ruta:", response.data);
-
       const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
       const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
-
-      console.log(optimizedOrder);
 
       const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
@@ -229,7 +224,6 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       if (currentRequestId === routeRequestId.current) {
         Alert.alert('Error', 'No se pudo recalcular la ruta. Revisa tu conexión.');
       }
-      console.log(err);
     } finally {
       // Solo actualizar estado si esta es la solicitud más reciente
       if (currentRequestId === routeRequestId.current) {

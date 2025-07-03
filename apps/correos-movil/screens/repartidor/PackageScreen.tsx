@@ -437,7 +437,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {/* Botón de Entrega */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.deliveryButton} onPress={() => navigation.navigate("RecibirPaquete")}>
+        <TouchableOpacity style={styles.deliveryButton} onPress={() => navigation.navigate('RecibirPaquete', { package: packageData })}>
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={styles.deliveryButtonText}>Confirmar Entrega</Text>
         </TouchableOpacity>

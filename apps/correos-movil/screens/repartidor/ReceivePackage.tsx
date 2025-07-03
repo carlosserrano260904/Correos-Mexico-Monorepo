@@ -2,14 +2,22 @@ import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-nati
 import React from 'react'
 import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 import { moderateScale } from 'react-native-size-matters';
-import { useNavigation, useRoute } from '@react-navigation/native'
+import { RootStackParamList } from '../../schemas/schemas';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import axios from 'axios';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
+type ReceivePackageRouteProp = RouteProp<RootStackParamList, 'RecibirPaquete'>;
+type NavigationProp = StackNavigationProp<RootStackParamList, 'RecibirPaquete'>;
+
 export default function ReceivePackage() {
   const navigation = useNavigation();
+  const route = useRoute<ReceivePackageRouteProp>();
+  const packageData = route.params.package;
+  
   return (
     <View style={styles.container}>
         <View style={styles.arrowContainer}>
@@ -23,7 +31,7 @@ export default function ReceivePackage() {
             <Text style={styles.receiveText}>¿Quien recibe?</Text>
           </View>
           <View>
-            <TouchableOpacity style={styles.receiveItemContainer} onPress={() => navigation.navigate("TomarEvidencia")}>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TomarEvidencia', { package: packageData })}>
               <Text style={styles.receiveItemText} numberOfLines={1} ellipsizeMode='tail'>Juan Perez</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>

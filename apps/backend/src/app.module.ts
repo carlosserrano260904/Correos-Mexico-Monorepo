@@ -24,6 +24,7 @@ import { SucursalesModule } from './sucursalesdummy/sucursales.module';
 import { ConductoresModule } from './conductores/conductores.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
+import { PaquetesModule } from './paquete/paquetes.module'
 
 @Module({
   imports: [
@@ -51,7 +52,8 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
     SucursalesModule,
     ConductoresModule,
     UnidadesModule,
-    HistorialAsignacionesModule
+    HistorialAsignacionesModule,
+    PaquetesModule,
 
   ],
   controllers: [AppController, PostalController],

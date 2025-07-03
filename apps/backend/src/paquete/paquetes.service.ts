@@ -32,6 +32,17 @@ export class PaquetesService {
     return this.findOne(id);
   }
 
+  async actualizarEstatus(id: string, nuevoEstatus: string): Promise<Paquete | null> {
+    const paquete = await this.paqueteRepo.findOne({ where: { id } });
+
+    if (!paquete) {
+      return null;
+    }
+
+    paquete.estatus = nuevoEstatus;
+    return await this.paqueteRepo.save(paquete);
+  }
+
   remove(id: string) {
     return this.paqueteRepo.delete(id);
   }

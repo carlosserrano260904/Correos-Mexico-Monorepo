@@ -4,77 +4,112 @@ import { moderateScale } from 'react-native-size-matters';
 import { CameraType, CameraView, Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { CircleX, Aperture } from 'lucide-react-native';
+import Constants from 'expo-constants';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../../schemas/schemas';
+
+type TakeEvidenceRouteProp = RouteProp<RootStackParamList, 'TomarEvidencia'>;
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 const screenWidth = Dimensions.get("screen").width
 const screenHeight = Dimensions.get("screen").height
 
 export default function TakeEvidenceScreen() {
-    const [hasPermission, setHasPermission] = React.useState<boolean | null>(null);
-    const [facing, setFacing] = React.useState<CameraType>('back');
-    const [photoUri, setPhotoUri] = React.useState<string | null>(null);
-    const [cameraRef, setCameraRef] = React.useState<any>(null);
-    const [canAskAgain, setCanAskAgain] = React.useState(true);
-    const navigation = useNavigation();
+  const [hasPermission, setHasPermission] = React.useState<boolean | null>(null);
+  const [facing, setFacing] = React.useState<CameraType>('back');
+  const [photoUri, setPhotoUri] = React.useState<string | null>(null);
+  const [cameraRef, setCameraRef] = React.useState<any>(null);
+  const [canAskAgain, setCanAskAgain] = React.useState(true);
+  const route = useRoute<TakeEvidenceRouteProp>();
+  const packageData = route.params.package;
+  const navigation = useNavigation();
 
-    React.useEffect(() => {
-        requestPermission();
-    }, []);
-    
-    const requestPermission = async () => {
-        try {
-        const { status, canAskAgain } = await Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === 'granted');
-        setCanAskAgain(canAskAgain);
-        } catch (err) {
-        console.warn("Error solicitando permisos:", err);
-        setHasPermission(false);
-        }
-    };
+  
 
-    const handleOpenSettings = () => {
+  React.useEffect(() => {
+    requestPermission();
+  }, []);
+
+  const requestPermission = async () => {
+    try {
+      const { status, canAskAgain } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+      setCanAskAgain(canAskAgain);
+    } catch (err) {
+      console.warn("Error solicitando permisos:", err);
+      setHasPermission(false);
+    }
+  };
+
+  const handleOpenSettings = () => {
     Linking.openSettings();
-    };
+  };
 
-    if (hasPermission === null) {
-        return <Text>Solicitando permiso a la cámara...</Text>;
-    }
+  if (hasPermission === null) {
+    return <Text>Solicitando permiso a la cámara...</Text>;
+  }
 
-    if (hasPermission === false) {
-        return(
-        <View style={styles.errorContainer}>
-            <View style={styles.errortitleContainer}>
-            <View>
-                <CircleX color={"white"} size={moderateScale(100)}/>
-            </View>
+  if (hasPermission === false) {
+    return (
+      <View style={styles.errorContainer}>
+        <View style={styles.errortitleContainer}>
+          <View>
+            <CircleX color={"white"} size={moderateScale(100)} />
+          </View>
 
-            <View style={styles.errortextContainer}>
-                <Text style={styles.errortextUp}>No se logró acceder a la cámara</Text>
-                <Text style={styles.errortextDown}>Permisos insuficientes</Text>
-            </View>
-            </View>
-
-            <View style={styles.permissionsButtonContainer}>
-            <TouchableOpacity style={styles.permissionsButton} onPress={canAskAgain ? requestPermission : handleOpenSettings}>
-                <Text style={styles.permissionsButtonText}>{canAskAgain ? "Otorgar Permisos" : "Abrir Configuración"}</Text>
-            </TouchableOpacity>
-            </View>
+          <View style={styles.errortextContainer}>
+            <Text style={styles.errortextUp}>No se logró acceder a la cámara</Text>
+            <Text style={styles.errortextDown}>Permisos insuficientes</Text>
+          </View>
         </View>
-        );
+
+        <View style={styles.permissionsButtonContainer}>
+          <TouchableOpacity style={styles.permissionsButton} onPress={canAskAgain ? requestPermission : handleOpenSettings}>
+            <Text style={styles.permissionsButtonText}>{canAskAgain ? "Otorgar Permisos" : "Abrir Configuración"}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const handleTakePicture = async () => {
+    if (cameraRef) {
+      const photo = await cameraRef.takePictureAsync({ quality: 0.7 });
+      setPhotoUri(photo.uri);
     }
+  };
 
-    const handleTakePicture = async () => {
-        if (cameraRef) {
-        const photo = await cameraRef.takePictureAsync({ quality: 0.7 });
-        setPhotoUri(photo.uri);
-        }
-    };
+  const handleRetake = () => setPhotoUri(null);
 
-    const handleRetake = () => setPhotoUri(null);
+  const handleConfirm = async () => {
+    await actualizarEstatusPaquete(packageData.id, 'Entregado');
+    navigation.goBack();
+  };
 
-    const handleConfirm = () => {
-        // Aquí podrías subir la imagen o marcar el paquete entregado
-        navigation.goBack();
-    };
+  const actualizarEstatusPaquete = async (id: string, nuevoEstatus: string): Promise<void> => {
+    try {
+      const response = await fetch(`http://${IP}:3000/api/paquetes/${id}/estatus`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ estatus: nuevoEstatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Error al actualizar estatus:', error);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Estatus actualizado correctamente:', data);
+    } catch (error) {
+      console.error('Error de red al actualizar estatus:', error);
+    }
+  };
+
 
 
   return (
@@ -95,12 +130,12 @@ export default function TakeEvidenceScreen() {
         <>
           <CameraView
             style={StyleSheet.absoluteFillObject}
-            facing={facing} 
+            facing={facing}
             ref={(ref) => setCameraRef(ref)}
           />
           <TouchableOpacity onPress={handleTakePicture} style={styles.captureButton}>
-            <View style={{alignItems: 'center'}}>
-                <Aperture size={moderateScale(40)}/>
+            <View style={{ alignItems: 'center' }}>
+              <Aperture size={moderateScale(40)} />
             </View>
           </TouchableOpacity>
         </>
@@ -110,91 +145,91 @@ export default function TakeEvidenceScreen() {
 }
 
 const styles = StyleSheet.create({
-    errorContainer: {
-        width: screenWidth,
-        height: screenHeight,
-        backgroundColor: "red"
-    },
-    errortitleContainer: {
-        height: "40%",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-end",
-    },
-    errortextContainer: {
-        flexDirection: "column",
-        alignItems: "center"
-    },
-    errortextUp: {
-        color: "white",
-        fontWeight: 400,
-        fontSize: moderateScale(16)
-    },
-    errortextDown: {
-        color: "white",
-        fontWeight: 700,
-        fontSize: moderateScale(20)
-    },
-    permissionsButtonContainer: {
-        height: "60%",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        marginHorizontal: moderateScale(12)
-    },
-    permissionsButton: {
-        backgroundColor: "white",
-        width: "100%",
-        marginBottom: moderateScale(52),
-        height: screenHeight * 0.06,
-        borderRadius: moderateScale(8),
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    permissionsButtonText: {
-        fontWeight: 700,
-        fontSize: moderateScale(18),
-        color: "red"
-    },
+  errorContainer: {
+    width: screenWidth,
+    height: screenHeight,
+    backgroundColor: "red"
+  },
+  errortitleContainer: {
+    height: "40%",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  errortextContainer: {
+    flexDirection: "column",
+    alignItems: "center"
+  },
+  errortextUp: {
+    color: "white",
+    fontWeight: 400,
+    fontSize: moderateScale(16)
+  },
+  errortextDown: {
+    color: "white",
+    fontWeight: 700,
+    fontSize: moderateScale(20)
+  },
+  permissionsButtonContainer: {
+    height: "60%",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginHorizontal: moderateScale(12)
+  },
+  permissionsButton: {
+    backgroundColor: "white",
+    width: "100%",
+    marginBottom: moderateScale(52),
+    height: screenHeight * 0.06,
+    borderRadius: moderateScale(8),
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  permissionsButtonText: {
+    fontWeight: 700,
+    fontSize: moderateScale(18),
+    color: "red"
+  },
 
-    container: { 
-        flex: 1, 
-        backgroundColor: '#000' 
-    },
-    centered: { 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-    },
-    preview: { 
-        flex: 1, resizeMode: 'contain' 
-    },
-    controls: {
-        position: 'absolute',
-        bottom: moderateScale(52),
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        width: '100%',
-    },
-    button: {
-        backgroundColor: '#DE1484',
-        paddingVertical: moderateScale(12),
-        paddingHorizontal: moderateScale(20),
-        borderRadius: 100,
-        marginHorizontal: moderateScale(10),
-    },
-    buttonText: { 
-        color: 'white', 
-        fontSize: moderateScale(16), 
-        fontWeight: 'bold' 
-    },
-    captureButton: {
-        position: 'absolute',
-        bottom: moderateScale(52),
-        backgroundColor: '#fff',
-        borderRadius: 100,
-        width: moderateScale(64),
-        height: moderateScale(64),
-        justifyContent: 'center',
-        alignSelf: "center"
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#000'
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  preview: {
+    flex: 1, resizeMode: 'contain'
+  },
+  controls: {
+    position: 'absolute',
+    bottom: moderateScale(52),
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+  },
+  button: {
+    backgroundColor: '#DE1484',
+    paddingVertical: moderateScale(12),
+    paddingHorizontal: moderateScale(20),
+    borderRadius: 100,
+    marginHorizontal: moderateScale(10),
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: moderateScale(16),
+    fontWeight: 'bold'
+  },
+  captureButton: {
+    position: 'absolute',
+    bottom: moderateScale(52),
+    backgroundColor: '#fff',
+    borderRadius: 100,
+    width: moderateScale(64),
+    height: moderateScale(64),
+    justifyContent: 'center',
+    alignSelf: "center"
+  },
 })

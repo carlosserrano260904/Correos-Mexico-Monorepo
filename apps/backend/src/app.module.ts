@@ -4,18 +4,19 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { RoutesModule } from './routes/routes.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProductsModule } from './products/products.module';
 import { TransactionsModule } from './transactions/transactions.module';
-import { UploadImageModule } from './upload-image/upload-image.module';
+import { UploadImageModule } from './upload-image/upload-image.module'; 
+import { PostalService } from './postal/postal.service';
 import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/guias_trazabilidad.module';
+import { PostalController } from './postal/postal.controller';
 import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
-import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module';
+import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
 import { TransportesModule } from './transportes/transportes.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
@@ -23,19 +24,15 @@ import { SucursalesModule } from './sucursalesdummy/sucursales.module';
 import { ConductoresModule } from './conductores/conductores.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
-import { OrdenModule } from './orden/orden.module';
-
-import { PostalService } from './postal/postal.service';
-import { PostalController } from './postal/postal.controller';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
+     ConfigModule.forRoot({
+      isGlobal:true
     }),
     TypeOrmModule.forRootAsync({
-      useFactory: typeOrmConfig,
-      inject: [ConfigService],
+      useFactory:typeOrmConfig,
+      inject:[ConfigService]
     }),
     LoginModule,
     CreateAccountModule,
@@ -43,7 +40,7 @@ import { PostalController } from './postal/postal.controller';
     ProfileModule,
     ProductsModule,
     TransactionsModule,
-    UploadImageModule,
+    UploadImageModule, 
     GuiasTrazabilidadModule,
     UserModule,
     LikesModule,
@@ -54,8 +51,8 @@ import { PostalController } from './postal/postal.controller';
     SucursalesModule,
     ConductoresModule,
     UnidadesModule,
-    HistorialAsignacionesModule,
-    OrdenModule,
+    HistorialAsignacionesModule
+
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

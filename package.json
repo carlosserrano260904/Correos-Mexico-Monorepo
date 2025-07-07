@@ -5,7 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo dev"
+    "dev": "turbo dev",
+    "build:backend": "cd apps/backend && npm run build",
+    "start:backend:prod": "cd apps/backend && npm run start:prod"
   },
   "keywords": [],
   "author": "",

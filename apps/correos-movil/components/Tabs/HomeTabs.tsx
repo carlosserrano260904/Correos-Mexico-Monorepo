@@ -24,7 +24,7 @@ const HomeTabs = () => {
           if (route.name === 'HomeUser') return <Home {...iconProps} />;
           else if (route.name === 'Perfil') return <User {...iconProps} />;
 
-          return <Ionicons name={iconName} size={24} color={color} />;
+          return null;
         },
         tabBarActiveTintColor: '#DE1484',
         tabBarInactiveTintColor: 'gray',

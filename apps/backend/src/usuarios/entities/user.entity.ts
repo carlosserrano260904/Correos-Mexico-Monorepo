@@ -16,6 +16,14 @@ export class User {
   @ApiProperty({ example: 'juan@example.com' })
   correo: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  @ApiProperty({ example: 'hashedPassword' })
+  contrasena: string | null;
+
+  @Column({ type: 'varchar', default: 'usuario' })
+  @ApiProperty({ example: 'usuario' })
+  rol: string;
+
   @OneToMany(() => Like, (like: Like) => like.usuario)
   likes: Like[];
 }

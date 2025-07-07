@@ -26,6 +26,8 @@ import { OrdenModule } from './orden/orden.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
 import { PaquetesModule } from './paquete/paquetes.module'
+import { AuthModule } from './auth/auth.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -56,7 +58,8 @@ import { PaquetesModule } from './paquete/paquetes.module'
     OrdenModule,
     HistorialAsignacionesModule,
     PaquetesModule,
-
+    AuthModule,
+    ProveedoresModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

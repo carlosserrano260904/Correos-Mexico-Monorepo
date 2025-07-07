@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Linking, Dimensions } 
 import { moderateScale } from 'react-native-size-matters';
 import { CameraType, CameraView, Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
-import { CircleX, Aperture } from 'lucide-react-native';
+import { CircleX, Aperture, Package2 } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../../schemas/schemas';
@@ -24,8 +24,9 @@ export default function TakeEvidenceScreen() {
   const route = useRoute<TakeEvidenceRouteProp>();
   const packageData = route.params.package;
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showSuccess, setShowSuccess] = React.useState(false);
 
-  
 
   React.useEffect(() => {
     requestPermission();
@@ -83,8 +84,31 @@ export default function TakeEvidenceScreen() {
   const handleRetake = () => setPhotoUri(null);
 
   const handleConfirm = async () => {
-    await actualizarEstatusPaquete(packageData.id, 'Entregado');
-    navigation.goBack();
+    if (!photoUri) return;
+
+    setIsLoading(true);
+
+    try {
+      const evidenciaUrl = await subirEvidencia(packageData.id, photoUri);
+
+      if (!evidenciaUrl) {
+        alert('Error al subir la evidencia. Intenta de nuevo.');
+        return;
+      }
+
+      await actualizarEstatusPaquete(packageData.id, 'Entregado');
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        navigation.navigate('PackagesList');
+      }, 2500); // 2.5 segundos visible
+
+    } catch (err) {
+      console.error(err);
+      alert('Hubo un problema. Intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const actualizarEstatusPaquete = async (id: string, nuevoEstatus: string): Promise<void> => {
@@ -110,6 +134,40 @@ export default function TakeEvidenceScreen() {
     }
   };
 
+  const subirEvidencia = async (id: string, uri: string): Promise<string | null> => {
+    const formData = new FormData();
+
+    const filename = uri.split('/').pop() ?? `evidencia-${id}.jpg`;
+    const fileType = filename.split('.').pop();
+
+    formData.append('file', {
+      uri,
+      name: filename,
+      type: `image/${fileType}`,
+    } as any); // `as any` es para evitar errores con React Native sobre File
+
+    try {
+      const response = await fetch(`http://${IP}:3000/api/paquetes/${id}/evidencia`, {
+        method: 'PATCH',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Error al subir evidencia');
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('Evidencia subida:', data);
+      return data.paquete.evidencia;
+    } catch (error) {
+      console.error('Error de red al subir evidencia:', error);
+      return null;
+    }
+  };
 
 
   return (
@@ -139,6 +197,23 @@ export default function TakeEvidenceScreen() {
             </View>
           </TouchableOpacity>
         </>
+      )}
+
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingBox}>
+            <Text style={styles.loadingText}>Subiendo evidencia...</Text>
+          </View>
+        </View>
+      )}
+
+      {showSuccess && (
+        <View style={styles.successOverlay}>
+          <View style={styles.successBox}>
+            <Package2 size={moderateScale(120)} color={'white'}/>
+            <Text style={styles.successText}>¡Paquete entregado!</Text>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -231,5 +306,52 @@ const styles = StyleSheet.create({
     height: moderateScale(64),
     justifyContent: 'center',
     alignSelf: "center"
+  },
+
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: screenWidth,
+    height: screenHeight,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  loadingBox: {
+    backgroundColor: '#fff',
+    padding: moderateScale(20),
+    borderRadius: moderateScale(10),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  loadingText: {
+    color: '#DE1484',
+    fontSize: moderateScale(18),
+    fontWeight: 'bold',
+  },
+
+  successOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: screenWidth,
+    height: screenHeight,
+    backgroundColor: '#22BB33',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  successBox: {
+    alignItems: 'center',
+  },
+  successText: {
+    fontSize: moderateScale(24),
+    fontWeight: 'bold',
+    color: 'white',
   },
 })

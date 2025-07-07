@@ -4,6 +4,7 @@ import { moderateScale } from 'react-native-size-matters'
 import { ArrowLeft, Truck } from 'lucide-react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
@@ -17,6 +18,14 @@ export default function LoadPackages() {
     const [paquetesTotal, setPaquetesTotal] = React.useState(0);
 
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
+
+    const handleInicioTurno = async () => {
+        await AsyncStorage.setItem('turno_activo', 'true');
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'PackagesList' }],
+        });
+    };
 
     React.useEffect(() => {
         const fetchNombre = async () => {
@@ -72,7 +81,7 @@ export default function LoadPackages() {
         </View>
 
         <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("PackagesList")} style={styles.button}>
+            <TouchableOpacity onPress={handleInicioTurno} style={styles.button}>
                 <Text style={styles.textButton}>Ya cargue todo</Text>
             </TouchableOpacity>
         </View>

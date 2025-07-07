@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert, BackHandler } from 'react-native'
 import { User, Package, MapPin } from 'lucide-react-native'
 import { ProgressBar } from 'react-native-paper'
 import { moderateScale } from 'react-native-size-matters'
@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RoutesMapView from './RoutesMapView'
 import { LatLng } from 'react-native-maps';
 import Constants from 'expo-constants';
+import { useFocusEffect } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
@@ -64,6 +65,23 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   // Ref para rastrear solicitudes en curso y evitar concurrencia
   const fetchPackagesRequestId = React.useRef<number>(0);
   const routeRequestId = React.useRef<number>(0);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true; // <- bloquea el retroceso
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove(); // <- método moderno que sí funciona
+    }, [])
+  );
+
+  const handleTerminarTurno = async () => {
+    await AsyncStorage.removeItem('turno_activo');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'DistributorPage' }], // o Login, o la pantalla principal
+    });
+  };
 
   React.useEffect(() => {
     fetchPackages();
@@ -384,7 +402,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           <Text style={styles.packagesText}>
             {paquetesRestantes} paquetes restantes
           </Text>
-          <TouchableOpacity style={styles.userButton}>
+          <TouchableOpacity style={styles.userButton} onPress={handleTerminarTurno}>
             <User color="white" size={moderateScale(20)} />
           </TouchableOpacity>
         </View>

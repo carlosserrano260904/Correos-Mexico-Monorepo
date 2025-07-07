@@ -3,6 +3,7 @@ import { Text, View, TouchableOpacity, Dimensions, StyleSheet } from 'react-nati
 import { QrCode } from 'lucide-react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('screen').width
 const screenHeight = Dimensions.get('screen').height
@@ -10,6 +11,19 @@ const screenHeight = Dimensions.get('screen').height
 
 export default function MainPageDistributor() {
     const navigation = useNavigation();
+    React.useEffect(() => {
+        const checkTurnoActivo = async () => {
+            const activo = await AsyncStorage.getItem('turno_activo');
+            if (activo === 'true') {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'PackagesList' }],
+            });
+            }
+        };
+
+        checkTurnoActivo();
+    }, []);
 
   return (
     <View style={styles.container}>

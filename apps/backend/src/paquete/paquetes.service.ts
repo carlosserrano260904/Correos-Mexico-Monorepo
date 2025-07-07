@@ -43,6 +43,18 @@ export class PaquetesService {
     return await this.paqueteRepo.save(paquete);
   }
 
+  async anadirEvidencia(id: string, urlEvidencia: string): Promise<Paquete | null> {
+    const paquete = await this.paqueteRepo.findOne({ where: { id } });
+
+    if (!paquete) {
+      return null;
+    }
+
+    paquete.evidencia = urlEvidencia;
+
+    return await this.paqueteRepo.save(paquete);
+  }
+
   remove(id: string) {
     return this.paqueteRepo.delete(id);
   }

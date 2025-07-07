@@ -47,7 +47,7 @@ export default function App() {
         <Stack.Screen name="LoadPackages" component={LoadPackages} options={{headerShown: false}}/>
         <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen} options={{headerShown: false}}/>
         <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{headerShown: false}}/>
-        <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false}}/>
+        <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{headerShown: false, gestureEnabled: false}}/>
         <Stack.Screen name="PublicarProducto" component={PrublicarProducto} options={{headerShown: false}}/>
         <Stack.Screen name="Productos" component={Productos} options={{headerShown: false}}/>
         <Stack.Screen name="DetalleProducto" component={DetalleProducto} options={{headerShown: false}}/>

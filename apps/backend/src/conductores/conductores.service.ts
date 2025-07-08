@@ -21,7 +21,7 @@ export class ConductoresService {
       licencia: conductor.licencia,
       telefono: conductor.telefono,
       correo: conductor.correo,
-      sucursal: conductor.claveOficina,
+      sucursal: conductor.oficina?.clave_cuo,
     };
   }
 
@@ -35,12 +35,16 @@ export class ConductoresService {
     return conductores.map(this.mapToResponseDto);
   }
 
-  async findBySucursal(claveOficina: number): Promise<Conductor[]> {
-    return this.conductorRepository.find({
-      where: { claveOficina },
-      order: { disponibilidad: 'DESC' }, // Disponibles primero
+  async findBySucursal(claveOficina: string): Promise<ConductorResponseDto[]> {
+    const conductores = await this.conductorRepository.find({
+      where: { oficina: { clave_cuo: claveOficina } },
+      relations: ['oficina'],
+      order: { disponibilidad: 'DESC' },
     });
+
+    return conductores.map(this.mapToResponseDto);
   }
+
 
   async create(createConductorDto: CreateConductorDto): Promise<Conductor> {
     const conductor = this.conductorRepository.create({

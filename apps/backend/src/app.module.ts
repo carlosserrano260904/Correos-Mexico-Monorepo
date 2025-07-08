@@ -18,7 +18,7 @@ import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
 import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
 import { TransportesModule } from './transportes/transportes.module';
-import { SucursalesModule } from './sucursalesdummy/sucursales.module';
+import { OficinasModule } from './oficinas/oficinas.module';
 import { ConductoresModule } from './conductores/conductores.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
@@ -38,13 +38,13 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
     ProfileModule,
     ProductsModule,
     TransactionsModule,
-    UploadImageModule, 
+    UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,
     LikesModule,
     AsignacionPaquetesModule,
     TransportesModule,
-    SucursalesModule,
+    OficinasModule,
     ConductoresModule,
     UnidadesModule,
     HistorialAsignacionesModule

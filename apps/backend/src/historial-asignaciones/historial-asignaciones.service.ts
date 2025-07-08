@@ -40,7 +40,7 @@ export class HistorialAsignacionesService {
 ): Promise<HistorialAsignacion[]> {
     const where: any = {};
     if (placas) where.placasUnidad = placas;
-    if (curp) where.CURP = curp.toUpperCase();
+    if (curp) where.curp = curp.toUpperCase();
 
     return this.historialRepository.find({
         where,

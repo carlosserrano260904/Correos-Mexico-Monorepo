@@ -1,12 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { TipoVehiculo } from '../entities/tipo-vehiculo.entity';
+import { Conductor } from '../../conductores/entities/conductor.entity';
+import { Oficina } from '../../oficinas/entities/oficina.entity';
 
 @Entity('unidades')
 export class Unidad {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'tipo_vehiculo' })
-  tipoVehiculo: string;
+  @Column({ name: 'tipo_vehiculo', type: 'int' })
+  tipoVehiculoId: number;
+
+  @ManyToOne(() => TipoVehiculo)
+  @JoinColumn({ name: 'tipo_vehiculo', referencedColumnName: 'id' })
+  tipoVehiculo: TipoVehiculo;
 
   @Column({ unique: true })
   placas: string;
@@ -26,16 +33,27 @@ export class Unidad {
   @Column({ name: 'tarjeta_circulacion', unique: true })
   tarjetaCirculacion: string;
 
-  @Column({ name: 'curp_conductor', default: 'S/C' })
-  curpConductor: string;
+  @Column({ name: 'curp_conductor', nullable: true })
+  curpConductor: string | null;
 
-  @Column({ name: 'clave_oficina', type: 'int' })
-  claveOficina: number;
+  @ManyToOne(() => Conductor, { nullable: true })
+  @JoinColumn({ name: 'curp_conductor', referencedColumnName: 'curp' })
+  conductor: Conductor | null;
+
+  @Column({ name: 'clave_oficina', length: 5 })
+  claveOficina: string;
+
+  @ManyToOne(() => Oficina)
+  @JoinColumn({ name: 'clave_oficina', referencedColumnName: 'clave_cuo' })
+  oficina: Oficina;
+
+  @Column({ name: 'zona_asignada', length: 5, nullable: true })
+  zonaAsignada: string;
 
   @Column({
-    type: 'varchar',
+    type: 'enum',
+    enum: ['disponible', 'no disponible'],
     default: 'disponible',
-    enum: ['disponible', 'no disponible']
   })
-  estado: string;
+  estado: 'disponible' | 'no disponible';
 }

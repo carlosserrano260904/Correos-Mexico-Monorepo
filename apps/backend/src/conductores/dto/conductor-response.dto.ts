@@ -5,5 +5,5 @@ export class ConductorResponseDto {
   licencia: string;
   telefono: string;
   correo: string;
-  sucursal: number; // clave_oficina
+  sucursal: string; 
 }

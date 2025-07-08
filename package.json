@@ -5,7 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo dev"
+    "dev": "turbo dev",
+    "build:backend": "cd apps/backend && npm run build",
+    "start:backend:prod": "cd apps/backend && npm run start:prod"
   },
   "keywords": [],
   "author": "",
@@ -35,8 +37,9 @@
     "@nestjs/typeorm": "^11.0.0",
     "@react-native-picker/picker": "2.11.1",
     "@react-navigation/bottom-tabs": "^7.3.16",
-    "@react-navigation/native": "^7.1.12",
+    "@react-navigation/native": "^7.1.14",
     "@react-navigation/native-stack": "^7.3.14",
+    "@react-navigation/stack": "^7.4.2",
     "axios": "^1.9.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -55,11 +58,12 @@
     "react-native": "0.79.4",
     "react-native-dotenv": "^3.4.11",
     "react-native-element-dropdown": "^2.12.4",
+    "react-native-gesture-handler": "^2.27.1",
     "react-native-maps": "1.20.1",
     "react-native-paper": "^5.14.5",
-    "react-native-reanimated": "3.17.4",
+    "react-native-reanimated": "~3.17.4",
     "react-native-reanimated-carousel": "^4.0.2",
-    "react-native-safe-area-context": "5.4.0",
+    "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-size-matters": "^0.4.2",
     "react-native-svg": "15.11.2",
@@ -75,6 +79,9 @@
   },
   "overrides": {
     "multer": "^2.0.0"
+  },
+  "resolutions": {
+    "react-native-reanimated": "~3.17.4"
   },
   "devDependencies": {
     "@types/multer": "^1.4.13",

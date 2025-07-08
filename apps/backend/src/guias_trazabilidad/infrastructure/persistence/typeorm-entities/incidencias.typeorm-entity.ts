@@ -17,15 +17,12 @@ export class IncidenciasTypeormEntity {
     @Column({ type: 'varchar', nullable: false })
     tipo_incidencia: string;
 
-    @Column({ type: 'varchar', nullable: false })
-    descripcion: string;
+    @Column({ type: 'varchar', nullable: true })
+    descripcion?: string;
 
     @Column({ type: 'timestamptz', nullable: false })
     fecha_incidencia: Date;
 
     @Column({ type: 'varchar', nullable: false })
     id_usuario_responsable: string; // pendiente tabla usuarios
-
-    @Column({ type: 'timestamptz', nullable: false })
-    fecha_creacion: Date;
 }

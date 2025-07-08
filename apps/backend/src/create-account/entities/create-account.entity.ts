@@ -22,4 +22,7 @@ export class CreateAccount {
 
   @Column({ type: 'varchar', nullable: true })
   token: string;
+
+   @Column({ type: 'varchar', default: 'usuario' })
+    rol: string;
 }

@@ -36,9 +36,9 @@ async function bootstrap() {
         transform: true
       })
     )
-
-    await app.listen(3000);
-    console.log(`🚀 Server is running on http://localhost:3000`);
+    
+    //await app.listen(3000);
+    await app.listen(process.env.PORT || 3000, '0.0.0.0');
   } catch (err) {
     console.error('❌ Nest failed to start:', err);
   }

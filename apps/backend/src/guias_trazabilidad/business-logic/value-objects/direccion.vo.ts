@@ -1,86 +1,73 @@
-interface Props {
-    calle: string,
-    numero: string,
-    ciudad: string,
-    pais: string,
-    codigoPostal: string,
-    estado: string,
-    municipio?: string,
-    delegacion?: string,
-    colonia?: string,
-    fraccionamiento?: string,
+import { Result } from "../result/result";
+
+interface DireccionProps {
+    calle: string;
+    numero: string;
+    numeroInterior?: string; // podria haber una casa con numero interior
+    ciudad: string;
+    pais: string;
+    codigoPostal: string;
+    estado: string;
+    municipioDelegacion: string;
+    asentamiento?: string; // podria haber comunidades donde no hay asentamiento
+    referencia?: string; // podria haber una referencia de la direccion
 }
 
-// esta verificacion de mutua segregacion se delego al create-guia.handler.ts
-// type MunicipioDelegacion = | { municipio: string, delegacion?: never } | { municipio?: never, delegacion: string }
-// type ColoniaFraccionamiento = | { colonia: string, fraccionamiento?: never } | { colonia?: never, fraccionamiento: string }
 
 // type Props = baseProps & MunicipioDelegacion & ColoniaFraccionamiento;
 
 export class DireccionVO {
-    private constructor(private readonly props: Props) {
-    }
+    private constructor(private readonly props: DireccionProps) { }
 
-    static create(props: Props): DireccionVO {
-        if (!props.municipio && !props.delegacion) {
-            throw new Error('Debe proporcionar municipio o delegación');
-        }
-        if (props.municipio && props.delegacion) {
-            throw new Error('No puede proporcionar ambos: municipio y delegación');
-        }
-
-        if (!props.colonia && !props.fraccionamiento) {
-            throw new Error('Debe proporcionar colonia o fraccionamiento');
-        }
-        if (props.colonia && props.fraccionamiento) {
-            throw new Error('No puede proporcionar ambos: colonia y fraccionamiento');
-        }
-
+    public static safeCreate(props: DireccionProps): DireccionVO {
         return new DireccionVO(props)
     }
 
-    static fromPersistence(props: Props): DireccionVO {
+    public static create(props: DireccionProps): Result<DireccionVO> {
+        return Result.success(new DireccionVO(props)) 
+    }
+
+    public static fromPersistence(props: DireccionProps): DireccionVO {
         return new DireccionVO(props)
     }
 
-    get calle(): string {
+    get getCalle(): string {
         return this.props.calle
     }
 
-    get numero(): string {
+    get getNumero(): string {
         return this.props.numero
     }
 
-    get ciudad(): string {
+    get getCiudad(): string {
         return this.props.ciudad
     }
 
-    get pais(): string {
+    get getPais(): string {
         return this.props.pais
     }
 
-    get codigoPostal(): string {
+    get getCodigoPostal(): string {
         return this.props.codigoPostal
     }
 
-    get estado(): string {
+    get getEstado(): string {
         return this.props.estado
     }
 
-    get municipio(): string | undefined {
-        return this.props.municipio
+    get getMunicipioDelegacion(): string {
+        return this.props.municipioDelegacion
     }
 
-    get delegacion(): string | undefined {
-        return this.props.delegacion
+    get getAsentamiento(): string | undefined {
+        return this.props.asentamiento
     }
 
-    get colonia(): string | undefined {
-        return this.props.colonia
+    get getReferencia(): string | undefined {
+        return this.props.referencia
     }
 
-    get fraccionamiento(): string | undefined {
-        return this.props.fraccionamiento
+    get getNumeroInterior(): string | undefined {
+        return this.props.numeroInterior
     }
-
 }

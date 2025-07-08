@@ -1,5 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { Like } from '../../likes/entities/like.entity';
+import { Favorito } from '../../favoritos/entities/favorito.entity';
+import { Carrito } from '../../carrito/entities/carrito.entity';
 
 @Entity()
 export class Product {
@@ -26,6 +28,12 @@ export class Product {
 
     @Column({type:'varchar', nullable: true})
     color:string
+
+    @OneToMany(() => Favorito, favorito => favorito.producto )
+    favoritos: Favorito[];
+
+    @OneToMany(() => Carrito, carrito => carrito.producto)
+    carrito: Carrito[];
 
     @OneToMany(() => Like, like => like.producto)
     likes: Like[];

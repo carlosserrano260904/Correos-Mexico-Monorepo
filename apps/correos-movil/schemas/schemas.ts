@@ -46,6 +46,8 @@ export type RootStackParamList = {
       };
     };
   };
+  RecibirPaquete: { package: any };
+  TomarEvidencia: { package: any };
 };
 
 // Producto y contenidos

@@ -4,18 +4,19 @@ import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 
 const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
-export default function RoutesMapView({ userLocation, destination, optimizedIntermediates, routePoints }: {
+export default function RoutesMapView({ userLocation, destination, optimizedIntermediates, routePoints}: {
   userLocation: LatLng | null;
   destination: LatLng;
   optimizedIntermediates: LatLng[];
   routePoints: LatLng[];
+  intermediates: LatLng[];
 }) {
   const mapRegion = userLocation
     ? {
-        ...userLocation,
-        latitudeDelta: 0.09,
-        longitudeDelta: 0.04,
-      }
+      ...userLocation,
+      latitudeDelta: 0.09,
+      longitudeDelta: 0.04,
+    }
     : undefined;
 
   return (
@@ -25,10 +26,12 @@ export default function RoutesMapView({ userLocation, destination, optimizedInte
         <Marker coordinate={destination} title="Destino" />
 
         {optimizedIntermediates.map((point, index) => (
-          <Marker key={`opt-${index}`} coordinate={point}>
-            <View style={styles.numberMarker}>
-              <Text style={styles.numberText}>{index + 1}</Text>
-            </View>
+          <Marker
+            key={`opt-${index}`}
+            coordinate={point}
+          
+          >
+            <View style={styles.numberMarker}><Text style={styles.numberText}>{index+1}</Text></View>
           </Marker>
         ))}
 

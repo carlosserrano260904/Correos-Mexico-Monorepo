@@ -18,10 +18,15 @@ import { UserModule } from './usuarios/user.module';
 import { LikesModule } from './likes/likes.module';
 import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
 import { TransportesModule } from './transportes/transportes.module';
-import { OficinasModule } from './oficinas/oficinas.module';
+import { CarritoModule } from './carrito/carrito.module';
+import { FavoritosModule } from './favoritos/favoritos.module';
 import { ConductoresModule } from './conductores/conductores.module';
+import { OrdenModule } from './orden/orden.module';
 import { UnidadesModule } from './unidades/unidades.module';
 import { HistorialAsignacionesModule } from './historial-asignaciones/historial-asignaciones.module';
+import { PaquetesModule } from './paquete/paquetes.module'
+import { AuthModule } from './auth/auth.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -44,11 +49,15 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
     LikesModule,
     AsignacionPaquetesModule,
     TransportesModule,
-    OficinasModule,
+    CarritoModule,
+    FavoritosModule,
     ConductoresModule,
     UnidadesModule,
-    HistorialAsignacionesModule
-
+    OrdenModule,
+    HistorialAsignacionesModule,
+    PaquetesModule,
+    AuthModule,
+    ProveedoresModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

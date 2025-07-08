@@ -1,4 +1,4 @@
-//ProfileUser.tsx
+// ProfileUser.tsx
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -9,7 +9,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Platform,
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -18,12 +17,15 @@ import { idUser, usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
+import { useClerk } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
+  const { signOut } = useClerk();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,16 @@ export default function ProfileUser() {
       }
     })();
   }, [isFocused]);
+
+  const handleSignOut = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await signOut();
+      console.log('Logout successful');
+    } catch (err) {
+      console.error('Logout error:', JSON.stringify(err, null, 2));
+    }
+  };
 
   const sections = [
     {
@@ -116,6 +128,33 @@ export default function ProfileUser() {
               ))}
             </View>
           ))}
+
+          {/* Botones especiales: Cerrar sesión / Eliminar cuenta */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={handleSignOut}
+            >
+              <View style={styles.itemLeft}>
+                <Icon name="log-out" size={20} color="red" />
+                <Text style={[styles.itemText, { color: 'red' }]}>Cerrar sesión</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color="red" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={() => console.log('Eliminar cuenta')}
+            >
+              <View style={styles.itemLeft}>
+                <Icon name="trash-2" size={20} color="red" />
+                <Text style={[styles.itemText, { color: 'red' }]}>Eliminar cuenta</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color="red" />
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </>

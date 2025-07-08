@@ -6,15 +6,18 @@ export default{
     version: "1.0.0",
     orientation: "portrait",
     icon: "assets/icons_correos_mexico/square_correos_clic_Logo.png",
+    resizeMode: "cover",
     userInterfaceStyle: "light",
     newArchEnabled: true,
+    scheme: "correosclic",
     splash: {
       image: "assets/icons_correos_mexico/square_correos_clic_Logo.png",
       resizeMode: "cover",
       backgroundColor: "#DE1484"
     },
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      bundleIdentifier: "com.correosmexico.correosclic"
     },
     android: {
       adaptiveIcon: {
@@ -22,7 +25,8 @@ export default{
         resizeMode: "cover"
       },
       orientation: "portrait",
-      edgeToEdgeEnabled: true
+      edgeToEdgeEnabled: true,
+      package: "com.correosmexico.correosclic"
     },
     web: {
       favicon: "assets/icons_correos_mexico/square_correos_clic_Logo.png"

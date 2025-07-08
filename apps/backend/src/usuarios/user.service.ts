@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly repo: Repository<User>,
+    @InjectRepository(CreateAccount)
+    private readonly repo: Repository<CreateAccount>,
   ) { }
 
   create(data: Partial<User>) {
@@ -28,6 +29,6 @@ export class UserService {
   }
 
   update(email: string, password: string) {
-    return this.repo.update({ correo: email }, { contrasena: password }); 
+    return this.repo.update({ correo: email }, { password }); 
   }
 }

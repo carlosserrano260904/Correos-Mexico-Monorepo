@@ -64,9 +64,9 @@ export class AuthService {
 
     async signin(dto: AuthDto) {
         let user = await this.usuariosService.findByCorreo(dto.correo);
-        if (!user || !user.contrasena) throw new UnauthorizedException();
+        if (!user || !user.password) throw new UnauthorizedException();
 
-        const valid = await bcrypt.compare(dto.contrasena, user.contrasena);
+        const valid = await bcrypt.compare(dto.contrasena, user.password);
         if (!valid) throw new UnauthorizedException();
 
         const token = await this.jwtService.signAsync({

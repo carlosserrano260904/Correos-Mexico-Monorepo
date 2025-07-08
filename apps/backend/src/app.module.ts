@@ -27,6 +27,7 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
 import { PaquetesModule } from './paquete/paquetes.module'
 import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
+import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     PaquetesModule,
     AuthModule,
     ProveedoresModule,
+    MisdireccionesModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

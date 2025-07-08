@@ -7,15 +7,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { RoutesModule } from './routes/routes.module';
-import { ProfileModule } from './profile/profile.module';
-import { ProductsModule } from './products/products.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { UploadImageModule } from './upload-image/upload-image.module';
+import { OficinasModule } from './oficinas/oficinas.module';
 
 @Module({
   imports: [
      ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal:true,
     }),
     TypeOrmModule.forRootAsync({
       useFactory:typeOrmConfig,
@@ -24,10 +21,7 @@ import { UploadImageModule } from './upload-image/upload-image.module';
     LoginModule,
     CreateAccountModule,
     RoutesModule,
-    ProfileModule,
-    ProductsModule,
-    TransactionsModule,
-    UploadImageModule
+    OficinasModule
   ],
   controllers: [AppController],
   providers: [AppService],

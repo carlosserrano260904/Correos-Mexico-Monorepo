@@ -20,7 +20,6 @@ import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paque
 import { TransportesModule } from './transportes/transportes.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
-import { SucursalesModule } from './sucursalesdummy/sucursales.module';
 import { ConductoresModule } from './conductores/conductores.module';
 import { OrdenModule } from './orden/orden.module';
 import { UnidadesModule } from './unidades/unidades.module';
@@ -44,7 +43,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     ProfileModule,
     ProductsModule,
     TransactionsModule,
-    UploadImageModule, 
+    UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,
     LikesModule,
@@ -52,7 +51,6 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     TransportesModule,
     CarritoModule,
     FavoritosModule,
-    SucursalesModule,
     ConductoresModule,
     UnidadesModule,
     OrdenModule,

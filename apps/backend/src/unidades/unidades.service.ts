@@ -1,274 +1,264 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+
 import { Unidad } from './entities/unidad.entity';
 import { TipoVehiculo } from './entities/tipo-vehiculo.entity';
-import { Sucursal } from '../sucursalesdummy/entities/sucursal.entity';
-import { TipoVehiculoSucursal } from '../sucursalesdummy/entities/tipo-vehiculo-sucursal.entity';
-import { CreateUnidadDto } from './dto/create-unidad.dto';
-import { UnidadResponseDto } from './dto/unidad-response.dto';
+import { TipoVehiculoOficina } from './entities/tipo-vehiculo-oficina.entity';
+import { Oficina } from '../oficinas/entities/oficina.entity';
 import { Conductor } from '../conductores/entities/conductor.entity';
+
+import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { AssignConductorDto } from './dto/assign-conductor.dto';
-import { SucursalTiposVehiculoDto } from './dto/sucursal-tipos-vehiculo.dto';
+import { UnidadResponseDto } from './dto/unidad-response.dto';
+import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
+
 import { HistorialAsignacionesService } from '../historial-asignaciones/historial-asignaciones.service';
 
 @Injectable()
 export class UnidadesService {
   constructor(
     @InjectRepository(Unidad)
-    private unidadRepository: Repository<Unidad>,
+    private unidadRepo: Repository<Unidad>,
+
     @InjectRepository(TipoVehiculo)
-    private tipoVehiculoRepository: Repository<TipoVehiculo>,
-    @InjectRepository(Sucursal)
-    private sucursalRepository: Repository<Sucursal>,
-    @InjectRepository(TipoVehiculoSucursal)
-    private tipoVehiculoSucursalRepository: Repository<TipoVehiculoSucursal>,
+    private tipoVehiculoRepo: Repository<TipoVehiculo>,
+
+    @InjectRepository(Oficina)
+    private oficinaRepo: Repository<Oficina>,
+
+    @InjectRepository(TipoVehiculoOficina)
+    private tipoOficinaRepo: Repository<TipoVehiculoOficina>,
+
     @InjectRepository(Conductor)
-    private conductorRepository: Repository<Conductor>,
+    private conductorRepo: Repository<Conductor>,
+
+    private historialSvc: HistorialAsignacionesService,
     private dataSource: DataSource,
-    private historialAsignacionesService: HistorialAsignacionesService,
   ) {}
 
   async findAll(): Promise<UnidadResponseDto[]> {
-    const unidades = await this.unidadRepository.find();
-    return unidades.map(unidad => this.mapToResponseDto(unidad));
-  }
-
-  async findBySucursal(claveOficina: number): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
-    const unidades = await this.unidadRepository.find({
-      where: { 
-        claveOficina,
-        estado: 'disponible' 
-      }
+    const all = await this.unidadRepo.find({
+      relations: ['tipoVehiculo', 'oficina', 'conductor'],
     });
-
-    return unidades.map(unidad => this.mapToSimpleDto(unidad));
+    return all.map(u => this.mapToResponse(u));
   }
 
-  async create(createUnidadDto: CreateUnidadDto): Promise<UnidadResponseDto> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async findByOficina(
+    claveOficina: number,
+  ): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
+    const list = await this.unidadRepo.find({
+      where: { oficina: { clave_oficina_postal: claveOficina }, estado: 'disponible' },
+      relations: ['tipoVehiculo', 'oficina', 'conductor'],
+    });
+    return list.map(u => {
+      const { estado, claveOficina, ...rest } = this.mapToResponse(u);
+      return rest;
+    });
+  }
+
+  async create(dto: CreateUnidadDto): Promise<UnidadResponseDto> {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
 
     try {
-      const sucursal = await this.sucursalRepository.findOne({ 
-        where: { claveOficina: createUnidadDto.claveOficina } 
+      const oficina = await this.oficinaRepo.findOne({
+        where: { clave_oficina_postal: dto.claveOficina },
       });
-      
-      if (!sucursal) {
+      if (!oficina) {
         throw new NotFoundException(
-          `Sucursal con clave ${createUnidadDto.claveOficina} no encontrada`
+          `Oficina con clave ${dto.claveOficina} no encontrada`,
         );
       }
 
-      const tipoPermitido = await this.tipoVehiculoSucursalRepository.findOne({
+      // Permiso de tipo: usar relaciones en where
+      const permiso = await this.tipoOficinaRepo.findOne({
         where: {
-          tipoOficina: sucursal.tipo,
-          tipoVehiculo: createUnidadDto.tipoVehiculo,
+          tipoOficina: oficina.tipo_cuo,
+          tipoVehiculo: {
+            tipoVehiculo: dto.tipoVehiculo,
+          },
         },
+        relations: ['tipoVehiculo'],
       });
-
-      if (!tipoPermitido) {
+      if (!permiso) {
         throw new ConflictException(
-          `Tipo de vehículo no permitido para sucursal tipo ${sucursal.tipo}`
+          `Tipo de vehículo no permitido para oficina tipo ${oficina.tipo_cuo}`,
         );
       }
 
-      const tipoVehiculo = await this.tipoVehiculoRepository.findOne({
-        where: { tipoVehiculo: createUnidadDto.tipoVehiculo },
+      const tv = await this.tipoVehiculoRepo.findOne({
+        where: { tipoVehiculo: dto.tipoVehiculo },
       });
-
-      if (!tipoVehiculo) {
+      if (!tv) {
         throw new NotFoundException(
-          `Tipo de vehículo ${createUnidadDto.tipoVehiculo} no encontrado`
+          `Tipo de vehículo ${dto.tipoVehiculo} no encontrado`,
         );
       }
 
-      const nuevaUnidad = this.unidadRepository.create({
-        tipoVehiculo: tipoVehiculo.tipoVehiculo,
-        placas: createUnidadDto.placas,
-        volumenCarga: createUnidadDto.volumenCarga,
-        numEjes: createUnidadDto.numEjes,
-        numLlantas: createUnidadDto.numLlantas,
-        claveOficina: createUnidadDto.claveOficina,
-        tarjetaCirculacion: createUnidadDto.tarjetaCirculacion,
-        curpConductor: 'S/C',
-        estado: 'disponible',
+      // Crear unidad: omitir conductor para usar default 'S/C'
+      const nueva = this.unidadRepo.create({
+        tipoVehiculo: tv,
+        placas: dto.placas,
+        volumenCarga: dto.volumenCarga,
+        numEjes: dto.numEjes,
+        numLlantas: dto.numLlantas,
+        tarjetaCirculacion: dto.tarjetaCirculacion,
         fechaAlta: new Date(),
+        estado: 'disponible',
+        oficina: oficina,
       });
 
-      const unidadGuardada = await queryRunner.manager.save(nuevaUnidad);
-      await queryRunner.commitTransaction();
-
-      return this.mapToResponseDto(unidadGuardada);
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
+      const saved = (await qr.manager.save(nueva)) as Unidad;
+      await qr.commitTransaction();
+      return this.mapToResponse(saved);
+    } catch (err) {
+      await qr.rollbackTransaction();
+      throw err;
     } finally {
-      await queryRunner.release();
+      await qr.release();
     }
   }
 
   async assignConductor(
     placas: string,
-    assignConductorDto: AssignConductorDto,
+    dto: AssignConductorDto,
   ): Promise<UnidadResponseDto> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
 
     try {
-      // 1. Buscar unidad por placas
-      const unidad = await this.unidadRepository.findOne({ 
+      const unidad = await this.unidadRepo.findOne({
         where: { placas },
+        relations: ['oficina', 'conductor', 'tipoVehiculo'],
       });
-
       if (!unidad) {
-        throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+        throw new NotFoundException(
+          `Unidad con placas ${placas} no encontrada`,
+        );
       }
 
-      // 2. Manejo de desasignación (S/C)
-      if (assignConductorDto.curpConductor === 'S/C') {
-        // 2.1 Si tenía conductor asignado, finalizar en historial y marcar como disponible
-        if (unidad.curpConductor !== 'S/C') {
-          await this.historialAsignacionesService.finalizarAsignacion(
-            unidad.curpConductor,
-            unidad.placas
+      // Desasignar
+      if (dto.curpConductor === 'S/C') {
+        if (unidad.conductor) {
+          await this.historialSvc.finalizarAsignacion(
+            unidad.conductor.curp,
+            placas,
           );
-
-          // 🔄 Actualizar disponibilidad del conductor anterior a TRUE
-          const conductorAnterior = await this.conductorRepository.findOne({
-            where: { curp: unidad.curpConductor },
-          });
-          if (conductorAnterior) {
-            conductorAnterior.disponibilidad = true;
-            await queryRunner.manager.save(conductorAnterior);
-          }
+          unidad.conductor.disponibilidad = true;
+          await qr.manager.save(unidad.conductor);
         }
-        
-        // 2.2 Actualizar unidad
-        unidad.curpConductor = 'S/C';
+        // dejar curp 'S/C' por defecto
+        (unidad as any).conductor = undefined;
         unidad.estado = 'disponible';
-        
-        const unidadActualizada = await queryRunner.manager.save(unidad);
-        await queryRunner.commitTransaction();
-        return this.mapToResponseDto(unidadActualizada);
+        const upd = (await qr.manager.save(unidad)) as Unidad;
+        await qr.commitTransaction();
+        return this.mapToResponse(upd);
       }
 
-      // 3. Validar conductor para asignación
-      const conductor = await this.conductorRepository.findOne({
-        where: { 
-          curp: assignConductorDto.curpConductor,
-          claveOficina: unidad.claveOficina,
+      const conductor = await this.conductorRepo.findOne({
+        where: {
+          curp: dto.curpConductor,
+          oficina: { clave_oficina_postal: unidad.oficina.clave_oficina_postal },
         },
+        relations: ['oficina'],
       });
-
       if (!conductor) {
         throw new NotFoundException(
-          `Conductor con CURP ${assignConductorDto.curpConductor} no encontrado en la sucursal ${unidad.claveOficina}`
+          `Conductor ${dto.curpConductor} no encontrado en oficina ${unidad.oficina.clave_oficina_postal}`,
         );
       }
-
-      if (conductor.disponibilidad === false || conductor.licenciaVigente === false) {
+      if (!conductor.disponibilidad || !conductor.licenciaVigente) {
         throw new ConflictException(
-          `Estado del conductor: ${conductor.disponibilidad ? 'Disponible' : 'No disponible'}, ` +
-          `Licencia: ${conductor.licenciaVigente ? 'Vigente' : 'No vigente'}`
+          `Conductor no disponible o licencia no vigente`,
         );
       }
 
-      // 4. Finalizar asignación anterior si existe y marcar como disponible
-      if (unidad.curpConductor !== 'S/C') {
-        await this.historialAsignacionesService.finalizarAsignacion(
-          unidad.curpConductor,
-          unidad.placas
+      if (unidad.conductor) {
+        await this.historialSvc.finalizarAsignacion(
+          unidad.conductor.curp,
+          placas,
         );
-
-        // 🔄 Actualizar disponibilidad del conductor anterior a TRUE
-        const conductorAnterior = await this.conductorRepository.findOne({
-          where: { curp: unidad.curpConductor },
-        });
-        if (conductorAnterior) {
-          conductorAnterior.disponibilidad = true;
-          await queryRunner.manager.save(conductorAnterior);
-        }
+        unidad.conductor.disponibilidad = true;
+        await qr.manager.save(unidad.conductor);
       }
 
-      // 5. Registrar nueva asignación en historial
-      await this.historialAsignacionesService.registrarAsignacion(
+      await this.historialSvc.registrarAsignacion(
         conductor.nombreCompleto,
         conductor.curp,
-        unidad.placas
+        placas,
       );
-
-      // 6. Actualizar conductor (marcar como no disponible) y unidad
       conductor.disponibilidad = false;
-      await queryRunner.manager.save(conductor);
+      await qr.manager.save(conductor);
 
-      unidad.curpConductor = conductor.curp;
-      unidad.estado = 'no disponible'; // Asegúrate de que coincida con tu CHECK constraint
-      const unidadActualizada = await queryRunner.manager.save(unidad);
+      unidad.conductor = conductor;
+      unidad.estado = 'no disponible';
+      const upd = (await qr.manager.save(unidad)) as Unidad;
 
-      await queryRunner.commitTransaction();
-      return this.mapToResponseDto(unidadActualizada);
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
+      await qr.commitTransaction();
+      return this.mapToResponse(upd);
+    } catch (err) {
+      await qr.rollbackTransaction();
+      throw err;
     } finally {
-      await queryRunner.release();
+      await qr.release();
     }
   }
 
-  async getTiposVehiculoPorSucursal(
-    claveSucursal: number,
-  ): Promise<SucursalTiposVehiculoDto> {
-    const sucursal = await this.sucursalRepository.findOne({
-      where: { claveOficina: claveSucursal },
+  async getTiposVehiculoPorOficina(
+    claveOficina: number,
+  ): Promise<OficinaTipoVehiculoDto> {
+    const oficina = await this.oficinaRepo.findOne({
+      where: { clave_oficina_postal: claveOficina },
     });
-
-    if (!sucursal) {
+    if (!oficina) {
       throw new NotFoundException(
-        `Sucursal con clave ${claveSucursal} no encontrada`
+        `Oficina con clave ${claveOficina} no encontrada`,
       );
     }
 
-    const tiposPermitidos = await this.tipoVehiculoSucursalRepository.find({
-      where: { tipoOficina: sucursal.tipo },
+    const list = await this.tipoOficinaRepo.find({
+      where: { tipoOficina: oficina.tipo_cuo },
+      relations: ['tipoVehiculo'],
     });
 
-    if (tiposPermitidos.length === 0) {
+
+    if (list.length === 0) {
       return {
-        sucursal: sucursal.claveOficina,
-        nombreOficina: sucursal.nombreOficina,
-        tipoSucursal: sucursal.tipo,
+        claveOficina,
+        nombreOficina: oficina.nombre_cuo,
+        tipo: oficina.tipo_cuo,
         tiposVehiculo: [],
+        mensaje: 'Esta oficina no tiene tipos de vehículo asignados',
       };
     }
 
     return {
-      sucursal: sucursal.claveOficina,
-      nombreOficina: sucursal.nombreOficina,
-      tipoSucursal: sucursal.tipo,
-      tiposVehiculo: tiposPermitidos.map(t => t.tipoVehiculo),
+      claveOficina,
+      nombreOficina: oficina.nombre_cuo,
+      tipo: oficina.tipo_cuo,
+      tiposVehiculo: list.map(t => t.tipoVehiculo.tipoVehiculo),
     };
   }
 
-  private mapToResponseDto(unidad: Unidad): UnidadResponseDto {
+  private mapToResponse(u: Unidad): UnidadResponseDto {
     return {
-      tipoVehiculo: unidad.tipoVehiculo,
-      placas: unidad.placas,
-      volumenCarga: unidad.volumenCarga,
-      numEjes: unidad.numEjes,
-      numLlantas: unidad.numLlantas,
-      fechaAlta: unidad.fechaAlta,
-      tarjetaCirculacion: unidad.tarjetaCirculacion,
-      conductor: unidad.curpConductor,
-      claveOficina: unidad.claveOficina,
-      estado: unidad.estado,
+      tipoVehiculo: u.tipoVehiculo.tipoVehiculo,
+      placas: u.placas,
+      volumenCarga: u.volumenCarga,
+      numEjes: u.numEjes,
+      numLlantas: u.numLlantas,
+      fechaAlta: u.fechaAlta,
+      tarjetaCirculacion: u.tarjetaCirculacion,
+      conductor: u.conductor ? u.conductor.curp : 'S/C',
+      claveOficina: u.oficina.clave_oficina_postal,
+      estado: u.estado,
     };
-  }
-
-  private mapToSimpleDto(unidad: Unidad): Omit<UnidadResponseDto, 'claveOficina' | 'estado'> {
-    const { claveOficina, estado, ...simpleDto } = this.mapToResponseDto(unidad);
-    return simpleDto;
   }
 }

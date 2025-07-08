@@ -22,7 +22,7 @@ export class ConductoresController {
   }
 
   @Get('sucursal/:clave')
-  async getBySucursal(@Param('clave') clave: number) {
+  async getBySucursal(@Param('clave') clave: string) {
     return this.conductoresService.findBySucursal(clave);
   }
 

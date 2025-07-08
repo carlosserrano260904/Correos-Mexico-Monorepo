@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Oficina } from '../../oficinas/entities/oficina.entity';
 
 @Entity('conductores')
 export class Conductor {
@@ -26,12 +27,16 @@ export class Conductor {
   @Column()
   correo: string;
 
-  @Column({ name: 'fecha_alta' })
+  @Column({ name: 'fecha_alta', type: 'timestamp' })
   fechaAlta: Date;
 
-  @Column({ name: 'clave_oficina' })
-  claveOficina: number;
+  @Column({ name: 'clave_oficina', length: 5 })
+  claveOficina: string;
 
-  @Column({ name: 'disponibilidad' }) // ← Nombre exacto en BD
+  @ManyToOne(() => Oficina)
+  @JoinColumn({ name: 'clave_oficina', referencedColumnName: 'clave_cuo' })
+  oficina: Oficina;
+
+  @Column({ name: 'disponibilidad' })
   disponibilidad: boolean;
 }

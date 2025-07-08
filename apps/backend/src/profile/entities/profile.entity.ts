@@ -1,6 +1,7 @@
 import { Transaction } from 'src/transactions/entities/transaction.entity'
 import { Favorito } from 'src/favoritos/entities/favorito.entity'
 import { Carrito } from 'src/carrito/entities/carrito.entity'
+import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
 import {Column,Entity,OneToMany,PrimaryGeneratedColumn} from 'typeorm'
 @Entity()
 export class Profile {
@@ -41,4 +42,7 @@ export class Profile {
 
     @OneToMany(() => Carrito, carrito => carrito.usuario)
     carrito: Carrito[];
+
+    @OneToMany(() => Misdireccione, direccion => direccion.usuario, { cascade: true })
+    direcciones: Misdireccione[];
 }

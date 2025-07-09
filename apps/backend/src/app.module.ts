@@ -28,6 +28,8 @@ import { PaquetesModule } from './paquete/paquetes.module'
 import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { OficinasModule } from './oficinas/oficinas.module';
+import { ShippingRateModule } from './shipping_rates/shipping_rates.module'; // Agregar esta línea
+// import { OficinasModule } from './usuario/ubicaciones/oficinas.module';
 
 @Module({
   imports: [
@@ -59,7 +61,8 @@ import { OficinasModule } from './oficinas/oficinas.module';
     PaquetesModule,
     AuthModule,
     ProveedoresModule,
-    OficinasModule
+    OficinasModule,
+    ShippingRateModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

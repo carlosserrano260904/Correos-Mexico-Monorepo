@@ -1,42 +1,60 @@
+// ProfileUser.tsx
+
 import React, { useEffect, useState } from 'react';
 import {
+  SafeAreaView,
   ScrollView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation,useIsFocused } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { idUser, usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { moderateScale } from 'react-native-size-matters';
+import { useClerk } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
+  const { signOut } = useClerk();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
-    if (!isFocused) return;  
+    if (!isFocused) return;
     (async () => {
       try {
         const perfil = await usuarioPorId(idUser);
         setUsuario(perfil);
       } catch {
-        console.log('No se ha podido cargar el perfil aqui componente ');
+        console.log('No se ha podido cargar el perfil');
       }
     })();
-  }, [isFocused]); // <-- mejor dejar el array vacío para que no itere constantemente
+  }, [isFocused]);
+
+  const handleSignOut = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await signOut();
+      console.log('Logout successful');
+    } catch (err) {
+      console.error('Logout error:', JSON.stringify(err, null, 2));
+    }
+  };
 
   const sections = [
     {
       title: 'Cuenta',
       items: [
-        { label: 'Mis pedidos', icon: 'box', to: 'Pedidos' },
+        { label: 'Publicar producto', icon: 'box', to: 'PublicarProducto' },
         { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
       ],
     },
@@ -44,123 +62,179 @@ export default function ProfileUser() {
       title: 'Información de pago',
       items: [
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
-        { label: 'Mis tarjetas', icon: 'credit-card', to: 'Tarjetas' },
+        { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
       ],
     },
     {
       title: 'Políticas',
       items: [
-        { label: 'Uso', icon: 'file-text', to: 'Uso' },
-        { label: 'Privacidad', icon: 'file-text', to: 'Privacidad' },
-        { label: 'Devoluciones', icon: 'file-text', to: 'Devoluciones' },
+        { label: 'Prueba productos', icon: 'file-text', to: 'Productos' },
+        { label: 'Terminos y condiciones', icon: 'file-text', to: 'Politicas' },
       ],
     },
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Cabecera "Mi perfil" */}
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => {
-          if (usuario) {
-            navigation.navigate('UserDetailsScreen', { user: usuario });
-            console.log(usuario)
-          }
-        }}
-      >
-        <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
-        <View style={styles.textContainer}>
-          <Text style={styles.name}>
-            {usuario?.nombre} {usuario?.apellido}
-          </Text>
-          <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>Mi perfil</Text>
-            <Icon name="chevron-right" size={16} style={styles.chevron} />
-          </View>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#E6007A" />
+      <SafeAreaView style={styles.headerSafe}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            activeOpacity={0.8}
+            onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
+          >
+            <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
+            <View style={styles.textContainer}>
+              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                {usuario?.nombre} {usuario?.apellido}
+              </Text>
+              <View style={styles.subtitleRow}>
+                <Text style={styles.subtitle}>Mi perfil</Text>
+                <Icon
+                  name="chevron-right"
+                  size={16}
+                  color="#fff"
+                  style={{ marginLeft: moderateScale(4) }}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </SafeAreaView>
 
-      {sections.map((sec, si) => (
-        <View key={si} style={styles.section}>
-          <Text style={styles.sectionTitle}>{sec.title}</Text>
-          {sec.items.map((item, i) => (
+      <SafeAreaView style={styles.contentSafe}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator
+        >
+          {sections.map((sec, si) => (
+            <View key={si} style={styles.section}>
+              <Text style={styles.sectionTitle}>{sec.title}</Text>
+              {sec.items.map((item, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.item}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate(item.to)}
+                >
+                  <View style={styles.itemLeft}>
+                    <Icon name={item.icon} size={20} />
+                    <Text style={styles.itemText}>{item.label}</Text>
+                  </View>
+                  <Icon name="chevron-right" size={20} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+
+          {/* Botones especiales: Cerrar sesión / Eliminar cuenta */}
+          <View style={styles.section}>
             <TouchableOpacity
-              key={i}
               style={styles.item}
-              onPress={() => navigation.navigate(item.to)} // ← aquí
+              activeOpacity={0.7}
+              onPress={handleSignOut}
             >
               <View style={styles.itemLeft}>
-                <Icon name={item.icon} size={20} />
-                <Text style={styles.itemText}>{item.label}</Text>
+                <Icon name="log-out" size={20} color="red" />
+                <Text style={[styles.itemText, { color: 'red' }]}>Cerrar sesión</Text>
               </View>
-              <Icon name="chevron-right" size={20} />
+              <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
-          ))}
-        </View>
-      ))}
-    </ScrollView>
+
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={() => console.log('Eliminar cuenta')}
+            >
+              <View style={styles.itemLeft}>
+                <Icon name="trash-2" size={20} color="red" />
+                <Text style={[styles.itemText, { color: 'red' }]}>Eliminar cuenta</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color="red" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  headerSafe: {
+    backgroundColor: '#E6007A',
+  },
+  contentSafe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   header: {
     flexDirection: 'row',
-    backgroundColor: '#E6007A',
-    padding: 16,
     alignItems: 'center',
+    marginTop: 30,
+    padding: moderateScale(16),
+  },
+  profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: moderateScale(48),
+    height: moderateScale(48),
+    borderRadius: moderateScale(24),
     backgroundColor: '#fff',
   },
   textContainer: {
-    marginLeft: 12,
+    marginLeft: moderateScale(12),
     flex: 1,
   },
   name: {
-    fontSize: 18,
+    fontSize: moderateScale(18),
     fontWeight: 'bold',
+    color: '#fff',
   },
   subtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: moderateScale(4),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
+    color: '#fff',
   },
-  chevron: {
-    marginLeft: 4,
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(24),
+    paddingBottom: moderateScale(120),
   },
   section: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+    marginBottom: moderateScale(24),
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: moderateScale(12),
   },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
-    padding: 14,
-    marginBottom: 10,
-    borderRadius: 10,
+    padding: moderateScale(14),
+    marginBottom: moderateScale(10),
+    borderRadius: moderateScale(10),
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   itemText: {
-    fontSize: 16,
-    marginLeft: 10,
+    fontSize: moderateScale(16),
+    marginLeft: moderateScale(10),
   },
 });

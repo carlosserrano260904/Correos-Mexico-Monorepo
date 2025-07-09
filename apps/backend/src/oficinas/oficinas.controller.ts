@@ -12,14 +12,9 @@ export class OficinasController {
     return this.oficinasService.create(dto);
   }
 
-  @Get('activas')
-  active() {
-    return this.oficinasService.active();
-  }
-
-  @Get('inactivas')
-  inactive() {
-    return this.oficinasService.inactive();
+  @Get('activos')
+  find() {
+    return this.oficinasService.find();
   }
 
   @Get('clave/:clave_oficina_postal')
@@ -37,24 +32,18 @@ export class OficinasController {
     return this.oficinasService.findOne(+id);
   }
 
-  @Get('codigo-postal-zona/:clave_oficina_postal')
-  findCodigoPostalZona(@Param('clave_oficina_postal') clave: number) {
-    return this.oficinasService.findCodigoPostalZona(clave);
-  }
-
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateOficinaDto) {
     return this.oficinasService.update(+id, dto);
   }
 
-  @Patch(':id/desactivar')
+  @Patch(':id/deactivate')
   deactivate(@Param('id') id: number) {
     return this.oficinasService.deactivate(id);
   }
 
-  @Patch(':id/activar')
+  @Patch(':id/activate')
   activate(@Param('id') id: number) {
     return this.oficinasService.activate(id);
   }
-  
 }

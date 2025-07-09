@@ -2,7 +2,7 @@ import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas"
 import { myIp } from "./miscompras";
 
 export const idUser = 1
-
+//1,7 
 
 export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
     const url = `http://${myIp}:3000/api/profile/${id}`
@@ -49,4 +49,4 @@ export async function uploadAvatar(uri: string, id: number): Promise<string> {
   if (!res.ok) throw new Error('Error subiendo avatar');
   const { avatarUrl } = await res.json();
   return avatarUrl;
-}
+}  

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index} from 'typeorm';
 
 @Index('UQ_oficinas_clave_cuo', ['clave_cuo'], { unique: true })
 @Entity('oficinas')
@@ -73,7 +73,7 @@ export class Oficina {
   @Column({ length: 5 })
   codigo_postal: string;
 
-  @Column({ length: 5 })
+  @Column({ length: 5, nullable: true })
   codigo_postal_zona: string;
 
   @Column({ length: 20 })

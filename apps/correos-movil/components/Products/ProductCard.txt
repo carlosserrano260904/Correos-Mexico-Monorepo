@@ -1,0 +1,97 @@
+// components/ProductoCard.tsx
+
+import { ShoppingBag } from 'lucide-react-native';
+import React from 'react';
+import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
+
+export type Articulo = {
+  id: number;
+  nombre: string;
+  precio: string;
+  imagen: any;
+  //color: string[];  // Puedes dejarlo o eliminar del tipo si ya no usas colores
+  //like: boolean;    // Puedes dejarlo o eliminar del tipo si ya no usas like
+};
+
+interface Props {
+  articulo: Articulo;
+}
+
+export const ProductoCard: React.FC<Props> = ({ articulo }) => {
+  return (
+    <View style={styles.tarjetaProducto}>
+        <Image
+          source={{uri: articulo.imagen}}
+          style={[styles.imagenFondo, {borderRadius: 8}]}
+          resizeMode="contain"
+        />
+
+      <View style={styles.estadoProducto}>
+        <View style={styles.iconosAccion}>
+          <ShoppingBag size={24} color="gray" />
+        </View>
+      </View>
+
+      <View style={styles.datosProducto}>
+        <Text style={styles.textoNombre} numberOfLines={1} ellipsizeMode="tail">
+          {articulo.nombre}
+        </Text>
+        <Text style={styles.textoPrecio}>MXN {articulo.precio}</Text>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  tarjetaProducto: {
+    backgroundColor: 'transparent',
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    width: '48%',
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  imagenFondo: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: 250,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    marginBottom: 5,
+  },
+  imagenProducto: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+  },
+  estadoProducto: {
+    width: '100%',
+    paddingLeft: 8,
+    paddingRight: 8,
+    justifyContent: 'flex-end', // Solo el icono del carrito
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  iconosAccion: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  datosProducto: {
+    width: '100%',
+    padding: 8,
+    paddingTop: 0,
+  },
+  textoNombre: {
+    color: '#000',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  textoPrecio: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

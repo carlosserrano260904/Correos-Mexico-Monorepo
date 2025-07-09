@@ -24,15 +24,10 @@ export class OficinasService {
     return this.oficinaRepo.save(nuevaOficina);
   }
 
-  active() {
+
+  find() {
     return this.oficinaRepo.find({
       where: { activo: true },
-    });
-  }
-
-  inactive() {
-    return this.oficinaRepo.find({
-      where: { activo: false },
     });
   }
 
@@ -53,13 +48,6 @@ export class OficinasService {
     return oficina;
   }
 
-  findCodigoPostalZona( clave_oficina_postal: number) {
-    return this.oficinaRepo.find({
-      where: { clave_oficina_postal: clave_oficina_postal },
-      select: ['codigo_postal_zona'],
-    });
-  }
-
   async update(id: number, data: UpdateOficinaDto) {
     const oficina = await this.findOne(id);
     this.oficinaRepo.merge(oficina, data);
@@ -75,5 +63,4 @@ export class OficinasService {
     await this.oficinaRepo.update(id, { activo: true });
     return { message: 'Oficina activada correctamente' };
   }
-
 }

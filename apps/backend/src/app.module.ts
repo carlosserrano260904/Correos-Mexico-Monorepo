@@ -28,7 +28,6 @@ import { PaquetesModule } from './paquete/paquetes.module'
 import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { OficinasModule } from './oficinas/oficinas.module';
-import { PedidosModule } from './pedidos/pedidos.module';
 
 @Module({
   imports: [
@@ -60,9 +59,7 @@ import { PedidosModule } from './pedidos/pedidos.module';
     PaquetesModule,
     AuthModule,
     ProveedoresModule,
-    OficinasModule,
-    PedidosModule
-
+    OficinasModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

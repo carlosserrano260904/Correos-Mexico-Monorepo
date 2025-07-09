@@ -91,23 +91,3 @@ export const MisComprasSchemaDB = z.array(MisComprasSchema);
 export type MisComprasType = z.infer<typeof MisComprasSchema>;
 // 2) Tipo para el array de compras
 export type MisComprasResponse = z.infer<typeof MisComprasSchemaDB>;
-
-//pedidosss
-
-
-export const MisPedidosSchemaDB = z.array(
-  z.object({
-    id: z.number(),
-    fecha: z.string(), // o z.date() si ya es tipo Date
-    status: z.string(),
-    total: z.number(),
-    productos: z.array(
-      z.object({
-        producto_id: z.number(),
-        cantidad: z.number(),
-      })
-    ),
-  })
-);
-
-export type MisPedidosType = z.infer<typeof MisPedidosSchemaDB>[number];

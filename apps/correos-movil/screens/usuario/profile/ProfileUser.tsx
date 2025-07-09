@@ -56,6 +56,7 @@ export default function ProfileUser() {
       items: [
         { label: 'Publicar producto', icon: 'box', to: 'PublicarProducto' },
         { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
+        { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
       ],
     },
     {

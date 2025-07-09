@@ -23,11 +23,16 @@ export class OficinasService {
     const nuevaOficina = this.oficinaRepo.create(dto);
     return this.oficinaRepo.save(nuevaOficina);
   }
-
-
-  find() {
+  
+  active() {
     return this.oficinaRepo.find({
       where: { activo: true },
+    });
+  }
+
+  inactive() {
+    return this.oficinaRepo.find({
+      where: { activo: false },
     });
   }
 
@@ -46,6 +51,13 @@ export class OficinasService {
     const oficina = await this.oficinaRepo.findOneBy({ id_oficina: id });
     if (!oficina) throw new NotFoundException('Oficina no encontrada');
     return oficina;
+  }
+
+  findCodigoPostalZona( clave_oficina_postal: number) {
+    return this.oficinaRepo.find({
+      where: { clave_oficina_postal: clave_oficina_postal },
+      select: ['codigo_postal_zona'],
+    });
   }
 
   async update(id: number, data: UpdateOficinaDto) {

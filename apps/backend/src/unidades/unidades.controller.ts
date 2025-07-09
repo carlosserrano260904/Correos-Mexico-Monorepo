@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   ParseIntPipe,
+  Put
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -16,6 +17,7 @@ import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { AssignConductorDto } from './dto/assign-conductor.dto';
 import { UnidadResponseDto } from './dto/unidad-response.dto';
 import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
+import { AssignZonaDto } from './dto/assign-zona.dto';
 
 @ApiTags('Unidades')
 @Controller('unidades')
@@ -63,5 +65,14 @@ export class UnidadesController {
     @Param('clave', ParseIntPipe) clave: number,
   ): Promise<OficinaTipoVehiculoDto> {
     return this.unidadesService.getTiposVehiculoPorOficina(clave);
+  }
+  @Put(':placas/asignar-zona')
+  @ApiOperation({ summary: 'Asignar zona por código postal' })
+  @ApiResponse({ status: 200, type: UnidadResponseDto })
+  async assignZona(
+    @Param('placas') placas: string,
+    @Body() dto: AssignZonaDto,
+  ): Promise<UnidadResponseDto> {
+    return this.unidadesService.assignZona(placas, dto);
   }
 }

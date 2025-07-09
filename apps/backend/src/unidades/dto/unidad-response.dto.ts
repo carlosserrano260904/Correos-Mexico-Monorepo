@@ -30,4 +30,7 @@ export class UnidadResponseDto {
   
   @ApiProperty({ example: 'disponible' })
   estado: string;
+
+  @ApiProperty({ example: '20000', required: false })
+  zonaAsignada?: string;
 }

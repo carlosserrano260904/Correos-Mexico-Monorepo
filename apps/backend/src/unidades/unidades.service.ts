@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -16,6 +17,7 @@ import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { AssignConductorDto } from './dto/assign-conductor.dto';
 import { UnidadResponseDto } from './dto/unidad-response.dto';
 import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
+import { AssignZonaDto } from './dto/assign-zona.dto';
 
 import { HistorialAsignacionesService } from '../historial-asignaciones/historial-asignaciones.service';
 
@@ -259,6 +261,42 @@ export class UnidadesService {
       conductor: u.conductor ? u.conductor.curp : 'S/C',
       claveOficina: u.oficina.clave_oficina_postal,
       estado: u.estado,
+      zonaAsignada: u.zonaAsignada,
     };
   }
+
+  async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
+    // Cargar todas las relaciones necesarias
+    const unidad = await this.unidadRepo.findOne({
+      where: { placas },
+      relations: ['tipoVehiculo', 'oficina', 'conductor'],
+    });
+
+    if (!unidad) {
+      throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+    }
+
+    const oficina = unidad.oficina;
+    if (!oficina) {
+      throw new NotFoundException(`Oficina no asignada a la unidad`);
+    }
+
+    // Convertir a string para comparación
+    const codigoPostalZona = oficina.codigo_postal_zona.toString();
+    const codigoPostalSolicitado = dto.codigoPostal;
+
+    if (!codigoPostalSolicitado.startsWith(codigoPostalZona)) {
+      throw new BadRequestException(
+        `El código postal ${codigoPostalSolicitado} no pertenece a la zona ${codigoPostalZona} de la oficina ${oficina.clave_cuo}`
+      );
+    }
+
+    // Actualizar la zona asignada
+    unidad.zonaAsignada = codigoPostalZona;
+    const updatedUnidad = await this.unidadRepo.save(unidad);
+    
+    return this.mapToResponse(updatedUnidad);
+  }
+
+  
 }

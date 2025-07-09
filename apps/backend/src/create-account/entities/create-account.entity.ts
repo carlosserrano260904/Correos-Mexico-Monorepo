@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Favorito } from 'src/favoritos/entities/favorito.entity';
+import { Carrito } from 'src/carrito/entities/carrito.entity';
 
 @Entity()
 export class CreateAccount {
@@ -25,4 +27,10 @@ export class CreateAccount {
 
    @Column({ type: 'varchar', default: 'usuario' })
     rol: string;
+  
+  @OneToMany(() => Favorito, favorito => favorito.usuario )
+    favoritos: Favorito[];
+  
+  @OneToMany(() => Carrito, carrito => carrito.usuario)
+    carrito: Carrito[];
 }

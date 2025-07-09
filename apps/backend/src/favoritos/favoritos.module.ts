@@ -6,9 +6,10 @@ import { Product } from 'src/products/entities/product.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { FavoritosService } from './favoritos.service';
 import { FavoritosController } from './favoritos.controller';
+import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Favorito, Product, Profile, Carrito])],
+  imports: [TypeOrmModule.forFeature([Favorito, Product, CreateAccount, Carrito])],
   controllers: [FavoritosController],
   providers: [FavoritosService],
 })

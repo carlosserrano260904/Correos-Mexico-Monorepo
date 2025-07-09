@@ -21,7 +21,7 @@ export class FavoritosController {
 
   @Post()
   addFavorito(@Body() body: CreateFavoritoDto) {
-    return this.favoritosService.addFavorito(body.profileId, body.productId);
+    return this.favoritosService.addFavorito(body.usuarioId, body.productId);
   }
 
   @Delete(':id')

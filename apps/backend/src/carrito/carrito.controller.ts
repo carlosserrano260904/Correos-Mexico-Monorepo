@@ -14,9 +14,9 @@ export class CarritoController {
 
   @Post()
   agregarProducto(
-    @Body() body: { profileId: number; productId: number; cantidad: number },
+    @Body() body: { usuarioId: number; productId: number; cantidad: number },
   ) {
-    return this.carritoService.agregarProducto(body.profileId, body.productId, body.cantidad);
+    return this.carritoService.agregarProducto(body.usuarioId, body.productId, body.cantidad);
   }
 
   @Patch(':id')

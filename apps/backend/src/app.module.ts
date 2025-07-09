@@ -27,11 +27,12 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
 import { PaquetesModule } from './paquete/paquetes.module'
 import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
+import { OficinasModule } from './oficinas/oficinas.module';
 
 @Module({
   imports: [
      ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal:true,
     }),
     TypeOrmModule.forRootAsync({
       useFactory:typeOrmConfig,
@@ -58,6 +59,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     PaquetesModule,
     AuthModule,
     ProveedoresModule,
+    OficinasModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

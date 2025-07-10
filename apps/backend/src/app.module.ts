@@ -30,6 +30,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
 import { OficinasModule } from './oficinas/oficinas.module';
 import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
 import { PedidosModule } from './pedidos/pedidos.module';
+import { ClerkModule } from './clerk/clerk.module';
 @Module({
   imports: [
      ConfigModule.forRoot({
@@ -62,7 +63,9 @@ import { PedidosModule } from './pedidos/pedidos.module';
     ProveedoresModule,
     OficinasModule,
     MisdireccionesModule,
-    PedidosModule
+    PedidosModule,
+    ClerkModule,
+
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

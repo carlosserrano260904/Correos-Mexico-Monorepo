@@ -1,5 +1,3 @@
-// ProfileUser.tsx
-
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -17,8 +15,10 @@ import { idUser, usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
-import { useClerk } from '@clerk/clerk-expo';
+import { useClerk, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { myIp } from '../../../api/miscompras';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
@@ -26,6 +26,7 @@ export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
   const { signOut } = useClerk();
+  const { user } = useUser();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
@@ -50,6 +51,28 @@ export default function ProfileUser() {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      if (!user?.id) {
+        console.error('No se pudo obtener el ID del usuario');
+        return;
+      }
+      console.log(`Eliminando: http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
+      const response = await axios.delete(`http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
+
+      if (response.status === 200) {
+        console.log('Cuenta eliminada correctamente.');
+        await handleSignOut();
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Error eliminando la cuenta:', error.response?.data || error.message);
+      } else {
+        console.error('Error desconocido al eliminar la cuenta:', error);
+      }
+    }
+  };
+
   const sections = [
     {
       title: 'Cuenta',
@@ -63,7 +86,6 @@ export default function ProfileUser() {
       items: [
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
         { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
-        { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
       ],
     },
     {
@@ -130,7 +152,6 @@ export default function ProfileUser() {
             </View>
           ))}
 
-          {/* Botones especiales: Cerrar sesión / Eliminar cuenta */}
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.item}
@@ -147,7 +168,7 @@ export default function ProfileUser() {
             <TouchableOpacity
               style={styles.item}
               activeOpacity={0.7}
-              onPress={() => console.log('Eliminar cuenta')}
+              onPress={deleteAccount}
             >
               <View style={styles.itemLeft}>
                 <Icon name="trash-2" size={20} color="red" />

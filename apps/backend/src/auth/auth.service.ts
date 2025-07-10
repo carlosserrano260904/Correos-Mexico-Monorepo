@@ -19,19 +19,22 @@ export class AuthService {
     async signup(dto: CreateUserDto) {
         const hash = await bcrypt.hash(dto.contrasena, 10);
         const user = await this.usuariosService.create({
-            nombre: dto.nombre || dto.correo.split('@')[0],
-            correo: dto.correo,
-            contrasena: hash,
-            rol: 'usuario',
+          nombre: dto.nombre || dto.correo.split('@')[0],
+          correo: dto.correo,
+          contrasena: hash,
+          rol: 'usuario',
         });
-
+      
         const token = await this.jwtService.signAsync({
-            id: user.id,
-            rol: 'usuario',
+          id: user.id,
+          rol: 'usuario',
         });
-
-        return { token };
-    }
+      
+        return {
+          token,
+          id: user.id,
+        };
+      }      
 
     async oauth(dto: OAuthDto) {
         let proveedor = await this.proveedoresService.findBySub(dto.sub);

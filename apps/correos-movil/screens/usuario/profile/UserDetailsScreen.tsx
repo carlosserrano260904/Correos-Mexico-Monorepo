@@ -44,7 +44,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
         setUserData(prev => ({
           ...prev,
           estado: datosArray[0].d_estado || '',
-          ciudad: datosArray[0].d_ciudad || '',
+          ciudad: datosArray[0].d_ciudad?.trim() || datosArray[0].d_mnpio,
           fraccionamiento: datosArray[0].d_asenta || '',
         }));
       } else {

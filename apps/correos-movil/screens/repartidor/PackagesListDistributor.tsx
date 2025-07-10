@@ -62,73 +62,105 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   const [userLocation, setUserLocation] = React.useState<LatLng | null>(null);
   const [routePoints, setRoutePoints] = React.useState<LatLng[]>([]);
 
-  // Ref para rastrear solicitudes en curso y evitar concurrencia
-  const fetchPackagesRequestId = React.useRef<number>(0);
-  const routeRequestId = React.useRef<number>(0);
+  // Refs para control de concurrencia
+  const fetchPackagesController = React.useRef<AbortController | null>(null);
+  const routeController = React.useRef<AbortController | null>(null);
+  const locationSubscription = React.useRef<Location.LocationSubscription | null>(null);
+  const isMountedRef = React.useRef(true);
+
+  // Ref para evitar múltiples llamadas de localización
+  const locationSetupInProgress = React.useRef(false);
+
+  // Ref para rastrear el último timestamp de recálculo de ruta
+  const lastRouteCalculation = React.useRef<number>(0);
+  const ROUTE_DEBOUNCE_MS = 5000; // 5 segundos mínimo entre recálculos
+
+  // Cleanup al desmontar
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Limpiar controladores
+      if (fetchPackagesController.current) {
+        fetchPackagesController.current.abort();
+      }
+      if (routeController.current) {
+        routeController.current.abort();
+      }
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+    };
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      const onBackPress = () => true; // <- bloquea el retroceso
+      const onBackPress = () => true;
       const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => subscription.remove(); // <- método moderno que sí funciona
+      return () => subscription.remove();
     }, [])
   );
 
   const handleTerminarTurno = async () => {
-    await AsyncStorage.removeItem('turno_activo');
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'DistributorPage' }], // o Login, o la pantalla principal
-    });
+    try {
+      await AsyncStorage.removeItem('turno_activo');
+      navigation?.reset({
+        index: 0,
+        routes: [{ name: 'DistributorPage' }],
+      });
+    } catch (error) {
+      console.error('Error al terminar turno:', error);
+    }
   };
 
   React.useEffect(() => {
     fetchPackages();
     setupLocationTracking();
+
+    // Cleanup al desmontar
+    return () => {
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+    };
   }, []);
 
   const fetchPackages = async () => {
-    // Incrementar ID de solicitud para cancelar solicitudes anteriores
-    const currentRequestId = ++fetchPackagesRequestId.current;
-    
+    // Cancelar solicitud anterior si existe
+    if (fetchPackagesController.current) {
+      fetchPackagesController.current.abort();
+    }
+
+    // Crear nuevo controlador
+    fetchPackagesController.current = new AbortController();
+
     try {
       setLoading(true);
+
       const response = await axios.get(
-        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
+        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`,
+        {
+          signal: fetchPackagesController.current.signal,
+          timeout: 10000 // 10 segundos timeout
+        }
       );
 
-      // Verificar si esta solicitud sigue siendo la más reciente
-      if (currentRequestId !== fetchPackagesRequestId.current) {
-        console.log('Solicitud de paquetes cancelada, hay una más reciente');
-        return;
-      }
+      // Verificar si el componente sigue montado
+      if (!isMountedRef.current) return;
 
       const packagesData = response.data;
       setPackages(packagesData);
 
-      // Guardar en AsyncStorage
-      await AsyncStorage.setItem('packages', JSON.stringify(packagesData));
+      // Guardar en AsyncStorage de forma asíncrona
+      AsyncStorage.setItem('packages', JSON.stringify(packagesData)).catch(err =>
+        console.error('Error guardando en AsyncStorage:', err)
+      );
 
-      // Calcular estadísticas dinámicamente basado en el estatus
-      const total = packagesData.length;
-      const entregados = packagesData.filter((pkg: Package) =>
-        pkg.estatus.toLowerCase() === 'entregado'
-      ).length;
-      const fallidos = packagesData.filter((pkg: Package) =>
-        pkg.estatus.toLowerCase() === 'fallido'
-      ).length;
+      // Calcular estadísticas
+      updatePackageStats(packagesData);
 
-      setPaquetesTotal(total);
-      setPaquetesEntregados(entregados);
-      setPaquetesFallidos(fallidos);
-
-      // Generar coordenadas para paquetes que no están entregados ni fallidos
+      // Generar coordenadas para paquetes pendientes
       const coordsForRoute: LatLng[] = packagesData
-        .filter((pkg: Package) => 
-          pkg.estatus.toLowerCase() !== 'entregado' && 
-          pkg.estatus.toLowerCase() !== 'fallido'
-        )
         .map((pkg: Package) => ({
           latitude: pkg.latitud,
           longitude: pkg.longitud,
@@ -137,114 +169,172 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       setIntermediates(coordsForRoute);
 
     } catch (error) {
-        console.error('Error al obtener paquetes:', error);
-        
-        // Solo mostrar alerta si esta sigue siendo la solicitud más reciente
-        if (currentRequestId === fetchPackagesRequestId.current) {
-          Alert.alert('Error', 'No se pudieron cargar los paquetes');
-        }
+      if (axios.isCancel(error)) {
+        console.log('Solicitud de paquetes cancelada');
+        return;
+      }
 
+      console.error('Error al obtener paquetes:', error);
+
+      if (isMountedRef.current) {
+        Alert.alert('Error', 'No se pudieron cargar los paquetes');
         // Intentar cargar desde AsyncStorage
-        try {
-          const storedPackages = await AsyncStorage.getItem('packages');
-          if (storedPackages && currentRequestId === fetchPackagesRequestId.current) {
-            const packagesData = JSON.parse(storedPackages);
-            setPackages(packagesData);
-
-            // Recalcular estadísticas desde storage
-            const total = packagesData.length;
-            const entregados = packagesData.filter((pkg: Package) =>
-              pkg.estatus.toLowerCase() === 'entregado'
-            ).length;
-            const fallidos = packagesData.filter((pkg: Package) =>
-              pkg.estatus.toLowerCase() === 'fallido'
-            ).length;
-
-            setPaquetesTotal(total);
-            setPaquetesEntregados(entregados);
-            setPaquetesFallidos(fallidos);
-          }
-        } catch (storageError) {
-          console.error('Error al cargar desde storage:', storageError);
-        }
+        loadPackagesFromStorage();
+      }
     } finally {
-      // Solo actualizar loading si esta es la solicitud más reciente
-      if (currentRequestId === fetchPackagesRequestId.current) {
+      if (isMountedRef.current) {
         setLoading(false);
       }
     }
   };
 
-  React.useEffect(() => {
-    if (userLocation && intermediates.length > 0) {
-      // Solo calcula ruta si aún no se hizo
-      if (!routeInitialized) {
-        getRoute(userLocation, destination, intermediates);
-        setRouteInitialized(true);
-      } else if (isOffRoute(userLocation, routePoints)) {
-        console.log("Recalculando ruta, fuera del camino...");
-        getRoute(userLocation, destination, intermediates);
+  const loadPackagesFromStorage = async () => {
+    try {
+      const storedPackages = await AsyncStorage.getItem('packages');
+      if (storedPackages && isMountedRef.current) {
+        const packagesData = JSON.parse(storedPackages);
+        setPackages(packagesData);
+        updatePackageStats(packagesData);
       }
+    } catch (error) {
+      console.error('Error al cargar desde storage:', error);
     }
-  }, [userLocation, destination, intermediates, routeInitialized, routePoints]);
-
-  const setupLocationTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return;
-
-    const subscription = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.High,
-        timeInterval: 10000,
-        distanceInterval: 10,
-      },
-      (location) => {
-        const newLoc = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        };
-        setUserLocation(newLoc);
-      }
-    );
-
-    return () => subscription.remove();
   };
 
-  const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
-    // Evitar múltiples solicitudes simultáneas de ruta
-    if (isRecalculating) return;
+  const updatePackageStats = (packagesData: Package[]) => {
+    const total = packagesData.length;
+    const entregados = packagesData.filter((pkg: Package) =>
+      pkg.estatus.toLowerCase() === 'entregado'
+    ).length;
+    const fallidos = packagesData.filter((pkg: Package) =>
+      pkg.estatus.toLowerCase() === 'fallido'
+    ).length;
+
+    setPaquetesTotal(total);
+    setPaquetesEntregados(entregados);
+    setPaquetesFallidos(fallidos);
+  };
+
+  // Efecto para cálculo de ruta con debounce
+  React.useEffect(() => {
+  if (userLocation && packages.length > 0) {
+    // Generar coordenadas para TODOS los paquetes
+    const allCoords: LatLng[] = packages.map(pkg => ({
+      latitude: pkg.latitud,
+      longitude: pkg.longitud,
+    }));
     
-    const currentRequestId = ++routeRequestId.current;
-    setIsRecalculating(true);
+    setIntermediates(allCoords);
+    
+    const now = Date.now();
+    
+    if (!routeInitialized) {
+      // Primera vez - calcular inmediatamente
+      calculateRoute(userLocation, destination, allCoords);
+      setRouteInitialized(true);
+    } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
+      // Verificar si está fuera de ruta con debounce
+      if (isOffRoute(userLocation, routePoints)) {
+        console.log("Recalculando ruta, fuera del camino...");
+        calculateRoute(userLocation, destination, allCoords);
+      }
+    }
+  }
+}, [userLocation, destination, packages, routeInitialized, routePoints]);
+
+  const setupLocationTracking = async () => {
+    // Prevenir múltiples configuraciones simultáneas
+    if (locationSetupInProgress.current) return;
+    locationSetupInProgress.current = true;
 
     try {
-      const response = await axios.post(`http://${IP}:3000/api/routes`, {
-        origin,
-        destination,
-        intermediates,
-      });
-
-      // Verificar si esta solicitud sigue siendo la más reciente
-      if (currentRequestId !== routeRequestId.current) {
-        console.log('Solicitud de ruta cancelada, hay una más reciente');
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.warn('Permisos de ubicación denegados');
         return;
       }
+
+      // Limpiar suscripción anterior si existe
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+
+      locationSubscription.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 15000, // Reducir frecuencia a 15 segundos
+          distanceInterval: 20, // Aumentar distancia mínima
+        },
+        (location) => {
+          if (isMountedRef.current) {
+            const newLoc = {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            };
+            setUserLocation(newLoc);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error configurando ubicación:', error);
+    } finally {
+      locationSetupInProgress.current = false;
+    }
+  };
+
+  const calculateRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
+    // Prevenir múltiples cálculos simultáneos
+    if (isRecalculating) return;
+
+    // Cancelar solicitud anterior
+    if (routeController.current) {
+      routeController.current.abort();
+    }
+
+    // Crear nuevo controlador
+    routeController.current = new AbortController();
+
+    setIsRecalculating(true);
+    lastRouteCalculation.current = Date.now();
+
+    try {
+      const response = await axios.post(
+        `http://${IP}:3000/api/routes`,
+        {
+          origin,
+          destination,
+          intermediates,
+        },
+        {
+          signal: routeController.current.signal,
+          timeout: 15000 // 15 segundos timeout
+        }
+      );
+
+      if (!isMountedRef.current) return;
 
       const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
       const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
 
       const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
+
       const points = decodePolyline(encodedPolyline);
       setRoutePoints(points);
-    } catch (err) {
-      // Solo mostrar alerta si esta sigue siendo la solicitud más reciente
-      if (currentRequestId === routeRequestId.current) {
-        Alert.alert('Error', 'No se pudo recalcular la ruta. Revisa tu conexión.');
+
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Solicitud de ruta cancelada');
+        return;
+      }
+
+      console.error('Error calculando ruta:', error);
+
+      if (isMountedRef.current) {
+        Alert.alert('Error', 'No se pudo calcular la ruta. Revisa tu conexión.');
       }
     } finally {
-      // Solo actualizar estado si esta es la solicitud más reciente
-      if (currentRequestId === routeRequestId.current) {
+      if (isMountedRef.current) {
         setIsRecalculating(false);
       }
     }
@@ -265,7 +355,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     return R * c;
   }
 
-  function isOffRoute(userLoc: LatLng, route: LatLng[], threshold = 100): boolean {
+  function isOffRoute(userLoc: LatLng, route: LatLng[], threshold = 150): boolean {
     if (!route || route.length === 0) return true;
     return !route.some(point => getDistanceMeters(userLoc, point) <= threshold);
   }
@@ -347,7 +437,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       }
     });
 
-    // Agregar cualquier paquete que no se haya incluido (por si acaso)
+    // Agregar cualquier paquete que no se haya incluido
     packages.forEach(pkg => {
       if (!orderedPackages.includes(pkg)) {
         orderedPackages.push(pkg);
@@ -357,7 +447,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     return orderedPackages;
   };
 
-  const PackagesList = () => {
+  const PackagesList = React.memo(() => {
     const orderedPackages = getOrderedPackages();
 
     return (
@@ -379,7 +469,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         )}
       </View>
     );
-  };
+  });
 
   const renderScene = SceneMap({
     mapa: () => (
@@ -388,6 +478,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         destination={destination}
         optimizedIntermediates={optimizedIntermediates}
         routePoints={routePoints}
+        packages={packages}
       />
     ),
     lista: PackagesList,

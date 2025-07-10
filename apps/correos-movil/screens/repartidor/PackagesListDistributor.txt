@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert, BackHandler } from 'react-native'
 import { User, Package, MapPin } from 'lucide-react-native'
 import { ProgressBar } from 'react-native-paper'
 import { moderateScale } from 'react-native-size-matters'
@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RoutesMapView from './RoutesMapView'
 import { LatLng } from 'react-native-maps';
 import Constants from 'expo-constants';
+import { useFocusEffect } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
@@ -40,6 +41,8 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   const [paquetesFallidos, setPaquetesFallidos] = React.useState(0);
   const [packages, setPackages] = React.useState<Package[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [routeInitialized, setRouteInitialized] = React.useState(false);
+  const [isRecalculating, setIsRecalculating] = React.useState(false);
 
   const layout = useWindowDimensions();
 
@@ -55,129 +58,307 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   });
 
   const [intermediates, setIntermediates] = React.useState<LatLng[]>([]);
-
   const [optimizedIntermediates, setOptimizedIntermediates] = React.useState<LatLng[]>([]);
   const [userLocation, setUserLocation] = React.useState<LatLng | null>(null);
   const [routePoints, setRoutePoints] = React.useState<LatLng[]>([]);
 
+  // Refs para control de concurrencia
+  const fetchPackagesController = React.useRef<AbortController | null>(null);
+  const routeController = React.useRef<AbortController | null>(null);
+  const locationSubscription = React.useRef<Location.LocationSubscription | null>(null);
+  const isMountedRef = React.useRef(true);
+
+  // Ref para evitar múltiples llamadas de localización
+  const locationSetupInProgress = React.useRef(false);
+
+  // Ref para rastrear el último timestamp de recálculo de ruta
+  const lastRouteCalculation = React.useRef<number>(0);
+  const ROUTE_DEBOUNCE_MS = 5000; // 5 segundos mínimo entre recálculos
+
+  // Cleanup al desmontar
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Limpiar controladores
+      if (fetchPackagesController.current) {
+        fetchPackagesController.current.abort();
+      }
+      if (routeController.current) {
+        routeController.current.abort();
+      }
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+    };
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true;
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
+
+  const handleTerminarTurno = async () => {
+    try {
+      await AsyncStorage.removeItem('turno_activo');
+      navigation?.reset({
+        index: 0,
+        routes: [{ name: 'DistributorPage' }],
+      });
+    } catch (error) {
+      console.error('Error al terminar turno:', error);
+    }
+  };
+
   React.useEffect(() => {
     fetchPackages();
     setupLocationTracking();
+
+    // Cleanup al desmontar
+    return () => {
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+    };
   }, []);
 
   const fetchPackages = async () => {
+    // Cancelar solicitud anterior si existe
+    if (fetchPackagesController.current) {
+      fetchPackagesController.current.abort();
+    }
+
+    // Crear nuevo controlador
+    fetchPackagesController.current = new AbortController();
+
     try {
       setLoading(true);
+
       const response = await axios.get(
-        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`
+        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`,
+        {
+          signal: fetchPackagesController.current.signal,
+          timeout: 10000 // 10 segundos timeout
+        }
       );
 
-      const packagesData: Package[] = response.data;
+      // Verificar si el componente sigue montado
+      if (!isMountedRef.current) return;
+
+      const packagesData = response.data;
       setPackages(packagesData);
 
-  
-      await AsyncStorage.setItem('packages', JSON.stringify(packagesData));
+      // Guardar en AsyncStorage de forma asíncrona
+      AsyncStorage.setItem('packages', JSON.stringify(packagesData)).catch(err =>
+        console.error('Error guardando en AsyncStorage:', err)
+      );
 
-    
-      const total = packagesData.length;
-      const entregados = packagesData.filter(pkg => pkg.estatus === 'entregado').length;
-      const fallidos = packagesData.filter(pkg => pkg.estatus === 'fallido').length;
+      // Calcular estadísticas
+      updatePackageStats(packagesData);
 
-      setPaquetesTotal(total);
-      setPaquetesEntregados(entregados);
-      setPaquetesFallidos(fallidos);
+      // Generar coordenadas para paquetes pendientes
+      const coordsForRoute: LatLng[] = packagesData
+        .map((pkg: Package) => ({
+          latitude: pkg.latitud,
+          longitude: pkg.longitud,
+        }));
 
-      
-      const coords: LatLng[] = packagesData.map(pkg => ({
-        latitude: pkg.latitud,
-        longitude: pkg.longitud,
-      }));
+      setIntermediates(coordsForRoute);
 
-
-      setIntermediates(coords);
     } catch (error) {
-      console.error('Error al obtener paquetes:', error);
-      Alert.alert('Error', 'No se pudieron cargar los paquetes');
+      if (axios.isCancel(error)) {
+        console.log('Solicitud de paquetes cancelada');
+        return;
+      }
 
-      // Intentar cargar desde AsyncStorage
-      try {
-        const storedPackages = await AsyncStorage.getItem('packages');
-        if (storedPackages) {
-          const packagesData = JSON.parse(storedPackages);
-          setPackages(packagesData);
-          setPaquetesTotal(packagesData.length);
-        }
-      } catch (storageError) {
-        console.error('Error al cargar desde storage:', storageError);
+      console.error('Error al obtener paquetes:', error);
+
+      if (isMountedRef.current) {
+        Alert.alert('Error', 'No se pudieron cargar los paquetes');
+        // Intentar cargar desde AsyncStorage
+        loadPackagesFromStorage();
       }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
+
+  const loadPackagesFromStorage = async () => {
+    try {
+      const storedPackages = await AsyncStorage.getItem('packages');
+      if (storedPackages && isMountedRef.current) {
+        const packagesData = JSON.parse(storedPackages);
+        setPackages(packagesData);
+        updatePackageStats(packagesData);
+      }
+    } catch (error) {
+      console.error('Error al cargar desde storage:', error);
+    }
+  };
+
+  const updatePackageStats = (packagesData: Package[]) => {
+    const total = packagesData.length;
+    const entregados = packagesData.filter((pkg: Package) =>
+      pkg.estatus.toLowerCase() === 'entregado'
+    ).length;
+    const fallidos = packagesData.filter((pkg: Package) =>
+      pkg.estatus.toLowerCase() === 'fallido'
+    ).length;
+
+    setPaquetesTotal(total);
+    setPaquetesEntregados(entregados);
+    setPaquetesFallidos(fallidos);
+  };
+
+  // Efecto para cálculo de ruta con debounce
+  React.useEffect(() => {
+  if (userLocation && packages.length > 0) {
+    // Generar coordenadas para TODOS los paquetes
+    const allCoords: LatLng[] = packages.map(pkg => ({
+      latitude: pkg.latitud,
+      longitude: pkg.longitud,
+    }));
+    
+    setIntermediates(allCoords);
+    
+    const now = Date.now();
+    
+    if (!routeInitialized) {
+      // Primera vez - calcular inmediatamente
+      calculateRoute(userLocation, destination, allCoords);
+      setRouteInitialized(true);
+    } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
+      // Verificar si está fuera de ruta con debounce
+      if (isOffRoute(userLocation, routePoints)) {
+        console.log("Recalculando ruta, fuera del camino...");
+        calculateRoute(userLocation, destination, allCoords);
+      }
+    }
+  }
+}, [userLocation, destination, packages, routeInitialized, routePoints]);
 
   const setupLocationTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return;
+    // Prevenir múltiples configuraciones simultáneas
+    if (locationSetupInProgress.current) return;
+    locationSetupInProgress.current = true;
 
-    const subscription = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.High,
-        timeInterval: 10000,
-        distanceInterval: 10,
-      },
-      (location) => {
-        const newLoc = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        };
-        setUserLocation(newLoc);
-        getRoute(newLoc, destination, intermediates);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.warn('Permisos de ubicación denegados');
+        return;
       }
-    );
 
-    return () => subscription.remove();
+      // Limpiar suscripción anterior si existe
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+
+      locationSubscription.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 15000, // Reducir frecuencia a 15 segundos
+          distanceInterval: 20, // Aumentar distancia mínima
+        },
+        (location) => {
+          if (isMountedRef.current) {
+            const newLoc = {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            };
+            setUserLocation(newLoc);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error configurando ubicación:', error);
+    } finally {
+      locationSetupInProgress.current = false;
+    }
   };
 
-const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
-  try {
-    const response = await axios.post(`http://${IP}:3000/api/routes`, {
-      origin,
-      destination,
-      intermediates,
-    });
+  const calculateRoute = async (origin: LatLng, destination: LatLng, intermediates: LatLng[]) => {
+    // Prevenir múltiples cálculos simultáneos
+    if (isRecalculating) return;
 
-    const route = response.data.routes?.[0];
-
-    if (!route) {
-      console.error("No se encontró una ruta en la respuesta.");
-      return;
+    // Cancelar solicitud anterior
+    if (routeController.current) {
+      routeController.current.abort();
     }
 
-    const encodedPolyline = route.polyline?.encodedPolyline;
+    // Crear nuevo controlador
+    routeController.current = new AbortController();
 
-    if (!encodedPolyline) {
-      console.error("No se encontró 'encodedPolyline' en la respuesta.");
-      return;
-    }
+    setIsRecalculating(true);
+    lastRouteCalculation.current = Date.now();
 
-    const optimizedOrder: number[] | undefined = route.optimizedIntermediateWaypointIndex;
+    try {
+      const response = await axios.post(
+        `http://${IP}:3000/api/routes`,
+        {
+          origin,
+          destination,
+          intermediates,
+        },
+        {
+          signal: routeController.current.signal,
+          timeout: 15000 // 15 segundos timeout
+        }
+      );
 
-    if (optimizedOrder) {
-      const orderedPoints = optimizedOrder.map(i => intermediates[i]);
+      if (!isMountedRef.current) return;
+
+      const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
+      const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
+
+      const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
       setOptimizedIntermediates(orderedPoints);
-    } else {
-      console.warn("No se recibió un orden optimizado. Usando puntos intermedios como están.");
-      setOptimizedIntermediates(intermediates);
+
+      const points = decodePolyline(encodedPolyline);
+      setRoutePoints(points);
+
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Solicitud de ruta cancelada');
+        return;
+      }
+
+      console.error('Error calculando ruta:', error);
+
+      if (isMountedRef.current) {
+        Alert.alert('Error', 'No se pudo calcular la ruta. Revisa tu conexión.');
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsRecalculating(false);
+      }
     }
+  };
 
-    // Decodificar la ruta en puntos LatLng[]
-    const points = decodePolyline(encodedPolyline);
-    setRoutePoints(points);
-
-  } catch (error) {
-    console.error('Error al obtener la ruta:', error);
+  function getDistanceMeters(p1: LatLng, p2: LatLng): number {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371000; // Radio de la tierra en metros
+    const dLat = toRad(p2.latitude - p1.latitude);
+    const dLng = toRad(p2.longitude - p1.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(p1.latitude)) *
+      Math.cos(toRad(p2.latitude)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
-};
+
+  function isOffRoute(userLoc: LatLng, route: LatLng[], threshold = 150): boolean {
+    if (!route || route.length === 0) return true;
+    return !route.some(point => getDistanceMeters(userLoc, point) <= threshold);
+  }
 
   const getPackageRouteIndex = (packageItem: Package): number => {
     const orderedPackages = getOrderedPackages();
@@ -187,7 +368,7 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
 
   const renderPackageItem = ({ item }: { item: Package }) => {
     const routeIndex = getPackageRouteIndex(item);
-    
+
     return (
       <TouchableOpacity
         style={styles.packageItem}
@@ -195,18 +376,13 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
       >
         <View style={styles.packageHeader}>
           <View style={styles.packageIconContainer}>
-            <Package color="#DE1484" size={moderateScale(24)} />
+            <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
           </View>
           <View style={styles.packageInfo}>
             <Text style={styles.packageSku}>SKU: {item.sku}</Text>
             <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
           </View>
           <View style={styles.packageStatus}>
-            {routeIndex > 0 && (
-              <View style={styles.routeIndexContainer}>
-                <Text style={styles.routeIndexText}>#{routeIndex}</Text>
-              </View>
-            )}
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
               <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
             </View>
@@ -242,26 +418,26 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
     }
   };
 
-    const getOrderedPackages = (): Package[] => {
+  const getOrderedPackages = (): Package[] => {
     if (optimizedIntermediates.length === 0 || packages.length === 0) {
       return packages;
     }
 
     const orderedPackages: Package[] = [];
-    
+
     // Para cada coordenada optimizada, encontrar el paquete correspondiente
     optimizedIntermediates.forEach(optimizedCoord => {
-      const matchingPackage = packages.find(pkg => 
-        Math.abs(pkg.latitud - optimizedCoord.latitude) < 0.0001 && 
+      const matchingPackage = packages.find(pkg =>
+        Math.abs(pkg.latitud - optimizedCoord.latitude) < 0.0001 &&
         Math.abs(pkg.longitud - optimizedCoord.longitude) < 0.0001
       );
-      
+
       if (matchingPackage && !orderedPackages.includes(matchingPackage)) {
         orderedPackages.push(matchingPackage);
       }
     });
 
-    // Agregar cualquier paquete que no se haya incluido (por si acaso)
+    // Agregar cualquier paquete que no se haya incluido
     packages.forEach(pkg => {
       if (!orderedPackages.includes(pkg)) {
         orderedPackages.push(pkg);
@@ -270,11 +446,10 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
 
     return orderedPackages;
   };
-  
 
-  const PackagesList = () => {
+  const PackagesList = React.memo(() => {
     const orderedPackages = getOrderedPackages();
-    
+
     return (
       <View style={styles.packagesContainer}>
         {loading ? (
@@ -294,7 +469,7 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
         )}
       </View>
     );
-  };
+  });
 
   const renderScene = SceneMap({
     mapa: () => (
@@ -303,7 +478,7 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
         destination={destination}
         optimizedIntermediates={optimizedIntermediates}
         routePoints={routePoints}
-        intermediates={intermediates}
+        packages={packages}
       />
     ),
     lista: PackagesList,
@@ -318,8 +493,8 @@ const getRoute = async (origin: LatLng, destination: LatLng, intermediates: LatL
           <Text style={styles.packagesText}>
             {paquetesRestantes} paquetes restantes
           </Text>
-          <TouchableOpacity style={styles.userButton}>
-            <User color="white" size={moderateScale(24)} />
+          <TouchableOpacity style={styles.userButton} onPress={handleTerminarTurno}>
+            <User color="white" size={moderateScale(20)} />
           </TouchableOpacity>
         </View>
 
@@ -406,65 +581,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerContainer: {
-    paddingTop: moderateScale(52),
+    paddingTop: moderateScale(40),
     backgroundColor: '#DE1484',
     paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(20),
+    paddingBottom: moderateScale(12),
   },
   packagesAndUserContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: moderateScale(16),
+    marginBottom: moderateScale(10),
   },
   packagesText: {
     fontWeight: '700',
     color: 'white',
-    fontSize: moderateScale(22),
+    fontSize: moderateScale(20),
   },
   userButton: {
-    padding: moderateScale(8),
-    borderRadius: moderateScale(20),
+    padding: moderateScale(6),
+    borderRadius: moderateScale(16),
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   packetCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: moderateScale(16),
+    marginBottom: moderateScale(10),
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: moderateScale(12),
-    paddingVertical: moderateScale(12),
+    borderRadius: moderateScale(10),
+    paddingVertical: moderateScale(8),
   },
   packetCounterItemLeft: {
-    paddingRight: moderateScale(16),
+    paddingRight: moderateScale(12),
     borderRightWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   packetCounterItemRight: {
-    paddingLeft: moderateScale(16),
+    paddingLeft: moderateScale(12),
   },
   counterText: {
     fontWeight: '400',
     color: 'white',
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14),
   },
   counterNumber: {
     fontWeight: '700',
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(16),
   },
   progressContainer: {
     alignItems: 'center',
   },
   progressBar: {
-    height: moderateScale(8),
-    borderRadius: moderateScale(4),
+    height: moderateScale(6),
+    borderRadius: moderateScale(3),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   progressText: {
     color: 'white',
-    fontSize: moderateScale(12),
-    marginTop: moderateScale(8),
+    fontSize: moderateScale(11),
+    marginTop: moderateScale(6),
     fontWeight: '500',
   },
   tabBar: {
@@ -480,7 +655,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontWeight: '600',
     textTransform: 'none',
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14),
   },
   packagesContainer: {
     flex: 1,
@@ -533,18 +708,6 @@ const styles = StyleSheet.create({
   packageStatus: {
     alignItems: 'flex-end',
   },
-  routeIndexContainer: {
-    backgroundColor: '#2196F3',
-    borderRadius: moderateScale(12),
-    paddingHorizontal: moderateScale(8),
-    paddingVertical: moderateScale(4),
-    marginBottom: moderateScale(4),
-  },
-  routeIndexText: {
-    color: '#fff',
-    fontSize: moderateScale(12),
-    fontWeight: '700',
-  },
   statusBadge: {
     paddingHorizontal: moderateScale(8),
     paddingVertical: moderateScale(4),
@@ -581,5 +744,10 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: moderateScale(16),
     color: '#666',
+  },
+  routeNumber: {
+    fontSize: moderateScale(18),
+    fontWeight: '700',
+    color: '#DE1484',
   },
 });

@@ -18,7 +18,7 @@ import axios from 'axios';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { ParamListBase } from '@react-navigation/native';
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const BASE_URL = 'https://correos-mexico-monorepo.onrender.com';
 
 interface Producto {
   nombre: string;
@@ -105,7 +105,7 @@ const PantallaResumen: React.FC = () => {
       try {
         setIsLoading(true);
         const response = await axios.get<DetalleOrden>(
-          `http://${IP}:3000/api/orden/5`
+          `${BASE_URL}/api/orden/1`
         );
         setDetalle(response.data);
         setError(null);

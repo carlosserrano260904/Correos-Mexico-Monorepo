@@ -12,6 +12,7 @@ import MainPageDistributor from '../screens/repartidor/MainPageDistributor';
 import QRScannerScreen from '../screens/repartidor/QRScannerScreen';
 import LoadPackages from '../screens/repartidor/LoadPackages';
 import MisTarjetasScreen from '../screens/usuario/MisTarjetas/MisTarjetasScreen';
+import Direcciones from '../screens/usuario/Direcciones/Direcciones';
 import AgregarTarjetaScreen from '../screens/usuario/MisTarjetas/AgregarTarjetaScreen';
 import PackagesListDistributor from '../screens/repartidor/PackagesListDistributor';
 import HomeUser from '../screens/usuario/HomePage/HomeUser';
@@ -43,6 +44,7 @@ export default function AppNavigator() {
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="LoadPackages" component={LoadPackages} options={{ headerShown: false }} />
+            <Stack.Screen name="Direcciones" component={Direcciones} options={{ headerShown: false }}/>
             <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen} options={{ headerShown: false }} />
             <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{ headerShown: false, gestureEnabled: false }} />

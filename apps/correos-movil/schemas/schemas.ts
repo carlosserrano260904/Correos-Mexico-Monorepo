@@ -123,3 +123,24 @@ export const DireccionesSchema=z.object({
 
 export const DireccionesSchemaDB = z.array(DireccionesSchema) 
 export type DireccionesType = z.infer<typeof DireccionesSchemaDB>
+
+
+//pedidosss
+
+
+export const MisPedidosSchemaDB = z.array(
+  z.object({
+    id: z.number(),
+    fecha: z.string(), // o z.date() si ya es tipo Date
+    status: z.string(),
+    total: z.number(),
+    productos: z.array(
+      z.object({
+        producto_id: z.number(),
+        cantidad: z.number(),
+      })
+    ),
+  })
+);
+
+export type MisPedidosType = z.infer<typeof MisPedidosSchemaDB>[number];

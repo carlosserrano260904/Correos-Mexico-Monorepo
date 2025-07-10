@@ -25,6 +25,10 @@ import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
 import PantallaEnvio from '../screens/usuario/detalles_pedido/PantallaEnvio';
 import PantallaPago from '../screens/usuario/detalles_pedido/PantallaPago';
 import PantallaResumen from '../screens/usuario/detalles_pedido/Pantalla.Resumen';
+import MisPedidosScreen from '../screens/usuario/Mispedidos/MisPedidosScreen';
+import BarraProgresoEnvio from '../screens/usuario/Mispedidos/BarraProgresoEnvio';
+import SeguimientoEnvioSimulado from '../screens/usuario/Mispedidos/SeguimientoEnvioSimulado';
+import ListaPedidosScreen from '../screens/usuario/Mispedidos/ListaPedidosScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -57,6 +61,10 @@ export default function AppNavigator() {
             <Stack.Screen name="Envio" component={PantallaEnvio} options={{ headerShown: false }} />
             <Stack.Screen name="Pago" component={PantallaPago} options={{ headerShown: false }} />
             <Stack.Screen name="Resumen" component={PantallaResumen} options={{ headerShown: false }} />
+            <Stack.Screen name="MisPedidosScreen" component={MisPedidosScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="BarraProgresoEnvio" component={BarraProgresoEnvio} options={{ headerShown: false }} />
+            <Stack.Screen name="SeguimientoEnvioSimulado" component={SeguimientoEnvioSimulado} options={{ headerShown: false }} />
+            <Stack.Screen name="ListaPedidosScreen" component={ListaPedidosScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

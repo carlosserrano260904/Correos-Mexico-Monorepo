@@ -29,7 +29,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { OficinasModule } from './oficinas/oficinas.module';
 import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
-
+import { PedidosModule } from './pedidos/pedidos.module';
 @Module({
   imports: [
      ConfigModule.forRoot({
@@ -61,7 +61,8 @@ import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
     AuthModule,
     ProveedoresModule,
     OficinasModule,
-    MisdireccionesModule
+    MisdireccionesModule,
+    PedidosModule
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

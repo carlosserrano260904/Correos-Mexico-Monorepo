@@ -63,6 +63,7 @@ export default function ProfileUser() {
       items: [
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
         { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
+        { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
       ],
     },
     {

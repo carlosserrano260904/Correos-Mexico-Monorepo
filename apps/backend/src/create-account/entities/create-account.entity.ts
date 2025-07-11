@@ -3,7 +3,7 @@ import { Favorito } from 'src/favoritos/entities/favorito.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
-@Entity()
+@Entity('usuarios')
 export class CreateAccount {
   @PrimaryGeneratedColumn()
   id: number;

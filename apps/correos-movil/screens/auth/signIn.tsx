@@ -16,7 +16,7 @@ export const useWarmUpBrowser = () => {
         }
     }, [])
 }
-
+//prueba
 type CheckoutStackParamList = {
     SignUp: undefined;
     PswdReset: undefined;

@@ -31,6 +31,10 @@ import { OficinasModule } from './oficinas/oficinas.module';
 import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ClerkModule } from './clerk/clerk.module';
+import { ShippingRateModule } from './shipping_rates/shipping_rates.module'; // Agregar esta línea
+import { Ubicaciones } from './ubicaciones/oficinas.module';
+
+
 @Module({
   imports: [
      ConfigModule.forRoot({
@@ -65,6 +69,8 @@ import { ClerkModule } from './clerk/clerk.module';
     MisdireccionesModule,
     PedidosModule,
     ClerkModule,
+    ShippingRateModule,
+    Ubicaciones,
 
   ],
   controllers: [AppController, PostalController],

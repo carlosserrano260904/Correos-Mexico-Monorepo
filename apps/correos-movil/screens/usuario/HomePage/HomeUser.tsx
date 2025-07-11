@@ -370,7 +370,7 @@ export default function HomeUser() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('Tarifador')} style={styles.customerServiceContainer}>
         <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
 

@@ -30,6 +30,11 @@ import MisPedidosScreen from '../screens/usuario/Mispedidos/MisPedidosScreen';
 import BarraProgresoEnvio from '../screens/usuario/Mispedidos/BarraProgresoEnvio';
 import SeguimientoEnvioSimulado from '../screens/usuario/Mispedidos/SeguimientoEnvioSimulado';
 import ListaPedidosScreen from '../screens/usuario/Mispedidos/ListaPedidosScreen';
+import tarifador from '../screens/usuario/tarifador/tarifador';
+import chat_bot from '../screens/usuario/chat-bot/chat_bot';
+import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
+
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -67,6 +72,9 @@ export default function AppNavigator() {
             <Stack.Screen name="BarraProgresoEnvio" component={BarraProgresoEnvio} options={{ headerShown: false }} />
             <Stack.Screen name="SeguimientoEnvioSimulado" component={SeguimientoEnvioSimulado} options={{ headerShown: false }} />
             <Stack.Screen name="ListaPedidosScreen" component={ListaPedidosScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Tarifador" component={tarifador} options={{headerShown: false}} />
+            <Stack.Screen name="ChatBot" component={chat_bot} options={{headerShown: false}} />
+            <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

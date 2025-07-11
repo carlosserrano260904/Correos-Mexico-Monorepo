@@ -19,9 +19,9 @@ export class Carrito {
   @Column({ type: 'int', nullable: false })
   cantidad: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   precio_unitario: number;
 
-  @Column({ type: 'boolean', nullable: false })
+  @Column({ type: 'boolean', nullable: true })
   activo: boolean;
 }

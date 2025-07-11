@@ -45,11 +45,16 @@ const MapaPuntosRecogidaScreen = () => {
 
       <View style={styles.estadoContainer}>
         <Text style={styles.estadoLabel}>Estado: </Text>
-        <Text style={styles.estadoValue}>Durango <Text style={{color: Colors.primary}}>▼</Text></Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.estadoValue}>Durango </Text>
+          <Text style={[styles.estadoValue, { color: Colors.primary }]}>▼</Text>
+        </View>
       </View>
 
+      {/* CORREGIDO: Toda la frase dentro de <Text> */}
       <Text style={styles.contador}>
-        <Text style={{color: Colors.primary, fontWeight: 'bold'}}>4</Text> puntos disponibles en Durango
+        <Text style={{color: Colors.primary, fontWeight: 'bold'}}>4</Text>
+        {' puntos disponibles en Durango'}
       </Text>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>

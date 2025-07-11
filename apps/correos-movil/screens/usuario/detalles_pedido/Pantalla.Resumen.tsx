@@ -23,7 +23,8 @@ const BASE_URL = 'https://correos-mexico-monorepo.onrender.com';
 interface Producto {
   nombre: string;
   cantidad: number;
-  precio_unitario: number;
+  precio?: number; // Puede ser precio o precio_unitario, según tu back
+  precio_unitario?: number;
   talla?: string;
   color?: string;
 }
@@ -33,26 +34,30 @@ interface Usuario {
 }
 
 interface Direccion {
-  tipo_envio: string;
-  direccion: string;
-  codigo_postal: string;
+  tipo_envio?: string;
+  direccion?: string;
+  codigo_postal?: string;
+  codigoPostal?: string;
   ciudad: string;
   estado: string;
+  colonia?: string;
 }
 
 interface Pago {
-  metodo: string;
+  metodo?: string;
   referencia?: string;
 }
 
 interface DetalleOrden {
-  productos: Producto[];
+  id?: number;
+  total: number | string;
+  fecha?: string;
   usuario: Usuario;
   direccion: Direccion;
   pago?: Pago;
-  total: number;
-  fecha_orden: string;
-  estatus: string;
+  productos: Producto[];
+  fecha_orden?: string;
+  estatus?: string;
   fecha_entrega_esperada?: string;
   guia_seguimiento?: string;
 }
@@ -88,7 +93,7 @@ const PantallaResumen: React.FC = () => {
   const [detalle, setDetalle] = useState<DetalleOrden | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showProductDetails, setShowProductDetails] = useState(false);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [dimensions, setDimensions] = useState<ScaledSize>({
     width: width,
     height: height,
@@ -96,9 +101,9 @@ const PantallaResumen: React.FC = () => {
     fontScale: 1
   });
 
-  const handleToggleProductDetails = useCallback(() => {
-    setShowProductDetails(!showProductDetails);
-  }, [showProductDetails]);
+  const handleToggleProductDetails = useCallback((idx: number) => {
+    setExpandedIdx(expandedIdx === idx ? null : idx);
+  }, [expandedIdx]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -148,6 +153,12 @@ const PantallaResumen: React.FC = () => {
   const handleConfirmarCompra = () => {
     // Aquí puedes poner tu lógica real, navegación, etc.
   };
+
+  // Calcula el total sumando todos los productos (en caso de que 'total' no sea confiable)
+  const totalCalculado = detalle?.productos
+    ? detalle.productos.reduce((sum, prod) =>
+        sum + ((prod.precio ?? prod.precio_unitario ?? 0) * (prod.cantidad || 1)), 0)
+    : 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,120 +224,116 @@ const PantallaResumen: React.FC = () => {
 
         {detalle && !isLoading && (
           <View style={styles.tabContent}>
-            {/* Sección del producto */}
-            <TouchableOpacity 
-              style={styles.productSection}
-              onPress={handleToggleProductDetails}
-              activeOpacity={0.7}>
-              <View style={styles.productImageContainer}>
-                <Image
-                  source={{ uri: 'https://via.placeholder.com/120x120/FF6B9D/FFFFFF?text=Top' }}
-                  style={styles.productImage}
-                />
-              </View>
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{detalle.productos[0]?.nombre}</Text>
-                <View style={styles.productDetails}>
-                  <Text style={styles.productDetail}>
-                    {detalle.productos[0]?.cantidad} ud. | Talla {detalle.productos[0]?.talla || 'N/A'} | {detalle.productos[0]?.color || 'N/A'}
-                  </Text>
-                </View>
-                <Text style={styles.productPrice}>MXN {detalle.productos[0]?.precio_unitario?.toFixed(2)}</Text>
-              </View>
-              <View style={styles.expandIconContainer}>
-                <Ionicons 
-                  name={showProductDetails ? "chevron-up" : "chevron-down"} 
-                  size={24} 
-                  color={Colors.textSecondary} 
-                />
-              </View>
-            </TouchableOpacity>
-
-            {/* Detalles expandidos */}
-            {showProductDetails && (
-              <View style={styles.productDetailsExpanded}>
-                <Text style={styles.productDetailsTitle}>Detalles del producto</Text>
-                
-                <View style={styles.productDetailRow}>
-                  <Text style={styles.productDetailLabel}>Nombre</Text>
-                  <Text style={styles.productDetailValue}>{detalle.productos[0]?.nombre}</Text>
-                </View>
-                
-                <View style={styles.productDetailRow}>
-                  <Text style={styles.productDetailLabel}>Cantidad</Text>
-                  <Text style={styles.productDetailValue}>{detalle.productos[0]?.cantidad} unidades</Text>
-                </View>
-                
-                <View style={styles.productDetailRow}>
-                  <Text style={styles.productDetailLabel}>Precio unitario</Text>
-                  <Text style={styles.productDetailValue}>MXN {detalle.productos[0]?.precio_unitario?.toFixed(2)}</Text>
-                </View>
-                
-                {detalle.productos[0]?.talla && (
-                  <View style={styles.productDetailRow}>
-                    <Text style={styles.productDetailLabel}>Talla</Text>
-                    <Text style={styles.productDetailValue}>{detalle.productos[0].talla}</Text>
+            {/* Renderizar TODOS los productos */}
+            {detalle.productos.map((producto, idx) => (
+              <View key={idx}>
+                <TouchableOpacity 
+                  style={styles.productSection}
+                  onPress={() => handleToggleProductDetails(idx)}
+                  activeOpacity={0.7}>
+                  <View style={styles.productImageContainer}>
+                    <Image
+                      source={{ uri: 'https://via.placeholder.com/120x120/FF6B9D/FFFFFF?text=Top' }}
+                      style={styles.productImage}
+                    />
                   </View>
-                )}
-                
-                {detalle.productos[0]?.color && (
-                  <View style={styles.productDetailRow}>
-                    <Text style={styles.productDetailLabel}>Color</Text>
-                    <Text style={styles.productDetailValue}>{detalle.productos[0].color}</Text>
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName}>{producto.nombre}</Text>
+                    <View style={styles.productDetails}>
+                      <Text style={styles.productDetail}>
+                        {producto.cantidad} ud. 
+                        {/* Si tienes talla/color en el back, descomenta las siguientes líneas */}
+                        {/* | Talla {producto.talla || 'N/A'} | {producto.color || 'N/A'} */}
+                      </Text>
+                    </View>
+                    <Text style={styles.productPrice}>MXN {(producto.precio ?? producto.precio_unitario ?? 0).toFixed(2)}</Text>
                   </View>
-                )}
-                
-                <View style={styles.productDetailRow}>
-                  <Text style={styles.productDetailLabel}>Subtotal</Text>
-                  <Text style={[styles.productDetailValue, styles.subtotalText]}>
-                    MXN {((detalle.productos[0]?.precio_unitario || 0) * (detalle.productos[0]?.cantidad || 1)).toFixed(2)}
-                  </Text>
-                </View>
-
-                {/* Método de pago */}
-                <View style={styles.productDetailRow}>
-                  <Text style={styles.productDetailLabel}>Método de pago</Text>
-                  <Text style={styles.productDetailValue}>
-                    {detalle.pago?.metodo || 'No seleccionado'}
-                  </Text>
-                </View>
-
-                {/* Dirección de envío */}
-                <View style={[styles.productDetailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
-                  <Text style={[styles.productDetailLabel, { marginBottom: 2 }]}>Dirección de envío</Text>
-                  <Text style={[styles.productDetailValue, { textAlign: 'left', fontWeight: '400' }]}>
-                    {detalle.direccion
-                      ? `${detalle.direccion.direccion}, ${detalle.direccion.ciudad}, ${detalle.direccion.estado}, CP ${detalle.direccion.codigo_postal}`
-                      : 'No especificada'}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Sección de detalles del pedido */}
-            {detalle.fecha_entrega_esperada || detalle.guia_seguimiento ? (
-              <View style={styles.orderDetailsSection}>
-                <Text style={styles.orderDetailsTitle}>Detalles de tu pedido</Text>
-                
-                {detalle.fecha_entrega_esperada && (
-                  <View style={styles.orderDetailRow}>
-                    <Text style={styles.orderDetailLabel}>Fecha de entrega esperada</Text>
-                    <Text style={styles.orderDetailValue}>
-                      {detalle.fecha_entrega_esperada}
-                    </Text>
+                  <View style={styles.expandIconContainer}>
+                    <Ionicons 
+                      name={expandedIdx === idx ? "chevron-up" : "chevron-down"} 
+                      size={24} 
+                      color={Colors.textSecondary} 
+                    />
                   </View>
-                )}
-                
-                {detalle.guia_seguimiento && (
-                  <View style={styles.orderDetailRow}>
-                    <Text style={styles.orderDetailLabel}>Guía de seguimiento</Text>
-                    <Text style={styles.orderDetailValue}>
-                      {detalle.guia_seguimiento}
-                    </Text>
+                </TouchableOpacity>
+
+                {/* Detalles expandidos de cada producto */}
+                {expandedIdx === idx && (
+                  <View style={styles.productDetailsExpanded}>
+                    <Text style={styles.productDetailsTitle}>Detalles del producto</Text>
+                    
+                    <View style={styles.productDetailRow}>
+                      <Text style={styles.productDetailLabel}>Nombre</Text>
+                      <Text style={styles.productDetailValue}>{producto.nombre}</Text>
+                    </View>
+                    
+                    <View style={styles.productDetailRow}>
+                      <Text style={styles.productDetailLabel}>Cantidad</Text>
+                      <Text style={styles.productDetailValue}>{producto.cantidad} unidades</Text>
+                    </View>
+                    
+                    <View style={styles.productDetailRow}>
+                      <Text style={styles.productDetailLabel}>Precio unitario</Text>
+                      <Text style={styles.productDetailValue}>MXN {(producto.precio ?? producto.precio_unitario ?? 0).toFixed(2)}</Text>
+                    </View>
+                    
+                    {producto.talla && (
+                      <View style={styles.productDetailRow}>
+                        <Text style={styles.productDetailLabel}>Talla</Text>
+                        <Text style={styles.productDetailValue}>{producto.talla}</Text>
+                      </View>
+                    )}
+                    
+                    {producto.color && (
+                      <View style={styles.productDetailRow}>
+                        <Text style={styles.productDetailLabel}>Color</Text>
+                        <Text style={styles.productDetailValue}>{producto.color}</Text>
+                      </View>
+                    )}
+                    
+                    <View style={styles.productDetailRow}>
+                      <Text style={styles.productDetailLabel}>Subtotal</Text>
+                      <Text style={[styles.productDetailValue, styles.subtotalText]}>
+                        MXN {((producto.precio ?? producto.precio_unitario ?? 0) * (producto.cantidad || 1)).toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
                 )}
               </View>
-            ) : null}
+            ))}
+
+            {/* Dirección y método de pago (una sola vez) */}
+            <View style={styles.productDetailsExpanded}>
+              <Text style={styles.productDetailsTitle}>Resumen de envío y pago</Text>
+
+              {/* Dirección */}
+              <View style={[styles.productDetailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <Text style={[styles.productDetailLabel, { marginBottom: 2 }]}>Dirección de envío</Text>
+                <Text style={[styles.productDetailValue, { textAlign: 'left', fontWeight: '400' }]}>
+                  {detalle.direccion
+                    ? `${detalle.direccion.colonia ?? ''}, ${detalle.direccion.ciudad}, ${detalle.direccion.estado}, CP ${detalle.direccion.codigo_postal ?? detalle.direccion.codigoPostal ?? ''}`
+                    : 'No especificada'}
+                </Text>
+              </View>
+
+              {/* Método de pago */}
+              <View style={styles.productDetailRow}>
+                <Text style={styles.productDetailLabel}>Método de pago</Text>
+                <Text style={styles.productDetailValue}>
+                  {detalle.pago?.metodo || 'No seleccionado'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Total de la orden */}
+            <View style={styles.productDetailsExpanded}>
+              <View style={styles.productDetailRow}>
+                <Text style={styles.productDetailsTitle}>Total:</Text>
+                <Text style={[styles.productDetailsTitle, { color: Colors.primary }]}>
+                  MXN {Number(detalle.total || totalCalculado).toLocaleString('es-MX')}
+                </Text>
+              </View>
+            </View>
 
             {/* BOTÓN CONFIRMAR COMPRA */}
             <TouchableOpacity 
@@ -425,6 +432,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     alignItems: 'center',
+    marginBottom: 8,
   },
   expandIconContainer: {
     marginLeft: width * 0.02,
@@ -439,6 +447,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    marginBottom: 10,
     marginTop: -height * 0.01,
   },
   productDetailsTitle: {

@@ -11,7 +11,7 @@ import {
   type ScaledSize
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
+import { Heart, ShoppingBag } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -24,6 +24,8 @@ interface Producto {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  talla?: string;
+  color?: string;
 }
 
 interface Usuario {
@@ -38,19 +40,28 @@ interface Direccion {
   estado: string;
 }
 
+interface Pago {
+  metodo: string;
+  referencia?: string;
+}
+
 interface DetalleOrden {
   productos: Producto[];
   usuario: Usuario;
   direccion: Direccion;
+  pago?: Pago;
   total: number;
   fecha_orden: string;
   estatus: string;
+  fecha_entrega_esperada?: string;
+  guia_seguimiento?: string;
 }
 
 type CheckoutStackParamList = {
   Envio: undefined;
-  Pago: undefined
-  Favoritos: undefined; // Si tienes una pantalla de Favoritos, agrégala aquí
+  Pago: undefined;
+  Favoritos: undefined;
+  Carrito: undefined;
   Resumen: undefined;
 } & ParamListBase;
 
@@ -77,6 +88,7 @@ const PantallaResumen: React.FC = () => {
   const [detalle, setDetalle] = useState<DetalleOrden | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showProductDetails, setShowProductDetails] = useState(false);
   const [dimensions, setDimensions] = useState<ScaledSize>({
     width: width,
     height: height,
@@ -84,8 +96,12 @@ const PantallaResumen: React.FC = () => {
     fontScale: 1
   });
 
+  const handleToggleProductDetails = useCallback(() => {
+    setShowProductDetails(!showProductDetails);
+  }, [showProductDetails]);
+
   const handleBack = useCallback(() => {
-    navigation.goBack(); // Mantener goBack
+    navigation.goBack();
   }, [navigation]);
 
   const handleNavigate = useCallback((screen: keyof CheckoutStackParamList) => {
@@ -93,7 +109,7 @@ const PantallaResumen: React.FC = () => {
       if (!navigation) {
         throw new Error('Navigation is not initialized');
       }
-      navigation.navigate(screen); // Cambiado a navigate para permitir goBack
+      navigation.navigate(screen);
     } catch (error) {
       console.error('Navigation error:', error);
       setError('Error al navegar entre pantallas');
@@ -120,7 +136,6 @@ const PantallaResumen: React.FC = () => {
     fetchDetalleOrden();
   }, []);
 
-  // Añadir listener para cambios de dimensiones
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       setDimensions(window);
@@ -128,6 +143,11 @@ const PantallaResumen: React.FC = () => {
 
     return () => subscription?.remove();
   }, []);
+
+  // Acción al confirmar compra (vacía, sin alerta)
+  const handleConfirmarCompra = () => {
+    // Aquí puedes poner tu lógica real, navegación, etc.
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -145,19 +165,18 @@ const PantallaResumen: React.FC = () => {
         
         <View style={styles.headerRightIcons}>
           <TouchableOpacity 
-            style={styles.iconButton}
+            style={styles.iconCircle}
             onPress={() => navigation.navigate('Favoritos')}
             accessibilityLabel="Favoritos"
             accessibilityHint="Ver tus artículos favoritos">
-            <Ionicons name="heart-outline" size={24} color={Colors.dark} />
+            <Heart color="#DE1484" size={28} />
           </TouchableOpacity>
-
           <TouchableOpacity 
-            style={styles.bagButton}
+            style={styles.iconCircle}
             onPress={() => navigation.navigate('Carrito')}
             accessibilityLabel="Carrito"
             accessibilityHint="Ver tu carrito de compras">
-            <Ionicons name="bag-outline" size={24} color={Colors.white} />
+            <ShoppingBag color="#DE1484" size={28} />
           </TouchableOpacity>
         </View>
       </View>
@@ -194,32 +213,128 @@ const PantallaResumen: React.FC = () => {
 
         {detalle && !isLoading && (
           <View style={styles.tabContent}>
-            <View style={styles.productSection}>
-              <Image
-                source={{ uri: 'https://via.placeholder.com/80x80/FF6B9D/FFFFFF?text=Top' }}
-                style={styles.productImage}
-              />
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{detalle.productos[0].nombre}</Text>
-                <Text style={styles.productDetail}>Cantidad: {detalle.productos[0].cantidad}</Text>
-                <Text style={styles.productDetail}>Precio unitario: MXN {detalle.productos[0].precio_unitario}</Text>
-                <Text style={styles.productPrice}>Total: MXN {detalle.total}</Text>
+            {/* Sección del producto */}
+            <TouchableOpacity 
+              style={styles.productSection}
+              onPress={handleToggleProductDetails}
+              activeOpacity={0.7}>
+              <View style={styles.productImageContainer}>
+                <Image
+                  source={{ uri: 'https://via.placeholder.com/120x120/FF6B9D/FFFFFF?text=Top' }}
+                  style={styles.productImage}
+                />
               </View>
-            </View>
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>{detalle.productos[0]?.nombre}</Text>
+                <View style={styles.productDetails}>
+                  <Text style={styles.productDetail}>
+                    {detalle.productos[0]?.cantidad} ud. | Talla {detalle.productos[0]?.talla || 'N/A'} | {detalle.productos[0]?.color || 'N/A'}
+                  </Text>
+                </View>
+                <Text style={styles.productPrice}>MXN {detalle.productos[0]?.precio_unitario?.toFixed(2)}</Text>
+              </View>
+              <View style={styles.expandIconContainer}>
+                <Ionicons 
+                  name={showProductDetails ? "chevron-up" : "chevron-down"} 
+                  size={24} 
+                  color={Colors.textSecondary} 
+                />
+              </View>
+            </TouchableOpacity>
 
-            <View style={styles.orderSection}>
-              <Text style={styles.sectionTitle}>Datos de la orden</Text>
-              <Text style={styles.orderDetail}>Cliente: {detalle.usuario.nombre}</Text>
-              <Text style={styles.orderDetail}>Tipo de envío: {detalle.direccion.tipo_envio}</Text>
-              <Text style={styles.orderDetail}>Dirección: {detalle.direccion.direccion}</Text>
-              <Text style={styles.orderDetail}>
-                Ciudad: {detalle.direccion.codigo_postal}, {detalle.direccion.ciudad}, {detalle.direccion.estado}
-              </Text>
-              <Text style={styles.orderDetail}>
-                Fecha: {new Date(detalle.fecha_orden).toLocaleString()}
-              </Text>
-              <Text style={styles.orderDetail}>Estatus: {detalle.estatus}</Text>
-            </View>
+            {/* Detalles expandidos */}
+            {showProductDetails && (
+              <View style={styles.productDetailsExpanded}>
+                <Text style={styles.productDetailsTitle}>Detalles del producto</Text>
+                
+                <View style={styles.productDetailRow}>
+                  <Text style={styles.productDetailLabel}>Nombre</Text>
+                  <Text style={styles.productDetailValue}>{detalle.productos[0]?.nombre}</Text>
+                </View>
+                
+                <View style={styles.productDetailRow}>
+                  <Text style={styles.productDetailLabel}>Cantidad</Text>
+                  <Text style={styles.productDetailValue}>{detalle.productos[0]?.cantidad} unidades</Text>
+                </View>
+                
+                <View style={styles.productDetailRow}>
+                  <Text style={styles.productDetailLabel}>Precio unitario</Text>
+                  <Text style={styles.productDetailValue}>MXN {detalle.productos[0]?.precio_unitario?.toFixed(2)}</Text>
+                </View>
+                
+                {detalle.productos[0]?.talla && (
+                  <View style={styles.productDetailRow}>
+                    <Text style={styles.productDetailLabel}>Talla</Text>
+                    <Text style={styles.productDetailValue}>{detalle.productos[0].talla}</Text>
+                  </View>
+                )}
+                
+                {detalle.productos[0]?.color && (
+                  <View style={styles.productDetailRow}>
+                    <Text style={styles.productDetailLabel}>Color</Text>
+                    <Text style={styles.productDetailValue}>{detalle.productos[0].color}</Text>
+                  </View>
+                )}
+                
+                <View style={styles.productDetailRow}>
+                  <Text style={styles.productDetailLabel}>Subtotal</Text>
+                  <Text style={[styles.productDetailValue, styles.subtotalText]}>
+                    MXN {((detalle.productos[0]?.precio_unitario || 0) * (detalle.productos[0]?.cantidad || 1)).toFixed(2)}
+                  </Text>
+                </View>
+
+                {/* Método de pago */}
+                <View style={styles.productDetailRow}>
+                  <Text style={styles.productDetailLabel}>Método de pago</Text>
+                  <Text style={styles.productDetailValue}>
+                    {detalle.pago?.metodo || 'No seleccionado'}
+                  </Text>
+                </View>
+
+                {/* Dirección de envío */}
+                <View style={[styles.productDetailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                  <Text style={[styles.productDetailLabel, { marginBottom: 2 }]}>Dirección de envío</Text>
+                  <Text style={[styles.productDetailValue, { textAlign: 'left', fontWeight: '400' }]}>
+                    {detalle.direccion
+                      ? `${detalle.direccion.direccion}, ${detalle.direccion.ciudad}, ${detalle.direccion.estado}, CP ${detalle.direccion.codigo_postal}`
+                      : 'No especificada'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Sección de detalles del pedido */}
+            {detalle.fecha_entrega_esperada || detalle.guia_seguimiento ? (
+              <View style={styles.orderDetailsSection}>
+                <Text style={styles.orderDetailsTitle}>Detalles de tu pedido</Text>
+                
+                {detalle.fecha_entrega_esperada && (
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Fecha de entrega esperada</Text>
+                    <Text style={styles.orderDetailValue}>
+                      {detalle.fecha_entrega_esperada}
+                    </Text>
+                  </View>
+                )}
+                
+                {detalle.guia_seguimiento && (
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Guía de seguimiento</Text>
+                    <Text style={styles.orderDetailValue}>
+                      {detalle.guia_seguimiento}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : null}
+
+            {/* BOTÓN CONFIRMAR COMPRA */}
+            <TouchableOpacity 
+              style={styles.confirmButton}
+              onPress={handleConfirmarCompra}
+            >
+              <Text style={styles.confirmButtonText}>Confirmar compra</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -230,7 +345,7 @@ const PantallaResumen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: Colors.white 
+    backgroundColor: Colors.background 
   },
   header: {
     flexDirection: 'row',
@@ -248,31 +363,25 @@ const styles = StyleSheet.create({
   headerRightIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: width * 0.03,
+    gap: 16,
   },
-  iconButton: {
-    padding: width * 0.02,
-  },
-  bagButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 50,
-    padding: width * 0.02,
-    width: width * 0.1,
-    height: width * 0.1,
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 2,
   },
   content: { 
-    paddingHorizontal: width * 0.04 
-  },
-  sectionTitle: {
-    fontSize: Math.min(width * 0.045, 18),
-    fontWeight: '600',
-    color: Colors.textPrimary,
+    flex: 1,
+    backgroundColor: Colors.background,
   },
   tabContent: { 
-    gap: width * 0.06, 
-    paddingVertical: height * 0.02 
+    paddingHorizontal: width * 0.04,
+    paddingVertical: height * 0.02,
+    gap: height * 0.02,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -308,55 +417,127 @@ const styles = StyleSheet.create({
   productSection: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    padding: width * 0.04,
-    borderRadius: Math.min(width * 0.03, 12),
-    marginBottom: height * 0.02,
+    padding: width * 0.05,
+    borderRadius: 12,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: Math.min(width * 0.02, 8),
+    shadowRadius: 8,
     elevation: 3,
+    alignItems: 'center',
   },
-  productImage: {
-    width: width * 0.2,
-    height: width * 0.2,
-    borderRadius: 8,
-    marginRight: width * 0.04,
+  expandIconContainer: {
+    marginLeft: width * 0.02,
+    padding: width * 0.01,
   },
-  productInfo: { 
-    flex: 1 
+  productDetailsExpanded: {
+    backgroundColor: Colors.white,
+    padding: width * 0.05,
+    borderRadius: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: -height * 0.01,
   },
-  productName: {
-    fontSize: Math.min(width * 0.04, 16),
+  productDetailsTitle: {
+    fontSize: Math.min(width * 0.045, 18),
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: height * 0.005,
+    marginBottom: height * 0.025,
+  },
+  productDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: height * 0.015,
+  },
+  productDetailLabel: {
+    fontSize: Math.min(width * 0.04, 16),
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  productDetailValue: {
+    fontSize: Math.min(width * 0.04, 16),
+    color: Colors.textPrimary,
+    fontWeight: '500',
+    textAlign: 'right',
+    flex: 1,
+  },
+  subtotalText: {
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  productImageContainer: {
+    backgroundColor: Colors.lightGray,
+    borderRadius: 8,
+    padding: width * 0.02,
+    marginRight: width * 0.04,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productImage: {
+    width: width * 0.22,
+    height: width * 0.22,
+    borderRadius: 8,
+  },
+  productInfo: { 
+    flex: 1,
+    justifyContent: 'center',
+  },
+  productName: {
+    fontSize: Math.min(width * 0.045, 18),
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: height * 0.008,
+  },
+  productDetails: {
+    marginBottom: height * 0.015,
   },
   productDetail: { 
     fontSize: Math.min(width * 0.035, 14), 
-    color: Colors.textSecondary 
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   productPrice: {
-    fontSize: Math.min(width * 0.04, 16),
+    fontSize: Math.min(width * 0.045, 18),
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginTop: height * 0.01,
   },
-  orderSection: {
+  orderDetailsSection: {
     backgroundColor: Colors.white,
-    padding: width * 0.04,
-    borderRadius: Math.min(width * 0.03, 12),
-    gap: height * 0.015,
-    marginBottom: height * 0.02,
+    padding: width * 0.05,
+    borderRadius: 12,
     shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, shadow: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: Math.min(width * 0.02, 8),
+    shadowRadius: 8,
     elevation: 3,
   },
-  orderDetail: { 
-    fontSize: Math.min(width * 0.035, 14), 
-    color: Colors.textPrimary 
+  orderDetailsTitle: {
+    fontSize: Math.min(width * 0.045, 18),
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: height * 0.025,
+  },
+  orderDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: height * 0.02,
+  },
+  orderDetailLabel: {
+    fontSize: Math.min(width * 0.04, 16),
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  orderDetailValue: {
+    fontSize: Math.min(width * 0.04, 16),
+    color: Colors.textPrimary,
+    fontWeight: '500',
+    textAlign: 'right',
+    flex: 1,
   },
   loadingContainer: { 
     padding: width * 0.05, 
@@ -373,6 +554,24 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.primary,
     fontSize: Math.min(width * 0.035, 14),
+  },
+  confirmButton: {
+    backgroundColor: Colors.primary,
+    padding: height * 0.02,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: height * 0.04,
+    marginBottom: height * 0.02,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  confirmButtonText: {
+    fontSize: Math.min(width * 0.04, 16),
+    fontWeight: '600',
+    color: Colors.white,
   },
 });
 

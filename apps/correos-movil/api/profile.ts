@@ -1,7 +1,7 @@
 import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas"
 import { myIp } from "./miscompras";
 
-export const idUser = 7
+export const idUser = 13
 //1,7 
 
 export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{

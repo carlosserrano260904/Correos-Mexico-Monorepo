@@ -7,34 +7,56 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { OAuthDto } from './dto/oauth.dto';
 import { AuthDto } from './dto/auth.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
     constructor(
+         @InjectRepository(Profile)
+  private readonly profileRepository: Repository<Profile>,
         private jwtService: JwtService,
         private usuariosService: UserService,
         private proveedoresService: ProveedoresService,
     ) { }
 
     async signup(dto: CreateUserDto) {
-        const hash = await bcrypt.hash(dto.contrasena, 10);
-        const user = await this.usuariosService.create({
-          nombre: dto.nombre || dto.correo.split('@')[0],
-          correo: dto.correo,
-          contrasena: hash,
-          rol: 'usuario',
-        });
-      
-        const token = await this.jwtService.signAsync({
-          id: user.id,
-          rol: 'usuario',
-        });
-      
-        return {
-          token,
-          id: user.id,
-        };
-      }      
+  const hash = await bcrypt.hash(dto.contrasena, 10);
+
+  // Crea primero el perfil por defecto
+  const profile = this.profileRepository.create({
+    nombre: dto.nombre || dto.correo.split('@')[0],
+    apellido: '',
+    numero: '',
+    estado: '',
+    ciudad: '',
+    fraccionamiento: '',
+    calle: '',
+    codigoPostal: '',
+    // imagen usa el default ya definido en la entidad
+  });
+
+  // Crea el usuario con el perfil relacionado
+  const user = await this.usuariosService.create({
+    nombre: dto.nombre || dto.correo.split('@')[0],
+    correo: dto.correo,
+    contrasena: hash,
+    rol: 'usuario',
+    profile, // asocia el perfil al usuario
+  });
+
+  const token = await this.jwtService.signAsync({
+    id: user.id,
+    rol: 'usuario',
+  });
+
+  return {
+    token,
+    id: user.id,
+  };
+}
+
 
     async oauth(dto: OAuthDto) {
         let proveedor = await this.proveedoresService.findBySub(dto.sub);

@@ -1,101 +1,195 @@
 // Politicas.tsx
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
+  ScrollView,
+  StatusBar,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import politicasData from '../../../assets/politicas.json'; 
 
-type RouteParams = {
-  Politicas: {
-    fragment: string;  // '' | '#:~:text=...'
-  };
+// Dinámicamente obtenemos claves y títulos desde el JSON
+enum SectionKey {
+  general = 'general',
+  condiciones = 'condiciones',
+  devoluciones = 'devoluciones',
+  acceso = 'acceso',
+}
+
+const sections = Object.keys(politicasData).map(key => ({
+  key,
+  label: politicasData[key].title,
+}));
+
+export default function PoliticasDeUso({ navigation }) {
+  const [selected, setSelected] = useState<string>(sections[0].key);
+
+  const renderContent = () => {
+  // Carga la sección completa
+  const section = politicasData[selected];
+
+  // Desestructura sólo los campos que realmente existan
+  const {title, subtitle, body, subtitle2, body2, subtitle3, body3, list, body4, subtitle4, body5, subtitle5, body6 } = section;
+
+  return (
+    <View style={styles.sectionContainer}>
+      <Text style={styles.contentTitle}>{title}</Text>
+
+      {subtitle   && <Text style={styles.contentSubtitle}>{subtitle}</Text>}
+      {body       && <Text style={styles.contentText}>{body}</Text>}
+      {subtitle2  && <Text style={styles.contentSubtitle}>{subtitle2}</Text>}
+      {body2      && <Text style={styles.contentText}>{body2}</Text>}
+      {subtitle3  && <Text style={styles.contentSubtitle}>{subtitle3}</Text>}
+      {body3      && <Text style={styles.contentText}>{body3}</Text>}
+      {/* Renderiza la lista numerada */}
+      {Array.isArray(list) && list.map((item, i) => (
+        <Text key={i} style={styles.listItem}>
+          {`${i + 1}. ${item}`}
+        </Text>
+      ))}
+      {body4 && <Text style={styles.contentText}>{body4}</Text>}
+      {subtitle4 && <Text style={styles.contentSubtitle}>{subtitle4}</Text>}
+      {body5 && <Text style={styles.contentText}>{body5}</Text>}
+      {subtitle5 && <Text style={styles.contentSubtitle}>{subtitle5}</Text>}
+      {body6 && <Text style={styles.contentText}>{body6}</Text>}
+
+      {/* Si hay más contenido, puedes agregarlo aquí */}
+    </View>
+  );
 };
 
-export default function Politicas() {
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<RouteParams, 'Politicas'>>();
-  const fragment = route.params?.fragment ?? '';
-  const baseUrl =
-    'https://www.correosclic.gob.mx/t%C3%A9rminos-y-condiciones-correosclic';
-  const uri = `${baseUrl}${fragment}`;
 
- 
-    const handleBackHome = () => {
-        navigation.navigate('ProfileUser');
-    };
   return (
-    <View style={styles.container}>
-      {/* Header con botón de regreso */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBackHome} style={styles.backButton}>
-          <Ionicons
-            name="arrow-back"
-            size={28}
-            color="#E6007A"
-            style={styles.glowIcon}
-          />
+    <View style={styles.wrapper}>
+      <StatusBar barStyle="light-content" backgroundColor="#E6007E" />
+      <SafeAreaView style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Términos y Condiciones</Text>
+        <Text style={styles.headerTitle}>Políticas de Uso</Text>
+        <View style={styles.backButton} />
+      </SafeAreaView>
+
+      <View style={styles.navWrapper}>
+        <ScrollView
+          horizontal
+          contentContainerStyle={styles.navContainer}
+          showsHorizontalScrollIndicator={false}
+        >
+          {sections.map(sec => (
+            <TouchableOpacity
+              key={sec.key}
+              style={[
+                styles.navItem,
+                selected === sec.key && styles.navItemActive,
+              ]}
+              onPress={() => setSelected(sec.key)}
+            >
+              <Text
+                style={[
+                  styles.navText,
+                  selected === sec.key && styles.navTextActive,
+                ]}
+              >
+                {sec.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* WebView */}
-      <WebView
-        source={{ uri }}
-        style={styles.webview}
-        startInLoadingState
-        renderLoading={() => (
-          <View style={styles.loader}>
-            <ActivityIndicator size="large" />
-          </View>
-        )}
-      />
+      <ScrollView style={styles.contentContainer}>
+        {renderContent()}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    height: 56,
+  headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#E6007E',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   backButton: {
-    flexDirection: 'row',
+    width: 32,
     alignItems: 'center',
-  },
-  backText: {
-    marginLeft: 4,
-    fontSize: 16,
-    color: '#333',
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  listItem: {
+  lineHeight: 20,
+  marginBottom: 8,
+  color: '#444',
+},
+  navWrapper: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  navContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  navItem: {
+    marginRight: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  navItemActive: {
+    borderColor: '#E6007E',
+  },
+  navText: {
+    fontSize: 14,
     color: '#333',
-    marginRight: 40, // para centrar respecto al back button
   },
-  webview: {
-    flex: 1,
+  navTextActive: {
+    color: '#E6007E',
+    fontWeight: '600',
   },
-  loader: {
+  contentContainer: {
     flex: 1,
-    justifyContent: 'center',
+    padding: 16,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  contentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#444',
+  },
+  contentSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#666',
+  },
+  contentText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#444',
   },
 });

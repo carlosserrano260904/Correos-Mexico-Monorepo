@@ -37,7 +37,7 @@ export type RootStackParamList = {
       cantidad: number;
       producto: {
         id: number;
-        precio: string;
+        precio: number;
         nombre: string;
         descripcion: string;
         imagen: string;

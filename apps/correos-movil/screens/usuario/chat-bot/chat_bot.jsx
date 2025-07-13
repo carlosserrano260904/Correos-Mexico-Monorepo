@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   quickRepliesContainer: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
     maxHeight: 70,
   },
   quickReplyButton: {

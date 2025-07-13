@@ -34,10 +34,8 @@ export default function ProfileUser() {
     (async () => {
   try {
     const storedId = await AsyncStorage.getItem('userId');
-    console.log('Stored userId:', storedId);
     if (storedId) {
       const perfil = await usuarioPorId(parseInt(storedId));
-      console.log('Perfil cargado:', perfil);
       setUsuario(perfil);
     } else {
       console.warn('No se encontró userId en AsyncStorage');

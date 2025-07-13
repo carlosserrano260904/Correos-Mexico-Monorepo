@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { idUser } from '../../../api/profile';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { obtenerMisCompras } from '../../../api/miscompras';
 import { MisComprasType } from '../../../schemas/schemas';
 import { useNavigation } from '@react-navigation/native';
@@ -104,9 +105,12 @@ export default function MisCompras() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await obtenerMisCompras(idUser);
-        setMisCompras(data);
-        setError(null);
+        const storedId = await AsyncStorage.getItem('userId');
+        if(storedId){
+          const data = await obtenerMisCompras(+storedId);
+          setMisCompras(data);
+          setError(null);
+        }
       } catch (err) {
         console.error('No se ha podido cargar mis compras', err);
         setError('No se pudo cargar la información. Intenta más tarde.');

@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { RoutesModule } from './routes/routes.module';
 import { ProfileModule } from './profile/profile.module';
@@ -44,7 +43,6 @@ import { Ubicaciones } from './ubicaciones/oficinas.module';
       useFactory:typeOrmConfig,
       inject:[ConfigService]
     }),
-    LoginModule,
     CreateAccountModule,
     RoutesModule,
     ProfileModule,

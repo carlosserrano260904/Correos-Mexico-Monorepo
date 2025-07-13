@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UserService } from '../usuarios/user.service';
@@ -24,7 +24,7 @@ export class AuthService {
     async signup(dto: CreateUserDto) {
   const hash = await bcrypt.hash(dto.contrasena, 10);
 
-  // Crea primero el perfil por defecto
+  // Guardar perfil por defecto
   const profile = this.profileRepository.create({
     nombre: dto.nombre || dto.correo.split('@')[0],
     apellido: '',
@@ -34,16 +34,15 @@ export class AuthService {
     fraccionamiento: '',
     calle: '',
     codigoPostal: '',
-    // imagen usa el default ya definido en la entidad
   });
 
-  // Crea el usuario con el perfil relacionado
+  // Crea el usuario con el perfil relacionado y la contraseña hasheada
   const user = await this.usuariosService.create({
     nombre: dto.nombre || dto.correo.split('@')[0],
     correo: dto.correo,
-    contrasena: hash,
+    password: hash, // ✅ Aquí está la corrección
     rol: 'usuario',
-    profile, // asocia el perfil al usuario
+    profile,
   });
 
   const token = await this.jwtService.signAsync({
@@ -54,8 +53,10 @@ export class AuthService {
   return {
     token,
     id: user.id,
+    userId: user.profile.id,
   };
 }
+
 
 
     async oauth(dto: OAuthDto) {
@@ -66,7 +67,7 @@ export class AuthService {
             user = await this.usuariosService.create({
                 nombre: dto.nombre,
                 correo: dto.correo,
-                contrasena: null,
+                password: '',
                 rol: 'usuario',
             });
 
@@ -90,6 +91,9 @@ export class AuthService {
     async signin(dto: AuthDto) {
         let user = await this.usuariosService.findByCorreo(dto.correo);
         if (!user || !user.password) throw new UnauthorizedException();
+        if (!user.profile) {
+        throw new InternalServerErrorException('El perfil no está vinculado al usuario');
+    }
 
         const valid = await bcrypt.compare(dto.contrasena, user.password);
         if (!valid) throw new UnauthorizedException();
@@ -98,8 +102,8 @@ export class AuthService {
             id: user.id,
             rol: user.rol || 'usuario'
         });
-
-        return { token };
+        
+        return { token, userId:user.profile.id };
     }
 
     async updatePassword(dto: UpdatePasswordDto) {

@@ -33,43 +33,45 @@ export default function SignUpScreen() {
     }
   }
 
-  const onVerifyPress = async () => {
-    if (!isLoaded) return
+    const onVerifyPress = async () => {
+      if (!isLoaded) return
 
-    try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({ code })
+      try {
+        const signUpAttempt = await signUp.attemptEmailAddressVerification({ code })
 
-      if (signUpAttempt.status === 'complete') {
-        await setActive({ session: signUpAttempt.createdSessionId })
+        if (signUpAttempt.status === 'complete') {
+          await setActive({ session: signUpAttempt.createdSessionId })
 
-        try {
-          const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signup`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              correo: emailAddress,
-              contrasena: password,
-              nombre: emailAddress.split('@')[0],
-            }),
-          })
+          try {
+            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signup`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                correo: emailAddress,
+                contrasena: password,
+                nombre: emailAddress.split('@')[0],
+              }),
+            })
 
-          if (res.ok) {
-            const data = await res.json()
-            await AsyncStorage.setItem('token', data.token)
-            console.log('User created successfully in backend')
-          } else {
-            console.error('Backend signup failed:', await res.text())
+            if (res.ok) {
+              const data = await res.json()
+              await AsyncStorage.setItem('token', data.token)
+              await AsyncStorage.setItem('userId', data.userId.toString())
+              console.log(data)
+              console.log('User created successfully in backend')
+            } else {
+              console.error('Backend signup failed:', await res.text())
+            }
+          } catch (backendErr) {
+            console.error('Backend error:', backendErr)
           }
-        } catch (backendErr) {
-          console.error('Backend error:', backendErr)
+        } else {
+          console.error('Verification not complete:', JSON.stringify(signUpAttempt, null, 2))
         }
-      } else {
-        console.error('Verification not complete:', JSON.stringify(signUpAttempt, null, 2))
+      } catch (err) {
+        console.error('Verification error:', JSON.stringify(err, null, 2))
       }
-    } catch (err) {
-      console.error('Verification error:', JSON.stringify(err, null, 2))
     }
-  }
 
   if (pendingVerification) {
     return (

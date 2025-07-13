@@ -5,7 +5,7 @@ import { MisPedidosSchemaDB, MisPedidosType } from "../schemas/schemas";
 export const myIp = "192.168.0.174";
 
 export async function obtenerMisPedidos(id: number): Promise<MisPedidosType[]> {
-  const url = `http://${myIp}:3000/api/api/pedidos/user/${id}`;
+  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/api/pedidos/user/${id}`;
   const res = await fetch(url);
 
   if (!res.ok) {

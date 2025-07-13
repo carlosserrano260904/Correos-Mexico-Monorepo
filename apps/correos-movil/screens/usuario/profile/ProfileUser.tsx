@@ -32,13 +32,21 @@ export default function ProfileUser() {
   useEffect(() => {
     if (!isFocused) return;
     (async () => {
-      try {
-        const perfil = await usuarioPorId(idUser);
-        setUsuario(perfil);
-      } catch {
-        console.log('No se ha podido cargar el perfil');
-      }
-    })();
+  try {
+    const storedId = await AsyncStorage.getItem('userId');
+    console.log('Stored userId:', storedId);
+    if (storedId) {
+      const perfil = await usuarioPorId(parseInt(storedId));
+      console.log('Perfil cargado:', perfil);
+      setUsuario(perfil);
+    } else {
+      console.warn('No se encontró userId en AsyncStorage');
+    }
+  } catch (error) {
+    console.error('Error al cargar el perfil:', error);
+  }
+})();
+
   }, [isFocused]);
 
   const handleSignOut = async () => {

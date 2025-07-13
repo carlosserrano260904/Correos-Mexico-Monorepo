@@ -17,7 +17,7 @@ export class CreateAccount {
   @Column({ type: 'varchar' })
   correo: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true, name: 'contrasena'  })
   password: string;
 
   @Column({ type: 'boolean', default: false })

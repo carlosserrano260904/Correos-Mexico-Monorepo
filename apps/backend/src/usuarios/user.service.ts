@@ -12,7 +12,7 @@ export class UserService {
     private readonly repo: Repository<CreateAccount>,
   ) { }
 
-  create(data: Partial<User> & { profile?: Profile }) {
+  create(data: Partial<CreateAccount> & { profile?: Profile }) {
     const user = this.repo.create(data);
     return this.repo.save(user);
   }
@@ -22,7 +22,7 @@ export class UserService {
   }
 
   findByCorreo(correo: string) {
-    return this.repo.findOne({ where: { correo } });
+    return this.repo.findOne({ where: { correo }, relations: ['profile'] });
   }
 
   findById(id: number) {

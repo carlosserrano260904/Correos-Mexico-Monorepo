@@ -2,7 +2,7 @@ import { myIp } from "./miscompras";
 
 export async function obtenerDatosPorCodigoPostal(cp: string) {
   try {
-    const url = `http://${myIp}:3000/api/postal/${cp}`;
+    const url = `${process.env.EXPO_PUBLIC_API_URL}/api/postal/${cp}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Código postal no encontrado');

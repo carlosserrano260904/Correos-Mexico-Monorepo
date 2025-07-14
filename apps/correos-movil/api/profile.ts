@@ -1,8 +1,5 @@
 import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas"
-import { myIp } from "./miscompras";
 
-export const idUser = 13
-//1,7 
 
 export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
     const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`

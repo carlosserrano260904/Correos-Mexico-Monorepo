@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { actualizarUsuarioPorId, idUser, uploadAvatar } from '../../../api/profile';
+import { actualizarUsuarioPorId, uploadAvatar } from '../../../api/profile';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 

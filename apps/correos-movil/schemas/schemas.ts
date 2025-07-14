@@ -18,6 +18,26 @@ export type SchemaProfileUser = z.infer<typeof ProfileUserSchema>;
 
 // Tipos de navegación (Stack Params)
 export type RootStackParamList = {
+  Politicas:undefined
+  Productos:undefined
+  AgregarTarjetaScreen:undefined
+  MisTarjetasScreen:undefined
+  Direcciones:undefined
+  ListaPedidosScreen:undefined
+  SeguimientoEnvioSimulado:undefined
+  BarraProgresoEnvio:undefined
+  MisPedidosScreen:undefined
+  Resumen:undefined
+  MapaPuntosRecogida:undefined
+  Envio:undefined
+  Pago:undefined
+  Tarifador:undefined
+  ChatBot:undefined
+  LoadPackages:undefined
+  DistributorPage:undefined
+  QRScanner:undefined
+  ProductView:undefined
+  Tabs:undefined
   HomeUser: undefined;
   Product: undefined;
   ProductsScreen: undefined;

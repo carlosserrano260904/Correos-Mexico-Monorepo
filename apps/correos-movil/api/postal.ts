@@ -1,4 +1,3 @@
-import { myIp } from "./miscompras";
 
 export async function obtenerDatosPorCodigoPostal(cp: string) {
   try {

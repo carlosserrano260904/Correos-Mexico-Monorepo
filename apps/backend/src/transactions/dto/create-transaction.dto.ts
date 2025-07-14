@@ -17,16 +17,13 @@ export class TransactionsContentsDto {
   @IsNumber({}, { message: 'Precio no válido' })
   precio: number;
 }
-
 export class CreateTransactionDto {
-   @ApiProperty({ example: 1, description: 'ID del perfil que hace la transacción' })
+  @ApiProperty({ example: 1, description: 'ID del perfil que hace la transacción' })
   @IsNotEmpty({ message: 'El ID del perfil no puede ir vacío' })
   @IsInt({ message: 'El ID del perfil debe ser un número entero' })
   profileId: number;
-  @ApiProperty({ example: 300.00, description: 'Total de la transacción' })
-  @IsNotEmpty({ message: 'El total no puede ir vacío' })
-  @IsNumber({}, { message: 'Cantidad no válida' })
-  total: number;
+
+  
 
   @ApiProperty({ type: [TransactionsContentsDto], description: 'Lista de productos en la transacción' })
   @IsArray()

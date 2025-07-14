@@ -11,14 +11,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { idUser, usuarioPorId } from '../../../api/profile';
+import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { myIp } from '../../../api/miscompras';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 

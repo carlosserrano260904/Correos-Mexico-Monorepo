@@ -1,8 +1,9 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Favorito } from 'src/favoritos/entities/favorito.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
-@Entity()
+@Entity('usuarios')
 export class CreateAccount {
   @PrimaryGeneratedColumn()
   id: number;
@@ -16,7 +17,7 @@ export class CreateAccount {
   @Column({ type: 'varchar' })
   correo: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true, name: 'contrasena'  })
   password: string;
 
   @Column({ type: 'boolean', default: false })
@@ -33,4 +34,8 @@ export class CreateAccount {
   
   @OneToMany(() => Carrito, carrito => carrito.usuario)
     carrito: Carrito[];
+
+  @OneToOne(() => Profile, { cascade: true }) 
+@JoinColumn()
+profile: Profile;
 }

@@ -5,7 +5,7 @@ const obtenerusuarioId= 1;
 
 export async function obtenerDirecciones(obtenerusuarioId: number): Promise<DireccionesType> {
   
-  const url = `http://192.168.0.120:3000/api/misdirecciones/usuario/${obtenerusuarioId}`;
+  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/misdirecciones/usuario/${obtenerusuarioId}`;
   const response = await fetch(url);
   const json = await response.json();
 
@@ -34,7 +34,7 @@ export async function agregarDireccionAPI(direccion: Direccion, usuarioId: numbe
     usuarioId: usuarioId,
   };
 
-  const res = await fetch(`http://192.168.0.120:3000/api/misdirecciones`, {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/misdirecciones`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -46,7 +46,7 @@ export async function agregarDireccionAPI(direccion: Direccion, usuarioId: numbe
 }
 
 export async function eliminarDireccionAPI(id: number): Promise<void> {
-  const res = await fetch(`http://192.168.0.120:3000/api/misdirecciones/${id}`, {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/misdirecciones/${id}`, {
     method: 'DELETE',
   });
 
@@ -69,7 +69,7 @@ export async function actualizarDireccionAPI(id: number, direccion: Direccion): 
     mas_info: direccion.masInfo,
   };
 
-  const res = await fetch(`http://192.168.0.120:3000/api/misdirecciones/${id}`, {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/misdirecciones/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

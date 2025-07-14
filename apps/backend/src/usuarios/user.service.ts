@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class UserService {
@@ -11,7 +12,7 @@ export class UserService {
     private readonly repo: Repository<CreateAccount>,
   ) { }
 
-  create(data: Partial<User>) {
+  create(data: Partial<CreateAccount> & { profile?: Profile }) {
     const user = this.repo.create(data);
     return this.repo.save(user);
   }
@@ -21,7 +22,7 @@ export class UserService {
   }
 
   findByCorreo(correo: string) {
-    return this.repo.findOne({ where: { correo } });
+    return this.repo.findOne({ where: { correo }, relations: ['profile'] });
   }
 
   findById(id: number) {

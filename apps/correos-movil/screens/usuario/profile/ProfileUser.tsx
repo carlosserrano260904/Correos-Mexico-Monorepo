@@ -11,14 +11,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { idUser, usuarioPorId } from '../../../api/profile';
+import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { myIp } from '../../../api/miscompras';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
@@ -32,13 +31,19 @@ export default function ProfileUser() {
   useEffect(() => {
     if (!isFocused) return;
     (async () => {
-      try {
-        const perfil = await usuarioPorId(idUser);
-        setUsuario(perfil);
-      } catch {
-        console.log('No se ha podido cargar el perfil');
-      }
-    })();
+  try {
+    const storedId = await AsyncStorage.getItem('userId');
+    if (storedId) {
+      const perfil = await usuarioPorId(parseInt(storedId));
+      setUsuario(perfil);
+    } else {
+      console.warn('No se encontró userId en AsyncStorage');
+    }
+  } catch (error) {
+    console.error('Error al cargar el perfil:', error);
+  }
+})();
+
   }, [isFocused]);
 
   const handleSignOut = async () => {

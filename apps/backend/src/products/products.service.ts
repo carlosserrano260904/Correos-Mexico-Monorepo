@@ -13,9 +13,12 @@ export class ProductsService {
 
   }
   async create(createProductDto: CreateProductDto,url:string) {
-    createProductDto.imagen = url
+    const producto = this.productRepository.create({
+    ...createProductDto,
+    imagen: url,
+  });
    
-    return  await  this.productRepository.save(createProductDto);
+    return  await  this.productRepository.save(producto);
   }
 
   findAll() {

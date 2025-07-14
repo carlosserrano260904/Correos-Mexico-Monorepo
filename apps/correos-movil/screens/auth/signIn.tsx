@@ -16,7 +16,7 @@ export const useWarmUpBrowser = () => {
         }
     }, [])
 }
-
+//prueba
 type CheckoutStackParamList = {
     SignUp: undefined;
     PswdReset: undefined;
@@ -70,7 +70,9 @@ export default function SignInScreen() {
                 }
                 
                 const data = await res.json()
+                console.log(data)
                 await AsyncStorage.setItem('token', data.token)
+                await AsyncStorage.setItem('userId', data.userId.toString())
                 
                 // Cambiar de router.replace('/') a navigation - se manejará automáticamente por Clerk
                 console.log('Login successful')
@@ -80,7 +82,10 @@ export default function SignInScreen() {
                 console.error('Signin not complete:', JSON.stringify(signInAttempt, null, 2))
             }
         } catch (err) {
-            console.error('Signin error:', JSON.stringify(err, null, 2))
+            console.error('Signin error:', err);
+console.error('Mensaje:', err?.message);
+console.error('Stack:', err?.stack);
+
         }
     }, [isLoaded, emailAddress, password])
 

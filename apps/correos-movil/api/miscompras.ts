@@ -2,7 +2,7 @@ import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
 
 <<<<<<< HEAD
 =======
-export const myIp = "192.168.1.76";
+export const myIp = "192.168.0.199";
 >>>>>>> 7894b06 (Cambios de registro)
 
 

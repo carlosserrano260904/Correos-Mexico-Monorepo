@@ -1,5 +1,9 @@
 import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
 
+<<<<<<< HEAD
+=======
+export const myIp = "192.168.1.76";
+>>>>>>> 7894b06 (Cambios de registro)
 
 
 export async function obtenerMisCompras(id: number): Promise<MisComprasType[]> {

@@ -17,7 +17,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate-graph": "ts-node src/generarGrafo.ts --estado durango --estado nayarit --estado sinaloa",
+    "map-load": "ts-node src/visualizador.ts",
+    "route-load":"ts-node src/visualizadorRuta.ts",
+    "route-search": "ts-node src/buscarRuta --origen 25 --destino 88"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

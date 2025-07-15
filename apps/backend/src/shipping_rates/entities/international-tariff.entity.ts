@@ -10,13 +10,13 @@ id: number;
 @JoinColumn({ name: 'zone_id' })
 zone: InternationalZone;
 
-@Column({ type: 'float', nullable: true })
+@Column({ type: 'float', nullable: false })
 max_kg: number;
 
 @Column({ type: 'float', nullable: false })
 base_price: number;
 
-@Column({ type: 'float', nullable: true })
+@Column({ type: 'float', nullable: false })
 iva_percent: number;
 
 @Column({ type: 'float', nullable: true })

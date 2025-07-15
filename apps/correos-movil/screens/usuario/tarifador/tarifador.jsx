@@ -454,7 +454,7 @@ const TarificadorMexpost = () => {
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>Precio base:</Text>
                         <Text style={styles.detalleValue}>
-                          {cotizacionData.precioBase?.toFixed(2) || "N/A"}
+                           USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
                       <View style={styles.detalleRow}>

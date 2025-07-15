@@ -10,8 +10,4 @@ export class CreateUserDto {
     @IsOptional()
     @IsNotEmpty()
     nombre?: string;
-
-    @IsOptional()
-    apellido?: string;
-
 }

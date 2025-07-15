@@ -1,16 +1,25 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { ClerkProvider } from '@clerk/clerk-expo';
+import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { View, Text, ActivityIndicator } from 'react-native';
 import AuthNavigator from './navigation/authNavigator';
 import AppNavigator from './navigation/appNavigatior';
-import { AuthProvider, useMyAuth } from './context/AuthContext';
 
 function RootNavigation() {
-  const { isAuthenticated } = useMyAuth();
+  const { isSignedIn, isLoaded } = useAuth();
 
   // Show loading while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <Text>Cargando...</Text>
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
@@ -26,9 +35,7 @@ if (!publishableKey) {
 export default function App() {
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <AuthProvider>
-        <RootNavigation />
-      </AuthProvider>
-    </ClerkProvider>  
+      <RootNavigation />
+    </ClerkProvider>
   );
 }

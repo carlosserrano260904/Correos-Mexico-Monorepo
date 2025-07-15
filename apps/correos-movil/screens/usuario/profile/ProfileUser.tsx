@@ -15,18 +15,17 @@ import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
+import { useClerk, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useMyAuth } from '../../../context/AuthContext';
-import { useUser } from '@clerk/clerk-expo';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const { logout } = useMyAuth();
-  const { user } = useUser(); // TODO: Verificar si es necesario
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
@@ -49,7 +48,8 @@ export default function ProfileUser() {
 
   const handleSignOut = async () => {
     try {
-      await logout();
+      await AsyncStorage.removeItem('token');
+      await signOut();
       console.log('Logout successful');
     } catch (err) {
       console.error('Logout error:', JSON.stringify(err, null, 2));

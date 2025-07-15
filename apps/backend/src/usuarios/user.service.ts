@@ -32,12 +32,4 @@ export class UserService {
   update(email: string, password: string) {
     return this.repo.update({ correo: email }, { password }); 
   }
-
-  updateOTP(email: string, token: string) {
-    return this.repo.update({ correo: email }, { token });
-  }
-
-  updateConfirmado(email: string, confirmado: boolean) {
-    return this.repo.update({ correo: email }, { confirmado });
-  }
 }

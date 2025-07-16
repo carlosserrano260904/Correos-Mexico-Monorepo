@@ -1,5 +1,5 @@
 // src/upload-image/upload-image.controller.ts
-/*import {
+import {
   Controller,
   Post,
   UploadedFile,
@@ -18,4 +18,4 @@ export class UploadImageController {
     const url = await this.uploadService.uploadFile(file);
     return { url };
   }
-}*/ // temporalmente comentado
+}

@@ -4,13 +4,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-//import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
 import { memoryStorage } from 'multer';
 
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService,
-    //private readonly uploadImageService: UploadImageService
+    private readonly uploadImageService: UploadImageService
   ) {}
 
   @Post()
@@ -96,11 +96,11 @@ export class ProfileController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     // 1) Sube a S3
-    //const url = await this.uploadImageService.uploadFile(file);
+    const url = await this.uploadImageService.uploadFile(file);
 
     // 2) Actualiza sólo el campo `imagen` en la base
-    //const actualizado = await this.profileService.updateAvatar(id, url);
+    const actualizado = await this.profileService.updateAvatar(id, url);
 
-    //return { avatarUrl: actualizado.imagen }; temporalmente comentado
+    return { avatarUrl: actualizado.imagen };
   }
 }

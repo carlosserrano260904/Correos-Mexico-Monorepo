@@ -12,6 +12,7 @@ import MainPageDistributor from '../screens/repartidor/MainPageDistributor';
 import QRScannerScreen from '../screens/repartidor/QRScannerScreen';
 import LoadPackages from '../screens/repartidor/LoadPackages';
 import MisTarjetasScreen from '../screens/usuario/MisTarjetas/MisTarjetasScreen';
+import Direcciones from '../screens/usuario/Direcciones/Direcciones';
 import AgregarTarjetaScreen from '../screens/usuario/MisTarjetas/AgregarTarjetaScreen';
 import PackagesListDistributor from '../screens/repartidor/PackagesListDistributor';
 import HomeUser from '../screens/usuario/HomePage/HomeUser';
@@ -24,6 +25,16 @@ import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
 import PantallaEnvio from '../screens/usuario/detalles_pedido/PantallaEnvio';
 import PantallaPago from '../screens/usuario/detalles_pedido/PantallaPago';
 import PantallaResumen from '../screens/usuario/detalles_pedido/Pantalla.Resumen';
+import MapaPuntosRecogida from '../screens/usuario/detalles_pedido/MapaPuntosRecogida';
+import MisPedidosScreen from '../screens/usuario/Mispedidos/MisPedidosScreen';
+import BarraProgresoEnvio from '../screens/usuario/Mispedidos/BarraProgresoEnvio';
+import SeguimientoEnvioSimulado from '../screens/usuario/Mispedidos/SeguimientoEnvioSimulado';
+import ListaPedidosScreen from '../screens/usuario/Mispedidos/ListaPedidosScreen';
+import tarifador from '../screens/usuario/tarifador/tarifador';
+import chat_bot from '../screens/usuario/chat-bot/chat_bot';
+import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
+
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -43,6 +54,7 @@ export default function AppNavigator() {
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="LoadPackages" component={LoadPackages} options={{ headerShown: false }} />
+            <Stack.Screen name="Direcciones" component={Direcciones} options={{ headerShown: false }}/>
             <Stack.Screen name="MisTarjetasScreen" component={MisTarjetasScreen} options={{ headerShown: false }} />
             <Stack.Screen name="AgregarTarjetaScreen" component={AgregarTarjetaScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{ headerShown: false, gestureEnabled: false }} />
@@ -55,6 +67,14 @@ export default function AppNavigator() {
             <Stack.Screen name="Envio" component={PantallaEnvio} options={{ headerShown: false }} />
             <Stack.Screen name="Pago" component={PantallaPago} options={{ headerShown: false }} />
             <Stack.Screen name="Resumen" component={PantallaResumen} options={{ headerShown: false }} />
+            <Stack.Screen name="MapaPuntosRecogida" component={MapaPuntosRecogida} />
+            <Stack.Screen name="MisPedidosScreen" component={MisPedidosScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="BarraProgresoEnvio" component={BarraProgresoEnvio} options={{ headerShown: false }} />
+            <Stack.Screen name="SeguimientoEnvioSimulado" component={SeguimientoEnvioSimulado} options={{ headerShown: false }} />
+            <Stack.Screen name="ListaPedidosScreen" component={ListaPedidosScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Tarifador" component={tarifador} options={{headerShown: false}} />
+            <Stack.Screen name="ChatBot" component={chat_bot} options={{headerShown: false}} />
+            <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

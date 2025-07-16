@@ -13,12 +13,10 @@ export class CreateProductDto {
 
     @ApiProperty({example:'10',description:'La cantidad del producto en stock'})
     @IsNotEmpty({message:'La cantidad del producto es obligatoria'})
-    @IsNumber({maxDecimalPlaces:0},{message:'Cantidad no valida'})
     inventario:number
 
     @ApiProperty({example:'1200',description:'Precio costo del producto'})
     @IsNotEmpty({message:'El precion del producto es obligatorio'})
-    @IsNumber({maxDecimalPlaces:2},{message:'Precio no valido'})
     precio:number
 
     @ApiProperty({example:'Blancos',description:'El tipo de producto que es'})
@@ -32,5 +30,5 @@ export class CreateProductDto {
     color:string
 
 
-    imagen:string
+    
 }

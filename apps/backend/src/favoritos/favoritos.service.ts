@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Favorito } from './entities/favorito.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Product } from 'src/products/entities/product.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';
 
@@ -16,8 +16,8 @@ export class FavoritosService {
     @InjectRepository(Favorito)
     private favoritoRepo: Repository<Favorito>,
 
-    @InjectRepository(Profile)
-    private profileRepo: Repository<Profile>,
+    @InjectRepository(CreateAccount)
+    private accountRepo: Repository<CreateAccount>,
 
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
@@ -26,9 +26,9 @@ export class FavoritosService {
     private carritoRepo: Repository<Carrito>,
   ) {}
 
-  async findByUsuario(profileId: number): Promise<Favorito[]> {
+  async findByUsuario(usuarioId: number): Promise<Favorito[]> {
     const favoritos = await this.favoritoRepo.find({
-      where: { usuario: { id: profileId } },
+      where: { usuario: { id: usuarioId } },
       relations: ['producto'],
     });
 
@@ -39,10 +39,10 @@ export class FavoritosService {
     return favoritos;
   }
 
-  async addFavorito(profileId: number, productId: number) {
-    const usuario = await this.profileRepo.findOneBy({ id: profileId });
+  async addFavorito(usuarioId: number, productId: number) {
+    const usuario = await this.accountRepo.findOneBy({ id: usuarioId });
     if (!usuario) {
-      throw new NotFoundException(`Usuario con id ${profileId} no existe`);
+      throw new NotFoundException(`Usuario con id ${usuarioId} no existe`);
     }
 
     const producto = await this.productRepo.findOneBy({ id: productId });
@@ -52,10 +52,10 @@ export class FavoritosService {
 
     const yaExiste = await this.favoritoRepo.findOne({
       where: {
-        usuario: { id: profileId },
+        usuario: { id: usuarioId },
         producto: { id: productId },
       },
-      relations: ['usuario', 'producto'], 
+      relations: ['usuario', 'producto'],
     });
 
     if (yaExiste) {
@@ -75,8 +75,8 @@ export class FavoritosService {
     return { message: 'Favorito eliminado correctamente' };
   }
 
-  async addToCarritoDesdeFavorito(profileId: number, productId: number) {
-    const usuario = await this.profileRepo.findOneBy({ id: profileId });
+  async addToCarritoDesdeFavorito(usuarioId: number, productId: number) {
+    const usuario = await this.accountRepo.findOneBy({ id: usuarioId });
     const producto = await this.productRepo.findOneBy({ id: productId });
 
     if (!usuario || !producto) {
@@ -85,7 +85,7 @@ export class FavoritosService {
 
     const existente = await this.carritoRepo.findOne({
       where: {
-        usuario: { id: profileId },
+        usuario: { id: usuarioId },
         producto: { id: productId },
       },
       relations: ['usuario', 'producto'],

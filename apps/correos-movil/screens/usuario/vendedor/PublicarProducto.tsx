@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { myIp } from '../../../api/miscompras';
 
 export default function CrearProductoScreen({ navigation }) {
   const [nombre, setNombre] = useState<string>('');
@@ -56,14 +55,14 @@ export default function CrearProductoScreen({ navigation }) {
     const formData = new FormData();
     formData.append('nombre', nombre);
     formData.append('descripcion', descripcion);
-    formData.append('inventario', inventario);
-    formData.append('precio', precio);
+    formData.append('inventario', String(parseInt(inventario,10)));
+    formData.append('precio', String(parseInt(precio)));
     formData.append('categoria', categoria);
     formData.append('color', color);
     formData.append('imagen', { uri: imagen, name: 'photo.jpg', type: 'image/jpeg' } as any);
 
     try {
-      const res = await fetch(`http://${myIp}:3000/api/products`, {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'multipart/form-data' },
         body: formData,

@@ -1,11 +1,8 @@
 import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas"
-import { myIp } from "./miscompras";
 
-export const idUser = 1
-//1,7 
 
 export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
-    const url = `http://${myIp}:3000/api/profile/${id}`
+    const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`
     const response = await fetch(url)
     const json = await response.json();
     const perfil = ProfileUserSchema.parse(json)
@@ -15,7 +12,7 @@ export async function usuarioPorId(id:Number):Promise<SchemaProfileUser>{
 
 export async function actualizarUsuarioPorId(userData:SchemaProfileUser,id:number) {
     try {
-      const response = await fetch(`http://${myIp}:3000/api/profile/${id}`,{
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`,{
         method:'PATCH',
         headers:{
           'Content-Type':'application/json'
@@ -37,7 +34,7 @@ export async function uploadAvatar(uri: string, id: number): Promise<string> {
   } as any);
 
   const res = await fetch(
-    `http://${myIp}:3000/api/profile/${id}/avatar`,
+    `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}/avatar`,
     {
       method: 'POST',
       headers: {

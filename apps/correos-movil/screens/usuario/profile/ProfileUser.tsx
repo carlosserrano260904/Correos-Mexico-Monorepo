@@ -1,5 +1,3 @@
-// ProfileUser.tsx
-
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -13,40 +11,70 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { idUser, usuarioPorId } from '../../../api/profile';
+import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
-import { useClerk } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useMyAuth } from '../../../context/AuthContext';
+import { useUser } from '@clerk/clerk-expo';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const { signOut } = useClerk();
+  const { logout } = useMyAuth();
+  const { user } = useUser(); // TODO: Verificar si es necesario
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
     if (!isFocused) return;
     (async () => {
-      try {
-        const perfil = await usuarioPorId(idUser);
-        setUsuario(perfil);
-      } catch {
-        console.log('No se ha podido cargar el perfil');
-      }
-    })();
+  try {
+    const storedId = await AsyncStorage.getItem('userId');
+    if (storedId) {
+      const perfil = await usuarioPorId(parseInt(storedId));
+      setUsuario(perfil);
+    } else {
+      console.warn('No se encontró userId en AsyncStorage');
+    }
+  } catch (error) {
+    console.error('Error al cargar el perfil:', error);
+  }
+})();
+
   }, [isFocused]);
 
   const handleSignOut = async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      await signOut();
+      await logout();
       console.log('Logout successful');
     } catch (err) {
       console.error('Logout error:', JSON.stringify(err, null, 2));
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      if (!user?.id) {
+        console.error('No se pudo obtener el ID del usuario');
+        return;
+      }
+      console.log(`Eliminando: http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
+      const response = await axios.delete(`http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
+
+      if (response.status === 200) {
+        console.log('Cuenta eliminada correctamente.');
+        await handleSignOut();
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Error eliminando la cuenta:', error.response?.data || error.message);
+      } else {
+        console.error('Error desconocido al eliminar la cuenta:', error);
+      }
     }
   };
 
@@ -63,6 +91,7 @@ export default function ProfileUser() {
       items: [
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
         { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
+        { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
       ],
     },
     {
@@ -129,7 +158,6 @@ export default function ProfileUser() {
             </View>
           ))}
 
-          {/* Botones especiales: Cerrar sesión / Eliminar cuenta */}
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.item}
@@ -146,7 +174,7 @@ export default function ProfileUser() {
             <TouchableOpacity
               style={styles.item}
               activeOpacity={0.7}
-              onPress={() => console.log('Eliminar cuenta')}
+              onPress={deleteAccount}
             >
               <View style={styles.itemLeft}>
                 <Icon name="trash-2" size={20} color="red" />

@@ -12,9 +12,14 @@ export class OficinasController {
     return this.oficinasService.create(dto);
   }
 
-  @Get('activos')
+  @Get('activas')
   find() {
-    return this.oficinasService.find();
+    return this.oficinasService.active();
+  }
+
+  @Get('inactivas')
+  inactive() {
+    return this.oficinasService.inactive();
   }
 
   @Get('clave/:clave_oficina_postal')
@@ -37,12 +42,12 @@ export class OficinasController {
     return this.oficinasService.update(+id, dto);
   }
 
-  @Patch(':id/deactivate')
+  @Patch(':id/desactivar')
   deactivate(@Param('id') id: number) {
     return this.oficinasService.deactivate(id);
   }
 
-  @Patch(':id/activate')
+  @Patch(':id/activar')
   activate(@Param('id') id: number) {
     return this.oficinasService.activate(id);
   }

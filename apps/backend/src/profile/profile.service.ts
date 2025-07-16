@@ -46,7 +46,7 @@ export class ProfileService {
     perfil.calle = updateProfileDto.calle!
     perfil.codigoPostal = updateProfileDto.codigoPostal!
     await this.profileRepository.save(perfil)
-    return `Perfil actualizado correctamente`;
+    return { ok: true, message: 'Perfil actualizado correctamente' };
   }
 
   async remove(id: number) {

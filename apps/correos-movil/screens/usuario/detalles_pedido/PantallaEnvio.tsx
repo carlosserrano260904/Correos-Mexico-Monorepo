@@ -1,5 +1,4 @@
-// components/checkout/PantallaEnvio.tsx
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -7,17 +6,17 @@ import {
   ScrollView, 
   SafeAreaView,
   StyleSheet,
-  Alert,
-  Dimensions,
-  ScaledSize
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { ParamListBase } from '@react-navigation/native';
+import { Heart, ShoppingBag } from 'lucide-react-native';
 
-// Colores
+const { width, height } = Dimensions.get('window');
+
 const Colors = {
   primary: '#E91E63',
   secondary: '#FF6B9D',
@@ -38,7 +37,10 @@ type CheckoutStackParamList = {
   Envio: undefined;
   Pago: undefined;
   Resumen: undefined;
-  Favoritos: undefined; // Si tienes una pantalla de Favoritos, agrégala aquí
+  Favoritos: undefined;
+  Carrito: undefined;
+  Perfil: undefined;
+  MapaPuntosRecogida: undefined;
 } & ParamListBase;
 
 type NavigationProp = StackNavigationProp<CheckoutStackParamList>;
@@ -48,7 +50,7 @@ type OptionProps = {
   title: string;
   subtitle: string;
   onPress?: () => void;
-  accessibilityRole?: 'button'; // Añadido esta línea
+  accessibilityRole?: 'button';
   accessibilityLabel?: string;
   accessibilityHint?: string;
 };
@@ -65,7 +67,8 @@ const ShippingOption = memo(({
     style={optionStyles.option} 
     onPress={onPress}
     accessibilityLabel={accessibilityLabel || title}
-    accessibilityHint={accessibilityHint}>
+    accessibilityHint={accessibilityHint}
+  >
     <View style={optionStyles.optionIcon}>
       <Ionicons name={iconName} size={24} color={Colors.dark} />
     </View>
@@ -80,42 +83,41 @@ const ShippingOption = memo(({
 const BottomNavItem = memo(({ 
   iconName, 
   color, 
-  label 
+  label,
+  onPress 
 }: { 
   iconName: keyof typeof Ionicons.glyphMap;
   color: string;
   label: string;
+  onPress?: () => void;
 }) => (
   <TouchableOpacity 
     style={styles.navItem}
+    onPress={onPress}
     accessibilityLabel={label}
-    accessibilityHint={`Ir a la sección de ${label.toLowerCase()}`}>
+    accessibilityHint={`Ir a la sección de ${label.toLowerCase()}`}
+  >
     <Ionicons name={iconName} size={24} color={color} />
   </TouchableOpacity>
 ));
 
-const { width, height } = Dimensions.get('window');
-
-// Añadir listener para cambios de dimensiones
 const PantallaEnvio = memo(() => {
   const navigation = useNavigation<NavigationProp>();
 
-  // Mantener goBack para el botón de regresar
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Usar replace solo para navegación entre pestañas
   const handleNavigate = useCallback((screen: keyof CheckoutStackParamList) => {
     try {
-      if (!navigation) {
-        throw new Error('Navigation is not initialized');
-      }
-      navigation.navigate(screen); // Cambiado a navigate para permitir goBack
+      navigation.navigate(screen);
     } catch (error) {
       console.error('Navigation error:', error);
-      Alert.alert('Error', 'No se pudo navegar a la siguiente pantalla');
     }
+  }, [navigation]);
+
+  const handlePickupPointSelection = useCallback(() => {
+    navigation.navigate('MapaPuntosRecogida');
   }, [navigation]);
 
   return (
@@ -128,26 +130,22 @@ const PantallaEnvio = memo(() => {
           style={styles.backButton} 
           onPress={handleBack}
           accessibilityLabel="Regresar"
-          accessibilityHint="Regresa a la pantalla anterior">
+          accessibilityHint="Regresa a la pantalla anterior"
+        >
           <Ionicons name="arrow-back" size={24} color={Colors.dark} />
         </TouchableOpacity>
-        
         <View style={styles.headerRightIcons}>
-          <TouchableOpacity 
-            style={styles.iconButton}
+          <TouchableOpacity
+            style={styles.iconCircle}
             onPress={() => navigation.navigate('Favoritos')}
-            accessibilityLabel="Favoritos"
-            accessibilityHint="Ver tus artículos favoritos">
-            <Ionicons name="heart-outline" size={24} color={Colors.dark} />
+          >
+            <Heart color="#DE1484" size={28} />
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.bagButton}
+          <TouchableOpacity
+            style={styles.iconCircle}
             onPress={() => navigation.navigate('Carrito')}
-            accessibilityRole="button"
-            accessibilityLabel="Carrito"
-            accessibilityHint="Ver tu carrito de compras">
-            <Ionicons name="bag-outline" size={24} color={Colors.white} />
+          >
+            <ShoppingBag color="#DE1484" size={28} />
           </TouchableOpacity>
         </View>
       </View>
@@ -159,12 +157,14 @@ const PantallaEnvio = memo(() => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.tab}
-          onPress={() => handleNavigate('Pago')}>
+          onPress={() => handleNavigate('Pago')}
+        >
           <Text style={styles.tabText}>Pago</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.tab}
-          onPress={() => handleNavigate('Resumen')}>
+          onPress={() => handleNavigate('Resumen')}
+        >
           <Text style={styles.tabText}>Resumen</Text>
         </TouchableOpacity>
       </View>
@@ -176,18 +176,17 @@ const PantallaEnvio = memo(() => {
             iconName="location-outline"
             title="Punto de recogida"
             subtitle="Consulta puntos de Correos de México"
+            onPress={handlePickupPointSelection}
             accessibilityLabel="Punto de recogida"
-            accessibilityHint="Consulta los puntos de entrega disponibles"
+            accessibilityHint="Selecciona un punto de recogida en el mapa"
           />
           <ShippingOption 
             iconName="home-outline"
             title="Domicilio"
             subtitle="Configura el envío a domicilio"
-          />
-          <ShippingOption 
-            iconName="flash-outline"
-            title="Express"
-            subtitle="Envío express con Mexpost"
+            onPress={() => navigation.navigate('Direcciones')}
+            accessibilityLabel="Domicilio"
+            accessibilityHint="Configura o selecciona una dirección de envío"
           />
         </View>
       </ScrollView>
@@ -219,7 +218,6 @@ const PantallaEnvio = memo(() => {
   );
 });
 
-// Estilos comunes para agregar en cada archivo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -228,12 +226,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end', // Changed from 'center' to align items to bottom
+    alignItems: 'flex-end',
     paddingHorizontal: width * 0.04,
-    paddingBottom: height * 0.02, // Changed from paddingVertical to paddingBottom
-    paddingTop: height * 0.04, // Added extra padding top to extend header
+    paddingBottom: height * 0.02,
+    paddingTop: height * 0.06,
     backgroundColor: Colors.white,
-    minHeight: height * 0.12, // Added to ensure minimum height
+    minHeight: height * 0.12,
   },
   backButton: {
     padding: width * 0.02,
@@ -241,43 +239,45 @@ const styles = StyleSheet.create({
   headerRightIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: width * 0.03,
+    gap: 16,
   },
-  iconButton: {
-    padding: width * 0.02,
-  },
-  bagButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 50,
-    padding: width * 0.02,
-    width: width * 0.1,
-    height: width * 0.1,
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 2,
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
     paddingHorizontal: width * 0.04,
+    paddingTop: height * 0.02,
+    paddingBottom: 0,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: height * 0.02,
+    justifyContent: 'flex-start',
+    paddingTop: height * 0.005,
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderBottomColor: Colors.border,
+    height: height * 0.045,
   },
   activeTab: {
     borderBottomColor: Colors.primary,
   },
   tabText: {
-    fontSize: Math.min(width * 0.035, 14), // Responsive font size with max limit
+    fontSize: Math.min(width * 0.035, 14),
     color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: -2,
   },
   activeTabText: {
-    fontSize: Math.min(width * 0.035, 14),
     color: Colors.primary,
     fontWeight: '500',
   },
@@ -285,23 +285,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: Colors.white,
-    paddingVertical: height * 0.015,
-    paddingHorizontal: width * 0.04,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
   tabContent: {
     padding: width * 0.04,
     gap: width * 0.04,
+  },
+  bottomNav: {
+    backgroundColor: Colors.white,
+    paddingVertical: height * 0.015,
+    paddingHorizontal: width * 0.05,
+    borderTopWidth: 1,
+    borderTopColor: Colors.lightGray,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
   },
   navItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: height * 0.01,
   },
 });
 

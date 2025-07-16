@@ -19,6 +19,7 @@ import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
 import { ScanQrCode, ArrowLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native'
+import Route from './getRoute';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height
@@ -52,181 +53,23 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'> & {
 
 const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
   const { package: packageData } = route.params;
-  const [currentLocation, setCurrentLocation] = useState<LocationCoords | null>(null);
-  const [routeCoordinates, setRouteCoordinates] = useState<LocationCoords[]>([]);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-  const [distance, setDistance] = useState<string>('');
-  const [duration, setDuration] = useState<string>('');
+  const [distance, setDistance] = useState<string | null>(null);
+  const [duration, setDuration] = useState<string | null>(null);
 
-  useEffect(() => {
-    getCurrentLocation();
-  }, []);
-
-  useEffect(() => {
-    if (currentLocation) {
-      getDirections();
-    }
-  }, [currentLocation]);
-
-  const getCurrentLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permisos de Ubicación',
-          'Se necesitan permisos de ubicación para mostrar tu posición actual y calcular la ruta.',
-          [{ text: 'OK' }]
-        );
-        setIsLoadingLocation(false);
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-
-      setCurrentLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-      setIsLoadingLocation(false);
-    } catch (error) {
-      console.error('Error obteniendo ubicación:', error);
-      Alert.alert('Error', 'No se pudo obtener la ubicación actual');
-      setIsLoadingLocation(false);
-    }
+  const destino = {
+    latitude: packageData.latitud,
+    longitude: packageData.longitud,
   };
 
-  const getDirections = async () => {
-    if (!currentLocation) return;
-
-    // Siempre establecer una línea directa como fallback inmediato
-    const directRoute = [
-      currentLocation,
-      { latitude: packageData.latitud, longitude: packageData.longitud }
-    ];
-    setRouteCoordinates(directRoute);
-
-    try {
-      // Usar Google Directions API
-      const origin = `${currentLocation.latitude},${currentLocation.longitude}`;
-      const destination = `${packageData.latitud},${packageData.longitud}`;
-      
-      // Nota: Necesitarás una API key de Google Maps Platform
-      const API_KEY = 'TU_GOOGLE_MAPS_API_KEY'; // Reemplazar con tu API key
-      
-      // Solo intentar la API si hay una API key válida
-      if (API_KEY && API_KEY !== 'TU_GOOGLE_MAPS_API_KEY') {
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${API_KEY}&mode=driving&language=es`
-        );
-        
-        const data = await response.json();
-        
-        if (data.routes && data.routes.length > 0) {
-          const route = data.routes[0];
-          const points = decodePolyline(route.overview_polyline.points);
-          setRouteCoordinates(points);
-          
-          // Extraer distancia y duración
-          const leg = route.legs[0];
-          setDistance(leg.distance.text);
-          setDuration(leg.duration.text);
-        }
-      } else {
-        console.log('Usando línea directa - API key no configurada');
-        // Calcular distancia aproximada para línea directa
-        const distance = calculateDistance(
-          currentLocation.latitude,
-          currentLocation.longitude,
-          packageData.latitud,
-          packageData.longitud
-        );
-        setDistance(`${distance.toFixed(1)} km`);
-        setDuration('Ruta directa');
-      }
-    } catch (error) {
-      console.error('Error obteniendo direcciones:', error);
-      // Ya tenemos el fallback establecido arriba
-    }
-  };
-
-  // Función para calcular distancia aproximada entre dos puntos
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
-  // Función para decodificar polyline de Google Maps
-  const decodePolyline = (encoded: string): LocationCoords[] => {
-    const points: LocationCoords[] = [];
-    let index = 0;
-    let lat = 0;
-    let lng = 0;
-
-    while (index < encoded.length) {
-      let shift = 0;
-      let result = 0;
-      let byte;
-
-      do {
-        byte = encoded.charCodeAt(index++) - 63;
-        result |= (byte & 0x1f) << shift;
-        shift += 5;
-      } while (byte >= 0x20);
-
-      const deltaLat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
-      lat += deltaLat;
-
-      shift = 0;
-      result = 0;
-
-      do {
-        byte = encoded.charCodeAt(index++) - 63;
-        result |= (byte & 0x1f) << shift;
-        shift += 5;
-      } while (byte >= 0x20);
-
-      const deltaLng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
-      lng += deltaLng;
-
-      points.push({
-        latitude: lat / 1e5,
-        longitude: lng / 1e5,
-      });
-    }
-
-    return points;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const handleRouteDataUpdate = (routeData: { distance: string | null; duration: string | null }) => {
+    setDistance(routeData.distance);
+    setDuration(routeData.duration);
+    setIsLoadingLocation(false);
   };
 
   const handleGoBack = () => {
     navigation.goBack();
-  };
-
-  const handleOpenMap = () => {
-    if (currentLocation) {
-      const url = `https://www.google.com/maps/dir/${currentLocation.latitude},${currentLocation.longitude}/${packageData.latitud},${packageData.longitud}`;
-      console.log('Abrir mapa externo:', url);
-    }
   };
 
   const handleDelivery = () => {
@@ -263,35 +106,10 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   };
 
-  const getMapRegion = () => {
-    if (!currentLocation) {
-      return {
-        latitude: packageData.latitud,
-        longitude: packageData.longitud,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-    }
-
-    // Calcular región que incluya ambos puntos
-    const midLat = (currentLocation.latitude + packageData.latitud) / 2;
-    const midLng = (currentLocation.longitude + packageData.longitud) / 2;
-    
-    const latDelta = Math.abs(currentLocation.latitude - packageData.latitud) * 1.5;
-    const lngDelta = Math.abs(currentLocation.longitude - packageData.longitud) * 1.5;
-
-    return {
-      latitude: midLat,
-      longitude: midLng,
-      latitudeDelta: Math.max(latDelta, 0.01),
-      longitudeDelta: Math.max(lngDelta, 0.01),
-    };
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
@@ -299,7 +117,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalles del Paquete</Text>
         <TouchableOpacity>
-          <ScanQrCode color={"#DE1484"} size={moderateScale(24)}/>
+          <ScanQrCode color={"#DE1484"} size={moderateScale(24)} />
         </TouchableOpacity>
       </View>
 
@@ -312,46 +130,8 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
               <Text style={styles.loadingText}>Obteniendo ubicación...</Text>
             </View>
           )}
-          
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.map}
-            initialRegion={getMapRegion()}
-            showsUserLocation={true}
-            showsMyLocationButton={true}
-          >
 
-            {/* Marcador de destino */}
-            <Marker
-              coordinate={{
-                latitude: packageData.latitud,
-                longitude: packageData.longitud,
-              }}
-              title={`SKU: ${packageData.sku}`}
-              description={`${packageData.calle}, ${packageData.colonia}`}
-              pinColor="#DE1484"
-            >
-              <View style={styles.destinationMarker}>
-                <Ionicons name="location" size={20} color="#FFFFFF" />
-              </View>
-            </Marker>
-
-            {/* Ruta - Siempre visible */}
-            {currentLocation && (
-              <Polyline
-                coordinates={routeCoordinates.length > 0 ? routeCoordinates : [
-                  currentLocation,
-                  { latitude: packageData.latitud, longitude: packageData.longitud }
-                ]}
-                strokeColor="#DE1484"
-                strokeWidth={5}
-                strokeOpacity={0.8}
-                lineDashPattern={[0]}
-                lineJoin="round"
-                lineCap="round"
-              />
-            )}
-          </MapView>
+          <Route destination={destino} onRouteDataUpdate={handleRouteDataUpdate} />
 
           {/* Información de ruta */}
           {(distance || duration) && (
@@ -385,12 +165,12 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
             <Text style={styles.label}>SKU:</Text>
             <Text style={styles.value}>{packageData.sku}</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.label}>Número de Guía:</Text>
             <Text style={styles.value}>{packageData.numero_guia}</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.label}>ID del Paquete:</Text>
             <Text style={styles.value}>{packageData.id}</Text>
@@ -408,7 +188,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
         {/* Dirección */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Dirección de Entrega</Text>
-          
+
           <View style={styles.addressGrid}>
             <View style={styles.addressRow}>
               <View style={styles.addressItem}>
@@ -423,14 +203,14 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text style={styles.addressValue}>{packageData.colonia}</Text>
               </View>
             </View>
-            
+
             <View style={styles.addressRow}>
               <View style={styles.addressItem}>
                 <Text style={styles.addressLabel}>Código Postal</Text>
                 <Text style={styles.addressValue}>{packageData.cp}</Text>
               </View>
             </View>
-        
+
           </View>
         </View>
       </ScrollView>
@@ -462,7 +242,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0E0E0',
   },
   backButton: {
-    
+
   },
   headerTitle: {
     fontSize: moderateScale(18),
@@ -473,7 +253,7 @@ const styles = StyleSheet.create({
     padding: moderateScale(8),
   },
   content: {
-    
+
   },
   mapContainer: {
     height: screenHeight * 0.3,

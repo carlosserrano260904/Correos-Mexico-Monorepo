@@ -1,26 +1,34 @@
-import { Type } from "class-transformer"
-import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, IsNumber, ValidateNested } from "class-validator"
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, IsNumber, ValidateNested } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class TransactionsContentsDto{
-    
-    @IsNotEmpty({message:'El ID del producto no puede ir vacio'})
-    @IsInt({message:'Producto no valido'})
-    productId:number
-    @IsNotEmpty({message:'La cantidad no puede ir vacia'})
-    cantidad:number
-    @IsNotEmpty({message:'El precio no puede ir vacio'})
-    @IsNumber({},{message:'Precio no valido'})
-    precio:number
+export class TransactionsContentsDto {
+  @ApiProperty({ example: 1, description: 'ID del producto' })
+  @IsNotEmpty({ message: 'El ID del producto no puede ir vacío' })
+  @IsInt({ message: 'Producto no válido' })
+  productId: number;
+
+  @ApiProperty({ example: 2, description: 'Cantidad comprada del producto' })
+  @IsNotEmpty({ message: 'La cantidad no puede ir vacía' })
+  cantidad: number;
+
+  @ApiProperty({ example: 150.00, description: 'Precio del producto en la transacción' })
+  @IsNotEmpty({ message: 'El precio no puede ir vacío' })
+  @IsNumber({}, { message: 'Precio no válido' })
+  precio: number;
 }
-
 export class CreateTransactionDto {
-    profileId: number;  
-    @IsNotEmpty({message:'El total no puede ir vacio'})
-    @IsNumber({},{message:'Cantidad no valida'})
-    total:number
-    @IsArray()
-    @ArrayNotEmpty({message:'Los contenidos no pueden ir vacios'})
-    @ValidateNested()
-    @Type(()=>TransactionsContentsDto)
-    contenidos:TransactionsContentsDto[]
+  @ApiProperty({ example: 1, description: 'ID del perfil que hace la transacción' })
+  @IsNotEmpty({ message: 'El ID del perfil no puede ir vacío' })
+  @IsInt({ message: 'El ID del perfil debe ser un número entero' })
+  profileId: number;
+
+  
+
+  @ApiProperty({ type: [TransactionsContentsDto], description: 'Lista de productos en la transacción' })
+  @IsArray()
+  @ArrayNotEmpty({ message: 'Los contenidos no pueden ir vacíos' })
+  @ValidateNested({ each: true })
+  @Type(() => TransactionsContentsDto)
+  contenidos: TransactionsContentsDto[];
 }

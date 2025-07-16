@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { idUser } from '../../../api/profile';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { obtenerMisCompras } from '../../../api/miscompras';
 import { MisComprasType } from '../../../schemas/schemas';
 import { useNavigation } from '@react-navigation/native';
@@ -104,9 +105,12 @@ export default function MisCompras() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await obtenerMisCompras(idUser);
-        setMisCompras(data);
-        setError(null);
+        const storedId = await AsyncStorage.getItem('userId');
+        if(storedId){
+          const data = await obtenerMisCompras(+storedId);
+          setMisCompras(data);
+          setError(null);
+        }
       } catch (err) {
         console.error('No se ha podido cargar mis compras', err);
         setError('No se pudo cargar la información. Intenta más tarde.');
@@ -235,7 +239,18 @@ export default function MisCompras() {
                 year: 'numeric',
               })}
             </Text>
-            <Text style={styles.total}>Total: ${tx.total}</Text>
+            <Text style={styles.texto}>
+              Subtotal: {new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN',
+                minimumFractionDigits: 2,
+              }).format(
+                tx.contenidos.reduce(
+                  (sum, item) => sum + Number(item.producto.precio) * item.cantidad,
+                  0
+                )
+              )}
+            </Text>
 
             {tx.contenidos.map(item => (
               <TouchableOpacity
@@ -252,7 +267,13 @@ export default function MisCompras() {
                   <Text style={styles.nombre}>{item.producto.nombre}</Text>
                   <Text style={styles.descripcion}>{item.producto.descripcion}</Text>
                   <Text style={styles.texto}>Cantidad: {item.cantidad}</Text>
-                  <Text style={styles.texto}>Precio: ${item.precio}</Text>
+                  <Text style={styles.texto}>
+                    Precio: {new Intl.NumberFormat('es-MX', {
+                      style: 'currency',
+                      currency: 'MXN',
+                      minimumFractionDigits: 2,
+                    }).format(Number(item.producto.precio))}
+                  </Text>
                   <Text style={styles.texto}>Categoría: {item.producto.categoria}</Text>
                 </View>
               </TouchableOpacity>

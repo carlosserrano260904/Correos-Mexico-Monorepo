@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoginModule } from './login/login.module';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { RoutesModule } from './routes/routes.module';
 import { ProfileModule } from './profile/profile.module';
@@ -27,17 +26,23 @@ import { HistorialAsignacionesModule } from './historial-asignaciones/historial-
 import { PaquetesModule } from './paquete/paquetes.module'
 import { AuthModule } from './auth/auth.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
+import { OficinasModule } from './oficinas/oficinas.module';
+import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
+import { PedidosModule } from './pedidos/pedidos.module';
+import { ClerkModule } from './clerk/clerk.module';
+import { ShippingRateModule } from './shipping_rates/shipping_rates.module'; // Agregar esta línea
+import { Ubicaciones } from './ubicaciones/oficinas.module';
+
 
 @Module({
   imports: [
      ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal:true,
     }),
     TypeOrmModule.forRootAsync({
       useFactory:typeOrmConfig,
       inject:[ConfigService]
     }),
-    LoginModule,
     CreateAccountModule,
     RoutesModule,
     ProfileModule,
@@ -58,6 +63,13 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     PaquetesModule,
     AuthModule,
     ProveedoresModule,
+    OficinasModule,
+    MisdireccionesModule,
+    PedidosModule,
+    ClerkModule,
+    ShippingRateModule,
+    Ubicaciones,
+
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

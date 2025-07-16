@@ -22,6 +22,7 @@ export default function SignUpScreen() {
     const [code, setCode] = useState('')
     const [nombre, setNombre] = useState('')
     const [apellido, setApellido] = useState('')
+    const [token, setToken] = useState('')
 
     const onSignUpPress = async () => {
 
@@ -56,13 +57,10 @@ export default function SignUpScreen() {
                 console.error('Email OTP error:', JSON.stringify(error, null, 2))
             }
 
-          
-
-            
-
             const data = await res.json()
+            
             console.log(data)
-            await AsyncStorage.setItem('token', data.token)
+            setToken(data.token)
             console.log("token: ", data.token)
             
             setPendingVerification(true)
@@ -85,6 +83,8 @@ export default function SignUpScreen() {
             const errorText = await res.text()
             throw new Error(`Verify OTP backend error: ${res.status} - ${errorText}`)
         }
+
+        await AsyncStorage.setItem('token', token)
 
         setPendingVerification(false) 
         setIsAuthenticated(true)

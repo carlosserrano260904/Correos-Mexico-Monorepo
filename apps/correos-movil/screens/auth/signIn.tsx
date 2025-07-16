@@ -58,7 +58,6 @@ export default function SignInScreen() {
         const data = await res.json()
         console.log(data)
         await AsyncStorage.setItem('token', data.token)
-        await AsyncStorage.setItem('userId', data.userId.toString())
         setIsAuthenticated(true)
                
     }, [emailAddress, password])

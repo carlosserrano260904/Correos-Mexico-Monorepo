@@ -46,7 +46,7 @@ export class AuthService {
         });
 
         const token = await this.jwtService.signAsync({
-            id: user.id,
+            profileId: user.profile.id,
             rol: 'usuario',
         });
 
@@ -79,7 +79,7 @@ export class AuthService {
         }
 
         const token = await this.jwtService.signAsync({
-            id: user.id,
+            profileId: user.profile.id,
             rol: user.rol || 'usuario',
         });
 
@@ -97,7 +97,7 @@ export class AuthService {
         if (!valid) throw new UnauthorizedException();
 
         const token = await this.jwtService.signAsync({
-            id: user.id,
+            profileId: user.profile.id,
             rol: user.rol || 'usuario'
         });
 

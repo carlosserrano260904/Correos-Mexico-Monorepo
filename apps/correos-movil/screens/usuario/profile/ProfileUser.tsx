@@ -25,7 +25,7 @@ type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const { logout } = useMyAuth();
+  const { logout,userId } = useMyAuth();
   const { user } = useUser(); // TODO: Verificar si es necesario
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
@@ -33,9 +33,8 @@ export default function ProfileUser() {
     if (!isFocused) return;
     (async () => {
   try {
-    const storedId = await AsyncStorage.getItem('userId');
-    if (storedId) {
-      const perfil = await usuarioPorId(parseInt(storedId));
+    if (userId) {
+      const perfil = await usuarioPorId(parseInt(userId));
       setUsuario(perfil);
     } else {
       console.warn('No se encontró userId en AsyncStorage');

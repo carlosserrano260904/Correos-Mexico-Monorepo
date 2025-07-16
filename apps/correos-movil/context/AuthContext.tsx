@@ -5,7 +5,7 @@ import { getUserInfoFromToken } from '../utils/jwt.utils';
 
 type AuthContextType = {
     isAuthenticated: boolean;
-    userId: string | null;
+    userId: string | undefined;
     userRol: string | null;
     setIsAuthenticated: (value: boolean) => void;
     setUserInfo: (info: { userId: string, userRol: string }) => void;
@@ -14,7 +14,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
-    userId: null,
+    userId: undefined,
     userRol: null,
     setIsAuthenticated: () => { },
     setUserInfo: () => { },
@@ -23,14 +23,20 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | undefined>(undefined);
     const [userRol, setUserRol] = useState<string | null>(null);
 
     // Cargar token al iniciar la app
     useEffect(() => {
         const loadUserData = async () => {
             try {
-                const token = await AsyncStorage.getItem('token');
+                const token = await AsyncStorage.getItem('token')
+                const storedId = await AsyncStorage.getItem('userId')
+                 if (storedId) {
+                    setUserId(storedId);
+                } else {
+                    console.warn('No se encontró userId en AsyncStorage');
+                }
                 console.log('token: ', token);
                 if (token) {
                     const userInfo = await getUserInfoFromToken();
@@ -56,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const logout = async () => {
         await AsyncStorage.removeItem('token');
         await AsyncStorage.removeItem('userId');
-        setUserId(null);
+        setUserId(undefined);
         setUserRol(null);
         setIsAuthenticated(false);
     };

@@ -26,6 +26,9 @@ export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
   const { logout,userId } = useMyAuth();
+  const userIdType = typeof userId;
+  console.log('userIdType', userIdType);
+  console.log('userId', userId);
   const { user } = useUser(); // TODO: Verificar si es necesario
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 

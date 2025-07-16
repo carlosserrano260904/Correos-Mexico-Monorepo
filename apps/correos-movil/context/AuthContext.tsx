@@ -5,54 +5,58 @@ import { getUserInfoFromToken } from '../utils/jwt.utils';
 
 type AuthContextType = {
     isAuthenticated: boolean;
-    userId: string | undefined;
+    userId: string | null;
     userRol: string | null;
     setIsAuthenticated: (value: boolean) => void;
     setUserInfo: (info: { userId: string, userRol: string }) => void;
     logout: () => Promise<void>;
-};
+    reloadUserData: () => Promise<void>;
+    };
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
-    userId: undefined,
+    userId: null,
     userRol: null,
     setIsAuthenticated: () => { },
     setUserInfo: () => { },
     logout: async () => { },
+    reloadUserData: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userId, setUserId] = useState<string | undefined>(undefined);
+    const [userId, setUserId] = useState<string | null>(null);
     const [userRol, setUserRol] = useState<string | null>(null);
 
     // Cargar token al iniciar la app
-    useEffect(() => {
-        const loadUserData = async () => {
-            try {
-                const token = await AsyncStorage.getItem('token')
-                const storedId = await AsyncStorage.getItem('userId')
-                 if (storedId) {
-                    setUserId(storedId);
-                } else {
-                    console.warn('No se encontró userId en AsyncStorage');
+
+    const loadUserData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token')
+
+            console.log('token: ', token);
+            if (token) {
+                const userInfo = await getUserInfoFromToken();
+                if (userInfo) {
+                    setUserId(userInfo.profileId);
+                    setUserRol(userInfo.rol);
+                    console.log('hola');
+                    console.log('userInfo: ', userInfo);
+                    setIsAuthenticated(true);
                 }
-                console.log('token: ', token);
-                if (token) {
-                    const userInfo = await getUserInfoFromToken();
-                    if (userInfo) {
-                        setUserId(userInfo.profileId);
-                        setUserRol(userInfo.rol);
-                        console.log('userInfo: ', userInfo);
-                        setIsAuthenticated(true);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading user data:', error);
             }
-        };
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    };
+    useEffect(() => {
         loadUserData();
     }, []);
+
+    const reloadUserData = async () => {
+        await loadUserData();
+    };
+
 
     const setUserInfo = (info: { userId: string, userRol: string }) => {
         setUserId(info.userId);
@@ -62,13 +66,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const logout = async () => {
         await AsyncStorage.removeItem('token');
         await AsyncStorage.removeItem('userId');
-        setUserId(undefined);
+        setUserId(null);
         setUserRol(null);
         setIsAuthenticated(false);
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, userId, userRol, setIsAuthenticated, setUserInfo, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, userId, userRol, setIsAuthenticated, setUserInfo, logout, reloadUserData }}>
             {children}
         </AuthContext.Provider>
     );

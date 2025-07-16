@@ -1,5 +1,5 @@
 // src/upload-image/s3.provider.ts
-import { Provider } from '@nestjs/common';
+/*import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -30,3 +30,4 @@ export const S3Provider: Provider = {
   },
   inject: [ConfigService],
 };
+*/ // temporalmente comentado

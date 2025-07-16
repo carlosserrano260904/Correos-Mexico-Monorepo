@@ -1,5 +1,5 @@
 // src/upload-image/upload-image.service.ts
-import { Injectable } from '@nestjs/common';
+/*import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
@@ -38,4 +38,4 @@ export class UploadImageService {
     await this.s3.send(cmd);
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
-}
+}*/ // temporalmente comentado

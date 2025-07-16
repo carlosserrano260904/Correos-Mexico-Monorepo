@@ -2,13 +2,13 @@ import { Controller, Get, Post,  Patch, Body, Param, Delete, Put, NotFoundExcept
 import { PaquetesService } from './paquetes.service';
 import { Paquete } from './entities/paquete.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+//import { UploadImageService } from 'src/upload-image/upload-image.service';
 
 @Controller('paquetes')
 export class PaquetesController {
   constructor(
     private readonly paquetesService: PaquetesService,
-    private readonly uploadService: UploadImageService
+    //private readonly uploadService: UploadImageService
   ) {}
 
   @Get()
@@ -61,17 +61,17 @@ export class PaquetesController {
       throw new BadRequestException('No se subió ningún archivo.');
     }
 
-    const url = await this.uploadService.uploadFile(file);
-    const actualizar = await this.paquetesService.anadirEvidencia(id, url);
+    //const url = await this.uploadService.uploadFile(file);
+    //const actualizar = await this.paquetesService.anadirEvidencia(id, url);
 
-    if (!actualizar) {
+    /*if (!actualizar) {
       throw new NotFoundException(`No se encontró el paquete con ID ${id}`);
     }
 
     return {
       mensaje: 'Evidencia actualizada correctamente',
       paquete: actualizar,
-    };
+    };*/ //comentado
   }
 
 

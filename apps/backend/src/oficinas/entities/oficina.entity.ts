@@ -91,6 +91,9 @@ export class Oficina {
   @Column({ default: true })
   activo: boolean;
 
+  @Column({ length: 150, nullable: true })
+  horario_atencion: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   fecha_registro: Date;
 }

@@ -14,13 +14,15 @@ export class HistorialAsignacionesService {
     nombreConductor: string,
     curp: string,
     placasUnidad: string,
+    oficinaSalida: string,  // Nueva: clave de oficina de salida
+    oficinaDestino: string  // Nueva: zona asignada (destino)
   ): Promise<HistorialAsignacion> {
     const nuevaAsignacion = this.historialRepository.create({
-      // Use the correct property names as defined in your entity
-      // If 'nombreConductor' exists in the entity, keep it; otherwise, remove or rename as needed
       nombreConductor,
-      curp: curp.toUpperCase(), // Asegurar mayúsculas
+      curp: curp.toUpperCase(),
       placasUnidad,
+      rutaSalida: oficinaSalida,  // Asignar oficina de salida
+      rutaDestino: oficinaDestino // Asignar zona de destino
     });
     return this.historialRepository.save(nuevaAsignacion);
   }

@@ -191,11 +191,13 @@ export class UnidadesService {
         await qr.manager.save(unidad.conductor);
       }
 
-      await this.historialSvc.registrarAsignacion(
-        conductor.nombreCompleto,
-        conductor.curp,
-        placas,
-      );
+        await this.historialSvc.registrarAsignacion(
+          conductor.nombreCompleto,
+          conductor.curp,
+          placas,
+          unidad.oficina.clave_cuo,  // Oficina de salida (clave_cuo)
+          unidad.zonaAsignada        // Zona asignada (destino)
+        );
       conductor.disponibilidad = false;
       await qr.manager.save(conductor);
 
@@ -266,7 +268,6 @@ export class UnidadesService {
   }
 
   async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
-    // Cargar todas las relaciones necesarias
     const unidad = await this.unidadRepo.findOne({
       where: { placas },
       relations: ['tipoVehiculo', 'oficina', 'conductor'],
@@ -281,7 +282,14 @@ export class UnidadesService {
       throw new NotFoundException(`Oficina no asignada a la unidad`);
     }
 
-    // Convertir a string para comparación
+    // Verificar si codigo_postal_zona es null
+    if (!oficina.codigo_postal_zona) {
+      throw new BadRequestException(
+        `La oficina ${oficina.clave_cuo} no tiene asignada una zona postal`
+      );
+    }
+
+    // Convertir a string para comparación (ahora seguro que no es null)
     const codigoPostalZona = oficina.codigo_postal_zona.toString();
     const codigoPostalSolicitado = dto.codigoPostal;
 
@@ -296,7 +304,5 @@ export class UnidadesService {
     const updatedUnidad = await this.unidadRepo.save(unidad);
     
     return this.mapToResponse(updatedUnidad);
-  }
-
-  
+  }  
 }

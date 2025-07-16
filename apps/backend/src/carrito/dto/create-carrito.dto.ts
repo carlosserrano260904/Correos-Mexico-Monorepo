@@ -2,7 +2,7 @@ import { IsInt, IsNumber, IsPositive, IsBoolean } from 'class-validator';
 
 export class CreateCarritoDto {
   @IsInt()
-  usuarioId: number;
+  profileId: number;
 
   @IsInt()
   productId: number;
@@ -18,6 +18,6 @@ export class EditarCantidadDto {
 }
 export class SubtotalDto {
   @IsInt()
-  usuarioId: number;
+  profileId: number;
 }
 

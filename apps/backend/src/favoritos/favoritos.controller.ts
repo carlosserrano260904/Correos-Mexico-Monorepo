@@ -14,14 +14,14 @@ import { CreateFavoritoDto } from './dto/create-favorito.dto';
 export class FavoritosController {
   constructor(private readonly favoritosService: FavoritosService) {}
 
-  @Get(':usuarioId')
-  getFavoritos(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
-    return this.favoritosService.findByUsuario(usuarioId);
+  @Get(':profileId')
+  getFavoritos(@Param('profileId', ParseIntPipe) profileId: number) {
+    return this.favoritosService.findByUsuario(profileId);
   }
 
   @Post()
   addFavorito(@Body() body: CreateFavoritoDto) {
-    return this.favoritosService.addFavorito(body.usuarioId, body.productId);
+    return this.favoritosService.addFavorito(body.profileId, body.productId);
   }
 
   @Delete(':id')
@@ -31,10 +31,10 @@ export class FavoritosController {
 
   @Post('agregar-a-carrito')
   agregarProductoDesdeFavorito(
-    @Body() body: { usuarioId: number; productId: number },
+    @Body() body: { profileId: number; productId: number },
   ) {
     return this.favoritosService.addToCarritoDesdeFavorito(
-      body.usuarioId,
+      body.profileId,
       body.productId,
     );
   }

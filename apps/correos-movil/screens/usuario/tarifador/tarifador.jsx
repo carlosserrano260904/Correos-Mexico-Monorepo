@@ -444,7 +444,7 @@ const TarificadorMexpost = () => {
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>Total:</Text>
                         <Text style={styles.detalleValue}>
-                          MXN {cotizacionData.costoTotal || "N/A"} 
+                          MXN {cotizacionData.costoTotal || "N/A"}
                         </Text>
                       </View>
                     </>
@@ -454,7 +454,7 @@ const TarificadorMexpost = () => {
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>Precio base:</Text>
                         <Text style={styles.detalleValue}>
-                          {cotizacionData.precioBase?.toFixed(2) || "N/A"}
+                           USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
                       <View style={styles.detalleRow}>
@@ -502,7 +502,7 @@ const TarificadorMexpost = () => {
               </TouchableOpacity>
             </View>
             {/* Botón Buscar arriba de la lista */}
-            <View style={{paddingHorizontal: 20, marginBottom: 10}}>
+            <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
               <Button
                 title="Buscar"
                 onPress={handleSearchInternacional}

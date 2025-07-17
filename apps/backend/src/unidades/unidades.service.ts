@@ -192,11 +192,11 @@ export class UnidadesService {
       }
 
         await this.historialSvc.registrarAsignacion(
-          conductor.nombreCompleto,
-          conductor.curp,
-          placas,
-          unidad.oficina.clave_cuo,  // Oficina de salida (clave_cuo)
-          unidad.zonaAsignada        // Zona asignada (destino)
+            conductor.nombreCompleto,
+            conductor.curp,
+            placas,
+            unidad.oficina.clave_cuo,
+            unidad.zonaAsignada // Ahora ya es la clave CUO
         );
       conductor.disponibilidad = false;
       await qr.manager.save(conductor);
@@ -268,41 +268,46 @@ export class UnidadesService {
   }
 
   async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
-    const unidad = await this.unidadRepo.findOne({
-      where: { placas },
-      relations: ['tipoVehiculo', 'oficina', 'conductor'],
-    });
+      const unidad = await this.unidadRepo.findOne({
+          where: { placas },
+          relations: ['tipoVehiculo', 'oficina', 'conductor'],
+      });
 
-    if (!unidad) {
-      throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
-    }
+      if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
 
-    const oficina = unidad.oficina;
-    if (!oficina) {
-      throw new NotFoundException(`Oficina no asignada a la unidad`);
-    }
+      const oficinaOrigen = unidad.oficina;
+      if (!oficinaOrigen) throw new NotFoundException(`Oficina no asignada a la unidad`);
 
-    // Verificar si codigo_postal_zona es null
-    if (!oficina.codigo_postal_zona) {
-      throw new BadRequestException(
-        `La oficina ${oficina.clave_cuo} no tiene asignada una zona postal`
-      );
-    }
+      // Validar no asignación a sí misma
+      if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
+          throw new BadRequestException(`No puedes asignar la unidad a su misma oficina de origen`);
+      }
 
-    // Convertir a string para comparación (ahora seguro que no es null)
-    const codigoPostalZona = oficina.codigo_postal_zona.toString();
-    const codigoPostalSolicitado = dto.codigoPostal;
+      const oficinaDestino = await this.oficinaRepo.findOne({
+          where: { clave_cuo: dto.claveCuoDestino }
+      });
+      if (!oficinaDestino) throw new NotFoundException(`Oficina con clave ${dto.claveCuoDestino} no encontrada`);
 
-    if (!codigoPostalSolicitado.startsWith(codigoPostalZona)) {
-      throw new BadRequestException(
-        `El código postal ${codigoPostalSolicitado} no pertenece a la zona ${codigoPostalZona} de la oficina ${oficina.clave_cuo}`
-      );
-    }
+      // Nueva lógica de validación:
+      const esValida = await this.validarRutaValida(oficinaOrigen.clave_cuo, oficinaDestino.clave_cuo);
+      if (!esValida) {
+          throw new BadRequestException(
+              `La ruta desde ${oficinaOrigen.clave_cuo} a ${oficinaDestino.clave_cuo} no está permitida`
+          );
+      }
 
-    // Actualizar la zona asignada
-    unidad.zonaAsignada = codigoPostalZona;
-    const updatedUnidad = await this.unidadRepo.save(unidad);
-    
-    return this.mapToResponse(updatedUnidad);
-  }  
+      unidad.zonaAsignada = oficinaDestino.clave_cuo;
+      const updatedUnidad = await this.unidadRepo.save(unidad);
+      return this.mapToResponse(updatedUnidad);
+  }
+
+  private async validarRutaValida(claveOrigen: string, claveDestino: string): Promise<boolean> {
+      // 1. Obtener todas las oficinas que tienen como origen a la oficina actual
+      const oficinasHijas = await this.oficinaRepo.find({
+          where: { codigo_postal_zona: claveOrigen }
+      });
+
+      // 2. Verificar si el destino está en la lista de hijas
+      return oficinasHijas.some(oficina => oficina.clave_cuo === claveDestino);
+  }
 }

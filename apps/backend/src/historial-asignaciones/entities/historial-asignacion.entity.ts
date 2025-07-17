@@ -15,10 +15,10 @@ export class HistorialAsignacion {
   placasUnidad: string;
 
   @Column({ name: 'oficina_salida', length: 5})
-  rutaSalida: string;
+  claveOficinaSalida: string;
 
   @Column({ name: 'clave_cuo_destino', length: 10 }) // Longitud ajustada para CUO
-  claveOficinaDestino: string
+  claveOficinaDestino: string;
 
   @Column({ name: 'fecha_asignacion', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fechaAsignacion: Date;

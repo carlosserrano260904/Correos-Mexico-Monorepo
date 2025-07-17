@@ -18,9 +18,9 @@ import {
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 const TarificadorMexpost = () => {
+  const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const [activeTab, setActiveTab] = useState("Nacional")
   const [codigoOrigen, setCodigoOrigen] = useState("")
   const [codigoDestino, setCodigoDestino] = useState("")

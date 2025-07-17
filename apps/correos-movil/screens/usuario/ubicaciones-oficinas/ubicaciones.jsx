@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
 export default function UbicacionScreen() {
+  const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const [sucursales, setSucursales] = useState([]);
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -21,7 +23,7 @@ export default function UbicacionScreen() {
     useEffect(() => {
     const obtenerSucursales = async () => {
         try {
-        const response = await fetch('http://192.168.0.165:3000/api/oficinas');
+        const response = await fetch(`http://${IP}:3000/api/oficinas`);
         if (!response.ok) throw new Error('Error al cargar oficinas');
 
         const data = await response.json();

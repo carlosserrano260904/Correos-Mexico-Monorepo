@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
-import { GuiaRepositoryInterface } from "src/guias_trazabilidad/application/ports/outbound/guia.repository.interface";
+import { GuiaRepositoryInterface } from "../../../application/ports/outbound/guia.repository.interface";
 import { DataSource, Repository } from "typeorm";
-import { GuiaDomainEntity } from "src/guias_trazabilidad/business-logic/guia.domain-entity-root";
+import { GuiaDomainEntity } from "../../../business-logic/guia.domain-entity-root";
 import { GuiaTypeormEntity } from "../typeorm-entities/guia.typeorm-entity";
 import { GuiaMapper } from "../../mappers/guia.mapper";
 import { ContactosTypeormEntity } from "../typeorm-entities/contactos.typeorm-entity";
 import { ContactoMapper } from "../../mappers/contacto.mapper";
 import { MovimientoGuiasTypeormEntity } from "../typeorm-entities/movimientos-guias.typeorm-entity";
 import { MovimientoMapper } from "../../mappers/movimiento.mapper";
-import { NumeroDeRastreoVO } from "src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo";
+import { NumeroDeRastreoVO } from "../../../business-logic/value-objects/numeroRastreo.vo";
 import { IncidenciaMapper } from "../../mappers/incidencia.mapper";
 import { IncidenciasTypeormEntity } from "../typeorm-entities/incidencias.typeorm-entity";
 

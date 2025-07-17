@@ -1,4 +1,4 @@
-import { Result } from "../result/result";
+import { Result } from "../../../utils/result";
 
 const incidencias = ['Extravio', 'Retraso'] as const
 export type Incidencias = typeof incidencias[number]

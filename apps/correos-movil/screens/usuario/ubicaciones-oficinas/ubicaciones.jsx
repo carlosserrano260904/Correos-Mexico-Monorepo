@@ -23,7 +23,7 @@ export default function UbicacionScreen() {
     useEffect(() => {
     const obtenerSucursales = async () => {
         try {
-        const response = await fetch(`http://${IP}:3000/api/oficinas`);
+        const response = await fetch(`http://${IP}:3000/api/oficinas`); 
         if (!response.ok) throw new Error('Error al cargar oficinas');
 
         const data = await response.json();

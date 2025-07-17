@@ -2,7 +2,8 @@ import { Controller, Get, Inject, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { pdf } from '@react-pdf/renderer';
-import { plantillaGuia } from '../pdf-generator/plantillas/guia-plantilla';
+import { plantillaGuiaInternacional } from '../pdf-generator/plantillas/guia-plantilla-internacional';
+import { plantillaGuiaNacional } from '../pdf-generator/plantillas/guia-plantilla-nacional';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -66,7 +67,7 @@ export class PdfController {
       const qrDummy = 'hola soy un qr'
 
       // generando pdf
-      const pdfDocument = plantillaGuia(datosPrueba, qrDummy);
+      const pdfDocument = plantillaGuiaNacional(datosPrueba, qrDummy);
 
       // la versioon que descargue tiene un bug, hay que usarla entonces asi
       const pdfBlob = await pdf(pdfDocument).toBlob();

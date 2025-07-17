@@ -3,6 +3,10 @@ export const QR_GENERATOR_REPOSITORY = Symbol('QRGeneratorRepository');
 
 interface QRData {
   numeroDeRastreo: string;
+  idSucursal: string,
+  idRuta: string,
+  estado: string,
+  localizacion: string,
 }
 
 export interface QRGeneratorRepositoryInterface {

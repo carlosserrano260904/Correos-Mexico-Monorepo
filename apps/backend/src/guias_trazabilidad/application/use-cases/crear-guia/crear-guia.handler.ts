@@ -132,8 +132,13 @@ export class CrearGuiaCommandHandler
     await this.guiaRepository.save(guia);
 
     // generar qr
-    const qr = guia.NumeroRastreo.getNumeroRastreo;
-    const qrResult = await this.qrRepository.generarQRComoDataURL({ numeroDeRastreo: qr });
+    const qrResult = await this.qrRepository.generarQRComoDataURL({
+      numeroDeRastreo: guia.NumeroRastreo.getNumeroRastreo,
+      estado: guia.SituacionActual.getSituacion,
+      idRuta: 'rutaPorDefectoPlaceHolder',
+      idSucursal: 'sucursalPorDefectoPlaceHolder',
+      localizacion: 'localizacionPlaceHolder'
+    });
     if (qrResult.isFailure()) {
       throw new InternalServerErrorException(`Error al intentar generar QR: ${qrResult.getError()}`)
     }
@@ -144,7 +149,7 @@ export class CrearGuiaCommandHandler
     }
 
     return {
-      numeroRastreo: qr,
+      numeroRastreo: guia.NumeroRastreo.getNumeroRastreo,
       pdf: pdfResult.getValue()
     };
   }

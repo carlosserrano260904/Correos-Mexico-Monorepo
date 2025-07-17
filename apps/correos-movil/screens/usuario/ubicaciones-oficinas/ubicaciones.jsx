@@ -21,7 +21,7 @@ export default function UbicacionScreen() {
     useEffect(() => {
     const obtenerSucursales = async () => {
         try {
-        const response = await fetch('http://192.168.1.35:3000/api/oficinas');
+        const response = await fetch('http://192.168.0.165:3000/api/oficinas');
         if (!response.ok) throw new Error('Error al cargar oficinas');
 
         const data = await response.json();
@@ -35,7 +35,7 @@ export default function UbicacionScreen() {
             },
         }));
 
-        console.log('Sucursales transformadas:', dataTransformada);
+        // console.log('Sucursales transformadas:', dataTransformada);
 
         if (dataTransformada.length > 0) {
             setSucursales(dataTransformada);
@@ -118,7 +118,7 @@ export default function UbicacionScreen() {
         {sucursales.map((s) => (
           s.coordenadas && (
             <Marker
-              key={s.id}
+               key={s.id_oficina}
               coordinate={s.coordenadas}
               pinColor="#DE1484"
               onPress={() => centrarEnSucursal(s)}
@@ -131,13 +131,13 @@ export default function UbicacionScreen() {
         <View style={styles.infoRow}>
           <MaterialIcons name="location-on" size={28} color="#DE1484" />
           <View style={{ flex: 1 }}>
-            <Text style={styles.nombre}>{sucursalSeleccionada.nombre}</Text>
-            <Text style={styles.direccion}>{sucursalSeleccionada.direccion}</Text>
+            <Text style={styles.nombre}>{sucursalSeleccionada.nombre_cuo}</Text>
+            <Text style={styles.direccion}>{sucursalSeleccionada.domicilio}</Text>
 
             {sucursalSeleccionada.horario && (
               <View style={styles.infoIconRow}>
                 <Feather name="clock" size={18} color="#DE1484" style={{ marginRight: 6 }} />
-                <Text style={styles.horario}>{sucursalSeleccionada.horario}</Text>
+                <Text style={styles.horario}>{sucursalSeleccionada.horario_atencion}</Text>
               </View>
             )}
 
@@ -160,13 +160,13 @@ export default function UbicacionScreen() {
           .filter((s) => s.id !== sucursalSeleccionada.id)
           .map((s) => (
             <TouchableOpacity
-              key={s.id}
+              key={s.id_oficina}
               style={styles.sugerenciaItem}
               onPress={() => centrarEnSucursal(s)}
             >
               <MaterialIcons name="location-on" size={22} color="#DE1484" style={{ marginRight: 8 }} />
               <View>
-                <Text style={styles.sugerenciaNombre}>{s.nombre}</Text>
+                <Text style={styles.sugerenciaNombre}>{s.nombre_cuo}</Text>
                 <Text style={styles.sugerenciaDireccion}>{s.direccion}</Text>
               </View>
             </TouchableOpacity>

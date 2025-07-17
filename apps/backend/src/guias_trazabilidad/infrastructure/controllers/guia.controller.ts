@@ -89,7 +89,13 @@ export class GuiaController {
 
     @Post('nuevoQR')
     async crearQR(@Body() crearQrDto: CrearQRDto) {
-        const command = new CrearQRCommand(crearQrDto.numeroDeRastreo);
+        const command = new CrearQRCommand(
+            crearQrDto.numeroDeRastreo,
+            crearQrDto.idSucursal,
+            crearQrDto.idRuta,
+            crearQrDto.estado,
+            crearQrDto.localizacion
+        );
 
         await this.commandBus.execute(command);
         return { message: 'qr crearo', status: 'ok' };

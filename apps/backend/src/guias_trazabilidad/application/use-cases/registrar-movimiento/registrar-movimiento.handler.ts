@@ -24,7 +24,7 @@ export class RegistrarMovimientoHandler
   async execute(command: RegistrarMovimientoCommand): Promise<any> {
     // 1. construir los VO
     // 1.1 construyendo desde el exterior el numero de rastreo
-    const numeroRastreoResult = NumeroDeRastreoVO.fromString(command.numeroGuia);
+    const numeroRastreoResult = NumeroDeRastreoVO.fromString(command.numeroDeRastreo);
     if (numeroRastreoResult.isFailure()) {
       throw new BadRequestException(numeroRastreoResult.getError());
     }

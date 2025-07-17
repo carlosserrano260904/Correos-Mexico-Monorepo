@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { OrdenDetalleDto } from './dto/orden-detalle.dto';
 import { Transaction } from 'src/transactions/entities/transaction.entity';
@@ -18,6 +18,7 @@ export class OrdenService {
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
 
+    @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
 

@@ -1,4 +1,4 @@
-import { Result } from './result/result';
+import { Result } from '../../utils/result';
 import { IdVO } from './value-objects/id.vo';
 import { SituacionVO } from './value-objects/situacion.vo';
 

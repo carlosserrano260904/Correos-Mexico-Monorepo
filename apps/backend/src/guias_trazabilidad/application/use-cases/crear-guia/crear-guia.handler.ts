@@ -1,16 +1,24 @@
-import { BadRequestException, Inject } from '@nestjs/common';
+import { BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import {
   GUIAREPOSITORYINTERFACE,
   GuiaRepositoryInterface,
 } from '../../ports/outbound/guia.repository.interface';
+import {
+  PDFGeneratorRepositoryInterface,
+  PDF_GENERATOR_REPOSITORY_INTERFACE
+} from '../../ports/outbound/pdf-generator.repository.interface';
+import {
+  QR_GENERATOR_REPOSITORY,
+  QRGeneratorRepositoryInterface
+} from '../../ports/outbound/qr-generator.repository.interface';
 import { CrearGuiaCommand } from './crear-guia.command';
 import { GuiaDomainEntity } from '../../../business-logic/guia.domain-entity-root';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { ContactoVO } from 'src/guias_trazabilidad/business-logic/value-objects/contacto.vo';
+import { ContactoVO } from '../../../business-logic/value-objects/contacto.vo';
 import { EmbalajeVO } from '../../../business-logic/value-objects/embalaje.vo';
 import { DireccionVO } from '../../../business-logic/value-objects/direccion.vo';
 import { ValorDeclaradoVO } from '../../../business-logic/value-objects/valorDeclarado.vo';
-import { TelefonoVO } from 'src/guias_trazabilidad/business-logic/value-objects/telefono.vo';
+import { TelefonoVO } from '../../../business-logic/value-objects/telefono.vo';
 
 @CommandHandler(CrearGuiaCommand)
 export class CrearGuiaCommandHandler
@@ -19,9 +27,13 @@ export class CrearGuiaCommandHandler
   constructor(
     @Inject(GUIAREPOSITORYINTERFACE)
     private readonly guiaRepository: GuiaRepositoryInterface,
+    @Inject(PDF_GENERATOR_REPOSITORY_INTERFACE)
+    private readonly pdfRepository: PDFGeneratorRepositoryInterface,
+    @Inject(QR_GENERATOR_REPOSITORY)
+    private readonly qrRepository: QRGeneratorRepositoryInterface
   ) {}
 
-  async execute(command: CrearGuiaCommand): Promise<void> {
+  async execute(command: CrearGuiaCommand): Promise<{ numeroRastreo: string; pdf: Buffer }> {
     // mapper
     const dirRemResult = DireccionVO.create({
       calle: command.remitente.direccion.calle,
@@ -42,7 +54,7 @@ export class CrearGuiaCommandHandler
 
     const telRemResult = TelefonoVO.create(command.remitente.telefono);
     if (telRemResult.isFailure()) {
-      throw new BadRequestException();
+      throw new BadRequestException(telRemResult.getError());
     }
     const telefonoRemitente = telRemResult.getValue();
 
@@ -118,5 +130,22 @@ export class CrearGuiaCommandHandler
 
     // persistencia
     await this.guiaRepository.save(guia);
+
+    // generar qr
+    const qr = guia.NumeroRastreo.getNumeroRastreo;
+    const qrResult = await this.qrRepository.generarQRComoDataURL({ numeroDeRastreo: qr });
+    if (qrResult.isFailure()) {
+      throw new InternalServerErrorException(`Error al intentar generar QR: ${qrResult.getError()}`)
+    }
+    // generar pdf
+    const pdfResult = await this.pdfRepository.generateGuiaPDF(guia, qrResult.getValue());
+    if (pdfResult.isFailure()) {
+      throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+    }
+
+    return {
+      numeroRastreo: qr,
+      pdf: pdfResult.getValue()
+    };
   }
 }

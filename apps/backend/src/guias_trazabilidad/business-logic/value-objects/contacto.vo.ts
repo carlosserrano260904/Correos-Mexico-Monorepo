@@ -1,4 +1,4 @@
-import { Result } from '../result/result';
+import { Result } from '../../../utils/result';
 import { DireccionVO } from './direccion.vo';
 import { IdVO } from './id.vo';
 import { TelefonoVO } from './telefono.vo';

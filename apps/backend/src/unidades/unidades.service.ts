@@ -3,7 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
 import { Unidad } from './entities/unidad.entity';
@@ -38,6 +38,8 @@ export class UnidadesService {
     private conductorRepo: Repository<Conductor>,
 
     private historialSvc: HistorialAsignacionesService,
+
+    @InjectDataSource()
     private dataSource: DataSource,
   ) {}
 

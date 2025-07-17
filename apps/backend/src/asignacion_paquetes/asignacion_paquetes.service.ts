@@ -10,9 +10,6 @@ export class AsignacionPaquetesService {
     private readonly asignacionRepo: Repository<AsignacionPaquetes>,
   ) {}
 
-  findAll() {
-    return this.asignacionRepo.find({ relations: ['idPaquete', 'idTransporte', 'idRuta'] });
-  }
 
   findOne(id: string) {
     return this.asignacionRepo.findOne({
@@ -20,21 +17,6 @@ export class AsignacionPaquetesService {
       relations: ['idPaquete', 'idTransporte', 'idRuta'],
     });
   }
-
-  async findPaquetesByTransporteAndRuta(idTransporte: string, idRuta: string) {
-  const asignaciones = await this.asignacionRepo.find({
-    where: {
-      idTransporte: { id: idTransporte },
-      idRuta: { id: idRuta },
-    },
-    relations: ['idPaquete'],
-  });
-
-  // Extrae solo los datos del paquete
-  return asignaciones
-    .filter(a => a.idPaquete) // asegurarse que existe el paquete
-    .map(a => a.idPaquete);
-}
 
   create(data: Partial<AsignacionPaquetes>) {
     const nuevaAsignacion = this.asignacionRepo.create(data);

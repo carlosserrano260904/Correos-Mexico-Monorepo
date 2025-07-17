@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Like } from '../../likes/entities/like.entity';
 
 @Entity()
 export class User {
@@ -23,7 +22,4 @@ export class User {
   @Column({ type: 'varchar', default: 'usuario' })
   @ApiProperty({ example: 'usuario' })
   rol: string;
-
-  @OneToMany(() => Like, (like: Like) => like.usuario)
-  likes: Like[];
 }

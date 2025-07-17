@@ -14,9 +14,7 @@ import { PostalService } from './postal/postal.service';
 import { GuiasTrazabilidadModule } from './guias_trazabilidad/infrastructure/guias_trazabilidad.module';
 import { PostalController } from './postal/postal.controller';
 import { UserModule } from './usuarios/user.module';
-import { LikesModule } from './likes/likes.module';
 import { AsignacionPaquetesModule } from './asignacion_paquetes/asignacion_paquetes.module'
-import { TransportesModule } from './transportes/transportes.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
 import { ConductoresModule } from './conductores/conductores.module';
@@ -51,9 +49,7 @@ import { Ubicaciones } from './ubicaciones/oficinas.module';
     UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,
-    LikesModule,
     AsignacionPaquetesModule,
-    TransportesModule,
     CarritoModule,
     FavoritosModule,
     ConductoresModule,

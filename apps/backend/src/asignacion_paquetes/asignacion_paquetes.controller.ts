@@ -8,12 +8,7 @@ import { AsignacionPaquetes } from './entities/asignacio_paquetes.entity';
 export class AsignacionPaquetesController {
   constructor(private readonly asignacionService: AsignacionPaquetesService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Obtener todas las asignaciones de paquetes' })
-  @ApiResponse({ status: 200, description: 'Lista de asignaciones', type: [AsignacionPaquetes] })
-  findAll(): Promise<AsignacionPaquetes[]> {
-    return this.asignacionService.findAll();
-  }
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una asignación por ID' })
@@ -24,17 +19,6 @@ export class AsignacionPaquetesController {
     return this.asignacionService.findOne(id);
   }
 
-  @Get('paquetes/:idTransporte/:idRuta')
-  @ApiOperation({ summary: 'Obtener paquetes por transporte y ruta' })
-  @ApiParam({ name: 'idTransporte', type: 'string', description: 'ID del transporte' })
-  @ApiParam({ name: 'idRuta', type: 'string', description: 'ID de la ruta' })
-  @ApiResponse({ status: 200, description: 'Lista de paquetes filtrados', type: [Object] })
-  getPaquetesByTransporteAndRuta(
-    @Param('idTransporte') idTransporte: string,
-    @Param('idRuta') idRuta: string,
-  ): Promise<any[]> {
-    return this.asignacionService.findPaquetesByTransporteAndRuta(idTransporte, idRuta);
-  }
 
   @Post()
   @ApiOperation({ summary: 'Crear una nueva asignación de paquete' })

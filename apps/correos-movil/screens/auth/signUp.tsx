@@ -107,6 +107,7 @@ export default function SignUpScreen() {
             setToken(data.token)
             console.log("token: ", data.token)
             
+            setLoading(false) // <-- Agrega esto aquí
             setPendingVerification(true)
         } catch (err) {
             console.error('Signup error:', JSON.stringify(err, null, 2))

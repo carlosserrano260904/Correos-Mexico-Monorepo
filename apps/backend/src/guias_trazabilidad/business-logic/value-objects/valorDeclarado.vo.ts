@@ -1,4 +1,4 @@
-import { Result } from "../result/result"
+import { Result } from "../../../utils/result"
 
 export class ValorDeclaradoVO {
     private constructor(private readonly valorDeclarado: number) { }

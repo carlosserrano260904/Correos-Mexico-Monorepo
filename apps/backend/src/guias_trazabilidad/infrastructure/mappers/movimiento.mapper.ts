@@ -1,7 +1,7 @@
-import { MovimientoDomainEntity } from "src/guias_trazabilidad/business-logic/movimiento.entity";
+import { MovimientoDomainEntity } from "../../business-logic/movimiento.entity";
 import { MovimientoGuiasTypeormEntity } from "../persistence/typeorm-entities/movimientos-guias.typeorm-entity";
-import { IdVO } from "src/guias_trazabilidad/business-logic/value-objects/id.vo";
-import { SituacionVO } from "src/guias_trazabilidad/business-logic/value-objects/situacion.vo";
+import { IdVO } from "../../business-logic/value-objects/id.vo";
+import { SituacionVO } from "../../business-logic/value-objects/situacion.vo";
 
 
 export class MovimientoMapper {

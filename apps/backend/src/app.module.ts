@@ -30,7 +30,7 @@ import { OficinasModule } from './oficinas/oficinas.module';
 import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ClerkModule } from './clerk/clerk.module';
-import { ShippingRateModule } from './shipping_rates/shipping_rates.module'; // Agregar esta línea
+import { ShippingRateModule } from './shipping_rates/shipping_rates.module';
 import { Ubicaciones } from './ubicaciones/oficinas.module';
 
 
@@ -57,8 +57,8 @@ import { Ubicaciones } from './ubicaciones/oficinas.module';
     CarritoModule,
     FavoritosModule,
     ConductoresModule,
-    UnidadesModule,
-    OrdenModule,
+    UnidadesModule, 
+    OrdenModule,  
     HistorialAsignacionesModule,
     PaquetesModule,
     AuthModule,

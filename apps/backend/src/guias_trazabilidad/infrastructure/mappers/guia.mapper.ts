@@ -1,10 +1,10 @@
-import { GuiaDomainEntity } from 'src/guias_trazabilidad/business-logic/guia.domain-entity-root';
+import { GuiaDomainEntity } from '../../business-logic/guia.domain-entity-root';
 import { GuiaTypeormEntity } from '../persistence/typeorm-entities/guia.typeorm-entity';
-import { IdVO } from 'src/guias_trazabilidad/business-logic/value-objects/id.vo';
-import { NumeroDeRastreoVO } from 'src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo';
-import { SituacionVO } from 'src/guias_trazabilidad/business-logic/value-objects/situacion.vo';
-import { EmbalajeVO } from 'src/guias_trazabilidad/business-logic/value-objects/embalaje.vo';
-import { ValorDeclaradoVO } from 'src/guias_trazabilidad/business-logic/value-objects/valorDeclarado.vo';
+import { IdVO } from '../../business-logic/value-objects/id.vo';
+import { NumeroDeRastreoVO } from '../../business-logic/value-objects/numeroRastreo.vo';
+import { SituacionVO } from '../../business-logic/value-objects/situacion.vo';
+import { EmbalajeVO } from '../../business-logic/value-objects/embalaje.vo';
+import { ValorDeclaradoVO } from '../../business-logic/value-objects/valorDeclarado.vo';
 import { ContactosTypeormEntity } from '../persistence/typeorm-entities/contactos.typeorm-entity';
 import { MovimientoGuiasTypeormEntity } from '../persistence/typeorm-entities/movimientos-guias.typeorm-entity';
 import { ContactoMapper } from './contacto.mapper';
@@ -64,5 +64,21 @@ export class GuiaMapper {
         ? MovimientoMapper.toDomain(movimientoOrmEntity)
         : undefined,
     });
+  }
+
+  static toPdfPayload(guiaDomainEntity: GuiaDomainEntity) {
+    const pdfPayload = {
+      numeroRastreo: guiaDomainEntity.NumeroRastreo.getNumeroRastreo,
+      remitente: ContactoMapper.toPdfPayload(guiaDomainEntity.Remitente),
+      destinatario: ContactoMapper.toPdfPayload(guiaDomainEntity.Destinatario),
+      embalaje: {
+        alto: guiaDomainEntity.Embalaje.getAltoCm.toString(),
+        ancho: guiaDomainEntity.Embalaje.getAnchoCm.toString(),
+        largo: guiaDomainEntity.Embalaje.getLargoCm.toString(),
+        peso: guiaDomainEntity.Embalaje.getPeso.toString()
+      },
+      valorDeclarado: guiaDomainEntity.ValorDeclarado.getValorDeclarado
+    }
+    return pdfPayload;
   }
 }

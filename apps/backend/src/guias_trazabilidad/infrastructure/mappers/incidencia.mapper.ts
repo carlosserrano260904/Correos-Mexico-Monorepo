@@ -1,7 +1,7 @@
-import { IncidenciaDomainEntity } from "src/guias_trazabilidad/business-logic/incidencias.entity";
+import { IncidenciaDomainEntity } from "../../business-logic/incidencias.entity";
 import { IncidenciasTypeormEntity } from "../persistence/typeorm-entities/incidencias.typeorm-entity";
-import { IdVO } from "src/guias_trazabilidad/business-logic/value-objects/id.vo";
-import { TipoIncidenciaVO } from "src/guias_trazabilidad/business-logic/value-objects/tipoIncidencia.vo";
+import { IdVO } from "../../business-logic/value-objects/id.vo";
+import { TipoIncidenciaVO } from "../../business-logic/value-objects/tipoIncidencia.vo";
 
 export class IncidenciaMapper {
     // domain -> orm

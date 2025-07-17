@@ -1,5 +1,5 @@
-import { GuiaDomainEntity } from 'src/guias_trazabilidad/business-logic/guia.domain-entity-root';
-import { NumeroDeRastreoVO } from 'src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo';
+import { GuiaDomainEntity } from '../../../business-logic/guia.domain-entity-root';
+import { NumeroDeRastreoVO } from '../../../business-logic/value-objects/numeroRastreo.vo';
 
 export const GUIAREPOSITORYINTERFACE = Symbol('GuiaRepositoryInterface');
 

@@ -2,7 +2,7 @@ import { IsInt } from 'class-validator';
 
 export class CreateFavoritoDto {
   @IsInt()
-  usuarioId: number;
+  profileId: number;
 
   @IsInt()
   productId: number;

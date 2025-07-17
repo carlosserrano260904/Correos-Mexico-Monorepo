@@ -55,7 +55,7 @@ export class PedidosService {
 
     // 2. Insertar el pedido con el total calculado
     const pedidoRes = await this.pool.query(
-      `INSERT INTO pedidos (profileid, total, status, fecha)
+      `INSERT INTO pedido (profileid, total, status, fecha)
      VALUES ($1, $2, $3, NOW()) RETURNING id`,
       [profileid, total, status]
     );
@@ -65,7 +65,7 @@ export class PedidosService {
     // 3. Insertar productos asociados con precio congelado
     for (const item of detalles) {
       await this.pool.query(
-        `INSERT INTO pedido_productos (pedido_id, producto_id, cantidad, precio)
+        `INSERT INTO pedido_producto(pedido_id, producto_id, cantidad, precio)
        VALUES ($1, $2, $3, $4)`,
         [pedidoId, item.producto_id, item.cantidad, item.precio]
       );
@@ -83,16 +83,7 @@ export class PedidosService {
 
   async findAll() {
     const result = await this.pool.query(`
-      SELECT 
-        p.id, p.fecha, p.status, p.total, p.profileid,
-        json_agg(json_build_object(
-          'producto_id', pp.producto_id,
-          'cantidad', pp.cantidad
-        )) AS productos
-      FROM pedidos p
-      LEFT JOIN pedido_productos pp ON pp.pedido_id = p.id
-      GROUP BY p.id
-      ORDER BY p.fecha DESC
+      SELECT * FROM pedido
     `);
     return result.rows;
   }
@@ -100,13 +91,13 @@ export class PedidosService {
   async findOne(id: number) {
     const result = await this.pool.query(`
       SELECT 
-        p.id, p.fecha, p.status, p.total, p.profileid,
+        p.id, p."fecha", p."status", p."total", p."profileId",
         json_agg(json_build_object(
-          'producto_id', pp.producto_id,
+          'productoId', pp."productoId",
           'cantidad', pp.cantidad
         )) AS productos
-      FROM pedidos p
-      LEFT JOIN pedido_productos pp ON pp.pedido_id = p.id
+      FROM pedido p
+      LEFT JOIN pedido_producto pp ON pp."pedidoId" = p.id
       WHERE p.id = $1
       GROUP BY p.id
     `, [id]);
@@ -124,7 +115,7 @@ export class PedidosService {
   //}
 
   async remove(id: number) {
-    await this.pool.query(`DELETE FROM pedido_productos WHERE pedido_id = $1`, [id]);
+    await this.pool.query(`DELETE FROM pedido_producto WHERE pedido_id = $1`, [id]);
     const result = await this.pool.query(`DELETE FROM pedidos WHERE id = $1 RETURNING *`, [id]);
     return result.rows[0] ?? { message: 'No se pudo eliminar el pedido' };
   }
@@ -135,12 +126,12 @@ export class PedidosService {
       SELECT 
         p.id, p.fecha, p.status, p.total,
         json_agg(json_build_object(
-          'producto_id', pp.producto_id,
+          'productoId', pp."productoId",
           'cantidad', pp.cantidad
         )) AS productos
-      FROM pedidos p
-      JOIN pedido_productos pp ON pp.pedido_id = p.id
-      WHERE p.profileid = $1
+      FROM pedido p
+      JOIN pedido_producto pp ON pp."pedidoId" = p.id
+      WHERE p."profileId" = $1
       GROUP BY p.id
       ORDER BY p.fecha DESC
     `, [profileid]);

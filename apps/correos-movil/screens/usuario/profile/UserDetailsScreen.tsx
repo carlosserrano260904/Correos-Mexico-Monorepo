@@ -20,6 +20,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { actualizarUsuarioPorId, uploadAvatar } from '../../../api/profile';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PINK = '#E6007E';
 
@@ -72,11 +73,15 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
 
   const handleSave = async () => {
     try {
+      const storedId = await AsyncStorage.getItem('userId');
       if (isEditing && userData.imagen !== user.imagen) {
-        const remoteUrl = await uploadAvatar(userData.imagen, idUser);
-        userData.imagen = remoteUrl;
+        if(storedId){
+          const remoteUrl = await uploadAvatar(userData.imagen, +storedId);
+          userData.imagen = remoteUrl;
+        }
       }
-      const usuario = await actualizarUsuarioPorId(userData, idUser);
+      if(storedId){
+      const usuario = await actualizarUsuarioPorId(userData, +storedId);
       if (usuario?.ok) {
         Alert.alert('Éxito', 'Perfil actualizado', [
           { text: 'OK', onPress: () => navigation.goBack() },
@@ -84,6 +89,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       } else {
         Alert.alert('Error', 'No se pudo actualizar tu perfil.');
       }
+       }
     } catch (err) {
       console.error(err);
     }
@@ -418,3 +424,4 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
 });
+//prueba

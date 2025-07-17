@@ -12,6 +12,9 @@ import { firstValueFrom } from 'rxjs';
 import { ShippingRate } from './entities/shipping_rate.entity';
 import { Zone } from './entities/zone.entity';
 import { InternationalCountry } from './entities/international-country.entity';
+import { InternationalTariff } from './entities/international-tariff.entity';
+
+
 
 
 import {
@@ -34,7 +37,52 @@ export class ShippingRateService {
 
     @InjectRepository(InternationalCountry)
     private countryRepository: Repository<InternationalCountry>,
-  ) {}
+
+    @InjectRepository(InternationalCountry)
+    private internationalCountryRepository: Repository<InternationalCountry>, // ← ESTA LÍNEA
+
+    @InjectRepository(InternationalTariff)
+    private readonly tariffRepository: Repository<InternationalTariff>,
+  ) { }
+
+  async getInternationalTariff(paisDestino: string, peso: number) {
+    const country = await this.internationalCountryRepository.findOne({
+      where: { name: paisDestino },
+      relations: ['zone'],
+    });
+
+    if (!country || !country.zone) {
+      throw new NotFoundException('País o zona no encontrada');
+    }
+
+    const tarifa = await this.tariffRepository.findOne({
+      where: {
+        zone: { id: country.zone.id },
+        max_kg: MoreThanOrEqual(peso),
+      },
+      order: { max_kg: 'ASC' },
+    });
+
+    if (!tarifa) {
+      throw new NotFoundException('No se encontró tarifa para ese peso');
+    }
+
+    const excedente = peso - tarifa.max_kg;
+    const adicional = excedente > 0 && tarifa.additional_per_kg ? excedente * tarifa.additional_per_kg : 0;
+    const subtotal = tarifa.base_price + adicional;
+    const iva = subtotal * (tarifa.iva_percent / 100);
+    const total = subtotal + iva;
+
+    return {
+      zona: country.zone.code,
+      descripcionZona: country.zone.description,
+      peso,
+      precioBase: tarifa.base_price,
+      adicional: +adicional.toFixed(2),
+      iva: +iva.toFixed(2),
+      total: +total.toFixed(2),
+    };
+  }
 
   async create(createShippingRateDto: CreateShippingRateDto): Promise<ShippingRateResponseDto> {
     const shippingRate = this.shippingRateRepository.create(createShippingRateDto);
@@ -191,6 +239,65 @@ export class ShippingRateService {
       },
     };
   }
+  async getAllInternationalCountries() {
+    return await this.countryRepository.find({
+      order: {
+        name: 'ASC',
+      },
+    });
+  }
+
+  async getInternationalTariffByVolumetric(payload: {
+    paisDestino: string;
+    peso: number;
+    largo: number;
+    ancho: number;
+    alto: number;
+  }) {
+    const { paisDestino, peso, largo, ancho, alto } = payload;
+
+    const country = await this.internationalCountryRepository.findOne({
+      where: { name: paisDestino },
+      relations: ['zone'],
+    });
+
+    if (!country || !country.zone) {
+      throw new NotFoundException('País o zona no encontrada');
+    }
+
+    const pesoVol = +(largo * alto * ancho / 5000).toFixed(2);
+    const pesoFacturable = Math.max(peso, pesoVol);
+
+    const tarifa = await this.tariffRepository.findOne({
+      where: {
+        zone: { id: country.zone.id },
+        max_kg: MoreThanOrEqual(pesoFacturable), // corregido
+      },
+      order: { max_kg: 'ASC' }, // corregido
+    });
+
+    if (!tarifa) {
+      throw new NotFoundException('No se encontró tarifa para ese peso');
+    }
+
+    const adicional = 0;
+    const subtotal = tarifa.base_price + adicional; // corregido
+    const iva = +(subtotal * (tarifa.iva_percent / 100)).toFixed(2); // corregido
+    const total = +(subtotal + iva).toFixed(2);
+
+    return {
+      zona: country.zone.code,
+      descripcionZona: country.zone.description,
+      pesoFisico: peso,
+      pesoVolumetrico: pesoVol,
+      pesoCobrado: pesoFacturable,
+      precioBase: tarifa.base_price,
+      iva,
+      total,
+    };
+  }
+
+
 
   // servicio de paises
   async findCountryInfo(paisDestino: string) {

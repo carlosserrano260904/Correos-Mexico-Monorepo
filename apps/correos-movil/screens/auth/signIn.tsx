@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants';
+import { useMyAuth } from '../../context/AuthContext';
 
 export const useWarmUpBrowser = () => {
     useEffect(() => {
@@ -33,61 +34,34 @@ export default function SignInScreen() {
     const clerk = useClerk()
     const { signIn, setActive, isLoaded } = useSignIn()
     const navigation = useNavigation<NavigationProp>();
-    
+    const { setIsAuthenticated, reloadUserData } = useMyAuth()
     // Estados para el formulario
     const [emailAddress, setEmailAddress] = useState('')
     const [password, setPassword] = useState('')
 
-    // Obtener IP desde configuración
-    const IP = Constants.expoConfig?.extra?.IP_LOCAL;
-    const API_URL = `http://${IP}:3000`;
 
     // Handle the submission of the sign-in form
     const onSignInPress = React.useCallback(async () => {
-        if (!isLoaded) return
+       
 
-        // Start the sign-in process using the email and password provided
-        try {
-            const signInAttempt = await signIn.create({
-                identifier: emailAddress,
-                password,
-            })
-
-            // If sign-in process is complete, set the created session as active
-            // and redirect the user
-            if (signInAttempt.status === 'complete') {
-                await setActive({ session: signInAttempt.createdSessionId })
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo: emailAddress, contrasena: password }),
+        })
                 
-                const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ correo: emailAddress, contrasena: password }),
-                })
-                
-                if (!res.ok) {
-                    const errorText = await res.text()
-                    throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
-                }
-                
-                const data = await res.json()
-                console.log(data)
-                await AsyncStorage.setItem('token', data.token)
-                await AsyncStorage.setItem('userId', data.userId.toString())
-                
-                // Cambiar de router.replace('/') a navigation - se manejará automáticamente por Clerk
-                console.log('Login successful')
-            } else {
-                // If the status is not complete, check why. User may need to
-                // complete further steps.
-                console.error('Signin not complete:', JSON.stringify(signInAttempt, null, 2))
-            }
-        } catch (err) {
-            console.error('Signin error:', err);
-console.error('Mensaje:', err?.message);
-console.error('Stack:', err?.stack);
-
+        if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
         }
-    }, [isLoaded, emailAddress, password])
+                
+        const data = await res.json()
+        console.log(data)
+        await AsyncStorage.setItem('token', data.token)
+        await reloadUserData()
+        setIsAuthenticated(true)
+               
+    }, [emailAddress, password])
 
     const handleOAuthPress = useCallback(async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
         console.log(`Starting OAuth flow for: ${strategy}`);
@@ -138,9 +112,9 @@ console.error('Stack:', err?.stack);
                 console.warn(`${strategy} - No session created`);
             }
         } catch (err) {
-            console.error(`OAuth ${strategy} error:`, err);
+            console.error(`OAuth ${strategy} error:`, err)
         }
-    }, [clerk])
+    }, [])
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>

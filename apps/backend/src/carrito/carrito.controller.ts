@@ -7,16 +7,16 @@ import { CarritoService } from './carrito.service';
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
 
-  @Get(':usuarioId')
-  obtener(@Param('usuarioId') usuarioId: number) {
-    return this.carritoService.obtenerCarrito(usuarioId);
+  @Get(':profileId')
+  obtener(@Param('profileId') profileId: number) {
+    return this.carritoService.obtenerCarrito(profileId);
   }
 
   @Post()
   agregarProducto(
-    @Body() body: { usuarioId: number; productId: number; cantidad: number },
+    @Body() body: { profileId: number; productId: number; cantidad: number },
   ) {
-    return this.carritoService.agregarProducto(body.usuarioId, body.productId, body.cantidad);
+    return this.carritoService.agregarProducto(body.profileId, body.productId, body.cantidad);
   }
 
   @Patch(':id')
@@ -32,13 +32,13 @@ export class CarritoController {
     return this.carritoService.eliminarDelCarrito(id);
   }
 
-  @Get(':usuarioId/subtotal')
-  calcularSubtotal(@Param('usuarioId') usuarioId: number) {
-    return this.carritoService.subtotal(usuarioId);
+  @Get(':profileId/subtotal')
+  calcularSubtotal(@Param('profileId') profileId: number) {
+    return this.carritoService.subtotal(profileId);
   }
 
-  @Get(':usuarioId/proceder')
-  procederAlPago(@Param('usuarioId') usuarioId: number) {
-    return this.carritoService.procederAlPago(usuarioId);
+  @Get(':profileId/proceder')
+  procederAlPago(@Param('profileId') profileId: number) {
+    return this.carritoService.procederAlPago(profileId);
   }
 }

@@ -23,7 +23,9 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-
+import { InternationalCountry } from './entities/international-country.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 
 @Controller('shipping-rates')
@@ -31,7 +33,7 @@ export class ShippingRateController {
   constructor(
     private readonly shippingRateService: ShippingRateService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -52,6 +54,22 @@ export class ShippingRateController {
   @Get()
   async findAll(): Promise<ShippingRateResponseDto[]> {
     return this.shippingRateService.findAll();
+  }
+  @Post('consultar-pais')
+  async consultarPais(@Body() body: any) {
+    const { paisDestino } = body;
+
+    if (!paisDestino) {
+      throw new BadRequestException('El país destino es obligatorio');
+    }
+
+    return await this.shippingRateService.findCountryInfo(paisDestino);
+  }
+
+
+  @Get('paises-internacionales')
+  async getInternationalCountries() {
+    return this.shippingRateService.getAllInternationalCountries();
   }
 
   @Get(':id')
@@ -157,7 +175,7 @@ export class ShippingRateController {
     const largoUsado = largo || 1;
     const pesoVolumetrico = (largoUsado * alto * ancho) / 6000;
     const pesoParaCobro = Math.max(peso, pesoVolumetrico);
-    
+
 
     const datosDistancia = await this.shippingRateService.getDatosZonaYDistancia(
       codigoOrigen,
@@ -194,20 +212,53 @@ export class ShippingRateController {
       mensaje: 'El total incluye 16% de IVA',
     };
   }
-
-  //Busqueda de Pais
-  @Post('consultar-pais')
-  async consultarPais(@Body() body: any) {
-    const { paisDestino } = body;
-
-    if (!paisDestino) {
-      throw new BadRequestException('El país destino es obligatorio');
+  @Post('cotizar-internacional')
+  async cotizarInternacional(@Body() body: {
+    paisDestino: string;
+    peso: number;
+    largo: number;
+    ancho: number;
+    alto: number;
+  }) {
+    if (!body.paisDestino || !body.peso || !body.largo || !body.ancho || !body.alto) {
+      throw new BadRequestException('Faltan parámetros obligatorios');
     }
 
-    return await this.shippingRateService.findCountryInfo(paisDestino);
+    return await this.shippingRateService.getInternationalTariffByVolumetric(body);
   }
 
-  
+
+
+  @Post('tarifa-internacional')
+  async getTarifaInternacional(
+    @Body() body: { paisDestino: string; peso: number },
+  ) {
+    const { paisDestino, peso } = body;
+
+    if (!paisDestino || !peso || peso <= 0) {
+      throw new BadRequestException('Debes enviar un país destino y un peso válido');
+    }
+
+    try {
+      const resultado = await this.shippingRateService.getInternationalTariff(
+        paisDestino,
+        peso,
+      );
+      return resultado;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('❌ Error en la consulta de tarifa internacional:', error.message);
+      throw new BadRequestException('No se pudo calcular la tarifa internacional');
+    }
+  }
+
+
+  //Busqueda de Pais
+
+
+
 
   // (Opcional) Agrega aquí otros endpoints si defines búsqueda por zona, service, etc.
 }

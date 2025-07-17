@@ -1,4 +1,4 @@
-import { Result } from '../result/result';
+import { Result } from '../../../utils/result';
 
 export class NumeroDeRastreoVO {
   private constructor(private readonly numeroRastreo: string) { }

@@ -15,26 +15,29 @@ import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
-import { useClerk, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useMyAuth } from '../../../context/AuthContext';
+import { useUser } from '@clerk/clerk-expo';
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { logout,userId } = useMyAuth();
+  const userIdType = typeof userId;
+  console.log('userIdType', userIdType);
+  console.log('userId', userId);
+  const { user } = useUser(); // TODO: Verificar si es necesario
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {
     if (!isFocused) return;
     (async () => {
   try {
-    const storedId = await AsyncStorage.getItem('userId');
-    if (storedId) {
-      const perfil = await usuarioPorId(parseInt(storedId));
+    if (userId) {
+      const perfil = await usuarioPorId(parseInt(userId));
       setUsuario(perfil);
     } else {
       console.warn('No se encontró userId en AsyncStorage');
@@ -48,8 +51,7 @@ export default function ProfileUser() {
 
   const handleSignOut = async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      await signOut();
+      await logout();
       console.log('Logout successful');
     } catch (err) {
       console.error('Logout error:', JSON.stringify(err, null, 2));

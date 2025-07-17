@@ -1,15 +1,16 @@
-import { Result } from 'src/guias_trazabilidad/business-logic/result/result';
-import { RegistrarMovimientoCommand } from './registrar-movimiento.command';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BadRequestException, Inject, NotFoundException } from '@nestjs/common';
+
+import { Result } from 'src/utils/result';
+import { RegistrarMovimientoCommand } from './registrar-movimiento.command';
 import {
   GuiaRepositoryInterface,
   GUIAREPOSITORYINTERFACE,
 } from '../../ports/outbound/guia.repository.interface';
-import { BadRequestException, Inject, NotFoundException } from '@nestjs/common';
-import { NumeroDeRastreoVO } from 'src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo';
-import { MovimientoDomainEntity } from 'src/guias_trazabilidad/business-logic/movimiento.entity';
-import { SituacionVO } from 'src/guias_trazabilidad/business-logic/value-objects/situacion.vo';
-import { Situacion } from 'src/guias_trazabilidad/business-logic/value-objects/situacion.vo';
+import { NumeroDeRastreoVO } from '../../../business-logic/value-objects/numeroRastreo.vo';
+import { MovimientoDomainEntity } from '../../../business-logic/movimiento.entity';
+import { SituacionVO } from '../../../business-logic/value-objects/situacion.vo';
+import { Situacion } from '../../../business-logic/value-objects/situacion.vo';
 
 @CommandHandler(RegistrarMovimientoCommand)
 export class RegistrarMovimientoHandler
@@ -23,7 +24,7 @@ export class RegistrarMovimientoHandler
   async execute(command: RegistrarMovimientoCommand): Promise<any> {
     // 1. construir los VO
     // 1.1 construyendo desde el exterior el numero de rastreo
-    const numeroRastreoResult = NumeroDeRastreoVO.fromString(command.numeroGuia);
+    const numeroRastreoResult = NumeroDeRastreoVO.fromString(command.numeroDeRastreo);
     if (numeroRastreoResult.isFailure()) {
       throw new BadRequestException(numeroRastreoResult.getError());
     }

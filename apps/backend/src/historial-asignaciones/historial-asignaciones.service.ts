@@ -22,7 +22,7 @@ export class HistorialAsignacionesService {
       curp: curp.toUpperCase(),
       placasUnidad,
       rutaSalida: oficinaSalida,  // Asignar oficina de salida
-      rutaDestino: oficinaDestino // Asignar zona de destino
+      claveOficinaDestino: oficinaDestino // Asignar CUO de destino
     });
     return this.historialRepository.save(nuevaAsignacion);
   }

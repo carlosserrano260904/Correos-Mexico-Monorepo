@@ -17,8 +17,8 @@ export class HistorialAsignacion {
   @Column({ name: 'oficina_salida', length: 5})
   rutaSalida: string;
 
-  @Column({ name: 'oficina_destino', type: 'varchar', length: 5, nullable: true })
-  rutaDestino: string | null;
+  @Column({ name: 'clave_cuo_destino', length: 10 }) // Longitud ajustada para CUO
+  claveOficinaDestino: string
 
   @Column({ name: 'fecha_asignacion', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fechaAsignacion: Date;

@@ -19,6 +19,10 @@ import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
 
 import { HistorialAsignacionesService } from '../historial-asignaciones/historial-asignaciones.service';
 
+import * as QRCode from 'qrcode';
+import * as fs from 'fs';
+import * as path from 'path';
+
 @Injectable()
 export class UnidadesService {
   constructor(
@@ -262,5 +266,38 @@ export class UnidadesService {
       claveOficina: u.oficina.clave_oficina_postal,
       estado: u.estado,
     };
+  }
+
+  async generarQRsDeUnidades(): Promise<{ id: string; qr: string; filePath: string }[]> {
+    const unidades = await this.unidadRepo.find();
+
+    // Ruta absoluta a la carpeta "qrs" dentro del módulo "transportes"
+    const outputDir = path.join(__dirname, 'qrs');
+
+    // Crear la carpeta si no existe
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
+
+    const resultados = await Promise.all(
+      unidades.map(async (unidad) => {
+        const nombreSanitizado = unidad.id; // evita caracteres inválidos
+        const filePath = path.join(outputDir, `${nombreSanitizado}.png`);
+
+        // Guardar QR en archivo PNG
+        await QRCode.toFile(filePath, unidad.id.toString());
+
+        // También generar el QR como base64 para devolverlo en la respuesta
+        const qr = await QRCode.toDataURL(unidad.id.toString());
+
+        return {
+          id: unidad.id.toString(),
+          qr,
+          filePath,
+        };
+      }),
+    );
+
+    return resultados;
   }
 }

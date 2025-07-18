@@ -64,4 +64,9 @@ export class UnidadesController {
   ): Promise<OficinaTipoVehiculoDto> {
     return this.unidadesService.getTiposVehiculoPorOficina(clave);
   }
+
+  @Get('qrs/all')
+  generarQrs() {
+    return this.unidadesService.generarQRsDeUnidades();
+  }
 }

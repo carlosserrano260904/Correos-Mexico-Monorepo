@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -14,6 +15,7 @@ import { Conductor } from '../conductores/entities/conductor.entity';
 
 import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { AssignConductorDto } from './dto/assign-conductor.dto';
+import { AssignZonaDto } from './dto/assign-zona.dto';
 import { UnidadResponseDto } from './dto/unidad-response.dto';
 import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
 
@@ -54,11 +56,12 @@ export class UnidadesService {
     return all.map(u => this.mapToResponse(u));
   }
 
-  async findByOficina(
-    claveOficina: number,
-  ): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
+  async findByOficina(claveOficina: number): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
     const list = await this.unidadRepo.find({
-      where: { oficina: { clave_oficina_postal: claveOficina }, estado: 'disponible' },
+      where: {
+        oficina: { clave_oficina_postal: claveOficina },
+        estado: 'disponible',
+      },
       relations: ['tipoVehiculo', 'oficina', 'conductor'],
     });
     return list.map(u => {
@@ -77,37 +80,27 @@ export class UnidadesService {
         where: { clave_oficina_postal: dto.claveOficina },
       });
       if (!oficina) {
-        throw new NotFoundException(
-          `Oficina con clave ${dto.claveOficina} no encontrada`,
-        );
+        throw new NotFoundException(`Oficina con clave ${dto.claveOficina} no encontrada`);
       }
 
-      // Permiso de tipo: usar relaciones en where
       const permiso = await this.tipoOficinaRepo.findOne({
         where: {
           tipoOficina: oficina.tipo_cuo,
-          tipoVehiculo: {
-            tipoVehiculo: dto.tipoVehiculo,
-          },
+          tipoVehiculo: { tipoVehiculo: dto.tipoVehiculo },
         },
         relations: ['tipoVehiculo'],
       });
       if (!permiso) {
-        throw new ConflictException(
-          `Tipo de vehículo no permitido para oficina tipo ${oficina.tipo_cuo}`,
-        );
+        throw new ConflictException(`Tipo de vehículo no permitido para oficina tipo ${oficina.tipo_cuo}`);
       }
 
       const tv = await this.tipoVehiculoRepo.findOne({
         where: { tipoVehiculo: dto.tipoVehiculo },
       });
       if (!tv) {
-        throw new NotFoundException(
-          `Tipo de vehículo ${dto.tipoVehiculo} no encontrado`,
-        );
+        throw new NotFoundException(`Tipo de vehículo ${dto.tipoVehiculo} no encontrado`);
       }
 
-      // Crear unidad: omitir conductor para usar default 'S/C'
       const nueva = this.unidadRepo.create({
         tipoVehiculo: tv,
         placas: dto.placas,
@@ -117,10 +110,10 @@ export class UnidadesService {
         tarjetaCirculacion: dto.tarjetaCirculacion,
         fechaAlta: new Date(),
         estado: 'disponible',
-        oficina: oficina,
+        oficina,
       });
 
-      const saved = (await qr.manager.save(nueva)) as Unidad;
+      const saved = await qr.manager.save(nueva);
       await qr.commitTransaction();
       return this.mapToResponse(saved);
     } catch (err) {
@@ -131,10 +124,7 @@ export class UnidadesService {
     }
   }
 
-  async assignConductor(
-    placas: string,
-    dto: AssignConductorDto,
-  ): Promise<UnidadResponseDto> {
+  async assignConductor(placas: string, dto: AssignConductorDto): Promise<UnidadResponseDto> {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -144,26 +134,18 @@ export class UnidadesService {
         where: { placas },
         relations: ['oficina', 'conductor', 'tipoVehiculo'],
       });
-      if (!unidad) {
-        throw new NotFoundException(
-          `Unidad con placas ${placas} no encontrada`,
-        );
-      }
+      if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
 
-      // Desasignar
+      // Desasignar conductor
       if (dto.curpConductor === 'S/C') {
         if (unidad.conductor) {
-          await this.historialSvc.finalizarAsignacion(
-            unidad.conductor.curp,
-            placas,
-          );
+          await this.historialSvc.finalizarAsignacion(unidad.conductor.curp, placas);
           unidad.conductor.disponibilidad = true;
           await qr.manager.save(unidad.conductor);
         }
-        // dejar curp 'S/C' por defecto
         (unidad as any).conductor = undefined;
         unidad.estado = 'disponible';
-        const upd = (await qr.manager.save(unidad)) as Unidad;
+        const upd = await qr.manager.save(unidad);
         await qr.commitTransaction();
         return this.mapToResponse(upd);
       }
@@ -176,21 +158,14 @@ export class UnidadesService {
         relations: ['oficina'],
       });
       if (!conductor) {
-        throw new NotFoundException(
-          `Conductor ${dto.curpConductor} no encontrado en oficina ${unidad.oficina.clave_oficina_postal}`,
-        );
+        throw new NotFoundException(`Conductor ${dto.curpConductor} no encontrado en oficina ${unidad.oficina.clave_oficina_postal}`);
       }
       if (!conductor.disponibilidad || !conductor.licenciaVigente) {
-        throw new ConflictException(
-          `Conductor no disponible o licencia no vigente`,
-        );
+        throw new ConflictException('Conductor no disponible o licencia no vigente');
       }
 
       if (unidad.conductor) {
-        await this.historialSvc.finalizarAsignacion(
-          unidad.conductor.curp,
-          placas,
-        );
+        await this.historialSvc.finalizarAsignacion(unidad.conductor.curp, placas);
         unidad.conductor.disponibilidad = true;
         await qr.manager.save(unidad.conductor);
       }
@@ -199,14 +174,15 @@ export class UnidadesService {
         conductor.nombreCompleto,
         conductor.curp,
         placas,
+        unidad.oficina.clave_cuo,
+        unidad.zonaAsignada,
       );
       conductor.disponibilidad = false;
       await qr.manager.save(conductor);
 
       unidad.conductor = conductor;
       unidad.estado = 'no disponible';
-      const upd = (await qr.manager.save(unidad)) as Unidad;
-
+      const upd = await qr.manager.save(unidad);
       await qr.commitTransaction();
       return this.mapToResponse(upd);
     } catch (err) {
@@ -217,23 +193,50 @@ export class UnidadesService {
     }
   }
 
-  async getTiposVehiculoPorOficina(
-    claveOficina: number,
-  ): Promise<OficinaTipoVehiculoDto> {
-    const oficina = await this.oficinaRepo.findOne({
-      where: { clave_oficina_postal: claveOficina },
+  async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
+    const unidad = await this.unidadRepo.findOne({
+      where: { placas },
+      relations: ['tipoVehiculo', 'oficina', 'conductor'],
     });
+    if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+
+    const oficinaOrigen = unidad.oficina;
+    if (!oficinaOrigen) throw new NotFoundException('Oficina no asignada a la unidad');
+
+    if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
+      throw new BadRequestException('No puedes asignar la unidad a su misma oficina de origen');
+    }
+
+    const oficinaDestino = await this.oficinaRepo.findOne({ where: { clave_cuo: dto.claveCuoDestino } });
+    if (!oficinaDestino) throw new NotFoundException(`Oficina con clave ${dto.claveCuoDestino} no encontrada`);
+
+    const esValida = await this.validarRutaValida(oficinaOrigen.clave_cuo, oficinaDestino.clave_cuo);
+    if (!esValida) {
+      throw new BadRequestException(`La ruta desde ${oficinaOrigen.clave_cuo} a ${oficinaDestino.clave_cuo} no está permitida`);
+    }
+
+    unidad.zonaAsignada = oficinaDestino.clave_cuo;
+    const updatedUnidad = await this.unidadRepo.save(unidad);
+    return this.mapToResponse(updatedUnidad);
+  }
+
+  private async validarRutaValida(claveOrigen: string, claveDestino: string): Promise<boolean> {
+    const oficinasHijas = await this.oficinaRepo.find({
+      where: { codigo_postal_zona: claveOrigen },
+    });
+    return oficinasHijas.some(oficina => oficina.clave_cuo === claveDestino);
+  }
+
+  async getTiposVehiculoPorOficina(claveOficina: number): Promise<OficinaTipoVehiculoDto> {
+    const oficina = await this.oficinaRepo.findOne({ where: { clave_oficina_postal: claveOficina } });
     if (!oficina) {
-      throw new NotFoundException(
-        `Oficina con clave ${claveOficina} no encontrada`,
-      );
+      throw new NotFoundException(`Oficina con clave ${claveOficina} no encontrada`);
     }
 
     const list = await this.tipoOficinaRepo.find({
       where: { tipoOficina: oficina.tipo_cuo },
       relations: ['tipoVehiculo'],
     });
-
 
     if (list.length === 0) {
       return {
@@ -253,6 +256,27 @@ export class UnidadesService {
     };
   }
 
+  async generarQRsDeUnidades(): Promise<{ id: string; qr: string; filePath: string }[]> {
+    const unidades = await this.unidadRepo.find();
+    const outputDir = path.join(__dirname, 'qrs');
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
+
+    const resultados = await Promise.all(
+      unidades.map(async (unidad) => {
+        const filePath = path.join(outputDir, `${unidad.id}.png`);
+        await QRCode.toFile(filePath, unidad.id.toString());
+        const qr = await QRCode.toDataURL(unidad.id.toString());
+
+        return { id: unidad.id.toString(), qr, filePath };
+      }),
+    );
+
+    return resultados;
+  }
+
   private mapToResponse(u: Unidad): UnidadResponseDto {
     return {
       tipoVehiculo: u.tipoVehiculo.tipoVehiculo,
@@ -265,39 +289,7 @@ export class UnidadesService {
       conductor: u.conductor ? u.conductor.curp : 'S/C',
       claveOficina: u.oficina.clave_oficina_postal,
       estado: u.estado,
+      zonaAsignada: u.zonaAsignada,
     };
-  }
-
-  async generarQRsDeUnidades(): Promise<{ id: string; qr: string; filePath: string }[]> {
-    const unidades = await this.unidadRepo.find();
-
-    // Ruta absoluta a la carpeta "qrs" dentro del módulo "transportes"
-    const outputDir = path.join(__dirname, 'qrs');
-
-    // Crear la carpeta si no existe
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir);
-    }
-
-    const resultados = await Promise.all(
-      unidades.map(async (unidad) => {
-        const nombreSanitizado = unidad.id; // evita caracteres inválidos
-        const filePath = path.join(outputDir, `${nombreSanitizado}.png`);
-
-        // Guardar QR en archivo PNG
-        await QRCode.toFile(filePath, unidad.id.toString());
-
-        // También generar el QR como base64 para devolverlo en la respuesta
-        const qr = await QRCode.toDataURL(unidad.id.toString());
-
-        return {
-          id: unidad.id.toString(),
-          qr,
-          filePath,
-        };
-      }),
-    );
-
-    return resultados;
   }
 }

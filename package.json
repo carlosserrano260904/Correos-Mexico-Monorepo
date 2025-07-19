@@ -55,7 +55,7 @@
     "lucide-react": "^0.525.0",
     "lucide-react-native": "^0.515.0",
     "nodemailer": "^7.0.3",
-    "pg": "^8.16.0",
+    "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "react": "19.0.0",
     "react-native": "0.79.5",
@@ -77,7 +77,7 @@
     "rxjs": "^7.8.1",
     "streamifier": "^0.1.1",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.24",
+    "typeorm": "^0.3.25",
     "zod": "^3.25.64"
   },
   "overrides": {

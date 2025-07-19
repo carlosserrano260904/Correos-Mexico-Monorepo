@@ -14,6 +14,12 @@ export class HistorialAsignacion {
   @Column({ name: 'placas_unidad', length: 20 })
   placasUnidad: string;
 
+  @Column({ name: 'oficina_salida', length: 5})
+  claveOficinaSalida: string;
+
+  @Column({ name: 'clave_cuo_destino', length: 10 }) // Longitud ajustada para CUO
+  claveOficinaDestino: string;
+
   @Column({ name: 'fecha_asignacion', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fechaAsignacion: Date;
 

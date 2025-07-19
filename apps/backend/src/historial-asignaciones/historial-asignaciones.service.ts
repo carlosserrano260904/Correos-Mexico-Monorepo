@@ -11,18 +11,20 @@ export class HistorialAsignacionesService {
   ) {}
 
   async registrarAsignacion(
-    nombreConductor: string,
-    curp: string,
-    placasUnidad: string,
+      nombreConductor: string,
+      curp: string,
+      placasUnidad: string,
+      oficinaSalida: string,
+      claveCuoDestino: string // Ahora recibe directamente la clave CUO
   ): Promise<HistorialAsignacion> {
-    const nuevaAsignacion = this.historialRepository.create({
-      // Use the correct property names as defined in your entity
-      // If 'nombreConductor' exists in the entity, keep it; otherwise, remove or rename as needed
-      nombreConductor,
-      curp: curp.toUpperCase(), // Asegurar mayúsculas
-      placasUnidad,
-    });
-    return this.historialRepository.save(nuevaAsignacion);
+      const nuevaAsignacion = this.historialRepository.create({
+          nombreConductor,
+          curp: curp.toUpperCase(),
+          placasUnidad,
+          claveOficinaSalida: oficinaSalida,
+          claveOficinaDestino: claveCuoDestino // Directamente la clave CUO
+      });
+      return this.historialRepository.save(nuevaAsignacion);
   }
 
   async finalizarAsignacion(

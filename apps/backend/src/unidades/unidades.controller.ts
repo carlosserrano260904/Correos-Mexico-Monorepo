@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   ParseIntPipe,
+  Put,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -16,6 +17,7 @@ import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { AssignConductorDto } from './dto/assign-conductor.dto';
 import { UnidadResponseDto } from './dto/unidad-response.dto';
 import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
+import { AssignZonaDto } from './dto/assign-zona.dto';
 
 @ApiTags('Unidades')
 @Controller('unidades')
@@ -47,7 +49,7 @@ export class UnidadesController {
   }
 
   @Patch(':placas/asignar')
-  @ApiOperation({ summary: 'Asignar/desasignar conductor' })
+  @ApiOperation({ summary: 'Asignar o desasignar conductor' })
   @ApiResponse({ status: 200, type: UnidadResponseDto })
   async assignConductor(
     @Param('placas') placas: string,
@@ -56,8 +58,18 @@ export class UnidadesController {
     return this.unidadesService.assignConductor(placas, dto);
   }
 
+  @Put(':placas/asignar-zona')
+  @ApiOperation({ summary: 'Asignar zona (clave CUO de destino)' })
+  @ApiResponse({ status: 200, type: UnidadResponseDto })
+  async assignZona(
+    @Param('placas') placas: string,
+    @Body() dto: AssignZonaDto,
+  ): Promise<UnidadResponseDto> {
+    return this.unidadesService.assignZona(placas, dto);
+  }
+
   @Get('tipos-vehiculo/:clave')
-  @ApiOperation({ summary: 'Tipos de vehículo permitidos por oficina' })
+  @ApiOperation({ summary: 'Consultar tipos de vehículo permitidos en oficina' })
   @ApiResponse({ status: 200, type: OficinaTipoVehiculoDto })
   async getTiposVehiculo(
     @Param('clave', ParseIntPipe) clave: number,
@@ -66,6 +78,11 @@ export class UnidadesController {
   }
 
   @Get('qrs/all')
+  @ApiOperation({ summary: 'Generar QR de todas las unidades (base64 y archivo)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de objetos con id, base64 del QR y ruta del archivo PNG',
+  })
   generarQrs() {
     return this.unidadesService.generarQRsDeUnidades();
   }

@@ -18,7 +18,7 @@ export default function MisPedidosScreen() {
         <Text style={styles.title}>Pedido #{pedido.id}</Text>
       </View>
 
-      {Array.isArray(pedido.productos) &&
+      {Array.isArray(pedido.productos) && pedido.productos.length > 0 ? (
         pedido.productos
           .filter((prod) => prod && prod.producto_id != null && prod.cantidad != null)
           .map((prod, index) => (
@@ -30,7 +30,10 @@ export default function MisPedidosScreen() {
                 <Text style={styles.productPrice}>MXN {pedido.total}</Text>
               </View>
             </View>
-          ))}
+          ))
+      ) : (
+        <Text style={styles.productDetails}>No hay detalles de productos para este pedido.</Text>
+      )}
 
 
       <View style={styles.details}>

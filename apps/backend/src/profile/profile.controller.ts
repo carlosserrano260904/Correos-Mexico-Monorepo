@@ -10,7 +10,7 @@ import { memoryStorage } from 'multer';
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService,
-    private readonly uploadImageService: UploadImageService
+    private readonly uploadImageService: UploadImageService 
   ) {}
 
   @Post()

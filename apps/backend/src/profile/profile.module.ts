@@ -6,7 +6,7 @@ import { Profile } from './entities/profile.entity';
 import { UploadImageModule } from 'src/upload-image/upload-image.module'; 
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Profile]),UploadImageModule],
+  imports: [TypeOrmModule.forFeature([Profile]), UploadImageModule],
   controllers: [ProfileController],
   providers: [ProfileService],
 })

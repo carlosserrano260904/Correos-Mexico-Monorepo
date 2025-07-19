@@ -33,6 +33,7 @@ import ListaPedidosScreen from '../screens/usuario/Mispedidos/ListaPedidosScreen
 import tarifador from '../screens/usuario/tarifador/tarifador';
 import chat_bot from '../screens/usuario/chat-bot/chat_bot';
 import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
+import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 
 
 
@@ -75,6 +76,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Tarifador" component={tarifador} options={{headerShown: false}} />
             <Stack.Screen name="ChatBot" component={chat_bot} options={{headerShown: false}} />
             <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{headerShown: false}} />
+            <Stack.Screen name="Correo-mex" component={Correomex} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

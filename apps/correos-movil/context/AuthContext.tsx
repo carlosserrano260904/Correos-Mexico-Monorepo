@@ -10,7 +10,8 @@ type AuthContextType = {
     setIsAuthenticated: (value: boolean) => void;
     setUserInfo: (info: { userId: string, userRol: string }) => void;
     logout: () => Promise<void>;
-};
+    reloadUserData: () => Promise<void>;
+    };
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
     setIsAuthenticated: () => { },
     setUserInfo: () => { },
     logout: async () => { },
+    reloadUserData: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -27,26 +29,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [userRol, setUserRol] = useState<string | null>(null);
 
     // Cargar token al iniciar la app
-    useEffect(() => {
-        const loadUserData = async () => {
-            try {
-                const token = await AsyncStorage.getItem('token');
-                console.log('token: ', token);
-                if (token) {
-                    const userInfo = await getUserInfoFromToken();
-                    if (userInfo) {
-                        setUserId(userInfo.profileId);
-                        setUserRol(userInfo.rol);
-                        console.log('userInfo: ', userInfo);
-                        setIsAuthenticated(true);
-                    }
+
+    const loadUserData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token')
+
+            console.log('token: ', token);
+            if (token) {
+                const userInfo = await getUserInfoFromToken();
+                if (userInfo) {
+                    setUserId(userInfo.profileId);
+                    setUserRol(userInfo.rol);
+                    console.log('hola');
+                    console.log('userInfo: ', userInfo);
+                    setIsAuthenticated(true);
                 }
-            } catch (error) {
-                console.error('Error loading user data:', error);
             }
-        };
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    };
+    useEffect(() => {
         loadUserData();
     }, []);
+
+    const reloadUserData = async () => {
+        await loadUserData();
+    };
+
 
     const setUserInfo = (info: { userId: string, userRol: string }) => {
         setUserId(info.userId);
@@ -62,7 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, userId, userRol, setIsAuthenticated, setUserInfo, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, userId, userRol, setIsAuthenticated, setUserInfo, logout, reloadUserData }}>
             {children}
         </AuthContext.Provider>
     );

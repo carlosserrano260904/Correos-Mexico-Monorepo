@@ -34,7 +34,7 @@ export default function SignInScreen() {
     const clerk = useClerk()
     const { signIn, setActive, isLoaded } = useSignIn()
     const navigation = useNavigation<NavigationProp>();
-    const { setIsAuthenticated } = useMyAuth()
+    const { setIsAuthenticated, reloadUserData } = useMyAuth()
     // Estados para el formulario
     const [emailAddress, setEmailAddress] = useState('')
     const [password, setPassword] = useState('')
@@ -58,6 +58,7 @@ export default function SignInScreen() {
         const data = await res.json()
         console.log(data)
         await AsyncStorage.setItem('token', data.token)
+        await reloadUserData()
         setIsAuthenticated(true)
                
     }, [emailAddress, password])
@@ -111,7 +112,7 @@ export default function SignInScreen() {
                 console.warn(`${strategy} - No session created`);
             }
         } catch (err) {
-            console.error(`OAuth ${strategy} error:`, err);
+            console.error(`OAuth ${strategy} error:`, err)
         }
     }, [])
 

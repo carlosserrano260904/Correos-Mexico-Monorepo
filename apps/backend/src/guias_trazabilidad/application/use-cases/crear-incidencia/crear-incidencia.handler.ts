@@ -1,11 +1,11 @@
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { CrearIncidenciaCommand } from "./crear-incidencia.command";
-import { IncidenciaDomainEntity } from "src/guias_trazabilidad/business-logic/incidencias.entity";
-import { TipoIncidenciaVO } from "src/guias_trazabilidad/business-logic/value-objects/tipoIncidencia.vo";
-import { Incidencias } from "src/guias_trazabilidad/business-logic/value-objects/tipoIncidencia.vo";
+import { IncidenciaDomainEntity } from "../../../business-logic/incidencias.entity";
+import { TipoIncidenciaVO } from "../../../business-logic/value-objects/tipoIncidencia.vo";
+import { Incidencias } from "../../../business-logic/value-objects/tipoIncidencia.vo";
 import { BadRequestException, Inject, NotFoundException } from "@nestjs/common";
-import { GuiaRepositoryInterface, GUIAREPOSITORYINTERFACE } from "src/guias_trazabilidad/application/ports/outbound/guia.repository.interface";
-import { NumeroDeRastreoVO } from "src/guias_trazabilidad/business-logic/value-objects/numeroRastreo.vo";
+import { GuiaRepositoryInterface, GUIAREPOSITORYINTERFACE } from "../../ports/outbound/guia.repository.interface";
+import { NumeroDeRastreoVO } from "../../../business-logic/value-objects/numeroRastreo.vo";
 
 @CommandHandler(CrearIncidenciaCommand)
 export class CrearIncidenciaHandler implements ICommandHandler<CrearIncidenciaCommand> {

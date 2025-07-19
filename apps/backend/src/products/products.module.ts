@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { UploadImageModule } from 'src/upload-image/upload-image.module'; 
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Product]),UploadImageModule],
+  imports: [TypeOrmModule.forFeature([Product]), UploadImageModule], 
   controllers: [ProductsController],
   providers: [ProductsService],
 })

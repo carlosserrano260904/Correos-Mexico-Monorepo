@@ -372,7 +372,11 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     return (
       <TouchableOpacity
         style={styles.packageItem}
-        onPress={() => navigation?.navigate('PackageScreen', { package: item })}
+        onPress={() => {
+        if (item.estatus !== 'Entregado') {
+          navigation?.navigate('PackageScreen', { package: item });
+        }
+      }}
       >
         <View style={styles.packageHeader}>
           <View style={styles.packageIconContainer}>

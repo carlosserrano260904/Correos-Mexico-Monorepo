@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeUser from '../../screens/usuario/HomePage/HomeUser';
 import ProfileUser from '../../screens/usuario/profile/ProfileUser';
-import tarifador from '../../screens/usuario/tarifador/tarifador';
+import Correomex from '../../screens/usuario/correos-mex-page/correos-principal';
 import { Home, User, Package } from "lucide-react-native";
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
@@ -23,7 +23,7 @@ const HomeTabs = () => {
           };
 
           if (route.name === 'HomeUser') return <Home {...iconProps} />;
-          else if (route.name === 'Tarifador') return <Package {...iconProps} />;
+          else if (route.name === 'Correo-mex') return <Package {...iconProps} />;
           else if (route.name === 'Perfil') return <User {...iconProps} />;
 
           return null;
@@ -33,7 +33,7 @@ const HomeTabs = () => {
         tabBarStyle: styles.tabBarStyle,
       })}
     >
-      <Tab.Screen name="Tarifador" component={tarifador} />
+      <Tab.Screen name="Correo-mex" component={Correomex} />
       <Tab.Screen name="HomeUser" component={HomeUser} />
       <Tab.Screen name="Perfil" component={ProfileUser} />
       

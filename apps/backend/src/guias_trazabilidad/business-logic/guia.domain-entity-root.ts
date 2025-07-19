@@ -1,11 +1,6 @@
-import { ContactoVO } from './value-objects/contacto.vo';
-import { SituacionVO } from './value-objects/situacion.vo';
-import { EmbalajeVO } from './value-objects/embalaje.vo';
-import { IdVO } from './value-objects/id.vo';
-import { ValorDeclaradoVO } from './value-objects/valorDeclarado.vo';
 import { MovimientoDomainEntity } from './movimiento.entity';
-import { NumeroDeRastreoVO } from './value-objects/numeroRastreo.vo';
 import { IncidenciaDomainEntity } from './incidencias.entity';
+import { ContactoVO, SituacionVO, EmbalajeVO, IdVO, ValorDeclaradoVO, NumeroDeRastreoVO } from './value-objects'
 
 /**
  * Tipos para constructor

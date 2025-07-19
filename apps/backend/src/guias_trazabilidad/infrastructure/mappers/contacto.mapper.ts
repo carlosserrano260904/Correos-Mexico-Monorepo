@@ -1,8 +1,8 @@
-import { ContactoVO } from 'src/guias_trazabilidad/business-logic/value-objects/contacto.vo';
+import { ContactoVO } from '../../business-logic/value-objects/contacto.vo';
 import { ContactosTypeormEntity } from '../persistence/typeorm-entities/contactos.typeorm-entity';
-import { DireccionVO } from 'src/guias_trazabilidad/business-logic/value-objects/direccion.vo';
-import { IdVO } from 'src/guias_trazabilidad/business-logic/value-objects/id.vo';
-import { TelefonoVO } from 'src/guias_trazabilidad/business-logic/value-objects/telefono.vo';
+import { DireccionVO } from '../../business-logic/value-objects/direccion.vo';
+import { IdVO } from '../../business-logic/value-objects/id.vo';
+import { TelefonoVO } from '../../business-logic/value-objects/telefono.vo';
 
 export class ContactoMapper {
   static toOrm(contacto: ContactoVO): ContactosTypeormEntity {
@@ -45,5 +45,25 @@ export class ContactoMapper {
         numeroInterior: contactoOrmEntity.numero_interior ?? undefined,
       }),
     });
+  }
+
+  static toPdfPayload(contactoVO: ContactoVO) {
+    return {
+      nombres: contactoVO.getNombres,
+      apellidos: contactoVO.getApellidos,
+      TelefonoVO: contactoVO.getTelefono.getNumero,
+      direccion: {
+        calle: contactoVO.getDireccion.getCalle,
+        numero: contactoVO.getDireccion.getNumero,
+        numeroInterior: contactoVO.getDireccion.getNumeroInterior ?? "",
+        ciudad: contactoVO.getDireccion.getCiudad,
+        pais: contactoVO.getDireccion.getPais,
+        codigoPostal: contactoVO.getDireccion.getCodigoPostal,
+        estado: contactoVO.getDireccion.getEstado,
+        municipioDelegacion: contactoVO.getDireccion.getMunicipioDelegacion,
+        asentamiento: contactoVO.getDireccion.getAsentamiento ?? "",
+        referencia: contactoVO.getDireccion.getReferencia ?? ""
+      }
+    }
   }
 }

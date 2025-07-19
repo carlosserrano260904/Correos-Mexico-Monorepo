@@ -3,7 +3,7 @@ import { MisPedidosSchemaDB, MisPedidosType } from "../schemas/schemas";
 
 
 export async function obtenerMisPedidos(id: number): Promise<MisPedidosType[]> {
-  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/api/pedidos/user/${id}`;
+  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/api/pedido/user/${id}`;
   const res = await fetch(url);
 
   if (!res.ok) {

@@ -20,12 +20,12 @@ interface Package {
   cp: string;
 }
 
-export default function RoutesMapView({ 
-  userLocation, 
-  destination, 
-  optimizedIntermediates, 
-  routePoints, 
-  packages 
+export default function RoutesMapView({
+  userLocation,
+  destination,
+  optimizedIntermediates,
+  routePoints,
+  packages
 }: {
   userLocation: LatLng | null;
   destination: LatLng;
@@ -83,23 +83,35 @@ export default function RoutesMapView({
   };
 
   // Verificar si todos los paquetes fueron entregados
-  const allPackagesDelivered = packages.every(pkg => 
+  const allPackagesDelivered = packages.every(pkg =>
     pkg.estatus.toLowerCase() === 'entregado' || pkg.estatus.toLowerCase() === 'fallido'
   );
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView 
-        style={StyleSheet.absoluteFillObject} 
-        initialRegion={mapRegion} 
-        showsUserLocation={true} 
+      <MapView
+        style={StyleSheet.absoluteFillObject}
+        initialRegion={mapRegion}
+        showsUserLocation={true}
         showsMyLocationButton={true}
       >
         {/* Marcador de destino - más grande si todos los paquetes fueron entregados */}
-        <Marker 
-          coordinate={destination} 
-          title="Destino"
-        />
+        <Marker coordinate={destination} title="Destino">
+          <View
+            style={[
+              styles.destinationMarker,
+              allPackagesDelivered
+                ? styles.destinationMarkerLarge
+                : styles.destinationMarkerSmall,
+            ]}
+          >
+            <FontAwesome
+              name="flag"
+              size={allPackagesDelivered ? 24 : 14}
+              color="white"
+            />
+          </View>
+        </Marker>
 
         {/* Marcadores para paquetes optimizados */}
         {optimizedIntermediates.map((point, index) => {
@@ -109,47 +121,47 @@ export default function RoutesMapView({
           const statusIcon = getStatusIcon(status);
 
           return (
-<Marker
-  key={`opt-${index}`}
-  coordinate={point}
-  title={packageItem ? `SKU: ${packageItem.sku}` : `Punto ${index + 1}`}
-  description={packageItem ? `Estado: ${packageItem.estatus}` : ''}
->
-  <View
-    style={[
-      styles.numberMarker,
-      {
-        backgroundColor:
-          packageItem?.estatus === 'Entregado'
-            ? 'green'
-            : packageItem?.estatus === 'fallido'
-            ? 'red'
-            : 'orange',
-        borderColor: '#fff',
-      },
-    ]}
-  >
-    {packageItem?.estatus === 'Entregado' ? (
-      <View style={styles.iconContainer}>
-        <FontAwesome name="check" size={16} color="white" />
-      </View>
-    ) : packageItem?.estatus === 'fallido' ? (
-      <View style={styles.iconContainer}>
-        <FontAwesome name="times" size={16} color="white" />
-      </View>
-    ) : (
-      <Text style={styles.numberText}>{index + 1}</Text>
-    )}
-  </View>
-</Marker>
+            <Marker
+              key={`opt-${index}`}
+              coordinate={point}
+              title={packageItem ? `SKU: ${packageItem.sku}` : `Punto ${index + 1}`}
+              description={packageItem ? `Estado: ${packageItem.estatus}` : ''}
+            >
+              <View
+                style={[
+                  styles.numberMarker,
+                  {
+                    backgroundColor:
+                      packageItem?.estatus === 'Entregado'
+                        ? 'green'
+                        : packageItem?.estatus === 'fallido'
+                          ? 'red'
+                          : 'orange',
+                    borderColor: '#fff',
+                  },
+                ]}
+              >
+                {packageItem?.estatus === 'Entregado' ? (
+                  <View style={styles.iconContainer}>
+                    <FontAwesome name="check" size={16} color="white" />
+                  </View>
+                ) : packageItem?.estatus === 'fallido' ? (
+                  <View style={styles.iconContainer}>
+                    <FontAwesome name="times" size={16} color="white" />
+                  </View>
+                ) : (
+                  <Text style={styles.numberText}>{index + 1}</Text>
+                )}
+              </View>
+            </Marker>
           );
         })}
 
         {/* Línea de ruta - siempre visible */}
         {routePoints.length > 0 && (
-          <Polyline 
-            coordinates={routePoints} 
-            strokeWidth={5} 
+          <Polyline
+            coordinates={routePoints}
+            strokeWidth={5}
             strokeColor="#DE1484"
             strokePattern={allPackagesDelivered ? [10, 10] : undefined}
           />
@@ -160,21 +172,35 @@ export default function RoutesMapView({
 }
 
 const styles = StyleSheet.create({
-numberMarker: {
-  backgroundColor: 'orange', // color por defecto
-  borderRadius: 20,
-  padding: 6,
-  borderWidth: 2,
-  borderColor: '#fff',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-numberText: {
-  color: 'white',
-  fontWeight: 'bold',
-},
-iconContainer: {
-  alignItems: 'center',
-  justifyContent: 'center',
-},
+  numberMarker: {
+    backgroundColor: 'orange',
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  numberText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+    destinationMarker: {
+    borderWidth: 2,
+    borderColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  destinationMarkerSmall: {
+    padding: 6,
+    borderRadius: 14,
+  },
+  destinationMarkerLarge: {
+    padding: 12,
+    borderRadius: 24,
+  },
 });

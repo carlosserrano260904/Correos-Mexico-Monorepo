@@ -3,13 +3,13 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from 'src/upload-image/upload-image.service'; 
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService,
-    private readonly uploadImageService: UploadImageService
+    private readonly uploadImageService: UploadImageService 
   ) {}
 
   @Post()

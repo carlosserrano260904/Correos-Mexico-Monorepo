@@ -1,4 +1,4 @@
-import { Result } from '../result/result';
+import { Result } from '../../../utils/result';
 
 const situaciones = [
   'Creado',

@@ -69,5 +69,5 @@ export class CreateConductorDto {
   })
   @IsNotEmpty()
   @IsString()
-  claveUnicaOficina: string;
+  claveOficina: string;
 }

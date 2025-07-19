@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SucursalTipoVehiculoDto {
-  @ApiProperty({ example: '20041' })
-  claveOficina: number;
+  @ApiProperty({ example: '00304' })
+  claveOficina: string;
 
   @ApiProperty({ example: 'Miravalle Aguascalientes, Ags.' })
   nombreOficina: string;

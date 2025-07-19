@@ -64,8 +64,8 @@ export class CreateConductorDto {
   correo: string;
 
   @ApiProperty({
-    example: 21101,
-    description: 'Clave de la oficina asignada'
+    example: '00304',
+    description: 'Clave unica de la oficina asignada'
   })
   @IsNotEmpty()
   @IsString()

@@ -11,6 +11,7 @@ import { ConductoresService } from './conductores.service';
 import { ConductorResponseDto } from './dto/conductor-response.dto';
 import { CreateConductorDto } from './dto/create-conductor.dto';
 import { UpdateDisponibilidadDto } from './dto/update-disponibilidad.dto';
+import { UpdateLicenciaVigenteDto } from './dto/update-licencia-vigente.dto';
 
 @Controller('conductores')
 export class ConductoresController {
@@ -31,11 +32,18 @@ export class ConductoresController {
     return this.conductoresService.create(createConductorDto);
   }
 
-  @Patch(':id/disponibilidad')
+  @Patch(':CURP/disponibilidad')
   async updateDisponibilidad(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('CURP') curp: string,
     @Body() updateDisponibilidadDto: UpdateDisponibilidadDto,
   ) {
-    return this.conductoresService.updateDisponibilidad(id, updateDisponibilidadDto);
+    return this.conductoresService.updateDisponibilidad(curp, updateDisponibilidadDto);
+  }
+  @Patch(':CURP/licencia-vigente')
+  async updateLicenciaVigente(
+    @Param('CURP') curp: string,
+    @Body() dto: UpdateLicenciaVigenteDto,
+  ) {
+    return this.conductoresService.updateLicenciaVigente(curp, dto);
   }
 }

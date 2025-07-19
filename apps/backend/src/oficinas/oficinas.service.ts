@@ -53,10 +53,10 @@ export class OficinasService {
     return oficina;
   }
 
-  findCodigoPostalZona( clave_oficina_postal: number) {
+  findClaveUnicaZona( clave_oficina_postal: number) {
     return this.oficinaRepo.find({
       where: { clave_oficina_postal: clave_oficina_postal },
-      select: ['codigo_postal_zona'],
+      select: ['clave_unica_zona'],
     });
   }
 

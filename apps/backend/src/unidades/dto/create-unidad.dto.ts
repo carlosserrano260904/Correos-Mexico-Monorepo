@@ -27,10 +27,10 @@ export class CreateUnidadDto {
   @IsPositive()
   numLlantas: number;
 
-  @ApiProperty({ example: '20041' })
-  @IsNumber()
+  @ApiProperty({ example: '00304' })
+  @IsString()
   @IsNotEmpty()
-  claveOficina: number;
+  claveOficina: string;
 
   @ApiProperty({ example: 'TC-10001' })
   @IsString()

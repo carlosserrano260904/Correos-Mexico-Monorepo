@@ -5,6 +5,7 @@ import { Conductor } from './entities/conductor.entity';
 import { ConductorResponseDto } from './dto/conductor-response.dto';
 import { CreateConductorDto } from './dto/create-conductor.dto';
 import { UpdateDisponibilidadDto } from './dto/update-disponibilidad.dto';
+import { UpdateLicenciaVigenteDto } from './dto/update-licencia-vigente.dto';
 
 @Injectable()
 export class ConductoresService {
@@ -35,9 +36,9 @@ export class ConductoresService {
     return conductores.map(this.mapToResponseDto);
   }
 
-  async findBySucursal(claveOficina: string): Promise<ConductorResponseDto[]> {
+  async findBySucursal(claveUnicaOficina: string): Promise<ConductorResponseDto[]> {
     const conductores = await this.conductorRepository.find({
-      where: { oficina: { clave_cuo: claveOficina } },
+      where: { oficina: { clave_cuo: claveUnicaOficina } },
       relations: ['oficina'],
       order: { disponibilidad: 'DESC' },
     });
@@ -56,15 +57,27 @@ export class ConductoresService {
   }
 
   async updateDisponibilidad(
-    id: number,
+  curp: string,
     updateDisponibilidadDto: UpdateDisponibilidadDto,
   ): Promise<Conductor> {
-    const conductor = await this.conductorRepository.findOne({ where: { id } });
+    const conductor = await this.conductorRepository.findOne({ where: { curp } });
     if (!conductor) {
-      throw new NotFoundException(`Conductor con ID ${id} no encontrado`);
+      throw new NotFoundException(`Conductor con CURP ${curp} no encontrado`);
     }
 
     conductor.disponibilidad = updateDisponibilidadDto.disponibilidad;
+    return this.conductorRepository.save(conductor);
+  }
+  async updateLicenciaVigente(
+  curp: string,
+  dto: UpdateLicenciaVigenteDto,
+  ): Promise<Conductor> {
+    const conductor = await this.conductorRepository.findOne({ where: { curp } });
+    if (!conductor) {
+      throw new NotFoundException(`Conductor con CURP ${curp} no encontrado`);
+    }
+
+    conductor.licenciaVigente = dto.licenciaVigente;
     return this.conductorRepository.save(conductor);
   }
 }

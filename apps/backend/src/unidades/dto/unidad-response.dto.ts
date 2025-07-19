@@ -25,12 +25,12 @@ export class UnidadResponseDto {
   @ApiProperty({ example: 'PEGJ800101HDFRRN01' })
   conductor: string;
   
-  @ApiProperty({ example: '20041' })
-  claveOficina: number;
+  @ApiProperty({ example: '00304' })
+  claveOficina: string;
   
   @ApiProperty({ example: 'disponible' })
   estado: string;
 
-  @ApiProperty({ example: '20000', required: false })
+  @ApiProperty({ example: '00304', required: false })
   zonaAsignada?: string;
 }

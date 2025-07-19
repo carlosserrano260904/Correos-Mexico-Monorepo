@@ -56,10 +56,10 @@ export class UnidadesService {
     return all.map(u => this.mapToResponse(u));
   }
 
-  async findByOficina(claveOficina: number): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
+  async findByOficina(claveOficina: string): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
     const list = await this.unidadRepo.find({
       where: {
-        oficina: { clave_oficina_postal: claveOficina },
+        oficina: { clave_cuo: claveOficina },
         estado: 'disponible',
       },
       relations: ['tipoVehiculo', 'oficina', 'conductor'],
@@ -77,7 +77,7 @@ export class UnidadesService {
 
     try {
       const oficina = await this.oficinaRepo.findOne({
-        where: { clave_oficina_postal: dto.claveOficina },
+        where: { clave_cuo: dto.claveOficina },
       });
       if (!oficina) {
         throw new NotFoundException(`Oficina con clave ${dto.claveOficina} no encontrada`);
@@ -194,41 +194,66 @@ export class UnidadesService {
   }
 
   async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
-    const unidad = await this.unidadRepo.findOne({
-      where: { placas },
-      relations: ['tipoVehiculo', 'oficina', 'conductor'],
-    });
-    if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+      // 1. Buscar unidad con todas las relaciones necesarias
+      const unidad = await this.unidadRepo.findOne({
+          where: { placas },
+          relations: ['oficina', 'tipoVehiculo', 'conductor']
+      });
+      
+      if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+      if (!unidad.oficina) throw new BadRequestException(`La unidad no tiene oficina asignada`);
 
-    const oficinaOrigen = unidad.oficina;
-    if (!oficinaOrigen) throw new NotFoundException('Oficina no asignada a la unidad');
+      const oficinaOrigen = unidad.oficina;
 
-    if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
-      throw new BadRequestException('No puedes asignar la unidad a su misma oficina de origen');
-    }
+      // 2. Validar no auto-asignación
+      if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
+          throw new BadRequestException(`No puedes asignar la unidad a su misma oficina de origen`);
+      }
 
-    const oficinaDestino = await this.oficinaRepo.findOne({ where: { clave_cuo: dto.claveCuoDestino } });
-    if (!oficinaDestino) throw new NotFoundException(`Oficina con clave ${dto.claveCuoDestino} no encontrada`);
+      // 3. Buscar oficina destino
+      const oficinaDestino = await this.oficinaRepo.findOne({ 
+          where: { clave_cuo: dto.claveCuoDestino } 
+      });
+      if (!oficinaDestino) throw new NotFoundException(`Oficina destino no encontrada`);
 
-    const esValida = await this.validarRutaValida(oficinaOrigen.clave_cuo, oficinaDestino.clave_cuo);
-    if (!esValida) {
-      throw new BadRequestException(`La ruta desde ${oficinaOrigen.clave_cuo} a ${oficinaDestino.clave_cuo} no está permitida`);
-    }
+      // 4. Validación bidireccional
+      const esRutaValida = await this.validarRutaBidireccional(
+          oficinaOrigen.clave_cuo,
+          oficinaDestino.clave_cuo
+      );
 
-    unidad.zonaAsignada = oficinaDestino.clave_cuo;
-    const updatedUnidad = await this.unidadRepo.save(unidad);
-    return this.mapToResponse(updatedUnidad);
+      if (!esRutaValida) {
+          const destinosPermitidos = await this.getOficinasDestinoValidas(placas);
+          throw new BadRequestException(
+              `Ruta no permitida. Destinos válidos para ${oficinaOrigen.clave_cuo}: ` +
+              destinosPermitidos.map(o => o.clave_cuo).join(', ')
+          );
+      }
+
+      // 5. Actualizar y devolver respuesta
+      unidad.zonaAsignada = oficinaDestino.clave_cuo;
+      await this.unidadRepo.save(unidad);
+      return this.mapToResponse(unidad);
   }
+    private async validarRutaBidireccional(claveOrigen: string, claveDestino: string): Promise<boolean> {
+      // Caso 1: Relación directa (origen -> destino)
+      const oficinaOrigen = await this.oficinaRepo.findOne({ where: { clave_cuo: claveOrigen } });
+      const oficinaDestino = await this.oficinaRepo.findOne({ where: { clave_cuo: claveDestino } });
 
-  private async validarRutaValida(claveOrigen: string, claveDestino: string): Promise<boolean> {
-    const oficinasHijas = await this.oficinaRepo.find({
-      where: { codigo_postal_zona: claveOrigen },
-    });
-    return oficinasHijas.some(oficina => oficina.clave_cuo === claveDestino);
+      if (!oficinaOrigen || !oficinaDestino) return false;
+
+      // 1. Validar si el destino tiene como clave_unica_zona al origen
+      const esDestinoValido = oficinaDestino.clave_unica_zona === claveOrigen;
+      
+      // 2. Validar si el origen tiene como clave_unica_zona al destino
+      const esOrigenValido = oficinaOrigen.clave_unica_zona === claveDestino;
+
+      // Ruta válida si cumple cualquiera de las dos condiciones
+      return esDestinoValido || esOrigenValido;
   }
-
-  async getTiposVehiculoPorOficina(claveOficina: number): Promise<OficinaTipoVehiculoDto> {
-    const oficina = await this.oficinaRepo.findOne({ where: { clave_oficina_postal: claveOficina } });
+  
+  async getTiposVehiculoPorOficina(claveOficina: string): Promise<OficinaTipoVehiculoDto> {
+    const oficina = await this.oficinaRepo.findOne({ where: { clave_cuo: claveOficina } });
     if (!oficina) {
       throw new NotFoundException(`Oficina con clave ${claveOficina} no encontrada`);
     }
@@ -254,6 +279,30 @@ export class UnidadesService {
       tipo: oficina.tipo_cuo,
       tiposVehiculo: list.map(t => t.tipoVehiculo.tipoVehiculo),
     };
+  }
+async getOficinasDestinoValidas(placas: string) {
+    const unidad = await this.unidadRepo.findOne({
+        where: { placas },
+        relations: ['oficina']
+    });
+    
+    if (!unidad?.oficina) throw new NotFoundException('Unidad u oficina no encontrada');
+
+    const oficinaOrigen = unidad.oficina;
+
+    // Obtener todas las oficinas que:
+    // 1. Tienen a la oficina origen como clave_unica_zona O
+    // 2. Son el destino directo de la oficina origen
+    const oficinasDestino = await this.oficinaRepo.find({
+        where: [
+            { clave_unica_zona: oficinaOrigen.clave_cuo }, // Caso 1
+            { clave_cuo: oficinaOrigen.clave_unica_zona }  // Caso 2
+        ],
+        order: { nombre_cuo: 'ASC' }
+    });
+    return oficinasDestino.filter(
+        oficina => oficina.clave_cuo !== oficinaOrigen.clave_cuo
+    )
   }
 
   async generarQRsDeUnidades(): Promise<{ id: string; qr: string; filePath: string }[]> {
@@ -287,7 +336,7 @@ export class UnidadesService {
       fechaAlta: u.fechaAlta,
       tarjetaCirculacion: u.tarjetaCirculacion,
       conductor: u.conductor ? u.conductor.curp : 'S/C',
-      claveOficina: u.oficina.clave_oficina_postal,
+      claveOficina: u.oficina.clave_cuo,
       estado: u.estado,
       zonaAsignada: u.zonaAsignada,
     };

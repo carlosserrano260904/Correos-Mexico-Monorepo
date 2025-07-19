@@ -7,7 +7,6 @@ import {
   Patch,
   UseInterceptors,
   ClassSerializerInterceptor,
-  ParseIntPipe,
   Put,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -36,7 +35,7 @@ export class UnidadesController {
   @ApiOperation({ summary: 'Unidades disponibles por oficina' })
   @ApiResponse({ status: 200, type: [UnidadResponseDto] })
   async findByOficina(
-    @Param('clave', ParseIntPipe) clave: number,
+    @Param('clave') clave: string, 
   ): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
     return this.unidadesService.findByOficina(clave);
   }
@@ -72,7 +71,7 @@ export class UnidadesController {
   @ApiOperation({ summary: 'Consultar tipos de vehículo permitidos en oficina' })
   @ApiResponse({ status: 200, type: OficinaTipoVehiculoDto })
   async getTiposVehiculo(
-    @Param('clave', ParseIntPipe) clave: number,
+    @Param('clave') clave: string,
   ): Promise<OficinaTipoVehiculoDto> {
     return this.unidadesService.getTiposVehiculoPorOficina(clave);
   }

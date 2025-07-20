@@ -29,7 +29,7 @@ import { MisdireccionesModule } from './misdirecciones/misdirecciones.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ClerkModule } from './clerk/clerk.module';
 import { ShippingRateModule } from './shipping_rates/shipping_rates.module';
-import { Ubicaciones } from './ubicaciones/oficinas.module';
+import { Ubicaciones } from './ubicaciones/ubicaciones.module';
 
 
 @Module({

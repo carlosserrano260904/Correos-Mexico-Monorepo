@@ -18,8 +18,10 @@ import {
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
+import { useNavigation } from '@react-navigation/native';
 
 const TarificadorMexpost = () => {
+  const navigation = useNavigation();
   const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const [activeTab, setActiveTab] = useState("Nacional")
   const [codigoOrigen, setCodigoOrigen] = useState("")
@@ -209,9 +211,14 @@ const TarificadorMexpost = () => {
   }
 
   const handleBack = () => {
-    if (showQuote) setShowQuote(false)
-    else setShowResults(false)
-  }
+    if (showQuote) {
+      setShowQuote(false);
+    } else if (showResults) {
+      setShowResults(false);
+    } else {
+      navigation.goBack(); // ← regresa si ya no hay nada que cerrar
+    }
+  };
 
   const handleTabChange = (tab) => {
     if (!showResults) {
@@ -302,7 +309,7 @@ const TarificadorMexpost = () => {
               onPress={handleSearch}
               disabled={loading}
             >
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.searchButtonText}>Buscar</Text>}
+              {loading ? <ActivityIndicator color="#DE1484" /> : <Text style={styles.searchButtonText}>Buscar</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -390,7 +397,7 @@ const TarificadorMexpost = () => {
                   disabled={loadingQuote}
                 >
                   {loadingQuote ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color="#e91e63" />
                   ) : (
                     <Text style={styles.searchButtonText}>Cotizar</Text>
                   )}
@@ -460,13 +467,13 @@ const TarificadorMexpost = () => {
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>IVA:</Text>
                         <Text style={styles.detalleValue}>
-                          {cotizacionData.iva?.toFixed(2) || "N/A"}
+                          USD {cotizacionData.iva?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>Total:</Text>
                         <Text style={styles.detalleValue}>
-                          {cotizacionData.total?.toFixed(2) || "N/A"}
+                          USD {cotizacionData.total?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
                     </>
@@ -477,7 +484,7 @@ const TarificadorMexpost = () => {
                   <View style={styles.costoTotalContainer}>
                     <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
                     <Text style={styles.costoTotalValue}>
-                      {cotizacionData.costoTotal || "N/A"}
+                      MXN {cotizacionData.costoTotal || "N/A"}
                     </Text>
                   </View>
                 )}
@@ -551,7 +558,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
   scrollView: {
     flex: 1,
@@ -587,7 +594,7 @@ const styles = StyleSheet.create({
   },
   tabContainerWithBorder: {
     borderWidth: 2,
-    borderColor: "#2196F3",
+    borderColor: "#fff",
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
@@ -618,7 +625,7 @@ const styles = StyleSheet.create({
   },
   formContainerWithBorder: {
     borderWidth: 2,
-    borderColor: "#2196F3",
+    borderColor: "#fff",
     borderRadius: 8,
     marginHorizontal: 20,
     padding: 20,
@@ -659,7 +666,9 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   disabledButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#e91e63", 
   },
   searchButtonText: {
     color: "#fff",
@@ -668,7 +677,7 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     paddingHorizontal: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
   sectionHeader: {
     flexDirection: "row",

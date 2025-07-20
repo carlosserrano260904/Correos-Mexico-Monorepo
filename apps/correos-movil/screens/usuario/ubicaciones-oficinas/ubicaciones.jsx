@@ -20,42 +20,49 @@ export default function UbicacionScreen() {
   const [error, setError] = useState(null);
   const mapRef = useRef(null);
 
-    useEffect(() => {
+  useEffect(() => {
     const obtenerSucursales = async () => {
-        try {
-        const response = await fetch(`http://${IP}:3000/api/oficinas`); 
+      try {
+        const response = await fetch(`http://${IP}:3000/api/oficinas`);
         if (!response.ok) throw new Error('Error al cargar oficinas');
 
         const data = await response.json();
 
         // Transforma latitud y longitud en coordenadas (como objeto con números)
         const dataTransformada = data.map((item) => ({
-            ...item,
-            coordenadas: {
+          ...item,
+          coordenadas: {
             latitude: parseFloat(item.latitud),
             longitude: parseFloat(item.longitud),
-            },
+          },
         }));
 
         // console.log('Sucursales transformadas:', dataTransformada);
 
         if (dataTransformada.length > 0) {
-            setSucursales(dataTransformada);
-            setSucursalSeleccionada(dataTransformada[0]);
+          setSucursales(dataTransformada);
+          setSucursalSeleccionada(dataTransformada[0]);
         } else {
-            throw new Error('No se encontraron sucursales válidas');
+          throw new Error('No se encontraron sucursales válidas');
         }
-        } catch (error) {
+      } catch (error) {
         console.error('Error:', error);
         setError('Error al cargar oficinas');
-        } finally {
+      } finally {
         setCargando(false);
-        }
+      }
     };
 
     obtenerSucursales();
-    }, []);
+  }, []);
 
+  if (cargando) {
+    return (
+      <View style={styles.spinnerContainer}>
+        <ActivityIndicator size="large" color="#DE1484" />
+      </View>
+    );
+  }
 
   const centrarEnSucursal = (sucursal) => {
     if (!sucursal?.coordenadas) return;
@@ -120,7 +127,7 @@ export default function UbicacionScreen() {
         {sucursales.map((s) => (
           s.coordenadas && (
             <Marker
-               key={s.id_oficina}
+              key={s.id_oficina}
               coordinate={s.coordenadas}
               pinColor="#DE1484"
               onPress={() => centrarEnSucursal(s)}
@@ -159,7 +166,7 @@ export default function UbicacionScreen() {
 
       <ScrollView style={styles.sugerencias} showsVerticalScrollIndicator={false}>
         {sucursales
-          .filter((s) => s.id !== sucursalSeleccionada.id)
+          .filter((s) => s.id_oficina !== sucursalSeleccionada.id_oficina)
           .map((s) => (
             <TouchableOpacity
               key={s.id_oficina}
@@ -169,7 +176,7 @@ export default function UbicacionScreen() {
               <MaterialIcons name="location-on" size={22} color="#DE1484" style={{ marginRight: 8 }} />
               <View>
                 <Text style={styles.sugerenciaNombre}>{s.nombre_cuo}</Text>
-                <Text style={styles.sugerenciaDireccion}>{s.direccion}</Text>
+                <Text style={styles.sugerenciaDireccion}>{s.domicilio}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -179,6 +186,13 @@ export default function UbicacionScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  spinnerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   mapa: { width: '100%', height: 320 },
   infoContainer: {

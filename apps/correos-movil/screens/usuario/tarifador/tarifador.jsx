@@ -333,14 +333,16 @@ const TarificadorMexpost = () => {
                   <Text style={styles.infoValue}>{datosEnvio.ciudadDestino}</Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Distancia:</Text>
-                  <Text style={styles.infoValue}>{datosEnvio.distancia} ({datosEnvio.distanciaKm} km)</Text>
-                </View>
-                <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Zona:</Text>
                   <Text style={styles.infoValue}>
-                    {datosEnvio.zona?.nombre} ({datosEnvio.zona?.minKm} km - {datosEnvio.zona?.maxKm} km)
+                    {datosEnvio.zona?.nombre}
+                    {/* ({datosEnvio.zona?.minKm} km - {datosEnvio.zona?.maxKm} km) */}
+                    {/* Se eliminra la distancia KM */}
                   </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Servicio:</Text>
+                  <Text style={styles.infoValue}>{datosEnvio.servicio || "Estándar"}</Text>
                 </View>
               </>
             )}
@@ -358,7 +360,9 @@ const TarificadorMexpost = () => {
             )}
             {!showQuote && (
               <>
+              <View style={styles.infoRow}>
                 <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
+              </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Peso en kg"
@@ -448,12 +452,6 @@ const TarificadorMexpost = () => {
                           MXN {cotizacionData.iva || "N/A"}
                         </Text>
                       </View>
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>Total:</Text>
-                        <Text style={styles.detalleValue}>
-                          MXN {cotizacionData.costoTotal || "N/A"}
-                        </Text>
-                      </View>
                     </>
                   ) : (
                     <>
@@ -470,12 +468,6 @@ const TarificadorMexpost = () => {
                           USD {cotizacionData.iva?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>Total:</Text>
-                        <Text style={styles.detalleValue}>
-                          USD {cotizacionData.total?.toFixed(2) || "N/A"}
-                        </Text>
-                      </View>
                     </>
                   )}
                 </View>
@@ -485,6 +477,15 @@ const TarificadorMexpost = () => {
                     <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
                     <Text style={styles.costoTotalValue}>
                       MXN {cotizacionData.costoTotal || "N/A"}
+                    </Text>
+                  </View>
+                )}
+
+                {activeTab === "Internacional" && (
+                  <View style={styles.costoTotalContainer}>
+                    <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                    <Text style={styles.costoTotalValue}>
+                      USD {cotizacionData.total || "N/A"}
                     </Text>
                   </View>
                 )}
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingHorizontal: 20,
     paddingTop: 20,
-    marginBottom: 30,
+    marginBottom: 3,
     backgroundColor: "#fff",
   },
   backButton: {
@@ -589,7 +590,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
     backgroundColor: "#fff",
   },
   tabContainerWithBorder: {
@@ -628,8 +629,8 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     borderRadius: 8,
     marginHorizontal: 20,
-    padding: 20,
-    marginBottom: 20,
+    padding: 5,
+    marginBottom: -5,
   },
   input: {
     backgroundColor: "#f5f5f5",

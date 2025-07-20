@@ -6,7 +6,7 @@ export default function CotizacionesScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Cotizaciones</Text>
+        <Text style={styles.title}> </Text>
       </View>
 
       {/* Two Main Options */}

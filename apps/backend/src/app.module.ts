@@ -30,6 +30,7 @@ import { PedidosModule } from './pedidos/pedidos.module';
 import { ClerkModule } from './clerk/clerk.module';
 import { ShippingRateModule } from './shipping_rates/shipping_rates.module';
 import { Ubicaciones } from './ubicaciones/ubicaciones.module';
+import { EnviosModule } from './envios/envios.module';
 
 
 @Module({
@@ -65,6 +66,7 @@ import { Ubicaciones } from './ubicaciones/ubicaciones.module';
     ClerkModule,
     ShippingRateModule,
     Ubicaciones,
+    EnviosModule,
 
   ],
   controllers: [AppController, PostalController],

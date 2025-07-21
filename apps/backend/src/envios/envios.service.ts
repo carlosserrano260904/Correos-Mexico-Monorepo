@@ -29,6 +29,15 @@ export class EnviosService {
   }
 
   async create(data: Partial<Envio>): Promise<Envio> {
+    const fechaAsignacion = new Date();
+
+    const fechaEntrega = new Date(fechaAsignacion);
+    if (fechaAsignacion.getHours() >= 15) {
+      fechaEntrega.setDate(fechaEntrega.getDate() + 1);
+    }
+
+    data.fecha_entrega_programada = fechaEntrega.toDateString();
+
     const envio = this.envioRepo.create(data);
     return this.envioRepo.save(envio);
   }

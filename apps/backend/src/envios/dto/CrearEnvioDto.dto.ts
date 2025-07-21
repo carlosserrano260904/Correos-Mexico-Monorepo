@@ -26,10 +26,6 @@ export class CrearEnvioDto {
   @IsEnum(EstadoEnvio)
   estado_envio: EstadoEnvio;
 
-  @ApiProperty({ description: 'Fecha programada de entrega', format: 'date' })
-  @IsDateString()
-  fecha_entrega_programada: string;
-
   @ApiPropertyOptional({ description: 'Nombre de la persona que recibió el paquete' })
   @IsOptional()
   @IsString()

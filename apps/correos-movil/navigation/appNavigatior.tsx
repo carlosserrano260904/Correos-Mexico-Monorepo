@@ -7,6 +7,7 @@ import ProfileUser from '../screens/usuario/profile/ProfileUser';
 import UserDetailsScreen from '../screens/usuario/profile/UserDetailsScreen';
 import { RootStackParamList } from '../schemas/schemas';
 import MisCompras from '../screens/usuario/mis-compras/MisCompras';
+import MisCuponesScreen  from '../screens/usuario/MisCupones/MisCuponesScreen';
 import HomeTabs from '../components/Tabs/HomeTabs';
 import MainPageDistributor from '../screens/repartidor/MainPageDistributor';
 import QRScannerScreen from '../screens/repartidor/QRScannerScreen';
@@ -52,6 +53,7 @@ export default function AppNavigator() {
             <Stack.Screen name="ProfileUser" component={ProfileUser} options={{ headerShown: false }} />
             <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} options={{ headerShown: false }} /> 
             <Stack.Screen name="MisCompras" component={MisCompras} options={{ headerShown: false }} />
+            <Stack.Screen name="MisCuponesScreen" component={MisCuponesScreen} options={{ headerShown: false }} />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="LoadPackages" component={LoadPackages} options={{ headerShown: false }} />

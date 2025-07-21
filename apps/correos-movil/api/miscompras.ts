@@ -1,14 +1,7 @@
-<<<<<<< Updated upstream
-import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
-
-=======
 // api/miscompras.ts
 import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
 
-export const myIp = "192.168.0.167";
->>>>>>> Stashed changes
-
-export const myIp = "192.168.0.199";
+export const myIp = "192.168.0.183"; // ← Tu IP actual
 
 export async function obtenerMisCompras(id: number): Promise<MisComprasType[]> {
   const url = `${process.env.EXPO_PUBLIC_API_URL}/api/transactions/user/${id}`;

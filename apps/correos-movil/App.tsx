@@ -3,14 +3,15 @@ import { ClerkProvider } from '@clerk/clerk-expo';
 import AuthNavigator from './navigation/authNavigator';
 import AppNavigator from './navigation/appNavigatior';
 import { AuthProvider, useMyAuth } from './context/AuthContext';
+import VendedorNavigator from './navigation/vendedorNavigator';
 
 function RootNavigation() {
-  const { isAuthenticated } = useMyAuth();
+  const { isAuthenticated, userRol } = useMyAuth();
 
   // Show loading while Clerk is initializing
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {!isAuthenticated ? <AuthNavigator /> : userRol === 'vendedor' ? <VendedorNavigator /> : userRol === 'usuario' ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }

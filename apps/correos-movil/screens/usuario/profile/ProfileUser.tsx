@@ -15,7 +15,6 @@ import {  usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useUser } from '@clerk/clerk-expo';
@@ -29,7 +28,7 @@ export default function ProfileUser() {
   const userIdType = typeof userId;
   console.log('userIdType', userIdType);
   console.log('userId', userId);
-  const { user } = useUser(); // TODO: Verificar si es necesario
+  const { user } = useUser();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
   useEffect(() => {

@@ -23,12 +23,16 @@ import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PINK = '#E6007E';
+const defaultImage = `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png`;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 
 export default function UserDetailsScreen({ route, navigation }: Props) {
   const { user } = route.params;
-  const [userData, setUserData] = useState(user);
+  const [userData, setUserData] = useState({
+    ...user,
+    imagen: user.imagen || defaultImage,
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [colonias, setColonias] = useState<string[]>([]);
   const [selectedColonia, setSelectedColonia] = useState('');
@@ -67,33 +71,87 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       quality: 0.7
     });
     if (!result.canceled && result.assets.length) {
-      setUserData({ ...userData, imagen: result.assets[0].uri });
+      setUserData(prev => ({ ...prev, imagen: result.assets[0].uri }));
     }
   };
 
+  const validarCampos = () => {
+    const camposRequeridos = [
+      'nombre',
+      'apellido',
+      'numero',
+      'ciudad',
+      'estado',
+      'fraccionamiento',
+      'calle',
+      'codigoPostal',
+    ];
+
+    const labels = {
+      nombre: 'Nombre',
+      apellido: 'Apellido',
+      numero: 'Teléfono',
+      ciudad: 'Ciudad',
+      estado: 'Estado',
+      fraccionamiento: 'Fraccionamiento',
+      calle: 'Calle',
+      codigoPostal: 'Código Postal',
+    };
+
+    for (const campo of camposRequeridos) {
+      if (!userData[campo] || userData[campo].trim() === '') {
+        Alert.alert('Campo requerido', `Por favor llena el campo: ${labels[campo]}`);
+        return false;
+      }
+    }
+
+    if (!/^\d{5}$/.test(userData.codigoPostal)) {
+      Alert.alert('Código postal inválido', 'El código postal debe tener 5 dígitos numéricos.');
+      return false;
+    }
+
+    if (!/^\d{10}$/.test(userData.numero)) {
+      Alert.alert('Teléfono inválido', 'El número debe tener 10 dígitos.');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = async () => {
+    const esValido = validarCampos();
+    if (!esValido) return;
+
     try {
       const storedId = await AsyncStorage.getItem('userId');
-      if (isEditing && userData.imagen !== user.imagen) {
-        if(storedId){
+
+      if (
+        isEditing &&
+        userData.imagen !== user.imagen &&
+        !userData.imagen.includes('avatar-default.png')
+      ) {
+        if (storedId) {
           const remoteUrl = await uploadAvatar(userData.imagen, +storedId);
-          userData.imagen = remoteUrl;
+          setUserData(prev => ({ ...prev, imagen: remoteUrl }));
         }
       }
-      if(storedId){
-      const usuario = await actualizarUsuarioPorId(userData, +storedId);
-      if (usuario?.ok) {
-        Alert.alert('Éxito', 'Perfil actualizado', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert('Error', 'No se pudo actualizar tu perfil.');
+
+      if (storedId) {
+        const usuario = await actualizarUsuarioPorId(userData, +storedId);
+
+        if (usuario && typeof usuario === 'object') {
+          Alert.alert('Éxito', 'Perfil actualizado', [
+            { text: 'OK', onPress: () => setIsEditing(false) },
+          ]);
+        } else {
+          Alert.alert('Error', 'No se pudo actualizar tu perfil.');
+        }
       }
-       }
     } catch (err) {
-      console.error(err);
+      console.error('Error en handleSave:', err);
     }
   };
+
   const handleCancel = () => {
     setUserData(user);
     setIsEditing(false);
@@ -102,22 +160,16 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={PINK} />
-
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mi perfil</Text>
-          {/* View vacío para balancear el espacio y centrar el título */}
           <View style={{ width: 40 }} />
         </View>
       </SafeAreaView>
 
-      {/* Contenido principal */}
       <SafeAreaView style={styles.contentSafe}>
         <ScrollView
           style={styles.container}
@@ -134,7 +186,6 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
               )}
             </TouchableOpacity>
 
-            {/* Nombre y apellido */}
             {isEditing ? (
               <>
                 <TextInput
@@ -152,13 +203,13 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
               </>
             ) : (
               <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                <Text style={styles.name}>{userData.nombre}</Text>
-                <Text style={styles.lastname}>{userData.apellido}</Text>
+                <Text style={styles.name}>{userData.nombre?.trim() || 'Sin nombre'}</Text>
+                <Text style={styles.lastname}>{userData.apellido?.trim() || 'Sin apellido'}</Text>
               </View>
             )}
 
             <View style={styles.divider} />
-            {/* Contacto */}
+
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Contacto</Text>
               <View style={styles.infoRow}>
@@ -172,7 +223,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     placeholder="Teléfono"
                   />
                 ) : (
-                  <Text style={styles.infoText}>{userData.numero}</Text>
+                  <Text style={styles.infoText}>{userData.numero?.trim() || 'Sin número'}</Text>
                 )}
               </View>
               <View style={styles.infoRow}>
@@ -185,12 +236,13 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     placeholder="Ciudad"
                   />
                 ) : (
-                  <Text style={styles.infoText}>{userData.ciudad}, {userData.estado}</Text>
+                  <Text style={styles.infoText}>
+                    {[userData.ciudad, userData.estado].filter(Boolean).join(', ') || 'Sin ubicación'}
+                  </Text>
                 )}
               </View>
             </View>
 
-            {/* Dirección */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Dirección</Text>
               <View style={styles.infoRow}>
@@ -218,7 +270,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     />
                   )
                 ) : (
-                  <Text style={styles.infoText}>{userData.fraccionamiento}</Text>
+                  <Text style={styles.infoText}>{userData.fraccionamiento?.trim() || 'Sin fraccionamiento'}</Text>
                 )}
               </View>
 
@@ -232,7 +284,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     placeholder="Calle"
                   />
                 ) : (
-                  <Text style={styles.infoText}>{userData.calle}</Text>
+                  <Text style={styles.infoText}>{userData.calle?.trim() || 'Sin calle'}</Text>
                 )}
               </View>
 
@@ -247,7 +299,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     placeholder="CP"
                   />
                 ) : (
-                  <Text style={styles.infoText}>{userData.codigoPostal}</Text>
+                  <Text style={styles.infoText}>{userData.codigoPostal?.trim() || 'Sin CP'}</Text>
                 )}
               </View>
             </View>
@@ -354,7 +406,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-  },  
+  },
   section: {
     width: '100%',
     marginTop: 16,
@@ -424,4 +476,3 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
 });
-//prueba

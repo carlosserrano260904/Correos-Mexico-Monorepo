@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 const userInfo = await getUserInfoFromToken();
                 if (userInfo) {
                     setUserId(userInfo.profileId);
+                    await AsyncStorage.setItem('userId', String(userInfo.profileId));
                     setUserRol(userInfo.rol);
                     console.log('hola');
                     console.log('userInfo: ', userInfo);

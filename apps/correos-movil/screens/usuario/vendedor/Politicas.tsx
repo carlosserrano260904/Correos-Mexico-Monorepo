@@ -196,8 +196,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E6007E',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingTop: 36,
+    paddingBottom: 32,
+    paddingHorizontal: 32,
   },
   backButton: {
     width: 32,
@@ -209,6 +210,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+    paddingVertical: 12,
   },
   listItem: {
   lineHeight: 20,

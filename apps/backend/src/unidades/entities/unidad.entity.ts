@@ -8,6 +8,9 @@ export class Unidad {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ name: 'nombre'})
+  nombre: string;
+
   @Column({ name: 'tipo_vehiculo', type: 'int' })
   tipoVehiculoId: number;
 

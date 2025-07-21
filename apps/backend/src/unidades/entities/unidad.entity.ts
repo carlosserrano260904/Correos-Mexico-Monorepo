@@ -6,8 +6,8 @@ import { Envio } from 'src/envios/entities/envios.entity';
 
 @Entity('unidades')
 export class Unidad {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ name: 'nombre'})
   nombre: string;

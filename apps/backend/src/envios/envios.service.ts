@@ -11,10 +11,10 @@ export class EnviosService {
   ) {}
 
   async findAll(): Promise<Envio[]> {
-    return this.envioRepo.find({ relations: ['guia', 'vehiculo'] });
+    return this.envioRepo.find({ relations: ['guia', 'unidad'] });
   }
 
-  async findByUnidad(id: number): Promise<Envio[]> {
+  async findByUnidad(id: string): Promise<Envio[]> {
     return this.envioRepo.find({
       where: { unidad: { id } },
       relations: ['guia', 'unidad'],

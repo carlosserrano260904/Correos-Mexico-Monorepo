@@ -87,13 +87,16 @@ export class AuthService {
     }
 
     async signin(dto: AuthDto) {
+        console.log('DTO recibido:', dto);
         let user = await this.usuariosService.findByCorreo(dto.correo);
+        console.log('Usuario encontrado:', user);
         if (!user || !user.password) throw new UnauthorizedException();
         if (!user.profile) {
             throw new InternalServerErrorException('El perfil no está vinculado al usuario');
         }
 
         const valid = await bcrypt.compare(dto.contrasena, user.password);
+        console.log('Resultado bcrypt.compare:', valid);
         if (!valid) throw new UnauthorizedException();
 
         const token = await this.jwtService.signAsync({

@@ -19,6 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 import { actualizarDireccionAPI, agregarDireccionAPI, eliminarDireccionAPI, obtenerDirecciones } from '../../../api/direcciones';
 import { DireccionesSchema } from '../../../schemas/schemas';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
+import { useMyAuth } from '../../../context/AuthContext';
 
 const PINK = '#E6007E';
 
@@ -134,6 +135,7 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
 
 // 👇 Asegúrate de recibir navigation como prop desde React Navigation
 export default function AgregarDomicilio({ navigation }: { navigation: any }) {
+     const { userId } = useMyAuth(); 
     const [direcciones, setDirecciones] = useState<Direccion[]>([]);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -173,14 +175,18 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
                 const id = direcciones[editIndex].id!;
                 await actualizarDireccionAPI(id, payload);
             } else {
-                await agregarDireccionAPI(payload, 1);
+                if(userId){
+                    await agregarDireccionAPI(payload, +userId);
+                }
             }
 
-            const resultado = await obtenerDirecciones(1);
+            if(userId){
+            const resultado = await obtenerDirecciones(+userId);
             const adaptadas = resultado.map(adaptarDireccion);
             setDirecciones(adaptadas);
             setMostrarFormulario(false);
             setEditIndex(null);
+            }
         } catch (err) {
             console.error(err);
             Alert.alert('Error', 'No se pudo guardar la dirección');
@@ -190,9 +196,11 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
     useEffect(() => {
         async function cargar() {
             try {
-                const resultado = await obtenerDirecciones(1);
-                const adaptadas = resultado.map(adaptarDireccion);
-                setDirecciones(adaptadas);
+                if(userId){
+                    const resultado = await obtenerDirecciones(+userId);
+                    const adaptadas = resultado.map(adaptarDireccion);
+                    setDirecciones(adaptadas);
+                }
             } catch (err) {
                 console.error('Error cargando direcciones:', err);
                 Alert.alert('Error', 'No se pudieron cargar las direcciones');

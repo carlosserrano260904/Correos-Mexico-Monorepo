@@ -17,7 +17,7 @@ export const useWarmUpBrowser = () => {
         }
     }, [])
 }
-//prueba
+
 type CheckoutStackParamList = {
     SignUp: undefined;
     PswdReset: undefined;
@@ -35,37 +35,43 @@ export default function SignInScreen() {
     const { signIn, setActive, isLoaded } = useSignIn()
     const navigation = useNavigation<NavigationProp>();
     const { setIsAuthenticated, reloadUserData } = useMyAuth()
-    // Estados para el formulario
     const [emailAddress, setEmailAddress] = useState('')
     const [password, setPassword] = useState('')
 
+    const onSignInPress = useCallback(async () => {
+        console.log('[onSignInPress] Inicio de sesión manual, email:', emailAddress)
+        try {
+            console.log('[onSignInPress] Fetching:', `${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`)
+            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo: emailAddress, contrasena: password }),
+            })
+            console.log('[onSignInPress] Status code:', res.status)
 
-    // Handle the submission of the sign-in form
-    const onSignInPress = React.useCallback(async () => {
-       
+            if (!res.ok) {
+                const errorText = await res.text()
+                console.error('[onSignInPress] Backend error text:', errorText)
+                throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
+            }
 
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ correo: emailAddress, contrasena: password }),
-        })
-                
-        if (!res.ok) {
-            const errorText = await res.text()
-            throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
+            const data = await res.json()
+            console.log('[onSignInPress] Response JSON:', data)
+
+            await AsyncStorage.setItem('token', data.token)
+            console.log('[onSignInPress] Token guardado en AsyncStorage')
+
+            await reloadUserData()
+            console.log('[onSignInPress] reloadUserData completado')
+
+            setIsAuthenticated(true)
+            console.log('[onSignInPress] setIsAuthenticated(true)')
+        } catch (err) {
+            console.error('[onSignInPress] Error catch:', err)
         }
-                
-        const data = await res.json()
-        console.log(data)
-        await AsyncStorage.setItem('token', data.token)
-        await reloadUserData()
-        setIsAuthenticated(true)
-               
-    }, [emailAddress, password])
+    }, [emailAddress, password, reloadUserData, setIsAuthenticated])
 
     const handleOAuthPress = useCallback(async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
-        console.log(`Starting OAuth flow for: ${strategy}`);
-
         try {
             const { createdSessionId, setActive, signIn, signUp } = await startSSOFlow({
                 strategy,
@@ -73,11 +79,13 @@ export default function SignInScreen() {
             });
 
             if (createdSessionId) {
-                await setActive!({ session: createdSessionId });
+        
+                await setActive!({ session: createdSessionId })
 
-                // Obtener la información del usuario desde la sesión activa
-                const session = clerk.session;
-                const sessionUser = session?.user;
+                const session = clerk.session
+        
+                const sessionUser = session?.user
+                
 
                 const oauthData = {
                     proveedor: strategy.replace('oauth_', ''),
@@ -86,17 +94,19 @@ export default function SignInScreen() {
                     nombre: sessionUser?.fullName || sessionUser?.firstName || '',
                 };
 
-                console.log('OAuth data to send:', oauthData);
+            
 
                 if (!oauthData.sub || !oauthData.correo) {
-                    throw new Error(`Missing OAuth data: sub=${oauthData.sub}, correo=${oauthData.correo}`);
+                    console.error('[handleOAuthPress] Faltan datos de OAuth:', oauthData)
+                    throw new Error(`Missing OAuth data: sub=${oauthData.sub}, correo=${oauthData.correo}`)
                 }
 
                 const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(oauthData),
-                });
+                })
+            
 
                 if (!res.ok) {
                     const errorText = await res.text();
@@ -104,17 +114,16 @@ export default function SignInScreen() {
                 }
 
                 const data = await res.json();
-                console.log('OAuth success, token saved');
-
+                console.log('[handleOAuthPress] OAuth success, response data:', data)
                 await AsyncStorage.setItem('token', data.token);
-                // Navigation se manejará automáticamente por Clerk
+                console.log('[handleOAuthPress] OAuth token guardado')
             } else {
-                console.warn(`${strategy} - No session created`);
+                console.warn(`[handleOAuthPress] ${strategy} - No session created`)
             }
         } catch (err) {
-            console.error(`OAuth ${strategy} error:`, err)
+            console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
         }
-    }, [])
+    }, [startSSOFlow, clerk])
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
@@ -122,17 +131,19 @@ export default function SignInScreen() {
                 Iniciar Sesión
             </Text>
 
-            {/* Formulario Email/Password */}
             <TextInput
                 placeholder="Email"
                 value={emailAddress}
-                onChangeText={setEmailAddress}
-                style={{ 
-                    borderWidth: 1, 
-                    borderColor: '#ccc', 
-                    padding: 10, 
-                    marginBottom: 10, 
-                    borderRadius: 5 
+                onChangeText={(text) => {
+                    console.log('[EmailInput] Nuevo valor:', text)
+                    setEmailAddress(text)
+                }}
+                style={{
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    padding: 10,
+                    marginBottom: 10,
+                    borderRadius: 5
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -141,13 +152,16 @@ export default function SignInScreen() {
             <TextInput
                 placeholder="Contraseña"
                 value={password}
-                onChangeText={setPassword}
-                style={{ 
-                    borderWidth: 1, 
-                    borderColor: '#ccc', 
-                    padding: 10, 
-                    marginBottom: 20, 
-                    borderRadius: 5 
+                onChangeText={(text) => {
+                    console.log('[PasswordInput] Nuevo valor:', text)
+                    setPassword(text)
+                }}
+                style={{
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    padding: 10,
+                    marginBottom: 20,
+                    borderRadius: 5
                 }}
                 secureTextEntry
             />
@@ -156,29 +170,19 @@ export default function SignInScreen() {
 
             <Text style={{ textAlign: 'center', marginVertical: 20 }}>O continúa con:</Text>
 
-            {/* OAuth Buttons */}
-            <TouchableOpacity 
-                onPress={() => handleOAuthPress('oauth_google')}
-                style={{ backgroundColor: '#4285F4', padding: 15, marginBottom: 10, borderRadius: 5 }}
-            >
+            <TouchableOpacity onPress={() => handleOAuthPress('oauth_google')} style={{ backgroundColor: '#4285F4', padding: 15, marginBottom: 10, borderRadius: 5 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
                     Continuar con Google
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-                onPress={() => handleOAuthPress('oauth_facebook')}
-                style={{ backgroundColor: '#1877F2', padding: 15, marginBottom: 10, borderRadius: 5 }}
-            >
+            <TouchableOpacity onPress={() => handleOAuthPress('oauth_facebook')} style={{ backgroundColor: '#1877F2', padding: 15, marginBottom: 10, borderRadius: 5 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
                     Continuar con Facebook
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-                onPress={() => handleOAuthPress('oauth_apple')}
-                style={{ backgroundColor: '#000', padding: 15, marginBottom: 20, borderRadius: 5 }}
-            >
+            <TouchableOpacity onPress={() => handleOAuthPress('oauth_apple')} style={{ backgroundColor: '#000', padding: 15, marginBottom: 20, borderRadius: 5 }}>
                 <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
                     Continuar con Apple
                 </Text>

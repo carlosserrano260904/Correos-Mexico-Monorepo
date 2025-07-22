@@ -14,7 +14,7 @@ const screenHeight = Dimensions.get("screen").height;
 export default function LoadPackages() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { transporteId } = route.params as { transporteId: string };
+    const { unidadId } = route.params as { unidadId: string };
     const [paquetesTotal, setPaquetesTotal] = React.useState(0);
 
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
@@ -30,10 +30,14 @@ export default function LoadPackages() {
     React.useEffect(() => {
         const fetchNombre = async () => {
         try {
-            const res = await fetch(`http://${IP}:3000/api/transportes/${transporteId}`);
+            const res = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
 
-            const transporte = await res.json();
-            setNombreVehiculo(transporte.nombre ?? 'Vehículo no encontrado');
+            const envio = await res.json();
+            if (envio.length > 0) {
+            setNombreVehiculo(envio[0].unidad?.nombre ?? 'Vehículo no encontrado');
+            } else {
+            setNombreVehiculo('Sin envíos asignados');
+            }
         } catch (error) {
             console.error(error);
             setNombreVehiculo('Error al obtener vehículo');
@@ -42,7 +46,7 @@ export default function LoadPackages() {
 
         const fetchPaquetes = async () => {
         try {
-            const paq = await fetch(`http://${IP}:3000/api/asignacion-paquetes/paquetes/${transporteId}/c010bb71-4b19-4e56-bff3-f6c73061927a`);
+            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
 
             const paquete = await paq.json();
             setPaquetesTotal(paquete.length)
@@ -52,12 +56,12 @@ export default function LoadPackages() {
         }
         };
 
-        if (transporteId) {
+        if (unidadId) {
         fetchNombre();
         fetchPaquetes();
         }
 
-    }, [transporteId]);
+    }, [unidadId]);
 
 
   return (
@@ -81,8 +85,22 @@ export default function LoadPackages() {
         </View>
 
         <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleInicioTurno} style={styles.button}>
-                <Text style={styles.textButton}>Ya cargue todo</Text>
+            <TouchableOpacity
+                onPress={handleInicioTurno}
+                style={[
+                styles.button,
+                paquetesTotal === 0 && styles.buttonDisabled,
+                ]}
+                disabled={paquetesTotal === 0}
+            >
+                <Text
+                style={[
+                    styles.textButton,
+                    paquetesTotal === 0 && styles.textButtonDisabled,
+                ]}
+                >
+                {paquetesTotal === 0 ? 'No hay paquetes asignados' : 'Ya cargue todo'}
+                </Text>
             </TouchableOpacity>
         </View>
     </View>
@@ -120,7 +138,8 @@ const styles = StyleSheet.create({
     textMiddle: {
         color: "white",
         fontWeight: 700,
-        fontSize: moderateScale(40)
+        fontSize: moderateScale(40),
+        textAlign: "center"
     },
     textContainer: {
         flexDirection: "column",
@@ -148,5 +167,13 @@ const styles = StyleSheet.create({
         color: "#DE1484",
         fontSize: moderateScale(16),
         fontWeight: 700,
-    }
+    },
+
+    buttonDisabled: {
+        backgroundColor: '#ccc',
+    },
+
+    textButtonDisabled: {
+        color: '#888',
+    },
 })

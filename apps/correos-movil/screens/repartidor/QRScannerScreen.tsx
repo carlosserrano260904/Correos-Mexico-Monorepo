@@ -72,7 +72,7 @@ export default function QRScannerScreen() {
           onPress: () => {
             setScanned(false);
             console.log(data)
-            navigation.navigate("LoadPackages", { transporteId: data});
+            navigation.navigate("LoadPackages", { unidadId: data});
           },
         },
       ]);

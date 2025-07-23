@@ -9,9 +9,6 @@ export class Unidad {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'nombre'})
-  nombre: string;
-
   @Column({ name: 'tipo_vehiculo', type: 'int' })
   tipoVehiculoId: number;
 

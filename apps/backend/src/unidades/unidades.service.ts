@@ -315,8 +315,8 @@ async getOficinasDestinoValidas(placas: string) {
 
     const resultados = await Promise.all(
       unidades.map(async (unidad) => {
-        const nombreSanitizado = unidad.nombre.replace(/[^a-zA-Z0-9_-]/g, '_');
-        const filePath = path.join(outputDir, `${nombreSanitizado}.png`);
+        const placasSanitizado = unidad.placas.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filePath = path.join(outputDir, `${placasSanitizado}.png`);
         
         await QRCode.toFile(filePath, unidad.id.toString());
         const qr = await QRCode.toDataURL(unidad.id.toString());

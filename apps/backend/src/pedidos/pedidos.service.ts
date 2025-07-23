@@ -1,141 +1,126 @@
-//pedidos.service.ts
-// Este archivo define el servicio para manejar la lógica de negocio relacionada con los pedidos.
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Pedido, PedidoProducto } from './entities/pedido.entity';
+import { Product } from 'src/products/entities/product.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 
 @Injectable()
 export class PedidosService {
-  private pool: Pool;
+  constructor(
+    @InjectRepository(Pedido)
+    private readonly pedidoRepository: Repository<Pedido>,
+    @InjectRepository(PedidoProducto)
+    private readonly pedidoProductoRepository: Repository<PedidoProducto>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
 
-  constructor(private configService: ConfigService) {
-    this.pool = new Pool({
-      host: this.configService.get('DATABASE_HOST'),
-      port: parseInt(this.configService.get<string>('DATABASE_PORT') ?? '5432', 10),
-      user: this.configService.get('DATABASE_USER'),
-      password: this.configService.get('DATABASE_PASS'),
-      database: this.configService.get('DATABASE_NAME'),
-      ssl: { rejectUnauthorized: false },
-    });
-
-  }
+  ) {}
 
   async create(createPedidoDto: CreatePedidoDto) {
-    console.log('DTO recibido:', createPedidoDto);
+    await this.pedidoRepository.manager.transaction(async (manager) => {
+      const pedido = new Pedido();
 
-
-    const { profileid, status, productos } = createPedidoDto;
-
-    let total = 0;
-    const detalles: { producto_id: any; cantidad: any; precio: any }[] = [];
-
-    // 1. Buscar el precio de cada producto
-    for (const prod of productos) {
-      const result = await this.pool.query(
-        `SELECT precio FROM product WHERE id = $1`,
-        [prod.producto_id]
-      );
-
-      if (result.rows.length === 0) {
-        throw new Error(`Producto con id ${prod.producto_id} no encontrado`);
+      const profile = await manager.findOne(Profile, {
+        where: { id: createPedidoDto.profileid },
+      });
+      if (!profile) {
+        throw new NotFoundException(
+          `El perfil con ID ${createPedidoDto.profileid} no existe`,
+        );
       }
 
-      const precio = result.rows[0].precio;
-      const subtotal = precio * prod.cantidad;
-      total += subtotal;
+      pedido.profile = profile;
 
-      detalles.push({
-        producto_id: prod.producto_id,
-        cantidad: prod.cantidad,
-        precio, // 💰 precio congelado
-      });
-    }
+      let total = 0;
+      const detalles: PedidoProducto[] = [];
 
-    // 2. Insertar el pedido con el total calculado
-    const pedidoRes = await this.pool.query(
-      `INSERT INTO pedido (profileid, total, status, fecha)
-     VALUES ($1, $2, $3, NOW()) RETURNING id`,
-      [profileid, total, status]
-    );
+      for (const item of createPedidoDto.productos) {
+        const producto = await manager.findOne(Product, {
+          where: { id: item.producto_id },
+        });
+        if (!producto) {
+          throw new NotFoundException(
+            `El producto con ID ${item.producto_id} no existe`,
+          );
+        }
 
-    const pedidoId = pedidoRes.rows[0].id;
+        const subtotal = producto.precio * item.cantidad;
+        total += subtotal;
 
-    // 3. Insertar productos asociados con precio congelado
-    for (const item of detalles) {
-      await this.pool.query(
-        `INSERT INTO pedido_producto(pedido_id, producto_id, cantidad, precio)
-       VALUES ($1, $2, $3, $4)`,
-        [pedidoId, item.producto_id, item.cantidad, item.precio]
-      );
-    }
+        const detalle = new PedidoProducto();
+        detalle.producto = producto;
+        detalle.cantidad = item.cantidad;
+        detalle.pedido = pedido;
 
-    return {
-      id: pedidoId,
-      profileid,
-      status,
-      total,
-      productos: detalles
-    };
+        detalles.push(detalle);
+      }
+
+      pedido.total = total;
+      pedido.status = createPedidoDto.status;
+
+      await manager.save(pedido);
+
+      for (const detalle of detalles) {
+        await manager.save(detalle);
+      }
+    });
+
+    return { message: 'Pedido creado correctamente' };
   }
 
-
   async findAll() {
-    const result = await this.pool.query(`
-      SELECT * FROM pedido
-    `);
-    return result.rows;
+    return this.pedidoRepository.find({
+      relations: ['productos', 'productos.producto'],
+      order: { fecha: 'DESC' },
+    });
+  }
+
+  async findByUser(profileid: number) {
+    return this.pedidoRepository.find({
+      where: { profile: { id: profileid } },
+      relations: ['productos', 'productos.producto'],
+      order: { fecha: 'DESC' },
+    });
   }
 
   async findOne(id: number) {
-    const result = await this.pool.query(`
-      SELECT 
-        p.id, p."fecha", p."status", p."total", p."profileId",
-        json_agg(json_build_object(
-          'productoId', pp."productoId",
-          'cantidad', pp.cantidad
-        )) AS productos
-      FROM pedido p
-      LEFT JOIN pedido_producto pp ON pp."pedidoId" = p.id
-      WHERE p.id = $1
-      GROUP BY p.id
-    `, [id]);
+    const pedido = await this.pedidoRepository.findOne({
+      where: { id },
+      relations: ['productos', 'productos.producto'],
+    });
 
-    return result.rows[0] ?? { message: 'Pedido no encontrado' };
+    if (!pedido) {
+      throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+    }
+
+    return pedido;
   }
 
   //async update(id: number, updatePedidoDto: UpdatePedidoDto) {
-  //  const { status, total } = updatePedidoDto;
-  //  const result = await this.pool.query(
-  //    `UPDATE pedidos SET status = $1, total = $2 WHERE id = $3 RETURNING *`,
-  //    [status, total, id]
-  //  );
-  //  return result.rows[0] ?? { message: 'No se pudo actualizar el pedido' };
+  //  const pedido = await this.pedidoRepository.findOneBy({ id });
+  //  if (!pedido) {
+  //    throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+  //  }
+
+  //  pedido.status = updatePedidoDto.status;
+  //  return await this.pedidoRepository.save(pedido);
   //}
 
   async remove(id: number) {
-    await this.pool.query(`DELETE FROM pedido_producto WHERE pedido_id = $1`, [id]);
-    const result = await this.pool.query(`DELETE FROM pedidos WHERE id = $1 RETURNING *`, [id]);
-    return result.rows[0] ?? { message: 'No se pudo eliminar el pedido' };
-  }
+    const pedido = await this.pedidoRepository.findOne({
+      where: { id },
+      relations: ['productos'],
+    });
+    if (!pedido) {
+      throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+    }
 
-  // 👇 Método específico para pedidos de un usuario
-  async findByUser(profileid: number) {
-    const result = await this.pool.query(`
-      SELECT 
-        p.id, p.fecha, p.status, p.total,
-        json_agg(json_build_object(
-          'productoId', pp."productoId",
-          'cantidad', pp.cantidad
-        )) AS productos
-      FROM pedido p
-      JOIN pedido_producto pp ON pp."pedidoId" = p.id
-      WHERE p."profileId" = $1
-      GROUP BY p.id
-      ORDER BY p.fecha DESC
-    `, [profileid]);
+    await this.pedidoProductoRepository.remove(pedido.productos);
+    await this.pedidoRepository.remove(pedido);
 
-    return result.rows;
+    return { message: 'Pedido eliminado correctamente' };
   }
 }

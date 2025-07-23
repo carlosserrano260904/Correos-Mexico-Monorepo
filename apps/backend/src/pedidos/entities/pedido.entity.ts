@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Product } from 'src/products/entities/product.entity';
-
+import { Misdireccione } from 'src/misdirecciones/entities/misdireccione.entity';
 @Entity()
 export class Pedido {
   @PrimaryGeneratedColumn()
@@ -33,6 +33,7 @@ export class Pedido {
 
   @OneToMany(() => PedidoProducto, (pp) => pp.pedido, { cascade: true, eager: true })
   productos: PedidoProducto[];
+    direccion: any;
 }
 
 @Entity()
@@ -56,4 +57,17 @@ export class PedidoProducto {
 
   @Column()
   pedidoId: number;
+
+  //@ManyToOne(() => Misdireccione, direccion=> direccion.pedidos, { onDelete: 'CASCADE' })
+  //@JoinColumn({ name: 'direccionId' })
+  //direcciones: Misdireccione;
+
+  //@Column()
+  //direccionId: number;
+
+  //@Column()
+  //tarjetaId: number;
+
+  //@Column()
+  //guiaId: number;
 }

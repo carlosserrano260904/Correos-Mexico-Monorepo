@@ -1,5 +1,6 @@
 import {Column,Entity,JoinColumn,ManyToOne,OneToMany,PrimaryGeneratedColumn} from 'typeorm'
 import { Profile } from '../../profile/entities/profile.entity';
+import { Pedido } from '../../pedidos/entities/pedido.entity';
 @Entity()
 
 export class Misdireccione {
@@ -40,5 +41,6 @@ export class Misdireccione {
     @JoinColumn({ name: 'usuario_id' })
     usuario: Profile;
 
-    
+    @OneToMany(() => Pedido, pedido => pedido.direccion, { onDelete: 'CASCADE' })
+    pedidos: Pedido[];
 }

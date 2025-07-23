@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -41,12 +42,19 @@ type RootStackParamList = {
   ListaPedidosScreen: { userId: string }; // Definimos que esta pantalla recibe un userId
 };
 
+// Colores para los estados del pedido, para una mejor visualización
+const statusColors: { [key: string]: string } = {
+  pendiente: '#f0ad4e', // Naranja
+  empaquetado: '#5bc0de', // Azul claro
+  enviado: '#0275d8', // Azul
+  completado: '#5cb85c', // Verde
+};
+
 export default function ListaPedidosScreen() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  // Usamos el hook useRoute para obtener los parámetros de la navegación
   const route = useRoute<RouteProp<RootStackParamList, 'ListaPedidosScreen'>>();
   const { userId } = useMyAuth();
   
@@ -81,19 +89,34 @@ export default function ListaPedidosScreen() {
     fetchPedidos();
   }, [userId]); // El efecto se ejecutará si el userId cambia
 
-  const renderItem = ({ item }: { item: Pedido }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('MisPedidosScreen', { pedido: item })}
-    >
-      <Text style={styles.title}>Pedido #{item.id}</Text>
-      <Text>Status: {item.status}</Text>
-      <Text>
-        Total: {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(item.total)}
-      </Text>
-      <Text>Fecha: {new Date(item.fecha).toLocaleDateString('es-MX')}</Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Pedido }) => {
+    // Tomamos la imagen del primer producto como vista previa
+    const previewImage = item.productos?.[0]?.producto?.imagen;
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('MisPedidosScreen', { pedido: item })}
+      >
+        <Image
+          source={previewImage ? { uri: previewImage } : require('../../../assets/image.png')}
+          style={styles.previewImage}
+        />
+        <View style={styles.cardDetails}>
+          <Text style={styles.title}>Pedido #{item.id}</Text>
+          <Text style={styles.detailsText}>
+            Status: <Text style={{ color: statusColors[item.status] || '#333', fontWeight: 'bold', textTransform: 'capitalize' }}>{item.status}</Text>
+          </Text>
+          <Text style={styles.detailsText}>
+            Total: {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(item.total)}
+          </Text>
+          <Text style={styles.detailsText}>
+            Fecha: {new Date(item.fecha).toLocaleDateString('es-MX')}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -143,14 +166,31 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#333', marginLeft: 16 },
   card: {
+    flexDirection: 'row',
     padding: 16,
     borderRadius: 10,
     backgroundColor: '#f5f5f5',
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#eee',
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 16,
+    backgroundColor: '#e0e0e0', // Un color de fondo mientras carga la imagen
+  },
+  cardDetails: {
+    flex: 1,
   },
   title: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 4 },
+  detailsText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',

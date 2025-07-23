@@ -26,7 +26,7 @@ export class UserService {
   }
 
   findById(id: number) {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ where: { id }, relations: ['profile'] });
   }
 
   update(email: string, password: string) {

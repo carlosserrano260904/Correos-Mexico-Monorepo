@@ -1,22 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import * as WebBrowser from 'expo-web-browser'
 import * as AuthSession from 'expo-auth-session'
-import { useSSO, useClerk, useSignIn } from '@clerk/clerk-expo'
+import { useSSO, useClerk } from '@clerk/clerk-expo'
 import { View, Button, TouchableOpacity, Text, TextInput } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import Constants from 'expo-constants';
 import { useMyAuth } from '../../context/AuthContext';
 
-export const useWarmUpBrowser = () => {
-    useEffect(() => {
-        void WebBrowser.warmUpAsync()
-        return () => {
-            void WebBrowser.coolDownAsync()
-        }
-    }, [])
-}
 
 type CheckoutStackParamList = {
     SignUp: undefined;
@@ -25,14 +16,11 @@ type CheckoutStackParamList = {
 
 type NavigationProp = StackNavigationProp<CheckoutStackParamList>;
 
-WebBrowser.maybeCompleteAuthSession()
-
 export default function SignInScreen() {
-    useWarmUpBrowser()
+    
 
     const { startSSOFlow } = useSSO()
     const clerk = useClerk()
-    const { signIn, setActive, isLoaded } = useSignIn()
     const navigation = useNavigation<NavigationProp>();
     const { setIsAuthenticated, reloadUserData } = useMyAuth()
     const [emailAddress, setEmailAddress] = useState('')
@@ -79,33 +67,31 @@ export default function SignInScreen() {
             });
 
             if (createdSessionId) {
-        
                 await setActive!({ session: createdSessionId })
+                const providerName = strategy.replace('oauth_', '');
 
                 const session = clerk.session
-        
                 const sessionUser = session?.user
-                
+                const externalAccount = sessionUser?.externalAccounts?.find(
+                    (account) => account.provider === providerName // ← CORREGIR: usar providerName, no strategy
+                );
+                console.log('[handleOAuthPress] externalAccount:', externalAccount)
 
                 const oauthData = {
                     proveedor: strategy.replace('oauth_', ''),
-                    sub: sessionUser?.id || '',
-                    correo: sessionUser?.primaryEmailAddress?.emailAddress || '',
-                    nombre: sessionUser?.fullName || sessionUser?.firstName || '',
+                    sub: externalAccount?.providerUserId || '',
+                    correo: externalAccount?.emailAddress || '',
+                    nombre: externalAccount?.firstName || '',
                 };
-
-            
-
-                if (!oauthData.sub || !oauthData.correo) {
-                    console.error('[handleOAuthPress] Faltan datos de OAuth:', oauthData)
-                    throw new Error(`Missing OAuth data: sub=${oauthData.sub}, correo=${oauthData.correo}`)
-                }
+                console.log('[handleOAuthPress] oauthData:', oauthData)
 
                 const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(oauthData),
                 })
+                console.log('[handleOAuthPress] res:', res)
+                await clerk.signOut()
             
 
                 if (!res.ok) {
@@ -117,13 +103,20 @@ export default function SignInScreen() {
                 console.log('[handleOAuthPress] OAuth success, response data:', data)
                 await AsyncStorage.setItem('token', data.token);
                 console.log('[handleOAuthPress] OAuth token guardado')
+                await reloadUserData()
+                console.log('[handleOAuthPress] reloadUserData completado')
+                setIsAuthenticated(true)
+                console.log('[handleOAuthPress] setIsAuthenticated(true)')
+                
+                console.log('[handleOAuthPress] Terminado el proceso de OAuth.')
             } else {
                 console.warn(`[handleOAuthPress] ${strategy} - No session created`)
             }
         } catch (err) {
+            await clerk.signOut()
             console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
         }
-    }, [startSSOFlow, clerk])
+    }, [startSSOFlow, reloadUserData, setIsAuthenticated, clerk])
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>

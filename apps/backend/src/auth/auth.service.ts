@@ -58,22 +58,38 @@ export class AuthService {
     }
 
     async oauth(dto: OAuthDto) {
+        console.log('[oauth] dto:', dto)
         let proveedor = await this.proveedoresService.findBySub(dto.sub);
         let user;
 
         if (!proveedor) {
+            const profile = this.profileRepository.create({
+                nombre: dto.nombre || dto.correo.split('@')[0],
+                apellido: '',
+                numero: '',
+                estado: '',
+                ciudad: '',
+                fraccionamiento: '',
+                calle: '',
+                codigoPostal: '',
+            });
+
             user = await this.usuariosService.create({
-                nombre: dto.nombre,
+                nombre: dto.nombre || dto.correo.split('@')[0],
                 correo: dto.correo,
-                password: '',
+                password: 'N/A: OAuth', 
                 rol: 'usuario',
+                confirmado: true,
+                profile,
             });
 
             proveedor = await this.proveedoresService.create({
                 proveedor: dto.proveedor,
                 sub: dto.sub,
-                id_usuario: user.id,
+                id_usuario: user.profile.id,
+                correo_asociado: dto.correo,
             });
+
         } else {
             user = await this.usuariosService.findById(proveedor.id_usuario);
         }
@@ -82,6 +98,7 @@ export class AuthService {
             profileId: user.profile.id,
             rol: user.rol || 'usuario',
         });
+
 
         return { token };
     }

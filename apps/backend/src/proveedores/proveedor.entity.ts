@@ -13,4 +13,7 @@ export class Proveedor {
 
     @Column()
     id_usuario: number;
+
+    @Column({ nullable: true })
+    correo_asociado: string;
 }

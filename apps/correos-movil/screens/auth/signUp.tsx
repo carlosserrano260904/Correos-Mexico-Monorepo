@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useMyAuth } from '../../context/AuthContext'
-import * as WebBrowser from 'expo-web-browser'
 import * as AuthSession from 'expo-auth-session'
 import { useSSO, useClerk } from '@clerk/clerk-expo'
 // @ts-ignore
@@ -27,11 +26,10 @@ type CheckoutStackParamList = {
 
 type NavigationProp = StackNavigationProp<CheckoutStackParamList>
 
-WebBrowser.maybeCompleteAuthSession()
 
 export default function SignUpScreen() {
   const navigation = useNavigation<NavigationProp>()
-  const { setIsAuthenticated } = useMyAuth()
+  const { setIsAuthenticated, reloadUserData } = useMyAuth()
   const [emailAddress, setEmailAddress] = useState('')
   const [password, setPassword] = useState('')
   const [pendingVerification, setPendingVerification] = useState(false)
@@ -49,7 +47,7 @@ export default function SignUpScreen() {
   // Validaciones visuales
   const isPasswordStrong = (password: string) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    const [token, setToken] = useState('')
+  const [token, setToken] = useState('')
 
   const onSignUpPress = async () => {
     if (!nombre || !apellido || !emailAddress || !password || !confirmPassword) {
@@ -101,18 +99,18 @@ export default function SignUpScreen() {
         console.error('Email OTP error:', JSON.stringify(error, null, 2))
       }
 
-            const data = await res.json()
-            
-            console.log(data)
-            setToken(data.token)
-            console.log("token: ", data.token)
-            
-            setLoading(false) // <-- Agrega esto aquí
-            setPendingVerification(true)
-        } catch (err) {
-            console.error('Signup error:', JSON.stringify(err, null, 2))
-        }
+      const data = await res.json()
+
+      console.log(data)
+      setToken(data.token)
+      console.log("token: ", data.token)
+
+      setLoading(false) // <-- Agrega esto aquí
+      setPendingVerification(true)
+    } catch (err) {
+      console.error('Signup error:', JSON.stringify(err, null, 2))
     }
+  }
 
   const onVerifyPress = async () => {
     setLoading(true)
@@ -126,15 +124,15 @@ export default function SignUpScreen() {
         }),
       })
 
-        if (!res.ok) {
-            const errorText = await res.text()
-            throw new Error(`Verify OTP backend error: ${res.status} - ${errorText}`)
-        }
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`Verify OTP backend error: ${res.status} - ${errorText}`)
+      }
 
-        await AsyncStorage.setItem('token', token)
-
-      setPendingVerification(false)
+      await AsyncStorage.setItem('token', token)
+      await reloadUserData() 
       setIsAuthenticated(true)
+
       Alert.alert('¡Registro verificado!', 'Ya puedes usar la app.')
     } catch (err) {
       Alert.alert('Error', 'El código es incorrecto o expiró.')

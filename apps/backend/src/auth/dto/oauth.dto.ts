@@ -12,5 +12,5 @@ export class OAuthDto {
 
     @IsString()
     nombre: string;
-    
+
 }

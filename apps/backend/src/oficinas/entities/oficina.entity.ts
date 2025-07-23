@@ -6,8 +6,8 @@ export class Oficina {
   @PrimaryGeneratedColumn()
   id_oficina: number;
 
-  @Column()
-  clave_oficina_postal: number;
+  @Column( {length: 5 })
+  clave_oficina_postal: string;
 
   @Column({ length: 5, unique: true })
   clave_cuo: string;

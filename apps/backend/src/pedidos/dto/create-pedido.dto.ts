@@ -19,10 +19,6 @@ export class CreatePedidoDto {
   @IsNotEmpty()
   status: string;
 
-  @IsNotEmpty()
-  @IsInt()
-  direccionId: number;
-
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true }) // 👈 ES IMPORTANTE PONER `each: true`

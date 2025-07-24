@@ -11,29 +11,26 @@ import RoutesMapView from './RoutesMapView'
 import { LatLng } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
+
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
 const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
-interface Package {
-  id: string;
-  sku: string;
-  numero_guia: string;
-  estatus: string;
-  latitud: number;
-  longitud: number;
-  fecha_creacion: string;
-  indicaciones: string;
-  calle: string;
-  colonia: string;
-  cp: string;
-}
-
 interface PackagesListDistributorProps {
   navigation?: any;
 }
+
+type PackagesListRouteParams = {
+  unidadId: string;
+};
+
+
+const route = useRoute<RouteProp<{ params: PackagesListRouteParams }, 'params'>>();
+const { unidadId } = route.params;
+
 
 export default function PackagesListDistributor({ navigation }: PackagesListDistributorProps) {
   const [paquetesTotal, setPaquetesTotal] = React.useState(0);
@@ -217,30 +214,30 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
   // Efecto para cálculo de ruta con debounce
   React.useEffect(() => {
-  if (userLocation && packages.length > 0) {
-    // Generar coordenadas para TODOS los paquetes
-    const allCoords: LatLng[] = packages.map(pkg => ({
-      latitude: pkg.latitud,
-      longitude: pkg.longitud,
-    }));
-    
-    setIntermediates(allCoords);
-    
-    const now = Date.now();
-    
-    if (!routeInitialized) {
-      // Primera vez - calcular inmediatamente
-      calculateRoute(userLocation, destination, allCoords);
-      setRouteInitialized(true);
-    } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
-      // Verificar si está fuera de ruta con debounce
-      if (isOffRoute(userLocation, routePoints)) {
-        console.log("Recalculando ruta, fuera del camino...");
+    if (userLocation && packages.length > 0) {
+      // Generar coordenadas para TODOS los paquetes
+      const allCoords: LatLng[] = packages.map(pkg => ({
+        latitude: pkg.latitud,
+        longitude: pkg.longitud,
+      }));
+
+      setIntermediates(allCoords);
+
+      const now = Date.now();
+
+      if (!routeInitialized) {
+        // Primera vez - calcular inmediatamente
         calculateRoute(userLocation, destination, allCoords);
+        setRouteInitialized(true);
+      } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
+        // Verificar si está fuera de ruta con debounce
+        if (isOffRoute(userLocation, routePoints)) {
+          console.log("Recalculando ruta, fuera del camino...");
+          calculateRoute(userLocation, destination, allCoords);
+        }
       }
     }
-  }
-}, [userLocation, destination, packages, routeInitialized, routePoints]);
+  }, [userLocation, destination, packages, routeInitialized, routePoints]);
 
   const setupLocationTracking = async () => {
     // Prevenir múltiples configuraciones simultáneas
@@ -373,10 +370,10 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       <TouchableOpacity
         style={styles.packageItem}
         onPress={() => {
-        if (item.estatus !== 'Entregado') {
-          navigation?.navigate('PackageScreen', { package: item });
-        }
-      }}
+          if (item.estatus !== 'Entregado') {
+            navigation?.navigate('PackageScreen', { package: item });
+          }
+        }}
       >
         <View style={styles.packageHeader}>
           <View style={styles.packageIconContainer}>

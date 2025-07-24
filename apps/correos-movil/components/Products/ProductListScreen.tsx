@@ -11,7 +11,6 @@ import {
 import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
-import { useMyAuth } from '../../context/AuthContext';
 
 const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
@@ -22,12 +21,6 @@ export type Articulo = {
   imagen: string;
   color: string;
   categoria: string;
-};
-
-export type Favorito = {
-  id: number;
-  profileId: number;
-  productId: number;
 };
 
 export type ProductListScreenProps = {
@@ -59,11 +52,12 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
 
 const ProductoCard: React.FC<{
   articulo: Articulo;
-  esFavorito: boolean;
-  toggleFavorito: (productId: number) => void;
-}> = ({ articulo, esFavorito, toggleFavorito }) => {
+  liked: number[];
+  toggleLike: (id: number) => void;
+}> = ({ articulo, liked, toggleLike }) => {
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
+  const isLiked = liked.includes(idNum);
 const colores = (articulo.color ?? '')
   .split(',')
   .map(s => s.trim())
@@ -78,12 +72,8 @@ const colores = (articulo.color ?? '')
       <View style={styles.estadoProducto}>
         <ColorDisplay colores={colores} />
         <View style={styles.iconosAccion}>
-          <TouchableOpacity onPress={() => toggleFavorito(idNum)}>
-            <Heart
-              size={24}
-              color={esFavorito ? '#de1484' : 'gray'}
-              fill={esFavorito ? '#de1484' : 'none'}
-            />
+          <TouchableOpacity onPress={() => toggleLike(idNum)}>
+            <Heart size={24} color={isLiked ? '#de1484' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
           </TouchableOpacity>
           <ShoppingBag size={24} color="gray" />
         </View>
@@ -101,22 +91,14 @@ const colores = (articulo.color ?? '')
 
 export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '' }) => {
   const [filtered, setFiltered] = useState<Articulo[]>([]);
-  const [favoritos, setFavoritos] = useState<Favorito[]>([]);
-  const { userId } = useMyAuth();
+  const [liked, setLiked] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
-
-    fetch(`http://${IP}:3000/api/favoritos/${userId}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Error al obtener favoritos');
-        }
-        return res.json();
-      })
-      .then(data => setFavoritos(data))
+    fetch(`http://${IP}:3000/api/likes/usuario/1`)
+      .then(r => r.json())
+      .then(data => setLiked(data.map((l: any) => l.producto.id)))
       .catch(console.error);
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     const searchText = search.toLowerCase().trim();
@@ -126,41 +108,16 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     setFiltered(nuevos);
   }, [productos, search]);
 
-  const toggleFavorito = async (productId: number) => {
-    if (!userId) {
-      console.error('No hay usuario logueado para gestionar favoritos.');
-      return;
-    }
-
-    const favoritoExistente = favoritos.find(f => f.productId === productId);
-
-    if (favoritoExistente) {
-      // --- ELIMINAR FAVORITO ---
-      try {
-        const res = await fetch(`http://${IP}:3000/api/favoritos/${favoritoExistente.id}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) throw new Error('Error al eliminar favorito');
-
-        setFavoritos(prev => prev.filter(f => f.id !== favoritoExistente.id));
-      } catch (e) {
-        console.error('Error en DELETE:', e);
-      }
-    } else {
-      // --- AÑADIR FAVORITO ---
-      try {
-        const res = await fetch(`http://${IP}:3000/api/favoritos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profileId: userId, productId: productId }),
-        });
-        if (!res.ok) throw new Error('Error al añadir favorito');
-
-        const nuevoFavorito = await res.json();
-        setFavoritos(prev => [...prev, nuevoFavorito]);
-      } catch (e) {
-        console.error('Error en POST:', e);
-      }
+  const toggleLike = async (id: number) => {
+    const url = `http://${IP}:3000/api/likes/1/${id}`;
+    try {
+      const method = liked.includes(id) ? 'DELETE' : 'POST';
+      await fetch(url, { method });
+      setLiked(prev =>
+        prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+      );
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -172,17 +129,9 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => {
-          const idNum = parseInt(item.id, 10);
-          const esFavorito = favoritos.some(f => f.productId === idNum);
-          return (
-            <ProductoCard
-              articulo={item}
-              esFavorito={esFavorito}
-              toggleFavorito={toggleFavorito}
-            />
-          );
-        }}
+        renderItem={({ item }) => (
+          <ProductoCard articulo={item} liked={liked} toggleLike={toggleLike} />
+        )}
         numColumns={numCols}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.listContentContainer}

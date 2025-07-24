@@ -5,10 +5,9 @@ import { EnviosService } from './envios.service';
 import { Envio } from './entities/envios.entity';
 import { GuiaTypeormEntity } from 'src/guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
 import { Unidad } from '../unidades/entities/unidad.entity';
-import { Contacto } from '../contactos/entities/contacto.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad, Contacto])],
+  imports: [TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad])],
   controllers: [EnviosController],
   providers: [EnviosService],
 })

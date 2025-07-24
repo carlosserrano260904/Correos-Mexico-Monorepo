@@ -40,7 +40,6 @@ export class Pedido {
 
   @Column( { nullable: true })
   direccionId: number;
-
 }
 
 @Entity()
@@ -64,17 +63,4 @@ export class PedidoProducto {
 
   @Column()
   pedidoId: number;
-
-  //@ManyToOne(() => Misdireccione, direccion=> direccion.pedidos, { onDelete: 'CASCADE' })
-  //@JoinColumn({ name: 'direccionId' })
-  //direcciones: Misdireccione;
-
-  //@Column()
-  //direccionId: number;
-
-  //@Column()
-  //tarjetaId: number;
-
-  //@Column()
-  //guiaId: number;
 }

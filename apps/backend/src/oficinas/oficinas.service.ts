@@ -13,8 +13,8 @@ export class OficinasService {
   ) {}
 
   async create(dto: CreateOficinaDto) {
-    if (dto.clave_oficina_postal !== 0) {
-      const existe = await this.oficinaRepo.findOneBy({ clave_oficina_postal: dto.clave_oficina_postal });
+    if (dto.clave_oficina_postal !== null) {
+      const existe = await this.oficinaRepo.findOneBy({ clave_oficina_postal: dto.clave_oficina_postal.toString() });
       if (existe) {
         throw new BadRequestException(`Ya existe una oficina con la clave ${dto.clave_oficina_postal}`);
       }
@@ -40,7 +40,7 @@ export class OficinasService {
     return this.oficinaRepo.find();
   }
 
-  findClave( clave_oficina_postal: number) {
+  findClave( clave_oficina_postal: string) {
     return this.oficinaRepo.findOneBy({ 
       clave_oficina_postal: clave_oficina_postal,
       activo: true,
@@ -53,7 +53,7 @@ export class OficinasService {
     return oficina;
   }
 
-  findClaveUnicaZona( clave_oficina_postal: number) {
+  findClaveUnicaZona( clave_oficina_postal: string) {
     return this.oficinaRepo.find({
       where: { clave_oficina_postal: clave_oficina_postal },
       select: ['clave_unica_zona'],

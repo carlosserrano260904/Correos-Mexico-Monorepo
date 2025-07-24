@@ -1,8 +1,8 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsDecimal, IsBoolean } from 'class-validator';
 
 export class CreateOficinaDto {
-  @IsNumber()
-  clave_oficina_postal: number;
+  @IsString()
+  clave_oficina_postal: string;
 
   @IsString()
   clave_cuo: string;

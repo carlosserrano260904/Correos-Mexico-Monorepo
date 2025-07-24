@@ -34,11 +34,11 @@ export class Pedido {
   @OneToMany(() => PedidoProducto, (pp) => pp.pedido, { cascade: true, eager: true })
   productos: PedidoProducto[];
 
-  @ManyToOne(() => Misdireccione, { nullable: false })
+  @ManyToOne(() => Misdireccione, { nullable: true })
   @JoinColumn({ name: 'direccionId' })
   direccion: Misdireccione;
 
-  @Column()
+  @Column( { nullable: true })
   direccionId: number;
 }
 

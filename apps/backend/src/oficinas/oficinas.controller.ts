@@ -23,7 +23,7 @@ export class OficinasController {
   }
 
   @Get('clave/:clave_oficina_postal')
-  findClave(@Param('clave_oficina_postal') clave: number) {
+  findClave(@Param('clave_oficina_postal') clave: string) {
     return this.oficinasService.findClave(clave);
   }
 

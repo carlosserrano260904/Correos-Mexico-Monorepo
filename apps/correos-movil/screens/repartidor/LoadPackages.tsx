@@ -23,44 +23,42 @@ export default function LoadPackages() {
         await AsyncStorage.setItem('turno_activo', 'true');
         navigation.reset({
             index: 0,
-            routes: [{ name: 'PackagesList' }],
+            routes: [{ name: 'PackagesList', params: { unidadId } }],
         });
     };
 
     React.useEffect(() => {
-        const fetchNombre = async () => {
-        try {
-            const res = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
+        const fetchEnviosDelDia = async () => {
+            // 1. Obtener la fecha actual y formatearla a YYYY-MM-DD
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Los meses son 0-indexados
+            const day = String(today.getDate()).padStart(2, '0');
+            const fechaFormateada = `${year}-${month}-${day}`;
 
-            const envio = await res.json();
-            if (envio.length > 0) {
-            setNombreVehiculo(envio[0].unidad?.nombre ?? 'Vehículo no encontrado');
-            } else {
-            setNombreVehiculo('Sin envíos asignados');
+            try {
+                // 2. Realizar la petición al nuevo endpoint
+                const res = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}/fecha/${fechaFormateada}`);
+                const data = await res.json(); // { count: number, vehicleName: string | null }
+
+                // 3. Actualizar el estado con la respuesta
+                if (data && data.count > 0) {
+                    setNombreVehiculo(data.vehicleName ?? 'Vehículo no encontrado');
+                    setPaquetesTotal(data.count);
+                } else {
+                    setNombreVehiculo('Sin envíos asignados para hoy');
+                    setPaquetesTotal(0);
+                }
+            } catch (error) {
+                console.error("Error al obtener los envíos del día:", error);
+                setNombreVehiculo('Error al obtener datos');
+                setPaquetesTotal(0);
             }
-        } catch (error) {
-            console.error(error);
-            setNombreVehiculo('Error al obtener vehículo');
-        }
-        };
-
-        const fetchPaquetes = async () => {
-        try {
-            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
-
-            const paquete = await paq.json();
-            setPaquetesTotal(paquete.length)
-        } catch (err) {
-            console.log(err);
-            setPaquetesTotal(0);
-        }
         };
 
         if (unidadId) {
-        fetchNombre();
-        fetchPaquetes();
+            fetchEnviosDelDia();
         }
-
     }, [unidadId]);
 
 

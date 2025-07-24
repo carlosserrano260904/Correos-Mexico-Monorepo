@@ -1,197 +1,267 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import * as WebBrowser from 'expo-web-browser'
 import * as AuthSession from 'expo-auth-session'
 import { useSSO, useClerk } from '@clerk/clerk-expo'
-import { View, Button, TouchableOpacity, Text, TextInput } from 'react-native'
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import type { StackNavigationProp } from '@react-navigation/stack'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useMyAuth } from '../../context/AuthContext';
-
+import { useMyAuth } from '../../context/AuthContext'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 type CheckoutStackParamList = {
-    SignUp: undefined;
-    PswdReset: undefined;
-};
+  SignUp: undefined
+  PswdReset: undefined
+}
 
-type NavigationProp = StackNavigationProp<CheckoutStackParamList>;
+type NavigationProp = StackNavigationProp<CheckoutStackParamList>
+
+WebBrowser.maybeCompleteAuthSession()
 
 export default function SignInScreen() {
-    
+  const { startSSOFlow } = useSSO()
+  const clerk = useClerk()
+  const navigation = useNavigation<NavigationProp>()
+  const { setIsAuthenticated, reloadUserData } = useMyAuth()
+  const [emailAddress, setEmailAddress] = useState('')
+  const [password, setPassword] = useState('')
 
-    const { startSSOFlow } = useSSO()
-    const clerk = useClerk()
-    const navigation = useNavigation<NavigationProp>();
-    const { setIsAuthenticated, reloadUserData } = useMyAuth()
-    const [emailAddress, setEmailAddress] = useState('')
-    const [password, setPassword] = useState('')
+  const onSignInPress = useCallback(async () => {
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: emailAddress, contrasena: password }),
+      })
 
-    const onSignInPress = useCallback(async () => {
-        console.log('[onSignInPress] Inicio de sesión manual, email:', emailAddress)
-        try {
-            console.log('[onSignInPress] Fetching:', `${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`)
-            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ correo: emailAddress, contrasena: password }),
-            })
-            console.log('[onSignInPress] Status code:', res.status)
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
+      }
 
-            if (!res.ok) {
-                const errorText = await res.text()
-                console.error('[onSignInPress] Backend error text:', errorText)
-                throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
-            }
+      const data = await res.json()
+      await AsyncStorage.setItem('token', data.token)
+      await reloadUserData()
+      setIsAuthenticated(true)
+    } catch (err) {
+      console.error('[onSignInPress] Error catch:', err)
+    }
+  }, [emailAddress, password, reloadUserData, setIsAuthenticated])
 
-            const data = await res.json()
-            console.log('[onSignInPress] Response JSON:', data)
+  const handleOAuthPress = useCallback(
+    async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
+      try {
+        const { createdSessionId, setActive } = await startSSOFlow({
+          strategy,
+          redirectUrl: AuthSession.makeRedirectUri(),
+        })
 
-            await AsyncStorage.setItem('token', data.token)
-            console.log('[onSignInPress] Token guardado en AsyncStorage')
+        if (createdSessionId) {
+          await setActive!({ session: createdSessionId })
 
-            await reloadUserData()
-            console.log('[onSignInPress] reloadUserData completado')
+          const providerName = strategy.replace('oauth_', '')
+          const session = clerk.session
+          const sessionUser = session?.user
+          const externalAccount = sessionUser?.externalAccounts?.find(
+            (account) => account.provider === providerName
+          )
 
-            setIsAuthenticated(true)
-            console.log('[onSignInPress] setIsAuthenticated(true)')
-        } catch (err) {
-            console.error('[onSignInPress] Error catch:', err)
+          const oauthData = {
+            proveedor: providerName,
+            sub: externalAccount?.providerUserId || '',
+            correo: externalAccount?.emailAddress || '',
+            nombre: externalAccount?.firstName || '',
+          }
+
+          const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(oauthData),
+          })
+
+          await clerk.signOut()
+
+          if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(`OAuth backend error: ${res.status} - ${errorText}`)
+          }
+
+          const data = await res.json()
+          await AsyncStorage.setItem('token', data.token)
+          await reloadUserData()
+          setIsAuthenticated(true)
+        } else {
+          console.warn(`[handleOAuthPress] ${strategy} - No session created`)
         }
-    }, [emailAddress, password, reloadUserData, setIsAuthenticated])
+      } catch (err) {
+        await clerk.signOut()
+        console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
+      }
+    },
+    [startSSOFlow, reloadUserData, setIsAuthenticated, clerk]
+  )
 
-    const handleOAuthPress = useCallback(async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
-        try {
-            const { createdSessionId, setActive, signIn, signUp } = await startSSOFlow({
-                strategy,
-                redirectUrl: AuthSession.makeRedirectUri(),
-            });
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Image source={require('../../assets/logo1.png')} style={styles.logo} resizeMode="contain" />
+      <Text style={styles.title}>Iniciar Sesión</Text>
 
-            if (createdSessionId) {
-                await setActive!({ session: createdSessionId })
-                const providerName = strategy.replace('oauth_', '');
+      <TextInput
+        placeholder="Email"
+        value={emailAddress}
+        onChangeText={setEmailAddress}
+        style={styles.input}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-                const session = clerk.session
-                const sessionUser = session?.user
-                const externalAccount = sessionUser?.externalAccounts?.find(
-                    (account) => account.provider === providerName // ← CORREGIR: usar providerName, no strategy
-                );
-                console.log('[handleOAuthPress] externalAccount:', externalAccount)
+      <TextInput
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        secureTextEntry
+      />
 
-                const oauthData = {
-                    proveedor: strategy.replace('oauth_', ''),
-                    sub: externalAccount?.providerUserId || '',
-                    correo: externalAccount?.emailAddress || '',
-                    nombre: externalAccount?.firstName || '',
-                };
-                console.log('[handleOAuthPress] oauthData:', oauthData)
+      <View style={styles.optionsRow}>
+        <TouchableOpacity onPress={() => navigation.navigate('PswdReset' as never)}>
+          <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+        </TouchableOpacity>
+      </View>
 
-                const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(oauthData),
-                })
-                console.log('[handleOAuthPress] res:', res)
-                await clerk.signOut()
-            
+      <TouchableOpacity style={styles.primaryButton} onPress={onSignInPress}>
+        <Text style={styles.primaryButtonText}>Ingresar</Text>
+      </TouchableOpacity>
 
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(`OAuth backend error: ${res.status} - ${errorText}`);
-                }
+      <Text style={styles.orText}>O continúa con:</Text>
 
-                const data = await res.json();
-                console.log('[handleOAuthPress] OAuth success, response data:', data)
-                await AsyncStorage.setItem('token', data.token);
-                console.log('[handleOAuthPress] OAuth token guardado')
-                await reloadUserData()
-                console.log('[handleOAuthPress] reloadUserData completado')
-                setIsAuthenticated(true)
-                console.log('[handleOAuthPress] setIsAuthenticated(true)')
-                
-                console.log('[handleOAuthPress] Terminado el proceso de OAuth.')
-            } else {
-                console.warn(`[handleOAuthPress] ${strategy} - No session created`)
-            }
-        } catch (err) {
-            await clerk.signOut()
-            console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
-        }
-    }, [startSSOFlow, reloadUserData, setIsAuthenticated, clerk])
-
-    return (
-        <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>
-                Iniciar Sesión
-            </Text>
-
-            <TextInput
-                placeholder="Email"
-                value={emailAddress}
-                onChangeText={(text) => {
-                    console.log('[EmailInput] Nuevo valor:', text)
-                    setEmailAddress(text)
-                }}
-                style={{
-                    borderWidth: 1,
-                    borderColor: '#ccc',
-                    padding: 10,
-                    marginBottom: 10,
-                    borderRadius: 5
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-            />
-
-            <TextInput
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={(text) => {
-                    console.log('[PasswordInput] Nuevo valor:', text)
-                    setPassword(text)
-                }}
-                style={{
-                    borderWidth: 1,
-                    borderColor: '#ccc',
-                    padding: 10,
-                    marginBottom: 20,
-                    borderRadius: 5
-                }}
-                secureTextEntry
-            />
-
-            <Button title="Iniciar Sesión" onPress={onSignInPress} />
-
-            <Text style={{ textAlign: 'center', marginVertical: 20 }}>O continúa con:</Text>
-
-            <TouchableOpacity onPress={() => handleOAuthPress('oauth_google')} style={{ backgroundColor: '#4285F4', padding: 15, marginBottom: 10, borderRadius: 5 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-                    Continuar con Google
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => handleOAuthPress('oauth_facebook')} style={{ backgroundColor: '#1877F2', padding: 15, marginBottom: 10, borderRadius: 5 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-                    Continuar con Facebook
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => handleOAuthPress('oauth_apple')} style={{ backgroundColor: '#000', padding: 15, marginBottom: 20, borderRadius: 5 }}>
-                <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-                    Continuar con Apple
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('SignUp' as never)}>
-                <Text style={{ textAlign: 'center', color: '#007AFF' }}>
-                    ¿No tienes cuenta? Regístrate
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('PswdReset' as never)}>
-                <Text style={{ textAlign: 'center', color: '#007AFF', marginTop: 10 }}>
-                    ¿Olvidaste tu contraseña?
-                </Text>
-            </TouchableOpacity>
+      <TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_google')}>
+        <View style={styles.socialContent}>
+          <Image
+            source={{ uri: 'https://crystalpng.com/wp-content/uploads/2025/05/google-logo.png' }}
+            style={styles.socialIcon}
+            resizeMode="contain"
+          />
+          <Text style={styles.socialText}>Continuar con Google</Text>
         </View>
-    )
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_facebook')}>
+        <View style={styles.socialContent}>
+          <Icon name="facebook" size={24} color="#1877F3" style={styles.socialIcon} />
+          <Text style={styles.socialText}>Continuar con Facebook</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_apple')}>
+        <View style={styles.socialContent}>
+          <Icon name="apple" size={24} color="#000" style={styles.socialIcon} />
+          <Text style={styles.socialText}>Continuar con Apple</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp' as never)}>
+        <Text style={styles.footerText}>
+          ¿No tienes cuenta? <Text style={styles.footerLink}>Regístrate</Text>
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#fff',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 15,
+    backgroundColor: '#fafafa',
+  },
+  optionsRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 20,
+  },
+  link: {
+    color: '#DE1484',
+  },
+  primaryButton: {
+    backgroundColor: '#DE1484',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    marginBottom: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  orText: {
+    marginVertical: 10,
+    color: '#888',
+  },
+  socialButton: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 30,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  socialContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialIcon: {
+    marginRight: 10,
+    width: 24,
+    height: 24,
+  },
+  socialText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  footerText: {
+    textAlign: 'center',
+    color: '#555',
+    marginTop: 16,
+  },
+  footerLink: {
+    color: '#DE1484',
+    fontWeight: 'bold',
+  },
+})

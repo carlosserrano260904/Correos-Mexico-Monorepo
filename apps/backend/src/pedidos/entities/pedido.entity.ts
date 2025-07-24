@@ -33,7 +33,13 @@ export class Pedido {
 
   @OneToMany(() => PedidoProducto, (pp) => pp.pedido, { cascade: true, eager: true })
   productos: PedidoProducto[];
-    direccion: any;
+
+  @ManyToOne(() => Misdireccione, { nullable: false })
+  @JoinColumn({ name: 'direccionId' })
+  direccion: Misdireccione;
+
+  @Column()
+  direccionId: number;
 }
 
 @Entity()
@@ -57,17 +63,4 @@ export class PedidoProducto {
 
   @Column()
   pedidoId: number;
-
-  //@ManyToOne(() => Misdireccione, direccion=> direccion.pedidos, { onDelete: 'CASCADE' })
-  //@JoinColumn({ name: 'direccionId' })
-  //direcciones: Misdireccione;
-
-  //@Column()
-  //direccionId: number;
-
-  //@Column()
-  //tarjetaId: number;
-
-  //@Column()
-  //guiaId: number;
 }

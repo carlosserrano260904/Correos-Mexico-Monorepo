@@ -31,6 +31,8 @@ import { ClerkModule } from './clerk/clerk.module';
 import { ShippingRateModule } from './shipping_rates/shipping_rates.module';
 import { Ubicaciones } from './ubicaciones/ubicaciones.module';
 import { EnviosModule } from './envios/envios.module';
+import { StripeModule } from './stripe/stripe.module';
+import { CardsModule } from './cards/cards.module';
 
 
 @Module({
@@ -67,6 +69,8 @@ import { EnviosModule } from './envios/envios.module';
     ShippingRateModule,
     Ubicaciones,
     EnviosModule,
+    StripeModule,
+    CardsModule,
 
   ],
   controllers: [AppController, PostalController],

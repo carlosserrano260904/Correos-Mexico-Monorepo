@@ -4,6 +4,7 @@ import { Carrito } from 'src/carrito/entities/carrito.entity'
 import {Column,Entity,OneToMany,OneToOne,PrimaryGeneratedColumn} from 'typeorm'
 import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
+import { Card } from '../../cards/entities/card.entity';
 
 @Entity()
 export class Profile {
@@ -49,4 +50,10 @@ export class Profile {
     direcciones: Misdireccione[];
     @OneToOne(() => CreateAccount, user => user.profile)
 usuario: CreateAccount;
+
+    @OneToMany(() => Card, (card) => card.profile)
+    cards: Card[];
+
+    @Column({ type: 'varchar', nullable: true })
+    stripeCustomerId: string;
 }

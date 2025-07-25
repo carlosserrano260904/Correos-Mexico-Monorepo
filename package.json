@@ -42,6 +42,7 @@
     "@react-navigation/native-stack": "^7.3.14",
     "@react-navigation/stack": "^7.4.2",
     "@react-pdf/renderer": "^4.3.0",
+    "@stripe/stripe-react-native": "0.45.0",
     "axios": "^1.9.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",

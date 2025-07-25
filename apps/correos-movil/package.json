@@ -29,7 +29,8 @@
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "^3.17.5",
     "react-native-svg": "15.11.2",
-    "react-native-tab-view": "^4.1.2"
+    "react-native-tab-view": "^4.1.2",
+    "@stripe/stripe-react-native": "0.45.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -27,6 +27,16 @@ export class EnviosController {
     return this.enviosService.findByUnidad(id);
   }
 
+  @Get('unidad/:id/hoy')
+  @ApiOperation({ summary: 'Obtener los envíos del día para una unidad con detalles de contacto' })
+  @ApiParam({ name: 'id', description: 'ID de la unidad (vehículo)', type: String })
+  @ApiResponse({ status: 200, description: 'Lista de envíos del día para la unidad con detalles de contacto.' })
+  @ApiResponse({ status: 404, description: 'No se encontraron envíos para esta unidad en el día de hoy' })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
+  findEnviosDeHoyPorUnidad(@Param('id') id: string): Promise<any[]> {
+    return this.enviosService.findEnviosDeHoyPorUnidad(id);
+  }
+
   @Get('guia/:id')
   @ApiOperation({ summary: 'Obtener historial de envíos para una guía específica' })
   @ApiParam({ name: 'id', description: 'ID de la guía', type: String })

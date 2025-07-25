@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator"
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator"
+import { TipoServicio } from "./tipo-servicio.enum";
 
 class DireccionDto {
     @ApiProperty({ example: 'Av. Reforma', description: 'El nombre de la calle' })
@@ -136,4 +137,11 @@ export class CrearGuiaDto {
     @IsNotEmpty({ message: 'El campo valorDeclarado es requerido' })
     @IsPositive({ message: 'El campo valorDeclarado debe ser un numero positivo' })
     valorDeclarado: number;
+    @ApiProperty({
+        enum: TipoServicio,
+        description: 'Tipo de servicio: NACIONAL o INTERNACIONAL',
+        example: TipoServicio.NACIONAL
+    })
+    @IsEnum(TipoServicio, { message: 'Este campo solo puede ser "nacional" o "internacional"'})
+    tipoServicio: TipoServicio;
 }

@@ -86,10 +86,19 @@ export class CrearGuiaCommandHandler
     if (qrResult.isFailure()) {
       throw new InternalServerErrorException(`Error al intentar generar QR: ${qrResult.getError()}`)
     }
+
     // generar pdf
-    const pdfResult = await this.pdfRepository.generateGuiaPDF(guia, qrResult.getValue());
-    if (pdfResult.isFailure()) {
-      throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+    let pdfResult;
+    if (command.tipoServicio === 'nacional') {
+      pdfResult = await this.pdfRepository.generarGuiaPDFNacional(guia, qrResult.getValue());
+      if (pdfResult.isFailure()) {
+        throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+      }
+    } else {
+      pdfResult = await this.pdfRepository.generarGuiaPDFInternacional(guia, qrResult.getValue());
+      if (pdfResult.isFailure()) {
+        throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+      }
     }
 
     return {

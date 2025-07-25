@@ -19,12 +19,11 @@ interface DireccionProps {
     calle: string;
     numero: string;
     numeroInterior?: string;
-    ciudad: string;
-    pais: string;
+    asentamiento: string;
     codigoPostal: string;
+    localidad: string;
     estado: string;
-    municipioDelegacion: string;
-    asentamiento?: string;
+    pais: string;
     referencia?: string;
 }
 

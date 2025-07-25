@@ -1,47 +1,44 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator"
+
 class DireccionDto {
     @ApiProperty({ example: 'Av. Reforma', description: 'El nombre de la calle' })
-    @IsString({ message: 'El campo calle debe ser una cadena de texto' })
+    @IsString()
     @IsNotEmpty({ message: 'El campo calle es requerido' })
     calle: string;
     @ApiProperty({ example: '456', description: 'El numero de la vivienda' })
-    @IsString({ message: 'El campo numero debe ser una cadena de texto' })
+    @IsString()
     @IsNotEmpty({ message: 'El campo numero es requerido' })
     numero: string;
-    @ApiProperty({ example: 'Ciudad de Mexico', description: 'La ciudad de la direccion' })
-    @IsString({ message: 'El campo ciudad debe ser una cadena de texto' })
-    @IsNotEmpty({ message: 'El campo ciudad es requerido' })
-    ciudad: string;
-    @ApiProperty({ example: 'Mexico', description: 'El pais de la direccion' })
-    @IsString({ message: 'El campo pais debe ser una cadena de texto' })
-    @IsNotEmpty({ message: 'El campo pais es requerido' })
-    pais: string;
-    @ApiProperty({ example: '06600', description: 'El codigo postal de la direccion' })
-    @IsString({ message: 'El campo codigoPostal debe ser una cadena de texto' })
-    @IsNotEmpty({ message: 'El campo codigoPostal es requerido' })
-    codigoPostal: string;
-    @ApiProperty({ example: 'CDMX', description: 'El estado de la direccion' })
-    @IsString({ message: 'El campo estado debe ser una cadena de texto' })
-    @IsNotEmpty({ message: 'El campo estado es requerido' })
-    estado: string;
-    @ApiProperty({ example: 'Cuauhtemoc', description: 'La delegacion de la direccion' })
-    @IsString({ message: 'El campo municipio o delegacion debe ser una cadena de texto' })
-    @IsNotEmpty({ message: 'El campo municipio o delegacion es requerido' })
-    municipioDelegacion: string;
-    @ApiProperty({ example: 'Juarez', required: false, nullable: true, description: 'El fraccionamiento, colonia, barrio, etc, de la direccion' })
-    @IsString({ message: 'El campo asentamiento (fraccionamiento, colonia, barrio, etc) debe ser una cadena de texto' })
-    @IsOptional()
-    asentamiento?: string;
-    @ApiProperty({ example: 'Entre Niza y Florencia, edificio azul', required: false, nullable: true, description: 'La referencia de la direccion' })
-    @IsString({ message: 'El campo referencia debe ser una cadena de texto' })
-    @IsOptional()
-    referencia?: string;
     @ApiProperty({ example: 'Depto 3B', required: false, nullable: true, description: 'El numero interior de la direccion' })
-    @IsString({ message: 'El campo numeroInterior debe ser una cadena de texto' })
+    @IsString()
     @IsOptional()
     numeroInterior?: string;
+    @ApiProperty({ example: 'Juarez', required: false, nullable: true, description: 'El fraccionamiento, colonia, barrio, ejido, rancho, etc.' })
+    @IsString()
+    @IsNotEmpty({ message: 'El campo asentamiento es requerido' })
+    asentamiento: string;
+    @ApiProperty({ example: '06600', description: 'El codigo postal de la direccion' })
+    @IsString()
+    @IsNotEmpty({ message: 'El campo codigoPostal es requerido' })
+    codigoPostal: string;
+    @ApiProperty({ example: 'Ciudad de Mexico', description: 'La localidad de la direccion, el correo no usa municipios ni alcaldias, solo usa la localidad asociada directamente al codigo postal' })
+    @IsString()
+    @IsNotEmpty({ message: 'El campo localidad es requerido' })
+    localidad: string;
+    @ApiProperty({ example: 'CDMX', description: 'El estado de la direccion' })
+    @IsString()
+    @IsNotEmpty({ message: 'El campo estado es requerido' })
+    estado: string;
+    @ApiProperty({ example: 'Mexico', description: 'El pais de la direccion' })
+    @IsString()
+    @IsNotEmpty({ message: 'El campo pais es requerido' })
+    pais: string;
+    @ApiProperty({ example: 'Entre Niza y Florencia, edificio azul', required: false, nullable: true, description: 'La referencia de la direccion' })
+    @IsString()
+    @IsOptional()
+    referencia?: string;
 }
 
 class DimensionesDto {
@@ -75,7 +72,7 @@ class ContactoDto {
     @IsString({ message: 'El campo telefono debe ser una cadena de texto' })
     @IsNotEmpty({ message: 'El campo telefono es requerido' })
     telefono: string;
-    @ApiProperty({ example: { calle: 'Av. Reforma', numero: '456', numeroInterior: 'Depto 3B', ciudad: 'Ciudad de Mexico', pais: 'Mexico', codigoPostal: '06600', estado: 'CDMX', municipioDelegacion: 'Cuauhtemoc', asentamiento: 'Juarez', referencia: 'Entre Niza y Florencia, edificio azul' }, description: 'La direccion del contacto' })
+    @ApiProperty({ example: { calle: 'Av. Reforma', numero: '456', numeroInterior: 'Depto 3B', asentamiento: 'Juarez', codigoPostal: '06600', localidad: 'Ciudad de Mexico', estado: 'CDMX', pais: 'Mexico', referencia: 'Entre Niza y Florencia, edificio azul' }, description: 'La direccion del contacto' })
     @ValidateNested({ message: 'El campo direccion debe ser un objeto' })
     @Type(() => DireccionDto)
     direccion: DireccionDto;
@@ -91,12 +88,11 @@ export class CrearGuiaDto {
                 calle: 'Av. Reforma',
                 numero: '456',
                 numeroInterior: 'Depto 3B',
-                ciudad: 'Ciudad de Mexico',
-                pais: 'Mexico',
-                codigoPostal: '06600',
-                estado: 'CDMX',
-                municipioDelegacion: 'Cuauhtemoc',
                 asentamiento: 'Juarez',
+                codigoPostal: '06600',
+                localidad: 'Ciudad de Mexico',
+                estado: 'CDMX',
+                pais: 'Mexico',
                 referencia: 'Entre Niza y Florencia, edificio azul'
             }
         },
@@ -113,12 +109,11 @@ export class CrearGuiaDto {
             direccion: {
                 calle: 'Calle Independencia',
                 numero: '789',
-                ciudad: 'Guadalajara',
-                pais: 'Mexico',
-                codigoPostal: '44100',
-                estado: 'Jalisco',
-                municipioDelegacion: 'Guadalajara',
                 asentamiento: 'Centro Historico',
+                codigoPostal: '44100',
+                localidad: 'Guadalajara',
+                estado: 'Jalisco',
+                pais: 'Mexico',
                 referencia: 'Frente a la Catedral'
             }
         },

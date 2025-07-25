@@ -40,14 +40,14 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
     logo: {
       width: 80,
       height: 60,
-      backgroundColor: "#e91e63",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "white",
-      fontWeight: "bold",
-      fontSize: 10,
-      textAlign: "center",
+      // backgroundColor: "#e91e63",
+      // display: "flex",
+      // alignItems: "center",
+      // justifyContent: "center",
+      // color: "white",
+      // fontWeight: "bold",
+      // fontSize: 10,
+      // textAlign: "center",
     },
     serviceTitle: {
       flex: 1,
@@ -205,8 +205,8 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
     if (direccion.numeroInterior) parts.push(`Int. ${direccion.numeroInterior}`)
 
     const line1 = parts.join(" ")
-    const line2 = `${direccion.asentamiento}, ${direccion.municipioDelegacion}`
-    const line3 = `${direccion.ciudad}, ${direccion.estado}, ${direccion.pais}`
+    const line2 = `${direccion.asentamiento}, ${direccion.localidad}`
+    const line3 = `${direccion.localidad}, ${direccion.estado}, ${direccion.pais}`
     const line4 = `C.P. ${direccion.codigoPostal}`
     const line5 = direccion.referencia ? `Ref: ${direccion.referencia}` : ""
 
@@ -251,7 +251,10 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             View,
             { style: styles.serviceInfo },
-            createElement(View, { style: styles.logo }, createElement(Text, {}, "✉\nCORREOS")),
+            createElement(Image, {
+              style: styles.logo,
+              src: './src/guias_trazabilidad/infrastructure/pdf-generator/plantillas/icons/correos-mexico.jpg'
+            }),
             createElement(
               View,
               { style: styles.serviceTitle },

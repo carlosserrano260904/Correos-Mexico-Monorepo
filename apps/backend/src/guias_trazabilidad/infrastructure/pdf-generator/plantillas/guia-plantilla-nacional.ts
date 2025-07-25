@@ -1,12 +1,10 @@
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
 import { createElement } from "react"
 import { GuiaMapper } from "../../mappers/guia.mapper";
 
 type GuiaPdfPayload = ReturnType<typeof GuiaMapper.toPdfPayload>;
 
-export const plantillaGuiaNacional = async (guiaData: GuiaPdfPayload, qrCodeDataURL: string) => {
-  // Importación dinámica para los componentes de React-PDF
-  const { Document, Page, Text, View, StyleSheet, Image } = await import("@react-pdf/renderer");
-
+export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: string) => {
   const styles = StyleSheet.create({
     page: {
       padding: 0,

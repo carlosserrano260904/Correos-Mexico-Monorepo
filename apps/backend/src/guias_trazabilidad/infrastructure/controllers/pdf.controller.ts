@@ -1,7 +1,11 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { pdf } from '@react-pdf/renderer';
+import { plantillaGuiaInternacional } from '../pdf-generator/plantillas/guia-plantilla-internacional';
 import { plantillaGuiaNacional } from '../pdf-generator/plantillas/guia-plantilla-nacional';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @ApiTags('PDF')
 @Controller('pdf')
@@ -60,11 +64,8 @@ export class PdfController {
       // qr dummy
       const qrDummy = 'hola soy un qr'
 
-      // Importación dinámica para evitar el error ERR_REQUIRE_ESM
-      const { pdf } = await import('@react-pdf/renderer');
-
       // generando pdf
-      const pdfDocument = await plantillaGuiaNacional(datosPrueba, qrDummy);
+      const pdfDocument = plantillaGuiaNacional(datosPrueba, qrDummy);
 
       // la versioon que descargue tiene un bug, hay que usarla entonces asi
       const pdfBlob = await pdf(pdfDocument).toBlob();

@@ -11,6 +11,7 @@ import {
 import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
+import { useMyAuth } from '../../context/AuthContext';
 
 const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
@@ -52,12 +53,12 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
 
 const ProductoCard: React.FC<{
   articulo: Articulo;
-  liked: number[];
-  toggleLike: (id: number) => void;
-}> = ({ articulo, liked, toggleLike }) => {
+  favoritos: Record<number, number>;
+  toggleFavorito: (id: number) => void;
+}> = ({ articulo, favoritos, toggleFavorito }) => {
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
-  const isLiked = liked.includes(idNum);
+  const isLiked = favoritos.hasOwnProperty(idNum);
 const colores = (articulo.color ?? '')
   .split(',')
   .map(s => s.trim())
@@ -72,7 +73,7 @@ const colores = (articulo.color ?? '')
       <View style={styles.estadoProducto}>
         <ColorDisplay colores={colores} />
         <View style={styles.iconosAccion}>
-          <TouchableOpacity onPress={() => toggleLike(idNum)}>
+          <TouchableOpacity onPress={() => toggleFavorito(idNum)}>
             <Heart size={24} color={isLiked ? '#de1484' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
           </TouchableOpacity>
           <ShoppingBag size={24} color="gray" />
@@ -90,15 +91,39 @@ const colores = (articulo.color ?? '')
 };
 
 export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '' }) => {
+  const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
-  const [liked, setLiked] = useState<number[]>([]);
+  const [favoritos, setFavoritos] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    fetch(`http://${IP}:3000/api/likes/usuario/1`)
-      .then(r => r.json())
-      .then(data => setLiked(data.map((l: any) => l.producto.id)))
-      .catch(console.error);
-  }, []);
+    if (!userId) return;
+
+    // Cambiamos al endpoint de favoritos para obtener los del usuario
+    fetch(`http://${IP}:3000/api/favoritos/${userId}`)
+      .then(r => {
+        if (r.status === 404) {
+          return []; // Si el usuario no tiene favoritos, la API devuelve 404. Lo tratamos como un array vacío.
+        }
+        return r.json();
+      })
+      .then((data: Array<{ id: number; producto: { id: number } }>) => {
+        // Si la respuesta es un array, procesamos los favoritos.
+        if (Array.isArray(data)) {
+          // Transformamos la respuesta en un mapa para fácil acceso y borrado
+          const favoritosMap = data.reduce(
+            (acc, fav) => {
+              if (fav && fav.producto && fav.producto.id) {
+                acc[fav.producto.id] = fav.id;
+              }
+              return acc;
+            },
+            {} as Record<number, number>,
+          );
+          setFavoritos(favoritosMap);
+        }
+      })
+      .catch(err => console.error('Error al obtener favoritos:', err));
+  }, [userId]);
 
   useEffect(() => {
     const searchText = search.toLowerCase().trim();
@@ -108,16 +133,62 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     setFiltered(nuevos);
   }, [productos, search]);
 
-  const toggleLike = async (id: number) => {
-    const url = `http://${IP}:3000/api/likes/1/${id}`;
-    try {
-      const method = liked.includes(id) ? 'DELETE' : 'POST';
-      await fetch(url, { method });
-      setLiked(prev =>
-        prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-      );
-    } catch (e) {
-      console.error(e);
+  const toggleFavorito = async (productoId: number) => {
+    if (!userId) {
+      console.log('Usuario no loggeado, no se puede marcar como favorito.');
+      return;
+    }
+
+    const esFavorito = favoritos.hasOwnProperty(productoId);
+    const originalFavoritos = { ...favoritos }; // Guardamos el estado original para rollback
+
+    if (esFavorito) {
+      // --- Lógica para ELIMINAR un favorito (con UI optimista) ---
+      const favoritoId = favoritos[productoId];
+
+      // 1. Actualizar la UI inmediatamente (optimista)
+      setFavoritos(prev => {
+        const newState = { ...prev };
+        delete newState[productoId];
+        return newState;
+      });
+
+      // 2. Realizar la llamada a la API
+      try {
+        const url = `http://${IP}:3000/api/favoritos/${favoritoId}`;
+        const response = await fetch(url, { method: 'DELETE' });
+
+        if (!response.ok) {
+          // 3. Si la API falla, revertir el cambio en la UI
+          console.error('Error al eliminar el favorito, revirtiendo estado.');
+          setFavoritos(originalFavoritos);
+        }
+      } catch (error) {
+        // 4. Si hay un error de red, también revertir
+        console.error('Error de red al eliminar favorito, revirtiendo estado:', error);
+        setFavoritos(originalFavoritos);
+      }
+    } else {
+      // --- Lógica para AGREGAR un favorito ---
+      try {
+        const url = `http://${IP}:3000/api/favoritos`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileId: userId, productId: productoId }),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Error al agregar favorito - Status: ${response.status}, Body: ${errorBody}`);
+        }
+
+        const nuevoFavorito = await response.json();
+        setFavoritos(prev => ({ ...prev, [productoId]: nuevoFavorito.id }));
+
+      } catch (error) {
+        console.error('No se pudo agregar el favorito:', error);
+      }
     }
   };
 
@@ -130,7 +201,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <ProductoCard articulo={item} liked={liked} toggleLike={toggleLike} />
+          <ProductoCard articulo={item} favoritos={favoritos} toggleFavorito={toggleFavorito} />
         )}
         numColumns={numCols}
         columnWrapperStyle={styles.row}

@@ -284,7 +284,7 @@ export const plantillaGuiaInternacional = (guiaData: GuiaPdfPayload, qrCodeDataU
         ),
 
         createElement(View, { style: styles.twoColumnContainer },
-          // remitente
+          // info del remitente
           createElement(View, { style: styles.leftColumn },
             createElement(Text, { style: styles.sectionTitle }, 'REMITENTE (SENDER)'),
             renderField('Nombre', `${guiaData.remitente.nombres} ${guiaData.remitente.apellidos}`),
@@ -292,11 +292,11 @@ export const plantillaGuiaInternacional = (guiaData: GuiaPdfPayload, qrCodeDataU
             renderField('Calle', guiaData.remitente.direccion.calle),
             renderField('Número', guiaData.remitente.direccion.numero),
             renderField('No. Int', guiaData.remitente.direccion.numeroInterior),
-            renderField('Ciudad', guiaData.remitente.direccion.ciudad),
-            renderField('Estado', guiaData.remitente.direccion.estado),
+            renderField('Asentamiento', guiaData.remitente.direccion.asentamiento),
             renderField('C.P.', guiaData.remitente.direccion.codigoPostal),
+            renderField('Localidad', guiaData.remitente.direccion.localidad),
+            renderField('Estado', guiaData.remitente.direccion.estado),
             renderField('País', guiaData.remitente.direccion.pais),
-            renderField('Municipio', guiaData.remitente.direccion.municipioDelegacion),
             renderField('Referencia', guiaData.remitente.direccion.referencia)
           ),
 
@@ -308,11 +308,11 @@ export const plantillaGuiaInternacional = (guiaData: GuiaPdfPayload, qrCodeDataU
             renderField('Calle', guiaData.destinatario.direccion.calle),
             renderField('Número', guiaData.destinatario.direccion.numero),
             renderField('No. Int', guiaData.destinatario.direccion.numeroInterior),
-            renderField('Ciudad', guiaData.destinatario.direccion.ciudad),
-            renderField('Estado', guiaData.destinatario.direccion.estado),
+            renderField('Asentamiento', guiaData.destinatario.direccion.asentamiento),
             renderField('C.P.', guiaData.destinatario.direccion.codigoPostal),
+            renderField('Localidad', guiaData.destinatario.direccion.localidad),
+            renderField('Estado', guiaData.destinatario.direccion.estado),
             renderField('País', guiaData.destinatario.direccion.pais),
-            renderField('Municipio', guiaData.destinatario.direccion.municipioDelegacion),
             renderField('Referencia', guiaData.destinatario.direccion.referencia)
           )
         ),

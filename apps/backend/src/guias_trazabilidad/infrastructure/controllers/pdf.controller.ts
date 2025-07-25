@@ -35,12 +35,11 @@ export class PdfController {
             calle: 'Av. Reforma',
             numero: '123',
             numeroInterior: '4B',
-            ciudad: 'Ciudad de México',
+            asentamiento: 'Juárez',
+            codigoPostal: '06600',
+            localidad: 'Ciudad de México',
             estado: 'CDMX',
             pais: 'México',
-            codigoPostal: '06600',
-            municipioDelegacion: 'Cuauhtémoc',
-            asentamiento: 'Juárez',
             referencia: 'Frente al Starbucks'
           }
         },
@@ -52,12 +51,11 @@ export class PdfController {
             calle: 'Calle Insurgentes',
             numero: '456',
             numeroInterior: '',
-            ciudad: 'Guadalajara',
+            asentamiento: 'Centro',
+            codigoPostal: '44100',
+            localidad: 'Guadalajara',
             estado: 'Jalisco',
             pais: 'México',
-            codigoPostal: '44100',
-            municipioDelegacion: 'Guadalajara',
-            asentamiento: 'Centro',
             referencia: 'Junto a la farmacia'
           }
         }

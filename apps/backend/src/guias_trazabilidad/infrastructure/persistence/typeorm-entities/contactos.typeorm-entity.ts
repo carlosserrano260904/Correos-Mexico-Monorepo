@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'contactos' })
+@Entity({ name: 'contactos_guias' })
 export class ContactosTypeormEntity {
   @PrimaryColumn('uuid')
   id_contacto: string;
@@ -27,23 +27,26 @@ export class ContactosTypeormEntity {
   numero_interior?: string | null;
 
   @Column({ type: 'varchar', nullable: false })
-  ciudad: string;
-
-  @Column({ type: 'varchar', nullable: false })
-  pais: string;
+  asentamiento: string;
 
   @Column({ type: 'varchar', nullable: false })
   codigo_postal: string;
 
   @Column({ type: 'varchar', nullable: false })
-  estado: string;
+  localidad: string;
 
   @Column({ type: 'varchar', nullable: false })
-  municipio_delegacion: string;
+  estado: string;
 
   @Column({ type: 'varchar', nullable: true })
-  asentamiento?: string | null;
+  pais: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'numeric', nullable: true })
+  lat?: number | null;
+
+  @Column({ type: 'numeric', nullable: true })
+  lng?: number | null;
+
+  @Column({ type: 'text', nullable: true })
   referencia?: string | null;
 }

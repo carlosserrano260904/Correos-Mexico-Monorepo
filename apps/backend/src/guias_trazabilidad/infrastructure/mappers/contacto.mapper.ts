@@ -8,20 +8,21 @@ export class ContactoMapper {
   static toOrm(contacto: ContactoVO): ContactosTypeormEntity {
     const ormEntity = new ContactosTypeormEntity();
     ormEntity.id_contacto = contacto.getIdTecnico.getId;
-    ormEntity.id_usuario = contacto.getIdUsuario?.getId ?? null;
+    ormEntity.id_usuario = contacto.getIdUsuario?.getId;
     ormEntity.nombres = contacto.getNombres;
     ormEntity.apellidos = contacto.getApellidos;
     ormEntity.telefono = contacto.getTelefono.getNumero;
     ormEntity.calle = contacto.getDireccion.getCalle;
     ormEntity.numero = contacto.getDireccion.getNumero;
-    ormEntity.ciudad = contacto.getDireccion.getCiudad;
-    ormEntity.pais = contacto.getDireccion.getPais;
+    ormEntity.numero_interior = contacto.getDireccion.getNumeroInterior;
+    ormEntity.asentamiento = contacto.getDireccion.getAsentamiento;
     ormEntity.codigo_postal = contacto.getDireccion.getCodigoPostal;
+    ormEntity.localidad = contacto.getDireccion.getLocalidad;
     ormEntity.estado = contacto.getDireccion.getEstado;
-    ormEntity.municipio_delegacion = contacto.getDireccion.getMunicipioDelegacion;
-    ormEntity.asentamiento = contacto.getDireccion.getAsentamiento ?? null;
-    ormEntity.referencia = contacto.getDireccion.getReferencia ?? null;
-    ormEntity.numero_interior = contacto.getDireccion.getNumeroInterior ?? null;
+    ormEntity.pais = contacto.getDireccion.getPais;
+    ormEntity.lat = contacto.getDireccion.getLat;
+    ormEntity.lng = contacto.getDireccion.getLng;
+    ormEntity.referencia = contacto.getDireccion.getReferencia;
     return ormEntity;
   }
 
@@ -35,14 +36,15 @@ export class ContactoMapper {
       direccion: DireccionVO.fromPersistence({
         calle: contactoOrmEntity.calle,
         numero: contactoOrmEntity.numero,
-        ciudad: contactoOrmEntity.ciudad,
-        pais: contactoOrmEntity.pais,
-        codigoPostal: contactoOrmEntity.codigo_postal,
-        estado: contactoOrmEntity.estado,
-        municipioDelegacion: contactoOrmEntity.municipio_delegacion,
-        asentamiento: contactoOrmEntity.asentamiento ?? undefined,
-        referencia: contactoOrmEntity.referencia ?? undefined,
         numeroInterior: contactoOrmEntity.numero_interior ?? undefined,
+        asentamiento: contactoOrmEntity.asentamiento,
+        codigoPostal: contactoOrmEntity.codigo_postal,
+        localidad: contactoOrmEntity.localidad,
+        estado: contactoOrmEntity.estado,
+        pais: contactoOrmEntity.pais,
+        lat: contactoOrmEntity.lat ?? undefined,
+        lng: contactoOrmEntity.lng ?? undefined,
+        referencia: contactoOrmEntity.referencia ?? undefined
       }),
     });
   }
@@ -56,12 +58,11 @@ export class ContactoMapper {
         calle: contactoVO.getDireccion.getCalle,
         numero: contactoVO.getDireccion.getNumero,
         numeroInterior: contactoVO.getDireccion.getNumeroInterior ?? "",
-        ciudad: contactoVO.getDireccion.getCiudad,
-        pais: contactoVO.getDireccion.getPais,
-        codigoPostal: contactoVO.getDireccion.getCodigoPostal,
-        estado: contactoVO.getDireccion.getEstado,
-        municipioDelegacion: contactoVO.getDireccion.getMunicipioDelegacion,
         asentamiento: contactoVO.getDireccion.getAsentamiento ?? "",
+        codigoPostal: contactoVO.getDireccion.getCodigoPostal,
+        localidad: contactoVO.getDireccion.getLocalidad,
+        estado: contactoVO.getDireccion.getEstado,
+        pais: contactoVO.getDireccion.getPais,
         referencia: contactoVO.getDireccion.getReferencia ?? ""
       }
     }

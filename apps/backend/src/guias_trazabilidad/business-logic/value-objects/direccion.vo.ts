@@ -3,18 +3,16 @@ import { Result } from "../../../utils/result";
 interface DireccionProps {
     calle: string;
     numero: string;
-    numeroInterior?: string; // podria haber una casa con numero interior
-    ciudad: string;
-    pais: string;
+    numeroInterior?: string; // si aplica.
+    asentamiento: string; // fracc, col, ejido, rancho, etc
     codigoPostal: string;
+    localidad: string; // el correo no usa municipios ni alcaldias, solo usa la localidad asociada directamente al codigo postal
     estado: string;
-    municipioDelegacion: string;
-    asentamiento?: string; // podria haber comunidades donde no hay asentamiento
-    referencia?: string; // podria haber una referencia de la direccion
+    pais: string;
+    lat?: number;
+    lng?: number;
+    referencia?: string;
 }
-
-
-// type Props = baseProps & MunicipioDelegacion & ColoniaFraccionamiento;
 
 export class DireccionVO {
     private constructor(private readonly props: DireccionProps) { }
@@ -39,8 +37,12 @@ export class DireccionVO {
         return this.props.numero
     }
 
-    get getCiudad(): string {
-        return this.props.ciudad
+    get getNumeroInterior(): string | undefined {
+        return this.props.numeroInterior
+    }
+
+    get getLocalidad(): string {
+        return this.props.localidad;
     }
 
     get getPais(): string {
@@ -55,19 +57,19 @@ export class DireccionVO {
         return this.props.estado
     }
 
-    get getMunicipioDelegacion(): string {
-        return this.props.municipioDelegacion
-    }
-
-    get getAsentamiento(): string | undefined {
+    get getAsentamiento(): string {
         return this.props.asentamiento
     }
 
-    get getReferencia(): string | undefined {
-        return this.props.referencia
+    get getLat(): number | undefined {
+        return this.props.lat;
     }
 
-    get getNumeroInterior(): string | undefined {
-        return this.props.numeroInterior
+    get getLng(): number | undefined {
+        return this.props.lng;
+    }
+
+    get getReferencia(): string | undefined {
+        return this.props.referencia;
     }
 }

@@ -79,8 +79,21 @@ export default function SignUpScreen() {
         }),
       })
       if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(`Signup backend error: ${res.status} - ${errorText}`)
+        const errorData = await res.json();
+        console.log('Error response:', errorData);
+
+        if (res.status === 401 && errorData.message === 'El correo ya está en uso') {
+          Alert.alert(
+            'Correo duplicado',
+            'Este email ya tiene una cuenta. Inicia sesión para continuar.',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Iniciar sesión', onPress: () => navigation.navigate('SignIn') }
+            ]
+          );
+          setLoading(false);
+          return;
+        }
       }
 
       try {

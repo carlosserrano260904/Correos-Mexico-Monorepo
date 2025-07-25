@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
@@ -23,6 +23,10 @@ export class UserService {
 
   findByCorreo(correo: string) {
     return this.repo.findOne({ where: { correo }, relations: ['profile'] });
+  }
+
+  findByCorreoNoOAuth(correo: string) {
+    return this.repo.findOne({ where: { correo, password: Not("N/A: OAuth") } });
   }
 
   findById(id: number) {

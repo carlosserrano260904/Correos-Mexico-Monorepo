@@ -23,38 +23,43 @@ export class AuthService {
 
     async signup(dto: CreateUserDto) {
         const hash = await bcrypt.hash(dto.contrasena, 10);
+        const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
+        console.log('userExists', userExists);
+        if (userExists) {
+            throw new UnauthorizedException('El correo ya está en uso');
+        } else {
+            // Guardar perfil por defecto
+            const profile = this.profileRepository.create({
+                nombre: dto.nombre || dto.correo.split('@')[0],
+                apellido: '',
+                numero: '',
+                estado: '',
+                ciudad: '',
+                fraccionamiento: '',
+                calle: '',
+                codigoPostal: '',
+            });
 
-        // Guardar perfil por defecto
-        const profile = this.profileRepository.create({
-            nombre: dto.nombre || dto.correo.split('@')[0],
-            apellido: '',
-            numero: '',
-            estado: '',
-            ciudad: '',
-            fraccionamiento: '',
-            calle: '',
-            codigoPostal: '',
-        });
+            // Crea el usuario con el perfil relacionado y la contraseña hasheada
+            const user = await this.usuariosService.create({
+                nombre: dto.nombre || dto.correo.split('@')[0],
+                correo: dto.correo,
+                password: hash, // ✅ Aquí está la corrección
+                rol: 'usuario',
+                profile,
+            });
 
-        // Crea el usuario con el perfil relacionado y la contraseña hasheada
-        const user = await this.usuariosService.create({
-            nombre: dto.nombre || dto.correo.split('@')[0],
-            correo: dto.correo,
-            password: hash, // ✅ Aquí está la corrección
-            rol: 'usuario',
-            profile,
-        });
+            const token = await this.jwtService.signAsync({
+                profileId: user.profile.id,
+                rol: 'usuario',
+            });
 
-        const token = await this.jwtService.signAsync({
-            profileId: user.profile.id,
-            rol: 'usuario',
-        });
-
-        return {
-            token,
-            id: user.id,
-            userId: user.profile.id,
-        };
+            return {
+                token,
+                id: user.id,
+                userId: user.profile.id,
+            };
+        }
     }
 
     async oauth(dto: OAuthDto) {
@@ -77,7 +82,7 @@ export class AuthService {
             user = await this.usuariosService.create({
                 nombre: dto.nombre || dto.correo.split('@')[0],
                 correo: dto.correo,
-                password: 'N/A: OAuth', 
+                password: 'N/A: OAuth',
                 rol: 'usuario',
                 confirmado: true,
                 profile,
@@ -145,29 +150,29 @@ export class AuthService {
         if (!user) throw new UnauthorizedException('Usuario no encontrado');
         await this.usuariosService.updateOTP(dto.correo, otp.toString());
 
-            const nodemailer = require('nodemailer');
-            
-            // Generar cuenta de prueba de Ethereal automáticamente
-            const testAccount = await nodemailer.createTestAccount();
-            console.log('Generated test account:', testAccount);
+        const nodemailer = require('nodemailer');
 
-            const transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST, // smtp.gmail.com
-                port: parseInt(process.env.SMTP_PORT || '587'), // 587
-                secure: false, // use STARTTLS
-                auth: {
-                    user: process.env.SMTP_USER, // juandiego6290@gmail.com
-                    pass: process.env.SMTP_PASS, // zplx mggs abmr blnt (App Password)
-                },
-            });
+        // Generar cuenta de prueba de Ethereal automáticamente
+        const testAccount = await nodemailer.createTestAccount();
+        console.log('Generated test account:', testAccount);
 
-            // Enviar email
-            const info = await transporter.sendMail({
-                from: '"Correos México" <noreply@correos.com>',
-                to: dto.correo,
-                subject: "Código de verificación - Correos México",
-                text: `Tu código de verificación es: ${otp}`,
-                html: `
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST, // smtp.gmail.com
+            port: parseInt(process.env.SMTP_PORT || '587'), // 587
+            secure: false, // use STARTTLS
+            auth: {
+                user: process.env.SMTP_USER, // juandiego6290@gmail.com
+                pass: process.env.SMTP_PASS, // zplx mggs abmr blnt (App Password)
+            },
+        });
+
+        // Enviar email
+        const info = await transporter.sendMail({
+            from: '"Correos México" <noreply@correos.com>',
+            to: dto.correo,
+            subject: "Código de verificación - Correos México",
+            text: `Tu código de verificación es: ${otp}`,
+            html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2>Código de verificación</h2>
                         <p>Tu código de verificación es:</p>
@@ -178,27 +183,27 @@ export class AuthService {
                         <p>Si no solicitaste este código, puedes ignorar este email.</p>
                     </div>
                 `,
-            });
+        });
 
-            console.log("Message sent: %s", info.messageId);
-            console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-            
-            return { 
-                message: 'OTP enviado correctamente',
-                previewUrl: nodemailer.getTestMessageUrl(info) // Para debug
-            };
-        
+        console.log("Message sent: %s", info.messageId);
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+
+        return {
+            message: 'OTP enviado correctamente',
+            previewUrl: nodemailer.getTestMessageUrl(info) // Para debug
+        };
+
     }
 
-    async verifyOtp(dto: VerifyOtpDto) {    
+    async verifyOtp(dto: VerifyOtpDto) {
         let isOtpVerified = false;
         const user = await this.usuariosService.findByCorreo(dto.correo);
-        
+
         if (!user) throw new UnauthorizedException('Usuario no encontrado');
         if (user.token === dto.token) {
             await this.usuariosService.updateConfirmado(user.correo, true);
             isOtpVerified = true;
-        } 
+        }
         return { isOtpVerified };
     }
 }

@@ -351,7 +351,6 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
               src: qrCodeDataURL,
             }),
             createElement(Text, { style: styles.qrText }, "Código QR"),
-            createElement(Text, { style: styles.qrText }, guiaData.numeroRastreo),
           ),
         ),
 

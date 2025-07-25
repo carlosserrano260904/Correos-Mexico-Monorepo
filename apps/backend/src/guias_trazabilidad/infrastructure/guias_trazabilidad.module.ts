@@ -15,7 +15,6 @@ import { ListarIncidenciasQueryHandler } from "../application/use-cases/listar-i
 import { ListarContactosQueryHandler } from "../application/use-cases/listar-contactos/listar-contactos.handler";
 
 // Controllers
-import { PdfController } from "./controllers/pdf.controller";
 import { GuiaController } from "./controllers/guia.controller";
 
 // Repositories & interfaces
@@ -46,7 +45,7 @@ import { GoogleGeocodeRepository } from "./google-geocode/google-geocode.reposit
             IncidenciasTypeormEntity
         ])
     ],
-    controllers: [PdfController, GuiaController],
+    controllers: [GuiaController],
     providers: [
         // Command Handlers (Escritura)
         CrearGuiaCommandHandler,

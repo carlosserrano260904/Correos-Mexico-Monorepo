@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
   ActivityIndicator,
   TextInput,
   SafeAreaView,
@@ -46,7 +47,7 @@ export default function ProductsScreen() {
     fetchProductos();
   }, []);
 
-  const categorias = ['Todos', ...Array.from(new Set(productos.map(p => p.categoria)))];
+  const categorias = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
   const [searchText, setSearchText] = useState('');
 
   const productosFiltrados =
@@ -57,9 +58,9 @@ export default function ProductsScreen() {
   return (
     <SafeAreaView style={styles.contenedor}>
     <StatusBar
-        backgroundColor="#fff" // color de fondo del área del notch (Android)
+        backgroundColor="transparent"
         barStyle="dark-content"  // color del texto (light-content o dark-content)
-        translucent={false}
+        translucent
       />
       <View style={[styles.fila, styles.encabezado]}>
         <View style={[{display: 'flex', flexDirection: 'column'  ,alignItems: 'center', justifyContent: 'center' }]}>
@@ -86,32 +87,35 @@ export default function ProductsScreen() {
 
       <View style={[styles.filtrosContainer]}>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {categorias.map((categoria, index) => (
-            <Pressable
-              key={index}
-              style={[
-                styles.botonFiltro,
-                categoria === categoriaSeleccionada && styles.botonFiltroActivo,
-              ]}
-              onPress={() => setCategoriaSeleccionada(categoria)}
-            >
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
+        {/* Solo muestra la barra si hay categorías para filtrar (además de "Todos") */}
+        {categorias && categorias.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {categorias.map((categoria, index) => (
+              <Pressable
+                key={index}
                 style={[
-                  styles.textoFiltro,
-                  categoria === categoriaSeleccionada && styles.textoFiltroActivo,
+                  styles.botonFiltro,
+                  categoria === categoriaSeleccionada && styles.botonFiltroActivo,
                 ]}
+                onPress={() => setCategoriaSeleccionada(categoria)}
               >
-                {categoria}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={[
+                    styles.textoFiltro,
+                    categoria === categoriaSeleccionada && styles.textoFiltroActivo,
+                  ]}
+                >
+                  {categoria}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View style={styles.listContainer}>
@@ -130,9 +134,14 @@ export default function ProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  contenedor: { flex: 1, backgroundColor: '#fff', paddingHorizontal:5 },
+  contenedor: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 5,
+    paddingTop: (Platform.OS === 'android' ? StatusBar.currentHeight : 0) + 5,
+  },
   fila: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 },
-  encabezado: { marginTop: 10, marginBottom: 10, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  encabezado: { marginBottom: 10, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   titulo: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 16, marginVertical: 8 },
   filtrosContainer: {
     paddingHorizontal: 15,

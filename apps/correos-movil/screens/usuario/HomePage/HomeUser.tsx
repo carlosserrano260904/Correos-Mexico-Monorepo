@@ -161,10 +161,16 @@ export default function HomeUser() {
             <TouchableOpacity style={styles.iconsHeader}>
               <Text style={styles.textLenguage}>ES</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconsHeader}>
+            <TouchableOpacity
+              style={styles.iconsHeader}
+              onPress={() => navigation.navigate('Favorito')} // ← Aquí
+            >
               <Heart color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconsHeader}>
+            <TouchableOpacity
+              style={styles.iconsHeader}
+              onPress={() => navigation.navigate('Carrito')} // 
+>
               <ShoppingBag color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
           </View>

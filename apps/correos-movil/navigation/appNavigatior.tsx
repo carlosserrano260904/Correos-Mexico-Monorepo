@@ -36,6 +36,8 @@ import chat_bot from '../screens/usuario/chat-bot/chat_bot';
 import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
 import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
+import CarritoScreen from '../screens/carrito/Carrito';
+import FavoritosScreen from '../screens/favorito/Favorito';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -80,6 +82,8 @@ export default function AppNavigator() {
             <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{headerShown: false}} />
             <Stack.Screen name="Correo-mex" component={Correomex} options={{headerShown: false}} />
             <Stack.Screen name="LoadPackagesCarrier" component={LoadPackagesCarrier} options={{headerShown: false}} />
+            <Stack.Screen name="Carrito" component={CarritoScreen} options={{headerShown: false}} />
+            <Stack.Screen name="Favorito" component={FavoritosScreen} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

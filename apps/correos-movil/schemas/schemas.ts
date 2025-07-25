@@ -18,6 +18,8 @@ export type SchemaProfileUser = z.infer<typeof ProfileUserSchema>;
 
 // Tipos de navegación (Stack Params)
 export type RootStackParamList = {
+  Carrito: undefined;
+  Favorito : undefined;
   Politicas:undefined
   Productos:undefined
   AgregarTarjetaScreen:undefined

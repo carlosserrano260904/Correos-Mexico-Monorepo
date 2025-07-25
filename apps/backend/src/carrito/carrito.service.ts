@@ -33,7 +33,6 @@ export class CarritoService {
     return productos;
   }
 
-
   async agregarProducto(profileId: number, productId: number, cantidad: number) {
     const usuario = await this.profileRepo.findOneBy({ id: profileId });
     const producto = await this.productRepo.findOneBy({ id: productId });

@@ -9,7 +9,7 @@ import {
   ClassSerializerInterceptor,
   Put,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 import { UnidadesService } from './unidades.service';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
@@ -17,6 +17,7 @@ import { AssignConductorDto } from './dto/assign-conductor.dto';
 import { UnidadResponseDto } from './dto/unidad-response.dto';
 import { OficinaTipoVehiculoDto } from './dto/oficina-tipo-vehiculo.dto';
 import { AssignZonaDto } from './dto/assign-zona.dto';
+import { Unidad } from './entities/unidad.entity';
 
 @ApiTags('Unidades')
 @Controller('unidades')
@@ -84,5 +85,14 @@ export class UnidadesController {
   })
   generarQrs() {
     return this.unidadesService.generarQRsDeUnidades();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener una unidad por ID' })
+  @ApiParam({ name: 'id', description: 'ID de la unidad' })
+  @ApiResponse({ status: 200, description: 'Unidad encontrada', type: Unidad })
+  @ApiResponse({ status: 404, description: 'Unidad no encontrada' })
+  findOne(@Param('id') id: string) {
+    return this.unidadesService.findOne(id);
   }
 }

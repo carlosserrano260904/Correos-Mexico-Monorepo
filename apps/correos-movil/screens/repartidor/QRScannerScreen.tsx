@@ -5,6 +5,9 @@ import { CircleX } from 'lucide-react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { useNavigation } from '@react-navigation/native';
 import { Scan } from 'lucide-react-native';
+import Constants from 'expo-constants';
+
+const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 const screenWidth = Dimensions.get("screen").width
 const screenHeight = Dimensions.get("screen").height
@@ -63,19 +66,35 @@ export default function QRScannerScreen() {
   }
 
 
-  const handleQRCodeScanned = ({ data }: { data: string }) => {
+  const handleQRCodeScanned = async ({ data }: { data: string }) => {
     if (!scanned) {
       setScanned(true);
-      Alert.alert('Código QR escaneado', data, [
-        {
-          text: 'Aceptar',
-          onPress: () => {
-            setScanned(false);
-            console.log(data)
-            navigation.navigate("LoadPackages", { unidadId: data});
-          },
-        },
-      ]);
+
+      try {
+        const response = await fetch(`http://${IP}:3000/api/unidades/${data}`);
+        const unidad = await response.json();
+
+        if (!unidad || !unidad.tipoVehiculoId) {
+          Alert.alert('Error', 'Unidad no encontrada');
+          setScanned(false);
+          return;
+        }
+
+        const tipo = unidad.tipoVehiculoId;
+        const placas = unidad.placas
+
+        // Redireccionar según el tipo
+        if ([1, 2, 3].includes(tipo)) {
+          navigation.navigate('LoadPackagesCarrier', { unidadId: data, tipo, placas });
+        } else {
+          navigation.navigate('LoadPackages', { unidadId: data, tipo, placas });
+        }
+
+      } catch (err) {
+        console.error('Error al obtener unidad:', err);
+        Alert.alert('Error', 'No se pudo obtener la unidad');
+        setScanned(false);
+      }
     }
   };
 
@@ -101,7 +120,7 @@ const styles = StyleSheet.create({
   },
   message: {
     textAlign: 'center',
-    paddingBottom: 10,
+    paddingBottom: moderateScale(10),
   },
   camera: {
     flex: 1,
@@ -110,16 +129,16 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     justifyContent: 'flex-end',
-    padding: 20,
+    padding: moderateScale(20),
   },
   button: {
     backgroundColor: '#00000088',
-    padding: 12,
-    borderRadius: 8,
+    padding: moderateScale(12),
+    borderRadius: moderateScale(8),
     alignItems: 'center',
   },
   text: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     color: 'white',
   },
   errorContainer: {

@@ -11,8 +11,8 @@ const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
-export default function LoadPackages() {
-    const navigation = useNavigation();
+export default function LoadPackagesCarrier() {
+  const navigation = useNavigation();
     const route = useRoute();
     const { unidadId } = route.params as { unidadId: string };
     const { placas } = route.params as { placas: string };
@@ -75,7 +75,7 @@ export default function LoadPackages() {
 
         <View style={styles.intructionsContainer}>
             <View style={styles.textContainer}>
-                <Text style={styles.textup}>Escaneaste el vehículo:</Text>
+                <Text style={styles.textup}>Escaneaste el transporte:</Text>
                 <Text style={styles.textMiddle}>{nombreVehiculo}</Text>
             </View>
 

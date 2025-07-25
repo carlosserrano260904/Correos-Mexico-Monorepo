@@ -343,4 +343,12 @@ async getOficinasDestinoValidas(placas: string) {
       zonaAsignada: u.zonaAsignada,
     };
   }
+
+  async findOne(id: string): Promise<Unidad> {
+    const unidad = await this.unidadRepo.findOne({ where: { id } });
+    if (!unidad) {
+      throw new NotFoundException(`Unidad con ID ${id} no encontrada`);
+    }
+    return unidad;
+  }
 }

@@ -11,20 +11,35 @@ export class HistorialAsignacionesService {
   ) {}
 
   async registrarAsignacion(
-      nombreConductor: string,
-      curp: string,
-      placasUnidad: string,
-      oficinaSalida: string,
-      claveCuoDestino: string // Ahora recibe directamente la clave CUO
+    nombreConductor: string,
+    curp: string,
+    placasUnidad: string,
+    oficinaSalida: string,
+    claveCuoDestino: string
   ): Promise<HistorialAsignacion> {
-      const nuevaAsignacion = this.historialRepository.create({
-          nombreConductor,
-          curp: curp.toUpperCase(),
-          placasUnidad,
-          claveOficinaSalida: oficinaSalida,
-          claveOficinaDestino: claveCuoDestino // Directamente la clave CUO
-      });
-      return this.historialRepository.save(nuevaAsignacion);
+    const nuevaAsignacion = this.historialRepository.create({
+      nombreConductor,
+      curp: curp.toUpperCase(),
+      placasUnidad,
+      claveOficinaSalida: oficinaSalida,
+      claveOficinaDestino: claveCuoDestino,
+      claveOficinaActual: oficinaSalida // Inicialmente está en la oficina de salida
+    });
+    return this.historialRepository.save(nuevaAsignacion);
+  }
+
+  async registrarLlegadaDestino(
+    curp: string,
+    placasUnidad: string,
+    claveOficinaActual: string
+  ): Promise<void> {
+    await this.historialRepository.update(
+      { curp: curp.toUpperCase(), placasUnidad, fechaLlegadaDestino: IsNull() },
+      { 
+        claveOficinaActual,
+        fechaLlegadaDestino: new Date() 
+      },
+    );
   }
 
   async finalizarAsignacion(
@@ -36,17 +51,18 @@ export class HistorialAsignacionesService {
       { fechaFinalizacion: new Date() },
     );
   }
+
   async getHistorial(
-  placas?: string,
-  curp?: string,
-): Promise<HistorialAsignacion[]> {
+    placas?: string,
+    curp?: string,
+  ): Promise<HistorialAsignacion[]> {
     const where: any = {};
     if (placas) where.placasUnidad = placas;
     if (curp) where.curp = curp.toUpperCase();
 
     return this.historialRepository.find({
-        where,
-        order: { fechaAsignacion: 'DESC' },
+      where,
+      order: { fechaAsignacion: 'DESC' },
     });
-}
+  }
 }

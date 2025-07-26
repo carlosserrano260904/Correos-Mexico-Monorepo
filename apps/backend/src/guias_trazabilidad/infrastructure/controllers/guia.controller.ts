@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, NotFoundException, BadRequestException, Res } from "@nestjs/common";
+import { Body, Controller, Get, Post, Param, NotFoundException, BadRequestException, Res, Query } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { Response } from 'express';
 import { CrearGuiaDto } from "../../application/use-cases/crear-guia/dtos/crear-guia.dto";
@@ -26,7 +26,7 @@ export class GuiaController {
 
     // !============= COMMANDS =============
 
-    @Post('nuevaGuia')
+    @Post()
     @ApiOperation({ summary: 'Crea una nueva guia y genera el PDF' })
     @ApiBody({ type: CrearGuiaDto })
     @ApiResponse({ status: 201, description: 'Guía creada correctamente y PDF generado' })
@@ -37,7 +37,8 @@ export class GuiaController {
             crearGuiaDto.destinatario,
             crearGuiaDto.dimensiones,
             crearGuiaDto.peso,
-            crearGuiaDto.valorDeclarado
+            crearGuiaDto.valorDeclarado,
+            crearGuiaDto.tipoServicio
         );
 
         const result = await this.commandBus.execute(command);

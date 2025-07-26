@@ -1,29 +1,35 @@
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { GuiaMapper } from '../../mappers/guia.mapper';
 import { createElement } from 'react';
 
 type GuiaPdfPayload = ReturnType<typeof GuiaMapper.toPdfPayload>;
 
-export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCodeDataURL: string) => {
-  // Importación dinámica para los componentes de React-PDF
-  const { Document, Page, Text, View, StyleSheet, Image } = await import('@react-pdf/renderer');
+export const plantillaGuiaInternacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: string) => {
   const styles = StyleSheet.create({
-      page: {
+    page: {
       padding: 0,
       fontFamily: 'Helvetica',
       fontSize: 7,
       backgroundColor: '#ffffff'
-      },
-      header: {
+    },
+    header: {
       backgroundColor: '#e91e63',
       padding: 8,
-      marginBottom: 0
-      },
-      headerTitle: {
-      fontSize: 14, 
-        fontWeight: 'bold',
+      marginBottom: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    headerTextContainer: {
+      flex: 1,
+      alignItems: 'center'
+    },
+    headerTitle: {
+      fontSize: 14,
+      fontWeight: 'bold',
       color: '#ffffff',
-        textAlign: 'center',
-      marginBottom: 3 
+      textAlign: 'center',
+      marginBottom: 2
     },
     headerSubtitle: {
       fontSize: 8,
@@ -37,57 +43,57 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
       borderBottomColor: '#e91e63'
     },
     trackingNumber: {
-      fontSize: 12, 
+      fontSize: 12,
       fontWeight: 'bold',
-        textAlign: 'center',
+      textAlign: 'center',
       color: '#333333',
-      letterSpacing: 1 
-      },
-      mainContent: {
+      letterSpacing: 1
+    },
+    mainContent: {
       padding: 8
     },
     twoColumnContainer: {
-        flexDirection: 'row',
-      marginBottom: 8 
-      },
-      leftColumn: {
+      flexDirection: 'row',
+      marginBottom: 8
+    },
+    leftColumn: {
       flex: 1,
       marginRight: 5,
       borderWidth: 1,
       borderColor: '#cccccc',
       padding: 6
-      },
-      rightColumn: {
-        flex: 1,
+    },
+    rightColumn: {
+      flex: 1,
       marginLeft: 5,
       borderWidth: 1,
       borderColor: '#cccccc',
       padding: 6
-      },
-      sectionTitle: {
-      fontSize: 8, 
-        fontWeight: 'bold',
+    },
+    sectionTitle: {
+      fontSize: 8,
+      fontWeight: 'bold',
       backgroundColor: '#f0f0f0',
       padding: 3,
       marginBottom: 4,
       textAlign: 'center',
       color: '#333333',
-        borderBottomWidth: 1,
+      borderBottomWidth: 1,
       borderBottomColor: '#cccccc'
-      },
-      fieldRow: {
-        flexDirection: 'row',
+    },
+    fieldRow: {
+      flexDirection: 'row',
       marginBottom: 2,
       paddingVertical: 1
-      },
-      fieldLabel: {
+    },
+    fieldLabel: {
       fontSize: 6,
       fontWeight: 'bold',
       width: 60,
       color: '#666666'
-      },
-      fieldValue: {
-      fontSize: 6, 
+    },
+    fieldValue: {
+      fontSize: 6,
       flex: 1,
       color: '#000000'
     },
@@ -121,27 +127,27 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
       textAlign: 'center',
       fontWeight: 'bold',
       color: '#e91e63'
-      },
-      qrSection: {
+    },
+    qrSection: {
       flexDirection: 'row',
       borderWidth: 1,
       borderColor: '#cccccc',
       padding: 6,
-        alignItems: 'center'
-      },
+      alignItems: 'center'
+    },
     qrLeft: {
       flex: 1
     },
     qrRight: {
       alignItems: 'center',
-      width: 80 
+      width: 80
     },
-      qrCode: {
+    qrCode: {
       width: 60,
       height: 60,
-      marginBottom: 3 
-      },
-      qrText: {
+      marginBottom: 3
+    },
+    qrText: {
       fontSize: 5,
       textAlign: 'center',
       color: '#666666'
@@ -156,17 +162,27 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
       fontSize: 5,
       lineHeight: 1.2,
       color: '#666666'
-      },
-      footer: {
+    },
+    footer: {
       position: 'absolute',
       bottom: 8,
       left: 8,
       right: 8,
-        borderTopWidth: 1,
+      borderTopWidth: 1,
       borderTopColor: '#cccccc',
-      paddingTop: 5
-      },
-      footerText: {
+      paddingTop: 5,
+      flexDirection: 'row',
+      alignItems: 'center'
+    },
+    footerLogo: {
+      width: 120,
+      height: 80,
+      marginRight: 10
+    },
+    footerTextContainer: {
+      flex: 1
+    },
+    footerText: {
       fontSize: 5,
       textAlign: 'center',
       color: '#999999'
@@ -219,14 +235,14 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
     officeSection: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 5 
+      marginBottom: 5
     },
     officeBox: {
       flex: 1,
       borderWidth: 1,
       borderColor: '#cccccc',
       padding: 4,
-      marginHorizontal: 1 
+      marginHorizontal: 1
     }
   });
 
@@ -239,10 +255,12 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
 
   return createElement(Document, {},
     createElement(Page, { size: 'A4', style: styles.page },
-      // header
+      // header con logo
       createElement(View, { style: styles.header },
-        createElement(Text, { style: styles.headerTitle }, 'GUÍA DE PAQUETERÍA'),
-        createElement(Text, { style: styles.headerSubtitle }, 'OFICINA ORIGEN / HOME OFFICE')
+        createElement(View, { style: styles.headerTextContainer },
+          createElement(Text, { style: styles.headerTitle }, 'SERVICIO POSTAL MEXICANO'),
+          createElement(Text, { style: styles.headerSubtitle }, 'CORREOS DE MÉXICO')
+        )
       ),
 
       // numero de rastreo
@@ -253,12 +271,12 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
       // informacion de oficinas
       createElement(View, { style: { ...styles.officeSection, paddingHorizontal: 8 } },
         createElement(View, { style: styles.officeBox },
-          createElement(Text, { style: styles.sectionTitle }, 'OFICINA ORIGEN'),
+          createElement(Text, { style: styles.sectionTitle }, 'OFICINA ORIGEN / HOME OFFICE'),
           createElement(Text, { style: { fontSize: 6, marginTop: 2 } }, 'Nombre: ___________________'),
           createElement(Text, { style: { fontSize: 6, marginTop: 1 } }, 'Fecha: ____________________')
         ),
         createElement(View, { style: styles.officeBox },
-          createElement(Text, { style: styles.sectionTitle }, 'OFICINA DESTINO'),
+          createElement(Text, { style: styles.sectionTitle }, 'OFICINA DESTINO / DESTINATION OFFICE'),
           createElement(Text, { style: { fontSize: 6, marginTop: 2 } }, 'Nombre: ___________________'),
           createElement(Text, { style: { fontSize: 6, marginTop: 1 } }, 'Código: ___________________')
         )
@@ -266,7 +284,6 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
 
       // cuerpo
       createElement(View, { style: styles.mainContent },
-
         // informacion del paquete
         createElement(View, { style: styles.packageInfoContainer },
           createElement(View, { style: styles.packageInfoBox },
@@ -300,7 +317,6 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
             renderField('País', guiaData.remitente.direccion.pais),
             renderField('Referencia', guiaData.remitente.direccion.referencia)
           ),
-
           // info del destinatario
           createElement(View, { style: styles.rightColumn },
             createElement(Text, { style: styles.sectionTitle }, 'DESTINATARIO (ADDRESSEE)'),
@@ -321,7 +337,6 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
         // declaraciones
         createElement(View, { style: styles.fullWidthSection },
           createElement(Text, { style: styles.sectionTitle }, 'DECLARACIONES (CUSTOM DECLARATIONS)'),
-
           // contenido
           createElement(Text, { style: { fontSize: 7, fontWeight: 'bold', marginBottom: 2 } }, 'CONTENIDO:'),
           createElement(View, { style: styles.checkboxSection },
@@ -346,7 +361,6 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
               createElement(Text, { style: styles.checkboxLabel }, 'En Devolución')
             )
           ),
-
           // documentacion
           createElement(Text, { style: { fontSize: 7, fontWeight: 'bold', marginTop: 4, marginBottom: 2 } }, 'DOCUMENTOS:'),
           createElement(View, { style: styles.checkboxSection },
@@ -363,7 +377,6 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
               createElement(Text, { style: styles.checkboxLabel }, 'Licencia')
             )
           ),
-
           // extras
           createElement(View, { style: { marginTop: 4 } },
             createElement(Text, { style: { fontSize: 6 } }, 'Descripción: ________________________________ Contrato: ____________'),
@@ -448,15 +461,20 @@ export const plantillaGuiaInternacional = async (guiaData: GuiaPdfPayload, qrCod
               src: qrCodeDataURL
             }),
             createElement(Text, { style: styles.qrText }, 'Código de Rastreo'),
-            createElement(Text, { style: styles.qrText }, guiaData.numeroRastreo)
           )
         )
       ),
 
       // footer
       createElement(View, { style: styles.footer },
-        createElement(Text, { style: styles.footerText },
-          'Guía de paquetería - Conserve este comprobante')
+        createElement(Image, {
+          style: styles.footerLogo,
+          src: './src/guias_trazabilidad/infrastructure/pdf-generator/plantillas/icons/correos-mexico.jpg'
+        }),
+        createElement(View, { style: styles.footerTextContainer },
+          createElement(Text, { style: styles.footerText },
+            'Guía de paquetería - Conserve este comprobante')
+        )
       )
     )
   );

@@ -14,7 +14,7 @@ export class ContactoMapper {
     ormEntity.telefono = contacto.getTelefono.getNumero;
     ormEntity.calle = contacto.getDireccion.getCalle;
     ormEntity.numero = contacto.getDireccion.getNumero;
-    ormEntity.numero_interior = contacto.getDireccion.getNumeroInterior;
+    ormEntity.numero_interior = contacto.getDireccion.getNumeroInterior || null;
     ormEntity.asentamiento = contacto.getDireccion.getAsentamiento;
     ormEntity.codigo_postal = contacto.getDireccion.getCodigoPostal;
     ormEntity.localidad = contacto.getDireccion.getLocalidad;
@@ -22,7 +22,7 @@ export class ContactoMapper {
     ormEntity.pais = contacto.getDireccion.getPais;
     ormEntity.lat = contacto.getDireccion.getLat;
     ormEntity.lng = contacto.getDireccion.getLng;
-    ormEntity.referencia = contacto.getDireccion.getReferencia;
+    ormEntity.referencia = contacto.getDireccion.getReferencia || null;
     return ormEntity;
   }
 

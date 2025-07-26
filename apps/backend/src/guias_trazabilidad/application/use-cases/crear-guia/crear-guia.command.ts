@@ -4,7 +4,8 @@ export class CrearGuiaCommand {
         public readonly destinatario: ContactoProps,
         public readonly dimensiones: DimensionesProps,
         public readonly peso: number,
-        public readonly valorDeclarado: number
+        public readonly valorDeclarado: number,
+        public readonly tipoServicio: TipoServicio
     ) { }
 }
 
@@ -31,4 +32,9 @@ interface DimensionesProps {
     alto_cm: number;
     ancho_cm: number;
     largo_cm: number;
+}
+
+enum TipoServicio {
+    NACIONAL = 'nacional',
+    INTERNACIONAL = 'internacional'
 }

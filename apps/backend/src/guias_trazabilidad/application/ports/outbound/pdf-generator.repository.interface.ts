@@ -4,5 +4,6 @@ import { Result } from "src/utils/result";
 export const PDF_GENERATOR_REPOSITORY_INTERFACE = Symbol('PDFGeneratorRepository');
 
 export interface PDFGeneratorRepositoryInterface {
-  generateGuiaPDF(pdfPayload: GuiaDomainEntity, qrCodeDataURL: string): Promise<Result<Buffer>>;
+  generarGuiaPDFNacional(pdfPayload: GuiaDomainEntity, qrCodeDataURL: string): Promise<Result<Buffer>>;
+  generarGuiaPDFInternacional(pdfPayload: GuiaDomainEntity, qrCodeDataURL): Promise<Result<Buffer>>;
 }

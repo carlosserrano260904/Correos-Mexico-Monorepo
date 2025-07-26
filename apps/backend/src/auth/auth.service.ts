@@ -28,7 +28,14 @@ export class AuthService {
         if (userExists) {
             throw new UnauthorizedException('El correo ya está en uso');
         } else {
-            // Guardar perfil por defecto
+            // Crear el customer en Stripe
+            const Stripe = require('stripe');
+            const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' });
+            const customer = await stripe.customers.create({
+                name: dto.nombre || dto.correo.split('@')[0],
+                // Puedes agregar más campos si tienes email, etc.
+            });
+            // Guardar perfil por defecto con stripeCustomerId
             const profile = this.profileRepository.create({
                 nombre: dto.nombre || dto.correo.split('@')[0],
                 apellido: '',
@@ -38,13 +45,14 @@ export class AuthService {
                 fraccionamiento: '',
                 calle: '',
                 codigoPostal: '',
+                stripeCustomerId: customer.id,
             });
 
             // Crea el usuario con el perfil relacionado y la contraseña hasheada
             const user = await this.usuariosService.create({
                 nombre: dto.nombre || dto.correo.split('@')[0],
                 correo: dto.correo,
-                password: hash, // ✅ Aquí está la corrección
+                password: hash,
                 rol: 'usuario',
                 profile,
             });

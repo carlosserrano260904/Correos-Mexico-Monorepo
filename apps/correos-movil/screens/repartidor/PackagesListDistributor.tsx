@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert, BackHandler } from 'react-native'
-import { User, Package, MapPin } from 'lucide-react-native'
+import { User, MapPin } from 'lucide-react-native'
 import { ProgressBar } from 'react-native-paper'
 import { moderateScale } from 'react-native-size-matters'
 import * as Location from 'expo-location';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import RoutesMapView from './RoutesMapView'
 import { LatLng } from 'react-native-maps';
 import Constants from 'expo-constants';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
@@ -19,16 +19,19 @@ const IP = Constants.expoConfig?.extra?.IP_LOCAL;
 
 interface Package {
   id: string;
-  sku: string;
-  numero_guia: string;
-  estatus: string;
-  latitud: number;
-  longitud: number;
-  fecha_creacion: string;
-  indicaciones: string;
+  estado_envio: string;
+  numero_de_rastreo: string;
   calle: string;
-  colonia: string;
-  cp: string;
+  numero: string;
+  numero_interior: string | null;
+  asentamiento: string;
+  codigo_postal: string;
+  localidad: string;
+  estado: string;
+  pais: string;
+  lat: string;
+  lng: string;
+  referencia: string;
 }
 
 interface PackagesListDistributorProps {
@@ -36,6 +39,10 @@ interface PackagesListDistributorProps {
 }
 
 export default function PackagesListDistributor({ navigation }: PackagesListDistributorProps) {
+const route = useRoute();
+const { unidadId } = route.params as { unidadId: string };
+
+
   const [paquetesTotal, setPaquetesTotal] = React.useState(0);
   const [paquetesEntregados, setPaquetesEntregados] = React.useState(0);
   const [paquetesFallidos, setPaquetesFallidos] = React.useState(0);
@@ -73,7 +80,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
   // Ref para rastrear el último timestamp de recálculo de ruta
   const lastRouteCalculation = React.useRef<number>(0);
-  const ROUTE_DEBOUNCE_MS = 5000; // 5 segundos mínimo entre recálculos
+  const ROUTE_DEBOUNCE_MS = 10000; // 5 segundos mínimo entre recálculos
 
   // Cleanup al desmontar
   React.useEffect(() => {
@@ -101,16 +108,38 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     }, [])
   );
 
-  const handleTerminarTurno = async () => {
-    try {
-      await AsyncStorage.removeItem('turno_activo');
-      navigation?.reset({
-        index: 0,
-        routes: [{ name: 'DistributorPage' }],
-      });
-    } catch (error) {
-      console.error('Error al terminar turno:', error);
-    }
+  const handleTerminarTurno = () => {
+    Alert.alert(
+      'Terminar Turno',
+      '¿Estás seguro de que quieres terminar tu turno? No podrás volver a esta pantalla hasta que inicies uno nuevo.',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Sí, terminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('turno_activo');
+              if (navigation?.reset) {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'DistributorPage' }],
+                });
+              } else {
+                console.warn('navigation.reset no está disponible');
+              }
+            } catch (error) {
+              console.error('Error al terminar turno:', error);
+              Alert.alert('Error', 'No se pudo terminar el turno. Intenta de nuevo.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   React.useEffect(() => {
@@ -138,7 +167,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       setLoading(true);
 
       const response = await axios.get(
-        `http://${IP}:3000/api/asignacion-paquetes/paquetes/3e35a6e5-bf55-42b7-8f26-7a9f101838dd/c010bb71-4b19-4e56-bff3-f6c73061927a`,
+        `http://${IP}:3000/api/envios/unidad/${unidadId}/hoy`,
         {
           signal: fetchPackagesController.current.signal,
           timeout: 10000 // 10 segundos timeout
@@ -149,22 +178,42 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       if (!isMountedRef.current) return;
 
       const packagesData = response.data;
-      setPackages(packagesData);
 
-      // Guardar en AsyncStorage de forma asíncrona
-      AsyncStorage.setItem('packages', JSON.stringify(packagesData)).catch(err =>
-        console.error('Error guardando en AsyncStorage:', err)
-      );
+      // Validar que los datos sean un arreglo
+      if (!Array.isArray(packagesData)) {
+        throw new Error('La respuesta de la API no es un arreglo');
+      }
+
+      // Filtrar paquetes válidos
+      const validPackages = packagesData.filter((pkg: Package) => {
+        return (
+          pkg &&
+          typeof pkg.id === 'string' &&
+          typeof pkg.estado_envio === 'string' &&
+          typeof pkg.numero_de_rastreo === 'string' &&
+          typeof pkg.calle === 'string' &&
+          typeof pkg.asentamiento === 'string' &&
+          typeof pkg.codigo_postal === 'string' &&
+          typeof pkg.localidad === 'string' &&
+          typeof pkg.estado === 'string' &&
+          typeof pkg.pais === 'string' &&
+          typeof pkg.lat === 'string' &&
+          typeof pkg.lng === 'string'
+        );
+      });
+
+      setPackages(validPackages);
 
       // Calcular estadísticas
-      updatePackageStats(packagesData);
+      updatePackageStats(validPackages);
 
       // Generar coordenadas para paquetes pendientes
-      const coordsForRoute: LatLng[] = packagesData
+      const coordsForRoute: LatLng[] = validPackages
         .map((pkg: Package) => ({
-          latitude: pkg.latitud,
-          longitude: pkg.longitud,
-        }));
+          latitude: parseFloat(pkg.lat),
+          longitude: parseFloat(pkg.lng),
+        }))
+        .filter(coord => !isNaN(coord.latitude) && !isNaN(coord.longitude));
 
       setIntermediates(coordsForRoute);
 
@@ -178,8 +227,6 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
       if (isMountedRef.current) {
         Alert.alert('Error', 'No se pudieron cargar los paquetes');
-        // Intentar cargar desde AsyncStorage
-        loadPackagesFromStorage();
       }
     } finally {
       if (isMountedRef.current) {
@@ -188,26 +235,13 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     }
   };
 
-  const loadPackagesFromStorage = async () => {
-    try {
-      const storedPackages = await AsyncStorage.getItem('packages');
-      if (storedPackages && isMountedRef.current) {
-        const packagesData = JSON.parse(storedPackages);
-        setPackages(packagesData);
-        updatePackageStats(packagesData);
-      }
-    } catch (error) {
-      console.error('Error al cargar desde storage:', error);
-    }
-  };
-
   const updatePackageStats = (packagesData: Package[]) => {
     const total = packagesData.length;
     const entregados = packagesData.filter((pkg: Package) =>
-      pkg.estatus.toLowerCase() === 'entregado'
+      typeof pkg.estado_envio === 'string' && pkg.estado_envio === 'entregado'
     ).length;
     const fallidos = packagesData.filter((pkg: Package) =>
-      pkg.estatus.toLowerCase() === 'fallido'
+      typeof pkg.estado_envio === 'string' && pkg.estado_envio === 'fallido'
     ).length;
 
     setPaquetesTotal(total);
@@ -217,30 +251,30 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
   // Efecto para cálculo de ruta con debounce
   React.useEffect(() => {
-  if (userLocation && packages.length > 0) {
-    // Generar coordenadas para TODOS los paquetes
-    const allCoords: LatLng[] = packages.map(pkg => ({
-      latitude: pkg.latitud,
-      longitude: pkg.longitud,
-    }));
-    
-    setIntermediates(allCoords);
-    
-    const now = Date.now();
-    
-    if (!routeInitialized) {
-      // Primera vez - calcular inmediatamente
-      calculateRoute(userLocation, destination, allCoords);
-      setRouteInitialized(true);
-    } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
-      // Verificar si está fuera de ruta con debounce
-      if (isOffRoute(userLocation, routePoints)) {
-        console.log("Recalculando ruta, fuera del camino...");
+    if (userLocation && packages.length > 0) {
+      // Generar coordenadas para TODOS los paquetes
+      const allCoords: LatLng[] = packages.map(pkg => ({
+        latitude: parseFloat(pkg.lat),
+        longitude: parseFloat(pkg.lng),
+      }));
+      
+      setIntermediates(allCoords);
+      
+      const now = Date.now();
+      
+      if (!routeInitialized) {
+        // Primera vez - calcular inmediatamente
         calculateRoute(userLocation, destination, allCoords);
+        setRouteInitialized(true);
+      } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
+        // Verificar si está fuera de ruta con debounce
+        if (isOffRoute(userLocation, routePoints)) {
+          console.log("Recalculando ruta, fuera del camino...");
+          calculateRoute(userLocation, destination, allCoords);
+        }
       }
     }
-  }
-}, [userLocation, destination, packages, routeInitialized, routePoints]);
+  }, [userLocation, destination, packages, routeInitialized, routePoints]);
 
   const setupLocationTracking = async () => {
     // Prevenir múltiples configuraciones simultáneas
@@ -373,36 +407,35 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       <TouchableOpacity
         style={styles.packageItem}
         onPress={() => {
-        if (item.estatus !== 'Entregado') {
-          navigation?.navigate('PackageScreen', { package: item });
-        }
-      }}
+          if (item.estado_envio && item.estado_envio !== 'entregado') {
+            navigation?.navigate('PackageScreen', { package: item });
+          }
+        }}
       >
         <View style={styles.packageHeader}>
           <View style={styles.packageIconContainer}>
             <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
           </View>
-          <View style={styles.packageInfo}>
-            <Text style={styles.packageSku}>SKU: {item.sku}</Text>
-            <Text style={styles.packageGuia}>Guía: {item.numero_guia}</Text>
-          </View>
           <View style={styles.packageStatus}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estatus) }]}>
-              <Text style={styles.statusText}>{item.estatus.toUpperCase()}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado_envio || 'desconocido') }]}>
+              <Text style={styles.statusText}>{(item.estado_envio || 'Desconocido').toUpperCase()}</Text>
             </View>
           </View>
         </View>
 
+        <View style={styles.packageInfo}>
+          <Text style={styles.packageSku}>SKU: {item.numero_de_rastreo}</Text>
+        </View>
+
         <View style={styles.packageAddress}>
-          <MapPin color="#666" size={moderateScale(16)} />
           <Text style={styles.addressText} numberOfLines={2}>
-            {item.calle}, {item.colonia}, CP {item.cp}
+            {item.calle} {item.numero}{item.numero_interior ? ` Int. ${item.numero_interior}` : ''}, {item.asentamiento}, {item.localidad}, {item.estado}, CP {item.codigo_postal}
           </Text>
         </View>
 
-        {item.indicaciones && (
+        {item.referencia && (
           <Text style={styles.packageInstructions} numberOfLines={2}>
-            {item.indicaciones}
+            {item.referencia}
           </Text>
         )}
       </TouchableOpacity>
@@ -410,7 +443,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status){
       case 'entregado':
         return '#4CAF50';
       case 'fallido':
@@ -432,8 +465,8 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     // Para cada coordenada optimizada, encontrar el paquete correspondiente
     optimizedIntermediates.forEach(optimizedCoord => {
       const matchingPackage = packages.find(pkg =>
-        Math.abs(pkg.latitud - optimizedCoord.latitude) < 0.0001 &&
-        Math.abs(pkg.longitud - optimizedCoord.longitude) < 0.0001
+        Math.abs(parseFloat(pkg.lat) - optimizedCoord.latitude) < 0.0001 &&
+        Math.abs(parseFloat(pkg.lng) - optimizedCoord.longitude) < 0.0001
       );
 
       if (matchingPackage && !orderedPackages.includes(matchingPackage)) {
@@ -685,6 +718,7 @@ const styles = StyleSheet.create({
   packageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: moderateScale(12),
   },
   packageIconContainer: {
@@ -698,6 +732,7 @@ const styles = StyleSheet.create({
   },
   packageInfo: {
     flex: 1,
+    marginBottom: moderateScale(8),
   },
   packageSku: {
     fontSize: moderateScale(16),
@@ -729,7 +764,6 @@ const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
-    marginLeft: moderateScale(8),
     fontSize: moderateScale(14),
     color: '#666',
     lineHeight: moderateScale(20),

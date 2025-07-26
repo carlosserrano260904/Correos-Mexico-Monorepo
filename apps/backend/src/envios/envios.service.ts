@@ -55,6 +55,7 @@ export class EnviosService {
       .select([
         'envio.id AS id',
         'envio.estado_envio AS estado_envio',
+        'guia.numero_de_rastreo AS numero_de_rastreo',
         'contactoGuia.calle AS calle',
         'contactoGuia.numero AS numero',
         'contactoGuia.numero_interior AS numero_interior',

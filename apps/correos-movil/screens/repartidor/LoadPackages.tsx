@@ -24,7 +24,7 @@ export default function LoadPackages() {
         await AsyncStorage.setItem('turno_activo', 'true');
         navigation.reset({
             index: 0,
-            routes: [{ name: 'PackagesList' }],
+           routes: [{ name: 'PackagesList', params: { unidadId: unidadId } }],
         });
     };
 

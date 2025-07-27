@@ -3,21 +3,25 @@ import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 import { Check, X } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
 interface Package {
   id: string;
-  sku: string;
-  numero_guia: string;
-  estatus: string;
-  latitud: number;
-  longitud: number;
-  fecha_creacion: string;
-  indicaciones: string;
+  estado_envio: string;
+  numero_de_rastreo: string;
   calle: string;
-  colonia: string;
-  cp: string;
+  numero: string;
+  numero_interior: string | null;
+  asentamiento: string;
+  codigo_postal: string;
+  localidad: string;
+  estado: string;
+  pais: string;
+  lat: string;
+  lng: string;
+  referencia: string;
 }
 
 export default function RoutesMapView({
@@ -44,14 +48,15 @@ export default function RoutesMapView({
   // Función para obtener el paquete correspondiente a una coordenada
   const getPackageByCoordinate = (coordinate: LatLng): Package | null => {
     return packages.find(pkg =>
-      Math.abs(pkg.latitud - coordinate.latitude) < 0.0001 &&
-      Math.abs(pkg.longitud - coordinate.longitude) < 0.0001
+      Math.abs(parseFloat(pkg.lat) - coordinate.latitude) < 0.0001 &&
+      Math.abs(parseFloat(pkg.lng) - coordinate.longitude) < 0.0001
     ) || null;
   };
 
   // Función para obtener el estilo del marcador según el estado
-  const getMarkerStyle = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getMarkerStyle = (status: string | undefined) => {
+    const statusLower = status?.toLowerCase() || 'pendiente';
+    switch (statusLower) {
       case 'entregado':
         return {
           backgroundColor: '#4CAF50',
@@ -71,8 +76,9 @@ export default function RoutesMapView({
   };
 
   // Función para obtener el icono según el estado
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusIcon = (status: string | undefined) => {
+    const statusLower = status?.toLowerCase() || 'pendiente';
+    switch (statusLower) {
       case 'entregado':
         return <Check size={16} color="white" strokeWidth={3} />;
       case 'fallido':
@@ -84,7 +90,7 @@ export default function RoutesMapView({
 
   // Verificar si todos los paquetes fueron entregados
   const allPackagesDelivered = packages.every(pkg =>
-    pkg.estatus.toLowerCase() === 'entregado' || pkg.estatus.toLowerCase() === 'fallido'
+    pkg.estado_envio?.toLowerCase() === 'entregado' || pkg.estado_envio?.toLowerCase() === 'fallido'
   );
 
   return (
@@ -97,26 +103,12 @@ export default function RoutesMapView({
       >
         {/* Marcador de destino - más grande si todos los paquetes fueron entregados */}
         <Marker coordinate={destination} title="Destino">
-          <View
-            style={[
-              styles.destinationMarker,
-              allPackagesDelivered
-                ? styles.destinationMarkerLarge
-                : styles.destinationMarkerSmall,
-            ]}
-          >
-            <FontAwesome
-              name="flag"
-              size={allPackagesDelivered ? 24 : 14}
-              color="white"
-            />
-          </View>
         </Marker>
 
         {/* Marcadores para paquetes optimizados */}
         {optimizedIntermediates.map((point, index) => {
           const packageItem = getPackageByCoordinate(point);
-          const status = packageItem?.estatus || 'pendiente';
+          const status = packageItem?.estado_envio || 'pendiente';
           const markerStyle = getMarkerStyle(status);
           const statusIcon = getStatusIcon(status);
 
@@ -124,28 +116,23 @@ export default function RoutesMapView({
             <Marker
               key={`opt-${index}`}
               coordinate={point}
-              title={packageItem ? `SKU: ${packageItem.sku}` : `Punto ${index + 1}`}
-              description={packageItem ? `Estado: ${packageItem.estatus}` : ''}
+              title={packageItem ? `Rastreo: ${packageItem.numero_de_rastreo}` : `Punto ${index + 1}`}
+              description={packageItem ? `Estado: ${packageItem.estado_envio}` : ''}
             >
               <View
                 style={[
                   styles.numberMarker,
                   {
-                    backgroundColor:
-                      packageItem?.estatus === 'Entregado'
-                        ? 'green'
-                        : packageItem?.estatus === 'fallido'
-                          ? 'red'
-                          : 'orange',
+                    backgroundColor: markerStyle.backgroundColor,
                     borderColor: '#fff',
                   },
                 ]}
               >
-                {packageItem?.estatus === 'Entregado' ? (
+                {packageItem?.estado_envio?.toLowerCase() === 'entregado' ? (
                   <View style={styles.iconContainer}>
                     <FontAwesome name="check" size={16} color="white" />
                   </View>
-                ) : packageItem?.estatus === 'fallido' ? (
+                ) : packageItem?.estado_envio?.toLowerCase() === 'fallido' ? (
                   <View style={styles.iconContainer}>
                     <FontAwesome name="times" size={16} color="white" />
                   </View>
@@ -189,18 +176,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-    destinationMarker: {
-    borderWidth: 2,
-    borderColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  destinationMarkerSmall: {
-    padding: 6,
-    borderRadius: 14,
-  },
-  destinationMarkerLarge: {
-    padding: 12,
-    borderRadius: 24,
-  },
+
 });

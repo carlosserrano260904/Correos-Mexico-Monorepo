@@ -39,8 +39,46 @@ interface PackagesListDistributorProps {
 }
 
 export default function PackagesListDistributor({ navigation }: PackagesListDistributorProps) {
-const route = useRoute();
-const { unidadId } = route.params as { unidadId: string };
+  const route = useRoute();
+  const [unidadId, setUnidadId] = React.useState<string | null>(null);
+
+  // 1. Inicializar unidadId desde route o AsyncStorage
+  React.useEffect(() => {
+    const initUnidadId = async () => {
+      if (route.params?.unidadId) {
+        await AsyncStorage.setItem('unidadId', route.params.unidadId);
+        setUnidadId(route.params.unidadId);
+      } else {
+        const storedUnidad = await AsyncStorage.getItem('unidadId');
+        if (storedUnidad) {
+          setUnidadId(storedUnidad);
+        } else {
+          Alert.alert('Error', 'No se encontró unidadId');
+        }
+      }
+    };
+
+    initUnidadId();
+  }, [route.params]);
+
+  // 2. Ejecutar fetchPackages una vez que unidadId esté definido
+  React.useEffect(() => {
+    if (unidadId) {
+      console.log('unidadId listo:', unidadId);
+      fetchPackages();
+    }
+  }, [unidadId]);
+
+  // 3. Setup ubicación una vez (no depende de unidadId)
+  React.useEffect(() => {
+    setupLocationTracking();
+
+    return () => {
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+    };
+  }, []);
 
 
   const [paquetesTotal, setPaquetesTotal] = React.useState(0);
@@ -142,20 +180,10 @@ const { unidadId } = route.params as { unidadId: string };
     );
   };
 
-  React.useEffect(() => {
-    fetchPackages();
-    setupLocationTracking();
-
-    // Cleanup al desmontar
-    return () => {
-      if (locationSubscription.current) {
-        locationSubscription.current.remove();
-      }
-    };
-  }, []);
-
   const fetchPackages = async () => {
     // Cancelar solicitud anterior si existe
+
+    console.log("prueba unidadId: " + unidadId)
     if (fetchPackagesController.current) {
       fetchPackagesController.current.abort();
     }
@@ -174,6 +202,7 @@ const { unidadId } = route.params as { unidadId: string };
         }
       );
 
+
       // Verificar si el componente sigue montado
       if (!isMountedRef.current) return;
 
@@ -186,6 +215,11 @@ const { unidadId } = route.params as { unidadId: string };
 
       // Filtrar paquetes válidos
       const validPackages = packagesData.filter((pkg: Package) => {
+        const lat = parseFloat(pkg.lat);
+        const lng = parseFloat(pkg.lng);
+        const isLatValid = !isNaN(lat) && lat >= -90 && lat <= 90;
+        const isLngValid = !isNaN(lng) && lng >= -180 && lng <= 180;
+
         return (
           pkg &&
           typeof pkg.id === 'string' &&
@@ -197,8 +231,8 @@ const { unidadId } = route.params as { unidadId: string };
           typeof pkg.localidad === 'string' &&
           typeof pkg.estado === 'string' &&
           typeof pkg.pais === 'string' &&
-          typeof pkg.lat === 'string' &&
-          typeof pkg.lng === 'string'
+          isLatValid &&
+          isLngValid
         );
       });
 
@@ -345,12 +379,20 @@ const { unidadId } = route.params as { unidadId: string };
         }
       );
 
+      
+
       if (!isMountedRef.current) return;
 
       const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
       const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
 
-      const orderedPoints = optimizedOrder.map((i: number) => intermediates[i]);
+      console.log('respuesta: ' + optimizedOrder)
+
+      console.log("optimizedOrder from API:", optimizedOrder);
+      console.log("intermediates (input):", intermediates);
+      const orderedPoints = optimizedOrder
+        .map((i: number) => intermediates[i])
+        .filter((point): point is LatLng => point !== undefined);
       setOptimizedIntermediates(orderedPoints);
 
       const points = decodePolyline(encodedPolyline);
@@ -399,6 +441,8 @@ const { unidadId } = route.params as { unidadId: string };
     const packageIndex = orderedPackages.findIndex(pkg => pkg.id === packageItem.id);
     return packageIndex >= 0 ? packageIndex + 1 : 0;
   };
+
+
 
   const renderPackageItem = ({ item }: { item: Package }) => {
     const routeIndex = getPackageRouteIndex(item);
@@ -509,15 +553,20 @@ const { unidadId } = route.params as { unidadId: string };
   });
 
   const renderScene = SceneMap({
-    mapa: () => (
-      <RoutesMapView
-        userLocation={userLocation}
-        destination={destination}
-        optimizedIntermediates={optimizedIntermediates}
-        routePoints={routePoints}
-        packages={packages}
-      />
-    ),
+    mapa: () =>
+      userLocation && routePoints.length > 0 ? (
+        <RoutesMapView
+          userLocation={userLocation}
+          destination={destination}
+          optimizedIntermediates={optimizedIntermediates}
+          routePoints={routePoints}
+          packages={packages}
+        />
+      ) : (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>Cargando mapa...</Text>
+        </View>
+      ),
     lista: PackagesList,
   });
 

@@ -35,7 +35,7 @@ export default function LoadPackages() {
 
             const envio = await res.json();
             if (envio.length > 0) {
-            setNombreVehiculo(envio[0].unidad?.nombre ?? 'Vehículo no encontrado');
+            setNombreVehiculo(envio[0].unidad?.placas ?? 'Vehículo no encontrado');
             } else {
             setNombreVehiculo(placas);
             }
@@ -81,7 +81,7 @@ export default function LoadPackages() {
 
             <View style={styles.iconContainer}>
                 <Truck color={"white"} size={moderateScale(120)}/>
-                <Text style={styles.textIcon}>Cargar <Text style={{ fontWeight: 'bold' }}>0 bolsas</Text> y <Text style={{ fontWeight: 'bold' }}>{paquetesTotal} paquetes</Text></Text>
+                <Text style={styles.textIcon}>Cargar {paquetesTotal} paquetes</Text>
             </View>
         </View>
 
@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
     textIcon: {
         color: "white",
         fontSize: moderateScale(20),
-        marginTop: moderateScale(12)
+        marginTop: moderateScale(12),
+        fontWeight: 700
     },
     button: {
         backgroundColor: "white",

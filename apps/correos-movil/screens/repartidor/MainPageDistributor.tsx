@@ -15,7 +15,7 @@ export default function MainPageDistributor() {
         const checkTurnoActivo = async () => {
             const activo = await AsyncStorage.getItem('turno_activo');
             if (activo === 'true') {
-            navigation.reset({
+                navigation.reset({
                 index: 0,
                 routes: [{ name: 'PackagesList' }],
             });

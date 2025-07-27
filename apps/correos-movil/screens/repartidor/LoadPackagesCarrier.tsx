@@ -22,9 +22,10 @@ export default function LoadPackagesCarrier() {
 
     const handleInicioTurno = async () => {
         await AsyncStorage.setItem('turno_activo', 'true');
+        await AsyncStorage.setItem('unidadId', unidadId)
         navigation.reset({
             index: 0,
-            routes: [{ name: 'PackagesList', params: { unidadId: unidadId } }],
+           routes: [{ name: 'PackagesList', params: { unidadId: unidadId } }],
         });
     };
 
@@ -35,7 +36,7 @@ export default function LoadPackagesCarrier() {
 
             const envio = await res.json();
             if (envio.length > 0) {
-            setNombreVehiculo(envio[0].unidad?.nombre ?? 'Vehículo no encontrado');
+            setNombreVehiculo(envio[0].unidad?.placas ?? 'Vehículo no encontrado');
             } else {
             setNombreVehiculo(placas);
             }
@@ -47,7 +48,14 @@ export default function LoadPackagesCarrier() {
 
         const fetchPaquetes = async () => {
         try {
-            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
+            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}/hoy`);
+
+            if (!paq.ok) {
+                // Si el status es 404 o cualquier error
+                console.warn(`Error HTTP: ${paq.status}`);
+                setPaquetesTotal(0);
+                return;
+            }
 
             const paquete = await paq.json();
             setPaquetesTotal(paquete.length)
@@ -81,7 +89,7 @@ export default function LoadPackagesCarrier() {
 
             <View style={styles.iconContainer}>
                 <Truck color={"white"} size={moderateScale(120)}/>
-                <Text style={styles.textIcon}>Cargar <Text style={{ fontWeight: 'bold' }}>0 bolsas</Text> y <Text style={{ fontWeight: 'bold' }}>{paquetesTotal} paquetes</Text></Text>
+                <Text style={styles.textIcon}>Cargar {paquetesTotal} paquetes</Text>
             </View>
         </View>
 
@@ -155,7 +163,8 @@ const styles = StyleSheet.create({
     textIcon: {
         color: "white",
         fontSize: moderateScale(20),
-        marginTop: moderateScale(12)
+        marginTop: moderateScale(12),
+        fontWeight: 700
     },
     button: {
         backgroundColor: "white",

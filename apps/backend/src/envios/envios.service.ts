@@ -1,13 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Envio } from './entities/envios.entity';
+import { Envio, EstadoEnvio } from './entities/envios.entity';
+import { GuiaTypeormEntity } from '../guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
+import { Unidad } from '../unidades/entities/unidad.entity';
+import { CreateEnvioDto } from './dto/CrearEnvioDto.dto';
 
 @Injectable()
 export class EnviosService {
   constructor(
     @InjectRepository(Envio)
     private readonly envioRepository: Repository<Envio>,
+
+    @InjectRepository(GuiaTypeormEntity)
+    private readonly guiaRepo: Repository<GuiaTypeormEntity>,
+
+    @InjectRepository(Unidad)
+    private readonly unidadRepo: Repository<Unidad>,
   ) {}
 
   async findAll(): Promise<Envio[]> {
@@ -28,17 +37,33 @@ export class EnviosService {
     });
   }
 
-  async create(data: Partial<Envio>): Promise<Envio> {
+  async create(dto: CreateEnvioDto): Promise<Envio> {
+    const guia = await this.guiaRepo.findOne({ where: { id_guia: dto.guiaId }, relations: ['destinatario'] });
+    if (!guia) throw new NotFoundException('Guía no encontrada');
+
+    const unidad = await this.unidadRepo.findOne({ where: { id: dto.unidadId } });
+    if (!unidad) throw new NotFoundException('Unidad no encontrada');
+
     const fechaAsignacion = new Date();
+    const horaLimite = new Date(fechaAsignacion);
+    horaLimite.setHours(15, 0, 0, 0);
 
     const fechaEntrega = new Date(fechaAsignacion);
-    if (fechaAsignacion.getHours() >= 15) {
-      fechaEntrega.setDate(fechaEntrega.getDate() + 1);
-    }
+    if (fechaAsignacion > horaLimite) fechaEntrega.setDate(fechaEntrega.getDate() + 1);
 
-    data.fecha_entrega_programada = fechaEntrega.toDateString();
+    const nombres = guia.destinatario?.nombres ?? '';
+    const apellidos = guia.destinatario?.apellidos ?? '';
+    const nombreCompleto = `${nombres} ${apellidos}`.trim();
 
-    const envio = this.envioRepository.create(data);
+    const envio = this.envioRepository.create({
+      guia,
+      unidad,
+      estado_envio: EstadoEnvio.PENDIENTE,
+      fecha_asignacion: fechaAsignacion,
+      fecha_entrega_programada: fechaEntrega.toISOString().split('T')[0],
+      nombre_receptor: nombreCompleto !== '' ? nombreCompleto : 'Receptor desconocido',
+    });
+
     return this.envioRepository.save(envio);
   }
 
@@ -69,11 +94,11 @@ export class EnviosService {
         'contactoGuia.referencia AS referencia',
       ])
       .where('envio.id_unidad = :unidadId', { unidadId })
-      .andWhere('envio.fecha_asignacion BETWEEN :inicioDelDia AND :finDelDia', {
+      .andWhere('envio.fecha_entrega_programada BETWEEN :inicioDelDia AND :finDelDia', {
         inicioDelDia,
         finDelDia,
       })
-      .orderBy('envio.fecha_asignacion', 'ASC');
+      .orderBy('envio.fecha_entrega_programada', 'ASC');
 
     const resultados = await queryBuilder.getRawMany();
 

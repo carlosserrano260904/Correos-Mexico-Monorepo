@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBadRequestResponse, ApiNotFoundResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { EnviosService } from './envios.service';
 import { Envio } from './entities/envios.entity';
-import { CrearEnvioDto } from './dto/CrearEnvioDto.dto';
+import { CreateEnvioDto } from './dto/CrearEnvioDto.dto';
 
 @ApiTags('Envios')
 @Controller('envios')
@@ -48,12 +48,10 @@ export class EnviosController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Crear un nuevo registro de envío' })
-  @ApiBody({ type: CrearEnvioDto })
-  @ApiResponse({ status: 201, description: 'Registro de envío creado exitosamente', type: Envio })
-  @ApiResponse({ status: 400, description: 'Datos inválidos en el cuerpo de la solicitud' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  create(@Body() envio: Partial<Envio>): Promise<Envio> {
-    return this.enviosService.create(envio);
+  @ApiCreatedResponse({ description: 'El envío fue creado correctamente.', type: Envio })
+  @ApiBadRequestResponse({ description: 'Datos inválidos' })
+  @ApiNotFoundResponse({ description: 'Guía o unidad no encontrada' })
+  async create(@Body() dto: CreateEnvioDto): Promise<Envio> {
+    return this.enviosService.create(dto);
   }
 }

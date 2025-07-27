@@ -3,7 +3,6 @@ import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 import { Check, X } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
 
 const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
@@ -29,7 +28,7 @@ export default function RoutesMapView({
   destination,
   optimizedIntermediates,
   routePoints,
-  packages
+  packages,
 }: {
   userLocation: LatLng | null;
   destination: LatLng;
@@ -37,23 +36,30 @@ export default function RoutesMapView({
   routePoints: LatLng[];
   packages: Package[];
 }) {
-  const mapRegion = userLocation
-    ? {
-      ...userLocation,
-      latitudeDelta: 0.09,
-      longitudeDelta: 0.04,
-    }
-    : undefined;
+  if (!userLocation) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Cargando mapa...</Text>
+      </View>
+    );
+  }
 
-  // Función para obtener el paquete correspondiente a una coordenada
-  const getPackageByCoordinate = (coordinate: LatLng): Package | null => {
-    return packages.find(pkg =>
-      Math.abs(parseFloat(pkg.lat) - coordinate.latitude) < 0.0001 &&
-      Math.abs(parseFloat(pkg.lng) - coordinate.longitude) < 0.0001
-    ) || null;
+  const mapRegion = {
+    ...userLocation,
+    latitudeDelta: 0.09,
+    longitudeDelta: 0.04,
   };
 
-  // Función para obtener el estilo del marcador según el estado
+  const getPackageByCoordinate = (coordinate: LatLng): Package | null => {
+    return (
+      packages.find(
+        (pkg) =>
+          Math.abs(parseFloat(pkg.lat) - coordinate.latitude) < 0.0001 &&
+          Math.abs(parseFloat(pkg.lng) - coordinate.longitude) < 0.0001
+      ) || null
+    );
+  };
+
   const getMarkerStyle = (status: string | undefined) => {
     const statusLower = status?.toLowerCase() || 'pendiente';
     switch (statusLower) {
@@ -75,7 +81,6 @@ export default function RoutesMapView({
     }
   };
 
-  // Función para obtener el icono según el estado
   const getStatusIcon = (status: string | undefined) => {
     const statusLower = status?.toLowerCase() || 'pendiente';
     switch (statusLower) {
@@ -88,10 +93,14 @@ export default function RoutesMapView({
     }
   };
 
-  // Verificar si todos los paquetes fueron entregados
-  const allPackagesDelivered = packages.every(pkg =>
-    pkg.estado_envio?.toLowerCase() === 'entregado' || pkg.estado_envio?.toLowerCase() === 'fallido'
+  const allPackagesDelivered = packages.every(
+    (pkg) =>
+      pkg.estado_envio?.toLowerCase() === 'entregado' ||
+      pkg.estado_envio?.toLowerCase() === 'fallido'
   );
+
+  console.log("optimizedIntermediates:", optimizedIntermediates);
+  
 
   return (
     <View style={{ flex: 1 }}>
@@ -101,16 +110,20 @@ export default function RoutesMapView({
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-        {/* Marcador de destino - más grande si todos los paquetes fueron entregados */}
-        <Marker coordinate={destination} title="Destino">
-        </Marker>
+        <Marker coordinate={destination} title="Destino" />
 
-        {/* Marcadores para paquetes optimizados */}
         {optimizedIntermediates.map((point, index) => {
           const packageItem = getPackageByCoordinate(point);
           const status = packageItem?.estado_envio || 'pendiente';
           const markerStyle = getMarkerStyle(status);
-          const statusIcon = getStatusIcon(status);
+
+          console.log(`Rendering marker ${index}:`, {
+            lat: point.latitude,
+            lng: point.longitude,
+            status,
+            packageFound: !!packageItem,
+            rastreo: packageItem?.numero_de_rastreo,
+          });
 
           return (
             <Marker
@@ -144,7 +157,6 @@ export default function RoutesMapView({
           );
         })}
 
-        {/* Línea de ruta - siempre visible */}
         {routePoints.length > 0 && (
           <Polyline
             coordinates={routePoints}
@@ -176,5 +188,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
 });

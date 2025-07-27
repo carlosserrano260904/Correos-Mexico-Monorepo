@@ -54,7 +54,7 @@ export class GuiaController {
         res.send(result.pdf);
     }
 
-    @Post('nuevoMovimiento')
+    @Post('/movimientos')
     @ApiOperation({ summary: 'Registra un nuevo movimiento' })
     @ApiBody({ type: RegistrarMovimientoDto })
     @ApiResponse({ status: 201, description: 'Movimiento registrado correctamente' })
@@ -71,7 +71,7 @@ export class GuiaController {
         return { message: 'movimiento registrado', status: 'ok' };
     }
 
-    @Post('nuevaIncidencia')
+    @Post('/incidencias')
     @ApiOperation({ summary: 'Registra una nueva incidencia' })
     @ApiBody({ type: CrearIncidenciaDto })
     @ApiResponse({ status: 201, description: 'Incidencia registrada correctamente' })
@@ -88,7 +88,12 @@ export class GuiaController {
         return { message: 'incidencia registrada', status: 'ok' };
     }
 
-    @Post('nuevoQR')
+    /**
+     * Endpoint test, no se usa en la aplicacion
+     * @param crearQrDto 
+     * @returns 
+     */
+    @Post('/qrcode')
     async crearQR(@Body() crearQrDto: CrearQRDto) {
         const command = new CrearQRCommand(
             crearQrDto.numeroDeRastreo,
@@ -104,7 +109,7 @@ export class GuiaController {
 
     // !============= QUERIES =============
 
-    @Get('buscar/:numeroRastreo')
+    @Get('/:numero-rastreo')
     @ApiOperation({ summary: 'Obtiene una guía completa por numero de rastreo con toda la trazabilidad' })
     @ApiParam({ name: 'numeroRastreo', description: 'Numero de rastreo de la guia', example: 'GU123456789MX' })
     @ApiResponse({ status: 200, description: 'Guia encontrada con historial completo' })
@@ -123,7 +128,7 @@ export class GuiaController {
         };
     }
 
-    @Get('todas')
+    @Get('')
     @ApiOperation({ summary: 'Lista todas las guías registradas' })
     @ApiResponse({ status: 200, description: 'Lista de guías obtenida correctamente' })
     async listarTodasLasGuias() {
@@ -141,7 +146,7 @@ export class GuiaController {
         };
     }
 
-    @Get('incidencias')
+    @Get('/incidencias')
     @ApiOperation({ summary: 'Lista todas las incidencias registradas' })
     @ApiResponse({ status: 200, description: 'Lista de incidencias obtenida correctamente' })
     async listarTodasLasIncidencias() {
@@ -159,7 +164,7 @@ export class GuiaController {
         };
     }
 
-    @Get('contactos')
+    @Get('/contactos')
     @ApiOperation({ summary: 'Lista todos los contactos registrados' })
     @ApiResponse({ status: 200, description: 'Lista de contactos obtenida correctamente' })
     async listarTodosLosContactos() {
@@ -185,14 +190,14 @@ export class GuiaController {
             message: 'Sanity Check Guias funcionando correctamente',
             endpoints: {
                 commands: [
-                    'POST /guias/nuevaGuia',
-                    'POST /guias/nuevoMovimiento',
-                    'POST /guias/nuevaIncidencia',
-                    'POST /guias/nuevoQR'
+                    'POST /guias',
+                    'POST /guias/movimientos',
+                    'POST /guias/incidencias',
+                    'POST /guias/qrcode'
                 ],
                 queries: [
-                    'GET /guias/buscar/:numeroRastreo',
-                    'GET /guias/todas',
+                    'GET /guias/numero-rastreo',
+                    'GET /guias',
                     'GET /guias/incidencias',
                     'GET /guias/contactos'
                 ]

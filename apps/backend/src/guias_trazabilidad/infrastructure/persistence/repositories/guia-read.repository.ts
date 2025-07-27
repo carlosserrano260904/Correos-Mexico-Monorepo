@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { GuiaReadRepositoryInterface } from '../../../application/ports/outbound/guia-read.repository.interface';
+import { GuiaReadRepositoryInterface, } from '../../../application/ports/outbound/guia-read.repository.interface';
 import { 
   TrazabilidadReadModel, 
   GuiaListReadModel, 
@@ -11,10 +10,7 @@ import {
 
 @Injectable()
 export class GuiaReadRepository implements GuiaReadRepositoryInterface {
-  constructor(
-    @InjectDataSource()
-    private readonly dataSource: DataSource
-  ) {}
+  constructor(private readonly dataSource: DataSource) { }
 
   async findByNumeroRastreo(numeroRastreo: string): Promise<TrazabilidadReadModel | null> {
     const query = `
@@ -31,8 +27,8 @@ export class GuiaReadRepository implements GuiaReadRepositoryInterface {
           rem.nombres || ' ' || rem.apellidos as remitente_nombre,
           dest.nombres || ' ' || dest.apellidos as destinatario_nombre
         FROM guias g
-        LEFT JOIN contactos rem ON g.id_remitente = rem.id_contacto
-        LEFT JOIN contactos dest ON g.id_destinatario = dest.id_contacto
+        LEFT JOIN contactos_guias rem ON g.id_remitente = rem.id_contacto
+        LEFT JOIN contactos_guias dest ON g.id_destinatario = dest.id_contacto
         WHERE g.numero_de_rastreo = $1
       ),
       movimientos_ordenados AS (
@@ -99,13 +95,13 @@ export class GuiaReadRepository implements GuiaReadRepositoryInterface {
         g.peso_kg,
         rem.nombres || ' ' || rem.apellidos as remitente,
         dest.nombres || ' ' || dest.apellidos as destinatario,
-        dest.ciudad as ciudad_destino,
+        dest.localidad as ciudad_destino,
         dest.estado as estado_destino,
         m.ultimo_estado,
         m.fecha_ultimo_movimiento
       FROM guias g
-      LEFT JOIN contactos rem ON g.id_remitente = rem.id_contacto
-      LEFT JOIN contactos dest ON g.id_destinatario = dest.id_contacto
+      LEFT JOIN contactos_guias rem ON g.id_remitente = rem.id_contacto
+      LEFT JOIN contactos_guias dest ON g.id_destinatario = dest.id_contacto
       LEFT JOIN LATERAL (
         SELECT 
           estado as ultimo_estado, 
@@ -134,8 +130,8 @@ export class GuiaReadRepository implements GuiaReadRepositoryInterface {
         dest.nombres || ' ' || dest.apellidos as destinatario_nombre
       FROM incidencias_guias i
       INNER JOIN guias g ON i.id_guia = g.id_guia
-      LEFT JOIN contactos rem ON g.id_remitente = rem.id_contacto
-      LEFT JOIN contactos dest ON g.id_destinatario = dest.id_contacto
+      LEFT JOIN contactos_guias rem ON g.id_remitente = rem.id_contacto
+      LEFT JOIN contactos_guias dest ON g.id_destinatario = dest.id_contacto
       ORDER BY i.fecha_incidencia DESC;
     `;
 
@@ -151,19 +147,19 @@ export class GuiaReadRepository implements GuiaReadRepositoryInterface {
         telefono,
         CONCAT(
           calle, ' ', numero,
-          CASE WHEN numero_interior IS NOT NULL 
+          CASE WHEN numero_interior IS NOT NULL AND numero_interior != ''
                THEN CONCAT(' Int. ', numero_interior) 
                ELSE '' END,
-          ', ', municipio_delegacion,
-          CASE WHEN asentamiento IS NOT NULL 
-               THEN CONCAT(', ', asentamiento) 
-               ELSE '' END
+          ', ', asentamiento,
+          ', ', localidad,
+          ', ', estado,
+          ' CP ', codigo_postal
         ) as direccion_completa,
-        ciudad,
+        localidad as ciudad,
         estado,
         codigo_postal,
         id_usuario
-      FROM contactos
+      FROM contactos_guias
       ORDER BY nombres, apellidos;
     `;
 

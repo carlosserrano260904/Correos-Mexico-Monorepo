@@ -385,15 +385,26 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
       const encodedPolyline = response.data.routes[0].polyline.encodedPolyline;
       const optimizedOrder = response.data.routes[0].optimizedIntermediateWaypointIndex;
-
-      console.log('respuesta: ' + optimizedOrder)
+      console.log("optimizedOrder from API:", optimizedOrder);
 
       console.log("optimizedOrder from API:", optimizedOrder);
       console.log("intermediates (input):", intermediates);
-      const orderedPoints = optimizedOrder
-        .map((i: number) => intermediates[i])
-        .filter((point): point is LatLng => point !== undefined);
+
+      let orderedPoints: LatLng[] = [];
+
+      if (optimizedOrder.length === 1 && optimizedOrder[0] === -1 && intermediates.length === 1) {
+        // Caso especial: solo hay un paquete y el API devolvió -1
+        console.log("Solo un punto, sin optimización. Usando intermediates directamente.");
+        orderedPoints = intermediates;
+      } else {
+        // Filtramos cualquier índice inválido (-1 o fuera de rango)
+        orderedPoints = optimizedOrder
+          .map((i: number) => intermediates[i])
+          .filter((point): point is LatLng => point !== undefined);
+      }
+
       setOptimizedIntermediates(orderedPoints);
+
 
       const points = decodePolyline(encodedPolyline);
       setRoutePoints(points);
@@ -492,8 +503,6 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         return '#4CAF50';
       case 'fallido':
         return '#F44336';
-      case 'pendiente':
-        return '#FF9800';
       default:
         return '#9E9E9E';
     }

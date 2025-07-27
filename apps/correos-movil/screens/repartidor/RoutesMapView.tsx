@@ -61,7 +61,7 @@ export default function RoutesMapView({
   };
 
   const getMarkerStyle = (status: string | undefined) => {
-    const statusLower = status?.toLowerCase() || 'pendiente';
+    const statusLower = status?.toLowerCase() || 'en_ruta';
     switch (statusLower) {
       case 'entregado':
         return {
@@ -82,7 +82,7 @@ export default function RoutesMapView({
   };
 
   const getStatusIcon = (status: string | undefined) => {
-    const statusLower = status?.toLowerCase() || 'pendiente';
+    const statusLower = status?.toLowerCase() || 'en_ruta';
     switch (statusLower) {
       case 'entregado':
         return <Check size={16} color="white" strokeWidth={3} />;
@@ -114,7 +114,7 @@ export default function RoutesMapView({
 
         {optimizedIntermediates.map((point, index) => {
           const packageItem = getPackageByCoordinate(point);
-          const status = packageItem?.estado_envio || 'pendiente';
+          const status = packageItem?.estado_envio || 'en_ruta';
           const markerStyle = getMarkerStyle(status);
 
           console.log(`Rendering marker ${index}:`, {

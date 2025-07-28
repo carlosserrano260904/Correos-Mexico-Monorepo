@@ -462,8 +462,22 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       <TouchableOpacity
         style={styles.packageItem}
         onPress={() => {
-          if (item.estado_envio && item.estado_envio !== 'entregado') {
-            navigation?.navigate('PackageScreen', { package: item });
+          if (item.estado_envio && item.estado_envio !== 'entregado' && item.estado_envio !== 'fallido') {
+            // Mapear el objeto del paquete al formato que espera PackageScreen
+            const packageForScreen = {
+              id: item.id,
+              sku: item.numero_de_rastreo, // Usando numero_de_rastreo como SKU
+              numero_guia: item.numero_de_rastreo,
+              estatus: item.estado_envio,
+              latitud: parseFloat(item.lat),
+              longitud: parseFloat(item.lng),
+              fecha_creacion: new Date().toISOString(), // No hay fecha de creación, se usa la actual
+              indicaciones: item.referencia || 'No hay indicaciones especiales.',
+              calle: `${item.calle} ${item.numero || ''}${item.numero_interior ? ` Int. ${item.numero_interior}` : ''}`.trim(),
+              colonia: item.asentamiento,
+              cp: item.codigo_postal,
+            };
+            navigation?.navigate('PackageScreen', { package: packageForScreen });
           }
         }}
       >

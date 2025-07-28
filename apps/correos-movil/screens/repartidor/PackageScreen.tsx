@@ -18,44 +18,39 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
 import { ScanQrCode, ArrowLeft } from 'lucide-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native'
 import Route from './getRoute';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height
 
-interface Package {
-  id: string;
-  sku: string;
-  numero_guia: string;
-  estatus: string;
-  latitud: number;
-  longitud: number;
-  fecha_creacion: string;
-  indicaciones: string;
-  calle: string;
-  colonia: string;
-  cp: string;
-}
-
-interface LocationCoords {
-  latitude: number;
-  longitude: number;
-}
-
-type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'> & {
-  route: {
-    params: {
-      package: Package;
-    };
-  };
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'>;
 
 const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { package: packageData } = route.params;
+  const { package: packageData } = route.params || {};
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [distance, setDistance] = useState<string | null>(null);
   const [duration, setDuration] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!packageData) {
+      Alert.alert(
+        'Error',
+        'No se pudieron cargar los detalles del paquete.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }],
+        { cancelable: false }
+      );
+    }
+  }, [packageData, navigation]);
+
+  if (!packageData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#DE1484" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const destino = {
     latitude: packageData.latitud,
@@ -70,10 +65,6 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleGoBack = () => {
     navigation.goBack();
-  };
-
-  const handleDelivery = () => {
-    console.log('Confirmar entrega del paquete:', packageData.id);
   };
 
   const getStatusColor = (status: string): string => {

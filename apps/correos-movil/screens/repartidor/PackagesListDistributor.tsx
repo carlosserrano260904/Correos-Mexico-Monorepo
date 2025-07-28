@@ -471,28 +471,34 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           <View style={styles.packageIconContainer}>
             <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
           </View>
+
+          <View style={styles.packageInfo}>
+            <Text style={styles.packageSku} numberOfLines={1}>Guia: {item.numero_de_rastreo}</Text>
+          </View>
+
           <View style={styles.packageStatus}>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado_envio || 'desconocido') }]}>
               <Text style={styles.statusText}>{(item.estado_envio || 'Desconocido').toUpperCase()}</Text>
             </View>
           </View>
-        </View>
-
-        <View style={styles.packageInfo}>
-          <Text style={styles.packageSku}>SKU: {item.numero_de_rastreo}</Text>
+          
         </View>
 
         <View style={styles.packageAddress}>
+          <MapPin color="#666" size={moderateScale(16)} />
           <Text style={styles.addressText} numberOfLines={2}>
-            {item.calle} {item.numero}{item.numero_interior ? ` Int. ${item.numero_interior}` : ''}, {item.asentamiento}, {item.localidad}, {item.estado}, CP {item.codigo_postal}
+            {item.calle} {item.numero}{item.numero_interior ? ` Int. ${item.numero_interior}` : ''}, {item.asentamiento}
           </Text>
         </View>
 
-        {item.referencia && (
-          <Text style={styles.packageInstructions} numberOfLines={2}>
-            {item.referencia}
-          </Text>
-        )}
+        <Text
+          style={styles.packageInstructions}
+          numberOfLines={2}
+        >
+          {item.referencia && item.referencia.trim() !== '' 
+            ? item.referencia 
+            : 'No hay referencias'}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -790,7 +796,6 @@ const styles = StyleSheet.create({
   },
   packageInfo: {
     flex: 1,
-    marginBottom: moderateScale(8),
   },
   packageSku: {
     fontSize: moderateScale(16),
@@ -822,6 +827,7 @@ const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
+    marginLeft: moderateScale(8),
     fontSize: moderateScale(14),
     color: '#666',
     lineHeight: moderateScale(20),

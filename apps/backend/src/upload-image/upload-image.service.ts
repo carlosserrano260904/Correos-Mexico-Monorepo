@@ -36,6 +36,6 @@ export class UploadImageService {
       ContentType: file.mimetype
     });
     await this.s3.send(cmd);
-    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+    return `https://${this.bucket}.s3.${this.region}.backblazeb2.com/${key}`;
   }
 }

@@ -25,7 +25,9 @@ export const S3Provider: Provider = {
 
     return new S3Client({
       region,
+      endpoint: config.get<string>('AWS_S3_ENDPOINT'), // 👈 necesario para Backblaze B2
       credentials: { accessKeyId, secretAccessKey },
+      forcePathStyle: true, // 👈 recomendado para compatibilidad con B2
     });
   },
   inject: [ConfigService],

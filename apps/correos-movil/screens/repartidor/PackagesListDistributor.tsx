@@ -492,7 +492,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
           <View style={styles.packageStatus}>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado_envio || 'desconocido') }]}>
-              <Text style={styles.statusText}>{(item.estado_envio || 'Desconocido').toUpperCase()}</Text>
+              <Text style={styles.statusText}>{getStatusText(item.estado_envio || 'Desconocido')}</Text>
             </View>
           </View>
           
@@ -523,8 +523,27 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
         return '#4CAF50';
       case 'fallido':
         return '#F44336';
+      case 'pendiente':
+        return '#FF9800';
+      case 'en_ruta':
+        return '#2196F3';
       default:
         return '#9E9E9E';
+    }
+  };
+
+  const getStatusText = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'entregado':
+        return 'Entregado';
+      case 'fallido':
+        return 'Fallido';
+      case 'pendiente':
+        return 'Pendiente';
+      case 'en_ruta':
+        return 'En Ruta';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
 

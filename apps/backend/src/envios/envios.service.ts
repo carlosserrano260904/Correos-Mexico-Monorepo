@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
 import { GuiaTypeormEntity } from '../guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
 import { Unidad } from '../unidades/entities/unidad.entity';
@@ -60,7 +60,7 @@ export class EnviosService {
       unidad,
       estado_envio: EstadoEnvio.PENDIENTE,
       fecha_asignacion: fechaAsignacion,
-      fecha_entrega_programada: fechaEntrega.toISOString().split('T')[0],
+      fecha_entrega_programada: fechaEntrega,
       nombre_receptor: nombreCompleto !== '' ? nombreCompleto : 'Receptor desconocido',
     });
 
@@ -107,5 +107,44 @@ export class EnviosService {
     }
 
     return resultados;
+  }
+
+  async iniciarRuta(unidadId: string): Promise<{ updated: number }> {
+    const hoy = new Date();
+    const inicioDelDia = new Date(hoy);
+    inicioDelDia.setHours(0, 0, 0, 0);
+
+    const finDelDia = new Date(hoy);
+    finDelDia.setHours(23, 59, 59, 999);
+
+    const result = await this.envioRepository.update(
+      {
+        unidad: { id: unidadId },
+        fecha_entrega_programada: Between(inicioDelDia, finDelDia),
+        estado_envio: EstadoEnvio.PENDIENTE,
+      },
+      {
+        estado_envio: EstadoEnvio.EN_RUTA,
+      },
+    );
+    if (!result.affected) {
+      throw new NotFoundException(`No se encontraron envíos pendientes para la unidad ${unidadId} para el día de hoy.`);
+    }
+
+    return { updated: result.affected };
+  }
+
+  async marcarComoFallido(id: string, motivo: string): Promise<Envio> {
+    const envio = await this.envioRepository.findOneBy({ id });
+
+    if (!envio) {
+      throw new NotFoundException(`No se encontró un envío con el ID ${id}`);
+    }
+
+    envio.estado_envio = EstadoEnvio.FALLIDO;
+    envio.motivo_fallo = motivo;
+    envio.fecha_fallido = new Date();
+
+    return this.envioRepository.save(envio);
   }
 }

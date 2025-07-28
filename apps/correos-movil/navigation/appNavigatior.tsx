@@ -23,6 +23,7 @@ import DetalleProducto from '../screens/usuario/mis-compras/DetalleProducto';
 import Politicas from '../screens/usuario/vendedor/Politicas';
 import ReceivePackage from '../screens/repartidor/ReceivePackage';
 import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
+import FailedDeliveryScreen from '../screens/repartidor/FailedDeliveryScreen';
 import PantallaEnvio from '../screens/usuario/detalles_pedido/PantallaEnvio';
 import PantallaPago from '../screens/usuario/detalles_pedido/PantallaPago';
 import PantallaResumen from '../screens/usuario/detalles_pedido/Pantalla.Resumen';
@@ -69,6 +70,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Politicas" component={Politicas} options={{ headerShown: false }} />
             <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{ headerShown: false }} />
             <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="FailedDelivery" component={FailedDeliveryScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Envio" component={PantallaEnvio} options={{ headerShown: false }} />
             <Stack.Screen name="Pago" component={PantallaPago} options={{ headerShown: false }} />
             <Stack.Screen name="Resumen" component={PantallaResumen} options={{ headerShown: false }} />

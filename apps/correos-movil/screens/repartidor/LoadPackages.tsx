@@ -21,6 +21,22 @@ export default function LoadPackages() {
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
 
     const handleInicioTurno = async () => {
+        try {
+            const res = await fetch(`http://${IP}:3000/api/envios/iniciar-ruta/hoy/unidad/${unidadId}`, {
+                method: 'PATCH',
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                console.log(`${data.updated} envíos actualizados a "en_ruta".`);
+            } else {
+                const errorData = await res.json();
+                console.warn('Advertencia al iniciar ruta:', errorData.message);
+            }
+        } catch (error) {
+            console.error('Error de red al iniciar la ruta:', error);
+        }
+
         await AsyncStorage.setItem('turno_activo', 'true');
         navigation.reset({
             index: 0,

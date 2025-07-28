@@ -35,7 +35,7 @@ export class Envio {
   fecha_asignacion: Date;
 
   @Column({ type: 'date', name: 'fecha_entrega_programada' })
-  fecha_entrega_programada: string;
+  fecha_entrega_programada: Date;
 
   // Campos para entrega exitosa
   @Column({ type: 'varchar', name: 'nombre_receptor', nullable: true })
@@ -49,8 +49,8 @@ export class Envio {
   motivo_fallo?: string;
 
   @Column({ type: 'date', name: 'fecha_entregado', nullable: true })
-  fecha_entregado?: string;
+  fecha_entregado?: Date;
 
   @Column({ type: 'date', name: 'fecha_fallido', nullable: true })
-  fecha_fallido?: string;
+  fecha_fallido?: Date;
 }

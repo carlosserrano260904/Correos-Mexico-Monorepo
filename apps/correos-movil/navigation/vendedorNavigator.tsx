@@ -35,6 +35,7 @@ import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
 import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import Vendedor from '../screens/vendedor/Vendedor';
 import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor';
+import FailedDeliveryScreen from '../screens/repartidor/FailedDeliveryScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -65,6 +66,7 @@ export default function VendedorNavigator() {
             <Stack.Screen name="Politicas" component={Politicas} options={{ headerShown: false }} />
             <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{ headerShown: false }} />
             <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="FailedDelivery" component={FailedDeliveryScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Envio" component={PantallaEnvio} options={{ headerShown: false }} />
             <Stack.Screen name="Pago" component={PantallaPago} options={{ headerShown: false }} />
             <Stack.Screen name="Resumen" component={PantallaResumen} options={{ headerShown: false }} />

@@ -19,6 +19,7 @@ import * as Location from 'expo-location';
 import { moderateScale } from 'react-native-size-matters';
 import { ScanQrCode, ArrowLeft } from 'lucide-react-native';
 import Route from './getRoute';
+import Constants from 'expo-constants';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height
@@ -26,10 +27,12 @@ const screenHeight = Dimensions.get("screen").height
 type Props = NativeStackScreenProps<RootStackParamList, 'PackageScreen'>;
 
 const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
+  const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const { package: packageData } = route.params || {};
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [distance, setDistance] = useState<string | null>(null);
   const [duration, setDuration] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (!packageData) {
@@ -66,6 +69,11 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleGoBack = () => {
     navigation.goBack();
   };
+  
+  const handleFailedDelivery = () => {
+    navigation.navigate('FailedDelivery', { package: packageData });
+  };
+
 
   const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
@@ -87,7 +95,7 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
       case 'entregado':
         return 'Entregado';
       case 'fallido':
-        return 'Entrega Fallida';
+        return 'Fallido';
       case 'pendiente':
         return 'Pendiente';
       case 'en_ruta':
@@ -206,11 +214,26 @@ const PackageScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Botón de Entrega */}
+      {/* Botones de Acción */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.deliveryButton} onPress={() => navigation.navigate('RecibirPaquete', { package: packageData })}>
+        <TouchableOpacity
+          style={[styles.deliveryButton, isUpdating && styles.buttonDisabled]}
+          onPress={() => navigation.navigate('RecibirPaquete', { package: packageData })}
+          disabled={isUpdating}
+        >
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={styles.deliveryButtonText}>Confirmar Entrega</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.failedButton, isUpdating && styles.buttonDisabled]}
+          onPress={handleFailedDelivery}
+          disabled={isUpdating}
+        >
+          {isUpdating ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <><Ionicons name="close-circle" size={24} color="#FFFFFF" /><Text style={styles.deliveryButtonText}>Entrega Fallida</Text></>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -244,7 +267,7 @@ const styles = StyleSheet.create({
     padding: moderateScale(8),
   },
   content: {
-
+    flex: 1,
   },
   mapContainer: {
     height: screenHeight * 0.3,
@@ -403,9 +426,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
+    gap: moderateScale(12),
   },
   deliveryButton: {
     backgroundColor: '#DE1484',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: moderateScale(16),
+    borderRadius: moderateScale(12),
+    gap: moderateScale(8),
+  },
+  failedButton: {
+    backgroundColor: '#F44336',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -417,6 +450,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: moderateScale(16),
     fontWeight: '600',
+  },
+  buttonDisabled: {
+    backgroundColor: '#BDBDBD',
   },
 });
 

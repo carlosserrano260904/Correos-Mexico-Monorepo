@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { HistorialAsignacion } from './entities/historial-asignacion.entity';
@@ -32,14 +33,24 @@ export class HistorialAsignacionesService {
     curp: string,
     placasUnidad: string,
     claveOficinaActual: string
-  ): Promise<void> {
-    await this.historialRepository.update(
-      { curp: curp.toUpperCase(), placasUnidad, fechaLlegadaDestino: IsNull() },
-      { 
-        claveOficinaActual,
-        fechaLlegadaDestino: new Date() 
+  ): Promise<HistorialAsignacion> {
+    const asignacion = await this.historialRepository.findOne({
+      where: {
+        curp: curp.toUpperCase(),
+        placasUnidad,
+        fechaLlegadaDestino: IsNull()
       },
-    );
+      order: { fechaAsignacion: 'DESC' }
+    });
+
+    if (!asignacion) {
+      throw new NotFoundException('Asignación activa no encontrada');
+    }
+
+    asignacion.claveOficinaActual = claveOficinaActual;
+    asignacion.fechaLlegadaDestino = new Date();
+    
+    return this.historialRepository.save(asignacion);
   }
 
   async finalizarAsignacion(
@@ -64,5 +75,32 @@ export class HistorialAsignacionesService {
       where,
       order: { fechaAsignacion: 'DESC' },
     });
+  }
+    async registrarRetornoOrigen(
+    curp: string,
+    placasUnidad: string
+  ): Promise<HistorialAsignacion> {
+    const asignacion = await this.historialRepository.findOne({
+      where: {
+        curp: curp.toUpperCase(),
+        placasUnidad,
+        fechaFinalizacion: IsNull()
+      },
+      order: { fechaAsignacion: 'DESC' }
+    });
+
+    if (!asignacion) {
+      throw new NotFoundException('Asignación activa no encontrada');
+    }
+
+    // Verificar que primero haya llegado al destino
+    if (!asignacion.fechaLlegadaDestino) {
+      throw new BadRequestException('La unidad debe llegar al destino primero');
+    }
+
+    asignacion.claveOficinaActual = asignacion.claveOficinaSalida; // Regresa al origen
+    asignacion.fechaFinalizacion = new Date();
+    
+    return this.historialRepository.save(asignacion);
   }
 }

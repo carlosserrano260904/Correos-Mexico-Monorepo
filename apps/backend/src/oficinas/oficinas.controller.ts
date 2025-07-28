@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Param, Put, Patch } from '@nestjs/common';
 import { OficinasService } from './oficinas.service';
 import { CreateOficinaDto } from './dto/create-oficina.dto';
 import { UpdateOficinaDto } from './dto/update-oficina.dto';
+import { AgregarClaveZonaDto } from './dto/agregar-clave-zona.dto';
+import { EliminarClaveZonaDto } from './dto/eliminar-clave-zona.dto';
 
 @Controller('oficinas')
 export class OficinasController {
@@ -50,5 +52,15 @@ export class OficinasController {
   @Patch(':id/activar')
   activate(@Param('id') id: number) {
     return this.oficinasService.activate(id);
+  }
+
+  @Patch(':cuo/agregar-clave-zona')
+  agregarClaveZona(@Param('cuo') cuo: string, @Body() dto: AgregarClaveZonaDto) {
+    return this.oficinasService.agregarClaveZona(cuo, dto);
+  }
+
+  @Patch(':cuo/eliminar-clave-zona')
+  eliminarClaveZona(@Param('cuo') cuo: string, @Body() dto: EliminarClaveZonaDto) {
+    return this.oficinasService.eliminarClaveZona(cuo, dto);
   }
 }

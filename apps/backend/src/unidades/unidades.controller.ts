@@ -60,7 +60,6 @@ export class UnidadesController {
 
   @Put(':placas/asignar-zona')
   @ApiOperation({ summary: 'Asignar zona (clave CUO de destino)' })
-  @ApiResponse({ status: 200, type: UnidadResponseDto })
   async assignZona(
     @Param('placas') placas: string,
     @Body() dto: AssignZonaDto,

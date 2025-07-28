@@ -74,7 +74,7 @@ export class Oficina {
   codigo_postal: string;
 
   @Column({ type: 'text', nullable: true })
-  clave_unica_zona: string;
+  clave_unica_zona: string | null;
 
   @Column({ length: 20 })
   telefono: string;

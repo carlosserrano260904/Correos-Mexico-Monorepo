@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 
 import { Unidad } from './entities/unidad.entity';
 import { TipoVehiculo } from './entities/tipo-vehiculo.entity';
@@ -125,133 +125,196 @@ export class UnidadesService {
   }
 
   async assignConductor(placas: string, dto: AssignConductorDto): Promise<UnidadResponseDto> {
+      const qr = this.dataSource.createQueryRunner();
+      await qr.connect();
+      await qr.startTransaction();
+
+      try {
+          const unidad = await this.unidadRepo.findOne({
+              where: { placas },
+              relations: ['oficina', 'conductor', 'tipoVehiculo'],
+          });
+          
+          if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+
+          // Desasignar conductor
+          if (dto.curpConductor === 'S/C') {
+              if (unidad.conductor) {
+                  // 1. Registrar retorno al origen en el historial
+                  await this.historialSvc.registrarRetornoOrigen(
+                      unidad.conductor.curp,
+                      placas
+                  );
+                  
+                  // 2. Liberar al conductor
+                  unidad.conductor.disponibilidad = true;
+                  await qr.manager.save(unidad.conductor);
+              }
+              
+              // 3. Limpiar la relación y establecer curp_conductor como null
+              unidad.conductor = null;
+              unidad.curpConductor = null; // Esta línea es crucial
+              unidad.estado = 'disponible';
+              
+              const upd = await qr.manager.save(unidad);
+              await qr.commitTransaction();
+              return this.mapToResponse(upd);
+          }
+
+          // Resto del código para asignación normal...
+          const conductor = await this.conductorRepo.findOne({
+              where: {
+                  curp: dto.curpConductor,
+                  oficina: { clave_oficina_postal: unidad.oficina.clave_oficina_postal },
+              },
+              relations: ['oficina'],
+          });
+          
+          if (!conductor) {
+              throw new NotFoundException(`Conductor ${dto.curpConductor} no encontrado en oficina ${unidad.oficina.clave_oficina_postal}`);
+          }
+          
+          if (!conductor.disponibilidad || !conductor.licenciaVigente) {
+              throw new ConflictException('Conductor no disponible o licencia no vigente');
+          }
+
+          if (unidad.conductor) {
+              await this.historialSvc.finalizarAsignacion(unidad.conductor.curp, placas);
+              unidad.conductor.disponibilidad = true;
+              await qr.manager.save(unidad.conductor);
+          }
+
+          await this.historialSvc.registrarAsignacion(
+              conductor.nombreCompleto,
+              conductor.curp,
+              placas,
+              unidad.oficina.clave_cuo,
+              unidad.zonaAsignada,
+          );
+          
+          conductor.disponibilidad = false;
+          await qr.manager.save(conductor);
+
+          unidad.conductor = conductor;
+          unidad.curpConductor = conductor.curp; // Asegurar que se actualice
+          unidad.estado = 'no disponible';
+          
+          const upd = await qr.manager.save(unidad);
+          await qr.commitTransaction();
+          return this.mapToResponse(upd);
+      } catch (err) {
+          await qr.rollbackTransaction();
+          throw err;
+      } finally {
+          await qr.release();
+    }
+  }
+
+  async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      const unidad = await this.unidadRepo.findOne({
-        where: { placas },
-        relations: ['oficina', 'conductor', 'tipoVehiculo'],
-      });
-      if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+        // 1. Obtener unidad con relaciones
+        const unidad = await this.unidadRepo.findOne({
+            where: { placas },
+            relations: ['oficina', 'tipoVehiculo', 'conductor']
+        });
+        
+        if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
+        if (!unidad.oficina) throw new BadRequestException(`La unidad no tiene oficina asignada`);
 
-      // Desasignar conductor
-      if (dto.curpConductor === 'S/C') {
-        if (unidad.conductor) {
-          await this.historialSvc.finalizarAsignacion(unidad.conductor.curp, placas);
-          unidad.conductor.disponibilidad = true;
-          await qr.manager.save(unidad.conductor);
+        const oficinaOrigen = unidad.oficina;
+
+        // 2. Validar no auto-asignación
+        if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
+            throw new BadRequestException(`No puedes asignar la unidad a su misma oficina de origen`);
         }
-        (unidad as any).conductor = undefined;
-        unidad.estado = 'disponible';
-        const upd = await qr.manager.save(unidad);
+
+        // 3. Buscar oficina destino
+        const oficinaDestino = await this.oficinaRepo.findOne({ 
+            where: { clave_cuo: dto.claveCuoDestino } 
+        });
+        if (!oficinaDestino) throw new NotFoundException(`Oficina destino no encontrada`);
+
+        // 4. Obtener claves de zona de la oficina origen
+        const clavesZonaOrigen = oficinaOrigen.clave_unica_zona 
+            ? oficinaOrigen.clave_unica_zona.split(',').map(z => z.trim())
+            : [];
+
+        // 5. Verificar si el destino está en las claves de zona del origen
+        if (!clavesZonaOrigen.includes(dto.claveCuoDestino)) {
+            // Si no está, verificar relación inversa
+            const clavesZonaDestino = oficinaDestino.clave_unica_zona 
+                ? oficinaDestino.clave_unica_zona.split(',').map(z => z.trim())
+                : [];
+
+            if (!clavesZonaDestino.includes(oficinaOrigen.clave_cuo)) {
+                // Si no hay relación bidireccional, obtener destinos permitidos
+                const destinosPermitidos = await this.getOficinasDestinoValidas(placas);
+                
+                // Depuración adicional
+                console.log('Oficina origen:', oficinaOrigen.clave_cuo, 'Claves zona:', oficinaOrigen.clave_unica_zona);
+                console.log('Oficina destino:', oficinaDestino.clave_cuo, 'Claves zona:', oficinaDestino.clave_unica_zona);
+                console.log('Destinos permitidos:', destinosPermitidos.map(o => o.clave_cuo));
+
+                throw new BadRequestException(
+                    `Ruta no permitida. Destinos válidos para ${oficinaOrigen.clave_cuo}: ` +
+                    (destinosPermitidos.length > 0 ? destinosPermitidos.map(o => o.clave_cuo).join(', ') : 'No hay destinos válidos')
+                );
+            }
+        }
+
+        // 6. Actualizar la zona asignada
+        unidad.zonaAsignada = oficinaDestino.clave_cuo;
+        await this.unidadRepo.save(unidad);
+        
+        // 7. Registrar en historial si hay conductor
+        if (unidad.conductor) {
+            await this.historialSvc.registrarAsignacion(
+                unidad.conductor.nombreCompleto,
+                unidad.conductor.curp,
+                placas,
+                unidad.oficina.clave_cuo,
+                unidad.zonaAsignada
+            );
+        }
+
         await qr.commitTransaction();
-        return this.mapToResponse(upd);
-      }
-
-      const conductor = await this.conductorRepo.findOne({
-        where: {
-          curp: dto.curpConductor,
-          oficina: { clave_oficina_postal: unidad.oficina.clave_oficina_postal },
-        },
-        relations: ['oficina'],
-      });
-      if (!conductor) {
-        throw new NotFoundException(`Conductor ${dto.curpConductor} no encontrado en oficina ${unidad.oficina.clave_oficina_postal}`);
-      }
-      if (!conductor.disponibilidad || !conductor.licenciaVigente) {
-        throw new ConflictException('Conductor no disponible o licencia no vigente');
-      }
-
-      if (unidad.conductor) {
-        await this.historialSvc.finalizarAsignacion(unidad.conductor.curp, placas);
-        unidad.conductor.disponibilidad = true;
-        await qr.manager.save(unidad.conductor);
-      }
-
-      await this.historialSvc.registrarAsignacion(
-        conductor.nombreCompleto,
-        conductor.curp,
-        placas,
-        unidad.oficina.clave_cuo,
-        unidad.zonaAsignada,
-      );
-      conductor.disponibilidad = false;
-      await qr.manager.save(conductor);
-
-      unidad.conductor = conductor;
-      unidad.estado = 'no disponible';
-      const upd = await qr.manager.save(unidad);
-      await qr.commitTransaction();
-      return this.mapToResponse(upd);
+        return this.mapToResponse(unidad);
     } catch (err) {
-      await qr.rollbackTransaction();
-      throw err;
+        await qr.rollbackTransaction();
+        throw err;
     } finally {
-      await qr.release();
+        await qr.release();
     }
-  }
+}
 
-  async assignZona(placas: string, dto: AssignZonaDto): Promise<UnidadResponseDto> {
-      // 1. Buscar unidad con todas las relaciones necesarias
-      const unidad = await this.unidadRepo.findOne({
-          where: { placas },
-          relations: ['oficina', 'tipoVehiculo', 'conductor']
-      });
-      
-      if (!unidad) throw new NotFoundException(`Unidad con placas ${placas} no encontrada`);
-      if (!unidad.oficina) throw new BadRequestException(`La unidad no tiene oficina asignada`);
+  /*private async validarRutaBidireccional(claveOrigen: string, claveDestino: string): Promise<boolean> {
+    const oficinaOrigen = await this.oficinaRepo.findOne({ 
+      where: { clave_cuo: claveOrigen } 
+    });
+    
+    const oficinaDestino = await this.oficinaRepo.findOne({ 
+      where: { clave_cuo: claveDestino } 
+    });
 
-      const oficinaOrigen = unidad.oficina;
+    if (!oficinaOrigen || !oficinaDestino) return false;
 
-      // 2. Validar no auto-asignación
-      if (dto.claveCuoDestino === oficinaOrigen.clave_cuo) {
-          throw new BadRequestException(`No puedes asignar la unidad a su misma oficina de origen`);
-      }
+    // Convertir claves a arrays
+    const zonasOrigen = oficinaOrigen.clave_unica_zona 
+      ? oficinaOrigen.clave_unica_zona.split(',').map(z => z.trim())
+      : [];
+    
+    const zonasDestino = oficinaDestino.clave_unica_zona 
+      ? oficinaDestino.clave_unica_zona.split(',').map(z => z.trim())
+      : [];
 
-      // 3. Buscar oficina destino
-      const oficinaDestino = await this.oficinaRepo.findOne({ 
-          where: { clave_cuo: dto.claveCuoDestino } 
-      });
-      if (!oficinaDestino) throw new NotFoundException(`Oficina destino no encontrada`);
+    // Verificar relación bidireccional
+    return zonasDestino.includes(claveOrigen) || zonasOrigen.includes(claveDestino);
+  }*/
 
-      // 4. Validación bidireccional
-      const esRutaValida = await this.validarRutaBidireccional(
-          oficinaOrigen.clave_cuo,
-          oficinaDestino.clave_cuo
-      );
-
-      if (!esRutaValida) {
-          const destinosPermitidos = await this.getOficinasDestinoValidas(placas);
-          throw new BadRequestException(
-              `Ruta no permitida. Destinos válidos para ${oficinaOrigen.clave_cuo}: ` +
-              destinosPermitidos.map(o => o.clave_cuo).join(', ')
-          );
-      }
-
-      // 5. Actualizar y devolver respuesta
-      unidad.zonaAsignada = oficinaDestino.clave_cuo;
-      await this.unidadRepo.save(unidad);
-      return this.mapToResponse(unidad);
-  }
-    private async validarRutaBidireccional(claveOrigen: string, claveDestino: string): Promise<boolean> {
-      // Caso 1: Relación directa (origen -> destino)
-      const oficinaOrigen = await this.oficinaRepo.findOne({ where: { clave_cuo: claveOrigen } });
-      const oficinaDestino = await this.oficinaRepo.findOne({ where: { clave_cuo: claveDestino } });
-
-      if (!oficinaOrigen || !oficinaDestino) return false;
-
-      // 1. Validar si el destino tiene como clave_unica_zona al origen
-      const esDestinoValido = oficinaDestino.clave_unica_zona === claveOrigen;
-      
-      // 2. Validar si el origen tiene como clave_unica_zona al destino
-      const esOrigenValido = oficinaOrigen.clave_unica_zona === claveDestino;
-
-      // Ruta válida si cumple cualquiera de las dos condiciones
-      return esDestinoValido || esOrigenValido;
-  }
-  
   async getTiposVehiculoPorOficina(claveOficina: string): Promise<OficinaTipoVehiculoDto> {
     const oficina = await this.oficinaRepo.findOne({ where: { clave_cuo: claveOficina } });
     if (!oficina) {
@@ -280,29 +343,47 @@ export class UnidadesService {
       tiposVehiculo: list.map(t => t.tipoVehiculo.tipoVehiculo),
     };
   }
-async getOficinasDestinoValidas(placas: string) {
-    const unidad = await this.unidadRepo.findOne({
-        where: { placas },
-        relations: ['oficina']
-    });
-    
-    if (!unidad?.oficina) throw new NotFoundException('Unidad u oficina no encontrada');
 
-    const oficinaOrigen = unidad.oficina;
+  async getOficinasDestinoValidas(placas: string) {
+      const unidad = await this.unidadRepo.findOne({
+          where: { placas },
+          relations: ['oficina']
+      });
+      
+      if (!unidad?.oficina) throw new NotFoundException('Unidad u oficina no encontrada');
+      
+      const oficinaOrigen = unidad.oficina;
+      const clavesZonaOrigen = oficinaOrigen.clave_unica_zona 
+          ? oficinaOrigen.clave_unica_zona.split(',').map(z => z.trim())
+          : [];
 
-    // Obtener todas las oficinas que:
-    // 1. Tienen a la oficina origen como clave_unica_zona O
-    // 2. Son el destino directo de la oficina origen
-    const oficinasDestino = await this.oficinaRepo.find({
-        where: [
-            { clave_unica_zona: oficinaOrigen.clave_cuo }, // Caso 1
-            { clave_cuo: oficinaOrigen.clave_unica_zona }  // Caso 2
-        ],
-        order: { nombre_cuo: 'ASC' }
-    });
-    return oficinasDestino.filter(
-        oficina => oficina.clave_cuo !== oficinaOrigen.clave_cuo
-    )
+      // 1. Oficinas que están en las claves de zona del origen (destinos directos)
+      const destinosDirectos = await this.oficinaRepo.find({
+          where: {
+              clave_cuo: In(clavesZonaOrigen),
+              activo: true // Solo oficinas activas
+          }
+      });
+
+      // 2. Oficinas que tienen al origen en sus claves de zona (relación inversa)
+      const destinosInversos = await this.oficinaRepo
+          .createQueryBuilder('oficina')
+          .where(`:claveOrigen = ANY(STRING_TO_ARRAY(oficina.clave_unica_zona, ','))`, {
+              claveOrigen: oficinaOrigen.clave_cuo
+          })
+          .andWhere('oficina.activo = :activo', { activo: true })
+          .getMany();
+
+      // Combinar y eliminar duplicados usando un Map
+      const destinosUnicos = new Map<string, Oficina>();
+      
+      [...destinosDirectos, ...destinosInversos].forEach(oficina => {
+          if (oficina.clave_cuo !== oficinaOrigen.clave_cuo) {
+              destinosUnicos.set(oficina.clave_cuo, oficina);
+          }
+      });
+
+      return Array.from(destinosUnicos.values());
   }
 
   async generarQRsDeUnidades(): Promise<{ id: string; qr: string; filePath: string }[]> {

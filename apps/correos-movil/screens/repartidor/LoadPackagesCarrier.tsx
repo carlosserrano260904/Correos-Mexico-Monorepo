@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Text, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native'
+import { Text, TouchableOpacity, View, StyleSheet, Dimensions, FlatList } from 'react-native'
 import { moderateScale } from 'react-native-size-matters'
-import { ArrowLeft, Truck } from 'lucide-react-native'
+import { ArrowLeft, Truck, Package } from 'lucide-react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,17 +15,20 @@ export default function LoadPackagesCarrier() {
   const navigation = useNavigation();
     const route = useRoute();
     const { unidadId } = route.params as { unidadId: string };
+    const [ datosExtra, setDatosExtra ] = React.useState<string>("");
     const { placas } = route.params as { placas: string };
     const [paquetesTotal, setPaquetesTotal] = React.useState(0);
+    const [paquetes, setPaquetes] = React.useState<Package[]>([]);
 
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
 
     const handleInicioTurno = async () => {
         await AsyncStorage.setItem('turno_activo', 'true');
         await AsyncStorage.setItem('unidadId', unidadId)
+        await AsyncStorage.setItem('datosExtra', datosExtra);
         navigation.reset({
             index: 0,
-           routes: [{ name: 'PackagesList', params: { unidadId: unidadId } }],
+           routes: [{ name: 'PackagesList', params: { unidadId: unidadId, datosExtras: datosExtra } }],
         });
     };
 
@@ -37,9 +40,11 @@ export default function LoadPackagesCarrier() {
             const envio = await res.json();
             if (envio.length > 0) {
             setNombreVehiculo(envio[0].unidad?.placas ?? 'Vehículo no encontrado');
+            setDatosExtra(envio[0].unidad?.zonaAsignada)
             } else {
             setNombreVehiculo(placas);
             }
+
         } catch (error) {
             console.error(error);
             setNombreVehiculo('Error al obtener vehículo');
@@ -58,7 +63,9 @@ export default function LoadPackagesCarrier() {
             }
 
             const paquete = await paq.json();
+            console.log("Paquetes: ", paquete)
             setPaquetesTotal(paquete.length)
+            setPaquetes(paquete);
         } catch (err) {
             console.log(err);
             setPaquetesTotal(0);
@@ -71,6 +78,45 @@ export default function LoadPackagesCarrier() {
         }
 
     }, [unidadId]);
+
+    const renderPackageItem = ({ item }: { item: Package }) => {
+    
+        return (
+          <View
+            style={styles.packageItem}
+          >
+            <View style={styles.packageHeader}>
+
+                <View style={styles.packageIconContainer}>
+                    <Package size={moderateScale(20)} color={"#DE1484"}/>
+                </View>
+    
+              <View style={styles.packageInfo}>
+                <Text style={styles.packageSku} numberOfLines={1}>Guia: {item.numero_de_rastreo}</Text>
+              </View>
+    
+              <View style={styles.packageStatus}>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado_envio || 'desconocido') }]}>
+                  <Text style={styles.statusText}>{(item.estado_envio || 'Desconocido').toUpperCase()}</Text>
+                </View>
+              </View>
+              
+            </View>
+    
+          </View>
+        );
+      };
+    
+    const getStatusColor = (status: string) => {
+        switch (status){
+        case 'entregado':
+            return '#4CAF50';
+        case 'fallido':
+            return '#F44336';
+        default:
+            return '#9E9E9E';
+        }
+    };
 
 
   return (
@@ -90,6 +136,16 @@ export default function LoadPackagesCarrier() {
             <View style={styles.iconContainer}>
                 <Truck color={"white"} size={moderateScale(120)}/>
                 <Text style={styles.textIcon}>Cargar {paquetesTotal} paquetes</Text>
+            </View>
+
+            <View style={{ width: "100%", height: screenHeight * 0.20 }}>
+                <FlatList
+                    data={paquetes}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderPackageItem}
+                    contentContainerStyle={{ paddingVertical: moderateScale(8) }}
+                    showsVerticalScrollIndicator={false}
+                />
             </View>
         </View>
 
@@ -133,7 +189,9 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     }, 
     buttonContainer: {
-        height: "20%"
+        height: "20%",
+        justifyContent: "flex-end",
+        paddingBottom: moderateScale(52),
     },
     arrow: {
         marginTop: moderateScale(40),
@@ -153,12 +211,13 @@ const styles = StyleSheet.create({
     textContainer: {
         flexDirection: "column",
         justifyContent: "flex-start",
-        alignItems: "center"
+        alignItems: "center",
     },
     iconContainer: {
         flexDirection: "column",
         alignItems: "center",
-        marginBottom: moderateScale(60)
+        marginBottom: moderateScale(60),
+        justifyContent: "center"
     },
     textIcon: {
         color: "white",
@@ -185,5 +244,84 @@ const styles = StyleSheet.create({
 
     textButtonDisabled: {
         color: '#888',
+    },
+
+    packageItem: {
+        backgroundColor: '#fff',
+        borderRadius: moderateScale(12),
+        padding: moderateScale(16),
+        marginBottom: moderateScale(12),
+        shadowColor: '#000',
+        shadowOffset: {
+        width: 0,
+        height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    packageHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: moderateScale(12),
+    },
+    packageIconContainer: {
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(20),
+        backgroundColor: '#FFE8F4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: moderateScale(12),
+    },
+    packageInfo: {
+        flex: 1,
+    },
+    packageSku: {
+        fontSize: moderateScale(16),
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: moderateScale(4),
+    },
+    packageGuia: {
+        fontSize: moderateScale(14),
+        color: '#666',
+    },
+    packageStatus: {
+        alignItems: 'flex-end',
+    },
+    statusBadge: {
+        paddingHorizontal: moderateScale(8),
+        paddingVertical: moderateScale(4),
+        borderRadius: moderateScale(12),
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: moderateScale(12),
+        fontWeight: '600',
+    },
+    packageAddress: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: moderateScale(8),
+    },
+    addressText: {
+        flex: 1,
+        marginLeft: moderateScale(8),
+        fontSize: moderateScale(14),
+        color: '#666',
+        lineHeight: moderateScale(20),
+    },
+    packageInstructions: {
+        fontSize: moderateScale(14),
+        color: '#888',
+        fontStyle: 'italic',
+        marginTop: moderateScale(4),
+    },
+    routeNumber: {
+        fontSize: moderateScale(18),
+        fontWeight: '700',
+        color: '#DE1484',
     },
 })

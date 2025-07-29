@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { actualizarUsuarioPorId, uploadAvatar } from '../../../api/profile';
+import { actualizarUsuarioPorId, obtenerUrlFirmada, uploadAvatar, usuarioPorId } from '../../../api/profile';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,11 +28,36 @@ const defaultImage = `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 
 export default function UserDetailsScreen({ route, navigation }: Props) {
+  const defaultImage = `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png`;
+  const imagenCargadaRef = useRef<string>(route.params.user.imagen || defaultImage);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const storedId = await AsyncStorage.getItem('userId');
+      if (!storedId) return;
+  
+      const rawUser = await usuarioPorId(+storedId);
+  
+      const nuevaImagen = rawUser.imagen?.trim() !== '' ? rawUser.imagen : defaultImage;
+  
+      if (nuevaImagen !== imagenCargadaRef.current) {
+        imagenCargadaRef.current = nuevaImagen;
+      }
+  
+      setUserData(prev => ({
+        ...rawUser,
+        imagen: imagenCargadaRef.current,
+      }));
+    };
+  
+    fetchUser();
+  }, []);  
+  
   const { user } = route.params;
   const [userData, setUserData] = useState({
     ...user,
-    imagen: user.imagen || defaultImage,
+    imagen: imagenCargadaRef.current,
   });
+  
   const [isEditing, setIsEditing] = useState(false);
   const [colonias, setColonias] = useState<string[]>([]);
   const [selectedColonia, setSelectedColonia] = useState('');
@@ -124,20 +149,29 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
 
     try {
       const storedId = await AsyncStorage.getItem('userId');
+      let imagenKey = userData.imagen;
 
       if (
         isEditing &&
         userData.imagen !== user.imagen &&
-        !userData.imagen.includes('avatar-default.png')
+        !userData.imagen.includes('avatar-default.png') &&
+        !userData.imagen.startsWith('http')
       ) {
         if (storedId) {
-          const remoteUrl = await uploadAvatar(userData.imagen, +storedId);
-          setUserData(prev => ({ ...prev, imagen: remoteUrl }));
+          const remoteKey = await uploadAvatar(userData.imagen, +storedId);
+          imagenKey = remoteKey;
+
+          const signedUrl = await obtenerUrlFirmada(remoteKey);
+
+          setUserData(prev => ({ ...prev, imagen: signedUrl }));
         }
       }
 
       if (storedId) {
-        const usuario = await actualizarUsuarioPorId(userData, +storedId);
+        const usuario = await actualizarUsuarioPorId(
+          { ...userData, imagen: imagenKey },
+          +storedId
+        );
 
         if (usuario && typeof usuario === 'object') {
           Alert.alert('Éxito', 'Perfil actualizado', [
@@ -152,10 +186,25 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     }
   };
 
-  const handleCancel = () => {
-    setUserData(user);
-    setIsEditing(false);
-  };
+  const handleCancel = async () => {
+    try {
+      const storedId = await AsyncStorage.getItem('userId');
+      if (!storedId) throw new Error('No se encontró el userId');
+  
+      const rawUser = await usuarioPorId(+storedId);
+  
+      setUserData({
+        ...rawUser,
+        imagen:
+          rawUser.imagen?.trim() !== ''
+            ? rawUser.imagen
+            : defaultImage,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error al cancelar edición:', error);
+    }
+  };  
 
   return (
     <>

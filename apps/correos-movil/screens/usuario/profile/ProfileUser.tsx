@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import {  usuarioPorId } from '../../../api/profile';
+import { usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
@@ -24,7 +24,7 @@ type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser
 export default function ProfileUser() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<ProfileNavProp>();
-  const { logout,userId } = useMyAuth();
+  const { logout, userId } = useMyAuth();
   const userIdType = typeof userId;
   console.log('userIdType', userIdType);
   console.log('userId', userId);
@@ -34,17 +34,17 @@ export default function ProfileUser() {
   useEffect(() => {
     if (!isFocused) return;
     (async () => {
-  try {
-    if (userId) {
-      const perfil = await usuarioPorId(parseInt(userId));
-      setUsuario(perfil);
-    } else {
-      console.warn('No se encontró userId en AsyncStorage');
-    }
-  } catch (error) {
-    console.error('Error al cargar el perfil:', error);
-  }
-})();
+      try {
+        if (userId) {
+          const perfil = await usuarioPorId(parseInt(userId));
+          setUsuario(perfil);
+        } else {
+          console.warn('No se encontró userId en AsyncStorage');
+        }
+      } catch (error) {
+        console.error('Error al cargar el perfil:', error);
+      }
+    })();
 
   }, [isFocused]);
 
@@ -63,11 +63,9 @@ export default function ProfileUser() {
         console.error('No se pudo obtener el ID del usuario');
         return;
       }
-      console.log(`Eliminando: http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
       const response = await axios.delete(`http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
 
       if (response.status === 200) {
-        console.log('Cuenta eliminada correctamente.');
         await handleSignOut();
       }
     } catch (error) {
@@ -115,7 +113,10 @@ export default function ProfileUser() {
             activeOpacity={0.8}
             onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
           >
-            <Image source={{ uri: usuario?.imagen }} style={styles.avatar} />
+            <Image
+              source={{ uri: usuario?.imagen || `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png` }}
+              style={styles.avatar}
+            />
             <View style={styles.textContainer}>
               <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
                 {usuario?.nombre} {usuario?.apellido}

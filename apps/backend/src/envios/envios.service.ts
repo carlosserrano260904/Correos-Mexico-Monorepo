@@ -61,7 +61,6 @@ export class EnviosService {
       estado_envio: EstadoEnvio.PENDIENTE,
       fecha_asignacion: fechaAsignacion,
       fecha_entrega_programada: fechaEntrega,
-      nombre_receptor: nombreCompleto !== '' ? nombreCompleto : 'Receptor desconocido',
     });
 
     return this.envioRepository.save(envio);
@@ -92,6 +91,7 @@ export class EnviosService {
         'contactoGuia.lat AS lat',
         'contactoGuia.lng AS lng',
         'contactoGuia.referencia AS referencia',
+        "CONCAT(contactoGuia.nombres, ' ', contactoGuia.apellidos) AS destinatario",
       ])
       .where('envio.id_unidad = :unidadId', { unidadId })
       .andWhere('envio.fecha_entrega_programada BETWEEN :inicioDelDia AND :finDelDia', {
@@ -147,4 +147,44 @@ export class EnviosService {
 
     return this.envioRepository.save(envio);
   }
+
+  async actualizarEstatus(id: string, nuevoEstatus: string, nombreReceptor: string): Promise<Envio | null> {
+    const envio = await this.envioRepository.findOne({ where: { id } });
+
+    if (!envio) {
+      return null;
+    }
+
+    if (!Object.values(EstadoEnvio).includes(nuevoEstatus as EstadoEnvio)) {
+      throw new Error(`Estado inválido: ${nuevoEstatus}`);
+    }
+
+    envio.estado_envio = nuevoEstatus as EstadoEnvio;
+
+    const today = new Date();
+    if (nuevoEstatus === EstadoEnvio.ENTREGADO) {
+      envio.fecha_entregado = today;
+      if (nombreReceptor) {
+        envio.nombre_receptor = nombreReceptor;
+      }
+    } else if (nuevoEstatus === EstadoEnvio.FALLIDO) {
+      envio.fecha_fallido = today;
+    }
+
+
+    return await this.envioRepository.save(envio);
+  }
+
+  async anadirEvidencia(id: string, key: string, url: string): Promise<Envio | null> {
+    const envio = await this.envioRepository.findOne({ where: { id } });
+
+    if (!envio) {
+      return null;
+    }
+
+    envio.evidencia_entrega = url; // visible desde frontend
+    return await this.envioRepository.save(envio);
+
+  }
+  
 }

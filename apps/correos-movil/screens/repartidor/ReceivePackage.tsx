@@ -32,7 +32,7 @@ export default function ReceivePackage() {
           </View>
           <View>
             <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TomarEvidencia', { package: packageData })}>
-              <Text style={styles.receiveItemText} numberOfLines={1} ellipsizeMode='tail'>Juan Perez</Text>
+              <Text style={styles.receiveItemText} numberOfLines={1} ellipsizeMode='tail'>{packageData.destinatario}</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>
 

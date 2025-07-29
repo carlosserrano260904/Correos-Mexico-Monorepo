@@ -32,6 +32,7 @@ interface Package {
   lat: string;
   lng: string;
   referencia: string;
+  destinatario: string;
 }
 
 interface PackagesListDistributorProps {
@@ -231,6 +232,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           typeof pkg.localidad === 'string' &&
           typeof pkg.estado === 'string' &&
           typeof pkg.pais === 'string' &&
+          typeof pkg.destinatario === 'string' &&
           isLatValid &&
           isLngValid
         );
@@ -466,7 +468,6 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
             // Mapear el objeto del paquete al formato que espera PackageScreen
             const packageForScreen = {
               id: item.id,
-              sku: item.numero_de_rastreo, // Usando numero_de_rastreo como SKU
               numero_guia: item.numero_de_rastreo,
               estatus: item.estado_envio,
               latitud: parseFloat(item.lat),
@@ -476,6 +477,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
               calle: `${item.calle} ${item.numero || ''}${item.numero_interior ? ` Int. ${item.numero_interior}` : ''}`.trim(),
               colonia: item.asentamiento,
               cp: item.codigo_postal,
+              destinatario: item.destinatario,
             };
             navigation?.navigate('PackageScreen', { package: packageForScreen });
           }

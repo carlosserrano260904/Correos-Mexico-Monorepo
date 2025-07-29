@@ -96,7 +96,7 @@ export default function TakeEvidenceScreen() {
         return;
       }
 
-      await actualizarEstatusPaquete(packageData.id, 'Entregado');
+      await actualizarEstatusPaquete(packageData.id, 'entregado', packageData.destinatario);
       setShowSuccess(true);
 
       setTimeout(() => {
@@ -111,15 +111,22 @@ export default function TakeEvidenceScreen() {
     }
   };
 
-  const actualizarEstatusPaquete = async (id: string, nuevoEstatus: string): Promise<void> => {
+  const actualizarEstatusPaquete = async (id: string, nuevoEstatus: string, nombreReceptor: string): Promise<void> => {
     try {
-      const response = await fetch(`http://${IP}:3000/api/paquetes/${id}/estatus`, {
+      const body: any = {
+        estado: nuevoEstatus,
+        nombre_receptor: nombreReceptor
+      };
+      console.log("Body que se enviará:", body);
+
+      const response = await fetch(`http://${IP}:3000/api/envios/${id}/estatus`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ estatus: nuevoEstatus }),
+        body: JSON.stringify(body),
       });
+
 
       if (!response.ok) {
         const error = await response.json();
@@ -144,27 +151,28 @@ export default function TakeEvidenceScreen() {
       uri,
       name: filename,
       type: `image/${fileType}`,
-    } as any); // `as any` es para evitar errores con React Native sobre File
+    } as any);
 
     try {
-      const response = await fetch(`http://${IP}:3000/api/paquetes/${id}/evidencia`, {
+      const response = await fetch(`http://${IP}:3000/api/envios/${id}/evidencia`, {
         method: 'PATCH',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
 
+      console.log('Status subirEvidencia:', response.status);
+      const text = await response.text();
+      console.log('Body subirEvidencia:', text);
+
       if (!response.ok) {
-        console.error('Error al subir evidencia');
+        console.error('Respuesta no OK:', text);
         return null;
       }
 
-      const data = await response.json();
+      const data = JSON.parse(text);
       console.log('Evidencia subida:', data);
-      return data.paquete.evidencia;
+      return data.envio.evidencia_entrega;
     } catch (error) {
-      console.error('Error de red al subir evidencia:', error);
+      console.error('Error de red en subir evidencia:', error);
       return null;
     }
   };

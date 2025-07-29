@@ -34,7 +34,7 @@ export class Profile {
     @Column({type:'varchar',length:5})
     codigoPostal:string
 
-    @Column({type:'text',default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
+    @Column({type:'text', default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
     imagen:string
 
     @OneToMany(()=>Transaction,tx=>tx.profile)

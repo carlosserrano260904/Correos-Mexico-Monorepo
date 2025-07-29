@@ -5,10 +5,10 @@ import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateProfileDto extends PartialType(CreateProfileDto) {
   @ApiPropertyOptional({
-    example: 'images/abc123-avatar.jpg',
-    description: 'Key del archivo en S3, no una URL',
+    example: 'uploads/user-25/avatar-abc123.jpg',
+    description: 'Key del archivo en el servidor o S3 (no la URL firmada)',
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   imagen?: string;
 }

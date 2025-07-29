@@ -19,9 +19,14 @@ export async function actualizarUsuarioPorId(userData: SchemaProfileUser, id: nu
     body: JSON.stringify(userData),
   });
 
-  if (!response.ok) throw new Error("Error actualizando perfil");
+  const responseBody = await response.json();
 
-  return await response.json(); // Devuelve objeto actualizado
+  if (!response.ok) {
+    console.error("Error actualizando perfil:", responseBody);
+    throw new Error(responseBody?.message || "Error actualizando perfil");
+  }
+
+  return responseBody;
 }
 
 //Subir avatar: devuelve solo la "key" que se guarda en la BD

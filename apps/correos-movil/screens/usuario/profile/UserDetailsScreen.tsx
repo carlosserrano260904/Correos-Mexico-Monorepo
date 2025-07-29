@@ -23,8 +23,6 @@ import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PINK = '#E6007E';
-const defaultImage = `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png`;
-
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 
 export default function UserDetailsScreen({ route, navigation }: Props) {
@@ -100,57 +98,18 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     }
   };
 
-  const validarCampos = () => {
-    const camposRequeridos = [
-      'nombre',
-      'apellido',
-      'numero',
-      'ciudad',
-      'estado',
-      'fraccionamiento',
-      'calle',
-      'codigoPostal',
-    ];
-
-    const labels = {
-      nombre: 'Nombre',
-      apellido: 'Apellido',
-      numero: 'Teléfono',
-      ciudad: 'Ciudad',
-      estado: 'Estado',
-      fraccionamiento: 'Fraccionamiento',
-      calle: 'Calle',
-      codigoPostal: 'Código Postal',
-    };
-
-    for (const campo of camposRequeridos) {
-      if (!userData[campo] || userData[campo].trim() === '') {
-        Alert.alert('Campo requerido', `Por favor llena el campo: ${labels[campo]}`);
-        return false;
-      }
-    }
-
-    if (!/^\d{5}$/.test(userData.codigoPostal)) {
-      Alert.alert('Código postal inválido', 'El código postal debe tener 5 dígitos numéricos.');
-      return false;
-    }
-
-    if (!/^\d{10}$/.test(userData.numero)) {
-      Alert.alert('Teléfono inválido', 'El número debe tener 10 dígitos.');
-      return false;
-    }
-
-    return true;
-  };
-
   const handleSave = async () => {
-    const esValido = validarCampos();
-    if (!esValido) return;
-
+    if (userData.numero && !/^\d{10}$/.test(userData.numero)) {
+      return Alert.alert('Advertencia', 'El número debe tener 10 dígitos.');
+    }
+    if (userData.codigoPostal && !/^\d{5}$/.test(userData.codigoPostal)) {
+      return Alert.alert('Advertencia', 'El código postal debe tener 5 dígitos.');
+    }
+  
     try {
       const storedId = await AsyncStorage.getItem('userId');
       let imagenKey = userData.imagen;
-
+  
       if (
         isEditing &&
         userData.imagen !== user.imagen &&
@@ -160,19 +119,18 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
         if (storedId) {
           const remoteKey = await uploadAvatar(userData.imagen, +storedId);
           imagenKey = remoteKey;
-
+  
           const signedUrl = await obtenerUrlFirmada(remoteKey);
-
           setUserData(prev => ({ ...prev, imagen: signedUrl }));
         }
       }
-
+  
       if (storedId) {
         const usuario = await actualizarUsuarioPorId(
           { ...userData, imagen: imagenKey },
           +storedId
         );
-
+  
         if (usuario && typeof usuario === 'object') {
           Alert.alert('Éxito', 'Perfil actualizado', [
             { text: 'OK', onPress: () => setIsEditing(false) },
@@ -183,8 +141,9 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       }
     } catch (err) {
       console.error('Error en handleSave:', err);
+      Alert.alert('Error', 'Hubo un problema al actualizar el perfil.');
     }
-  };
+  };  
 
   const handleCancel = async () => {
     try {

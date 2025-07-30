@@ -21,6 +21,8 @@ import { actualizarUsuarioPorId, obtenerUrlFirmada, uploadAvatar, usuarioPorId }
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CircularProgressAvatar from './CircularProgressAvatar'; // o la ruta correspondiente
+
 
 const PINK = '#E6007E';
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
@@ -185,14 +187,18 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
           showsVerticalScrollIndicator
         >
           <View style={styles.content}>
-            <TouchableOpacity onPress={isEditing ? pickImage : undefined}>
-              <Image source={{ uri: userData.imagen }} style={styles.avatar} />
+            <View>
+              <CircularProgressAvatar userData={userData} imageUri={userData.imagen} />
               {isEditing && (
-                <View style={styles.cameraOverlay}>
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={styles.cameraOverlay}
+                >
                   <Ionicons name="camera" size={20} color="#fff" />
-                </View>
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </View>
+
 
             {isEditing ? (
               <>

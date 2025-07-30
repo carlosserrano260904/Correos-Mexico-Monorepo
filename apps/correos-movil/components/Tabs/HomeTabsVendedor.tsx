@@ -3,10 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeUser from '../../screens/usuario/HomePage/HomeUser';
 import ProfileUser from '../../screens/usuario/profile/ProfileUser';
 import Correomex from '../../screens/usuario/correos-mex-page/correos-principal';
-import { Home, User, Package } from "lucide-react-native";
+import { Home, User, Package, Handshake } from "lucide-react-native";
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
-import Vendedor from '../../screens/vendedor/Vendedor';
+import PaginaPrincipalVendedor from '../../screens/vendedor/PaginaPrincipalVendedor';
 
 const Tab = createBottomTabNavigator();
 
@@ -26,7 +26,7 @@ const HomeTabs = () => {
                     if (route.name === 'HomeUser') return <Home {...iconProps} />;
                     else if (route.name === 'Correo-mex') return <Package {...iconProps} />;
                     else if (route.name === 'Perfil') return <User {...iconProps} />;
-                    else if (route.name === 'Vendedor') return <Package {...iconProps} />;
+                    else if (route.name === 'PaginaPrincipalVendedor') return <Handshake {...iconProps} />;
 
                     return null;
                 },
@@ -36,9 +36,9 @@ const HomeTabs = () => {
             })}
         >
             <Tab.Screen name="Correo-mex" component={Correomex} />
+            <Tab.Screen name="PaginaPrincipalVendedor" component={PaginaPrincipalVendedor} />
             <Tab.Screen name="HomeUser" component={HomeUser} />
             <Tab.Screen name="Perfil" component={ProfileUser} />
-            <Tab.Screen name="Vendedor" component={Vendedor} />
 
         </Tab.Navigator>
     );

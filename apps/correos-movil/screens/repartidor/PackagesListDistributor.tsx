@@ -162,6 +162,11 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('turno_activo');
+              await AsyncStorage.removeItem('sucursal');
+              await AsyncStorage.removeItem('unidadId');
+              await AsyncStorage.removeItem('datosExtra');
+              await AsyncStorage.removeItem('tipoUnidad');
+              
               if (navigation?.reset) {
                 navigation.reset({
                   index: 0,

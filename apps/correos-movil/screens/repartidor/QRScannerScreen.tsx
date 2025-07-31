@@ -82,12 +82,18 @@ export default function QRScannerScreen() {
 
         const tipo = unidad.tipoVehiculoId;
         const placas = unidad.placas
+        const sucursal = {
+          lat: parseFloat(unidad.asignada?.latitud),
+          lng: parseFloat(unidad.asignada?.longitud),
+        }
+
+        console.log("Coordenadas de Sucursal QRScanner: ", sucursal)
 
         // Redireccionar según el tipo
         if ([1, 2, 3].includes(tipo)) {
-          navigation.navigate('LoadPackagesCarrier', { unidadId: data, tipo, placas });
+          navigation.navigate('LoadPackagesCarrier', { unidadId: data, placas, sucursal });
         } else {
-          navigation.navigate('LoadPackages', { unidadId: data, tipo, placas });
+          navigation.navigate('LoadPackages', { unidadId: data, placas });
         }
 
       } catch (err) {

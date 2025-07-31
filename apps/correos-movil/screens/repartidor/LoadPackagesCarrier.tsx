@@ -15,6 +15,7 @@ export default function LoadPackagesCarrier() {
   const navigation = useNavigation();
     const route = useRoute();
     const { unidadId } = route.params as { unidadId: string };
+    const { sucursal } = route.params as { sucursal: [] }
     const [ datosExtra, setDatosExtra ] = React.useState<string>("");
     const { placas } = route.params as { placas: string };
     const [paquetesTotal, setPaquetesTotal] = React.useState(0);
@@ -42,9 +43,11 @@ export default function LoadPackagesCarrier() {
         await AsyncStorage.setItem('turno_activo', 'true');
         await AsyncStorage.setItem('unidadId', unidadId)
         await AsyncStorage.setItem('datosExtra', datosExtra);
+        await AsyncStorage.setItem('sucursal', JSON.stringify(sucursal));
+
         navigation.reset({
             index: 0,
-           routes: [{ name: 'PackagesList', params: { unidadId: unidadId, datosExtras: datosExtra } }],
+           routes: [{ name: 'PackagesListCarrier', params: { unidadId: unidadId, datosExtras: datosExtra, sucursal } }],
         });
     };
 
@@ -61,6 +64,7 @@ export default function LoadPackagesCarrier() {
             setNombreVehiculo(placas);
             }
 
+            console.log("Sucursal en LoadPackagesCarrier: ", sucursal)
         } catch (error) {
             console.error(error);
             setNombreVehiculo('Error al obtener vehículo');

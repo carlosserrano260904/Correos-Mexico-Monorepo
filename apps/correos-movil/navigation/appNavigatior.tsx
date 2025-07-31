@@ -39,6 +39,7 @@ import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
 import CarritoScreen from '../screens/carrito/Carrito';
 import FavoritosScreen from '../screens/favorito/Favorito';
+import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -86,6 +87,7 @@ export default function AppNavigator() {
             <Stack.Screen name="LoadPackagesCarrier" component={LoadPackagesCarrier} options={{headerShown: false}} />
             <Stack.Screen name="Carrito" component={CarritoScreen} options={{headerShown: false}} />
             <Stack.Screen name="Favorito" component={FavoritosScreen} options={{headerShown: false}} />
+            <Stack.Screen name="PackagesListCarrier" component={PackagesListCarrier} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

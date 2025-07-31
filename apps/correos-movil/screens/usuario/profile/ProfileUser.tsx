@@ -185,6 +185,17 @@ export default function ProfileUser() {
               </View>
               <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('FormularioVendedor')}
+            >
+              <View style={styles.itemLeft}>
+                <Icon name="box" size={20} color="#E6007A" />
+                <Text style={[styles.itemText, { color: '#E6007A' }]}>Convierte en vendedor</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color="#E6007A" />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>

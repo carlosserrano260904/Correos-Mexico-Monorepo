@@ -40,6 +40,7 @@ import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
 import CarritoScreen from '../screens/carrito/Carrito';
 import FavoritosScreen from '../screens/favorito/Favorito';
 import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
+import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,6 +89,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Carrito" component={CarritoScreen} options={{headerShown: false}} />
             <Stack.Screen name="Favorito" component={FavoritosScreen} options={{headerShown: false}} />
             <Stack.Screen name="PackagesListCarrier" component={PackagesListCarrier} options={{headerShown: false}} />
+            <Stack.Screen name="FormularioVendedor" component={FormularioVendedor} options={{headerShown: false}} />
         </Stack.Navigator>
     );
 }

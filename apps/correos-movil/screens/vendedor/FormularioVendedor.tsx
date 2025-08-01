@@ -1,8 +1,8 @@
 import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useMyAuth } from '../../context/AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -19,18 +19,20 @@ export default function FormularioVendedor() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const { userId, userRol } = useMyAuth();
-    const [estadoSolicitud, setEstadoSolicitud] = useState<string | null>(null); 
+    const [estadoSolicitud, setEstadoSolicitud] = useState(false); 
 
     const encontrarSolicitud = async () => {
         try {
             const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/vendedor/encontrar-solicitud/${userId}`);
             const data = await response.json();
-            setEstadoSolicitud(data.estado);
-        } catch (error) {
-            const data = {
-                estado: '',
+            if (data) {
+                setEstadoSolicitud(true);
+            } else {
+                setEstadoSolicitud(false);
             }
-            setEstadoSolicitud(data.estado);
+            console.log("estadoSolicitud: ", estadoSolicitud);
+        } catch (error) {
+            console.log("error", error);
         }
     }
     
@@ -141,7 +143,7 @@ export default function FormularioVendedor() {
             const result = await response.json();
             console.log('✅ Respuesta exitosa:', result);
             setSuccess(true);
-            Alert.alert('Éxito', 'Solicitud enviada correctamente');
+            setEstadoSolicitud(true);
             
         } catch (error: any) {
             console.error('❌ Error completo:', error);
@@ -152,29 +154,38 @@ export default function FormularioVendedor() {
             setIsLoading(false);
         }
     }
-    useEffect(() => {
-        encontrarSolicitud();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            encontrarSolicitud();
+            console.log("estadoSolicitud", estadoSolicitud);
+        }, [userId])
+    );
 
     const renderSolicitud = () => {
         switch (estadoSolicitud) {
-            case 'pendiente':
-                return ( <View>
-                    <Text>Tu solicitud está pendiente.</Text>
+            case true:
+                return (<View style={styles.container}>
+                    <View>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 50 }}>
+                            <Icon name="arrow-back" size={24} />
+                        </TouchableOpacity>
+                    </View>
+                    <View>
+                        <Text style={styles.title}>Solicitud en revisión</Text>
+                    </View>
+                    <View style={styles.clockContainer}>
+                        <Image source={require('../../assets/clock.png')} style={styles.clockIcon} />
+                        <Text style={{ fontSize: 28, fontWeight: 'light', textAlign: 'center' }}>¡Muchas gracias!</Text>
+                        <Text style={{ color: '#999999', textAlign: 'center', fontSize: 16, fontWeight: '300' }}>Tu solicitud está siendo revisada por nuestro equipo.</Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={{ fontWeight: '300', textAlign: 'center', fontSize: 16 }}>Te notificaremos por correo electrónico una vez que tu solicitud haya sido revisada.</Text>
+                    </View>
                 </View>
             );
-            case 'aceptada':
-                return ( <View>
-                    <Text>¡Tu solicitud fue aceptada!</Text>
-                </View>
-            )
-            case 'rechazada':
-                return ( <View>
-                    <Text>Tu solicitud fue rechazada.</Text>
-                </View>
-            );
-            default:
-                return ( <View style={styles.container}>
+            case false:
+                return ( <ScrollView>
+                <View style={styles.container}>
                         {/* Back button */}
                         <View>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{marginTop: 50}}>
@@ -207,7 +218,7 @@ export default function FormularioVendedor() {
                                     placeholder="Selecciona una categoría"
                                     style={styles.picker}
                                 >
-                                    <Picker.Item label="Electrónica" value="electronica" />
+                                    <Picker.Item label="Electrónica" value="electronica" /> 
                                     <Picker.Item label="Ropa" value="ropa" />
                                     <Picker.Item label="Hogar" value="hogar" />
                                     <Picker.Item label="Juguetes" value="juguetes" />
@@ -223,6 +234,7 @@ export default function FormularioVendedor() {
                                     style={styles.input}
                                     value={telefono}
                                     onChangeText={setTelefono}
+                                    keyboardType="numeric"
                                 />
                             </View>
                             {/* Address */}
@@ -256,7 +268,6 @@ export default function FormularioVendedor() {
                                     style={styles.input}
                                     value={curp}
                                     onChangeText={setCurp}
-                                    keyboardType="numeric"
                                 />
                             </View>
                             {/* Image */}
@@ -278,15 +289,15 @@ export default function FormularioVendedor() {
                             </View>
                         </View>
                     </View>
+                </ScrollView>
                 );
-            
+            default:
+                return null;
         }
     };
 
     return (
-        <ScrollView>
-            {renderSolicitud()}
-        </ScrollView>
+            renderSolicitud()
     );
 }; 
 
@@ -367,5 +378,28 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    clockContainer: {
+        marginTop: 80,
+        marginBottom: 20,
+        paddingHorizontal: 40,
+        alignItems: 'center',
+        gap: 10,
+    },
+    clockIcon: {
+        width: 80,
+        height: 80,
+        backgroundColor: '#FBE4E5',
+        borderWidth: 10,
+        borderColor: '#FBE4E5',
+        borderRadius: 40,
+    },
+    textContainer: {
+        marginTop: 20,
+        backgroundColor: '#FBE4E5',
+        padding: 10,
+        paddingVertical: 20,
+        borderRadius: 12,
+
     },
 });

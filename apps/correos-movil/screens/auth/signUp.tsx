@@ -165,54 +165,59 @@ export default function SignUpScreen() {
     }
   }
 
-  // Handler para los botones sociales
-  const handleOAuthPress = React.useCallback(async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
-    try {
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy,
-        redirectUrl: AuthSession.makeRedirectUri(),
-      })
-
-      if (createdSessionId) {
-        await setActive!({ session: createdSessionId })
-
-        // Obtener la información del usuario desde la sesión activa
-        const session = clerk.session
-        const sessionUser = session?.user
-
-        const oauthData = {
-          proveedor: strategy.replace('oauth_', ''),
-          sub: sessionUser?.id || '',
-          correo: sessionUser?.primaryEmailAddress?.emailAddress || '',
-          nombre: sessionUser?.fullName || sessionUser?.firstName || '',
-        }
-
-        if (!oauthData.sub || !oauthData.correo) {
-          throw new Error(`Missing OAuth data: sub=${oauthData.sub}, correo=${oauthData.correo}`)
-        }
-
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(oauthData),
+  // Handler para los botones sociales (lógica igual a SignIn.tsx)
+  const handleOAuthPress = React.useCallback(
+    async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
+      try {
+        const { createdSessionId, setActive } = await startSSOFlow({
+          strategy,
+          redirectUrl: AuthSession.makeRedirectUri(),
         })
 
-        if (!res.ok) {
-          const errorText = await res.text()
-          throw new Error(`OAuth backend error: ${res.status} - ${errorText}`)
-        }
+        if (createdSessionId) {
+          await setActive!({ session: createdSessionId })
 
-        const data = await res.json()
-        await AsyncStorage.setItem('token', data.token)
-        Alert.alert('¡Inicio de sesión exitoso!', 'Bienvenido')
-      } else {
-        Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor seleccionado')
+          const providerName = strategy.replace('oauth_', '')
+          const session = clerk.session
+          const sessionUser = session?.user
+          const externalAccount = sessionUser?.externalAccounts?.find(
+            (account) => account.provider === providerName
+          )
+
+          const oauthData = {
+            proveedor: providerName,
+            sub: externalAccount?.providerUserId || '',
+            correo: externalAccount?.emailAddress || '',
+            nombre: externalAccount?.firstName || '',
+          }
+
+          const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/oauth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(oauthData),
+          })
+
+          await clerk.signOut()
+
+          if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(`OAuth backend error: ${res.status} - ${errorText}`)
+          }
+
+          const data = await res.json()
+          await AsyncStorage.setItem('token', data.token)
+          Alert.alert('¡Inicio de sesión exitoso!', 'Bienvenido')
+        } else {
+          Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor seleccionado')
+        }
+      } catch (err) {
+        await clerk.signOut()
+        Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor')
+        console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
       }
-    } catch (err) {
-      Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor')
-      console.error(`OAuth ${strategy} error:`, err)
-    }
-  }, [clerk, startSSOFlow])
+    },
+    [startSSOFlow, clerk]
+  )
 
   if (pendingVerification) {
     return (

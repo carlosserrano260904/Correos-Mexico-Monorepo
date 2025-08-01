@@ -51,6 +51,10 @@ export class Unidad {
   @Column({ name: 'zona_asignada', length: 5, nullable: true })
   zonaAsignada: string;
 
+  @ManyToOne(() => Oficina)
+  @JoinColumn({ name: 'zona_asignada', referencedColumnName: 'clave_cuo' })
+  asignada: Oficina;
+
   @Column({
     type: 'enum',
     enum: ['disponible', 'no disponible'],

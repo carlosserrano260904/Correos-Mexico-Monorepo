@@ -34,14 +34,14 @@ export class UserService {
   }
 
   update(email: string, password: string) {
-    return this.repo.update({ correo: email }, { password }); 
+    return this.repo.update({ correo: email, password: Not("N/A: OAuth") }, { password });
   }
 
   updateOTP(email: string, token: string) {
-    return this.repo.update({ correo: email }, { token });
+    return this.repo.update({ correo: email, password: Not("N/A: OAuth") }, { token });
   }
 
   updateConfirmado(email: string, confirmado: boolean) {
-    return this.repo.update({ correo: email }, { confirmado });
+    return this.repo.update({ correo: email, password: Not("N/A: OAuth") }, { confirmado });
   }
 }

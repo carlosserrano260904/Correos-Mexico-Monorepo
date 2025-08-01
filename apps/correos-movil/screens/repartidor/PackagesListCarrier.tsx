@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert, BackHandler } from 'react-native'
-import { User, MapPin } from 'lucide-react-native'
+import { User, MapPin, Package } from 'lucide-react-native'
 import { ProgressBar } from 'react-native-paper'
 import { moderateScale } from 'react-native-size-matters'
 import * as Location from 'expo-location';
@@ -42,6 +42,29 @@ interface PackagesListDistributorProps {
 export default function PackagesListDistributor({ navigation }: PackagesListDistributorProps) {
   const route = useRoute();
   const [unidadId, setUnidadId] = React.useState<string | null>(null);
+  const [sucursalCoords, setSucursalCoords] = React.useState<LatLng | null>(null);
+
+  React.useEffect(() => {
+    const getSucursalCoords = async () => {
+      let sucursalData = route.params?.sucursal;
+      if (!sucursalData) {
+        const storedSucursal = await AsyncStorage.getItem('sucursal');
+        if (storedSucursal) {
+          sucursalData = JSON.parse(storedSucursal);
+        }
+      }
+
+      if (sucursalData && sucursalData.lat && sucursalData.lng) {
+        setSucursalCoords({
+          latitude: parseFloat(sucursalData.lat),
+          longitude: parseFloat(sucursalData.lng),
+        });
+      } else {
+        console.warn('No se encontraron coordenadas válidas para la sucursal.');
+      }
+    };
+    getSucursalCoords();
+  }, []);
 
   // 1. Inicializar unidadId desde route o AsyncStorage
   React.useEffect(() => {
@@ -166,7 +189,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
               await AsyncStorage.removeItem('unidadId');
               await AsyncStorage.removeItem('datosExtra');
               await AsyncStorage.removeItem('tipoUnidad');
-              
+
               if (navigation?.reset) {
                 navigation.reset({
                   index: 0,
@@ -190,6 +213,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     // Cancelar solicitud anterior si existe
 
     console.log("prueba unidadId: " + unidadId)
+    console.log("prueba sucursal: ", sucursalCoords)
     if (fetchPackagesController.current) {
       fetchPackagesController.current.abort();
     }
@@ -249,14 +273,11 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       updatePackageStats(validPackages);
 
       // Generar coordenadas para paquetes pendientes
-      const coordsForRoute: LatLng[] = validPackages
-        .map((pkg: Package) => ({
-          latitude: parseFloat(pkg.lat),
-          longitude: parseFloat(pkg.lng),
-        }))
-        .filter(coord => !isNaN(coord.latitude) && !isNaN(coord.longitude));
-
-      setIntermediates(coordsForRoute);
+      if (sucursalCoords) {
+        setIntermediates([sucursalCoords]);
+      } else {
+        console.warn("No se puede establecer intermediates porque sucursalCoords es null");
+      }
 
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -292,30 +313,25 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
 
   // Efecto para cálculo de ruta con debounce
   React.useEffect(() => {
-    if (userLocation && packages.length > 0) {
-      // Generar coordenadas para TODOS los paquetes
-      const allCoords: LatLng[] = packages.map(pkg => ({
-        latitude: parseFloat(pkg.lat),
-        longitude: parseFloat(pkg.lng),
-      }));
-      
-      setIntermediates(allCoords);
-      
+    if (userLocation && sucursalCoords) {
       const now = Date.now();
-      
+
+      // Solo usar la coordenada de la sucursal
+      const onlySucursal: LatLng[] = [sucursalCoords];
+      setIntermediates(onlySucursal);
+
       if (!routeInitialized) {
         // Primera vez - calcular inmediatamente
-        calculateRoute(userLocation, destination, allCoords);
+        calculateRoute(userLocation, destination, onlySucursal);
         setRouteInitialized(true);
       } else if (now - lastRouteCalculation.current > ROUTE_DEBOUNCE_MS) {
-        // Verificar si está fuera de ruta con debounce
         if (isOffRoute(userLocation, routePoints)) {
           console.log("Recalculando ruta, fuera del camino...");
-          calculateRoute(userLocation, destination, allCoords);
+          calculateRoute(userLocation, destination, onlySucursal);
         }
       }
     }
-  }, [userLocation, destination, packages, routeInitialized, routePoints]);
+  }, [userLocation, destination, sucursalCoords, routeInitialized, routePoints]);
 
   const setupLocationTracking = async () => {
     // Prevenir múltiples configuraciones simultáneas
@@ -466,61 +482,25 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     const routeIndex = getPackageRouteIndex(item);
 
     return (
-      <TouchableOpacity
-        style={styles.packageItem}
-        onPress={() => {
-          if (item.estado_envio && item.estado_envio !== 'entregado' && item.estado_envio !== 'fallido') {
-            // Mapear el objeto del paquete al formato que espera PackageScreen
-            const packageForScreen = {
-              id: item.id,
-              numero_guia: item.numero_de_rastreo,
-              estatus: item.estado_envio,
-              latitud: parseFloat(item.lat),
-              longitud: parseFloat(item.lng),
-              fecha_creacion: new Date().toISOString(), // No hay fecha de creación, se usa la actual
-              indicaciones: item.referencia || 'No hay indicaciones especiales.',
-              calle: `${item.calle} ${item.numero || ''}${item.numero_interior ? ` Int. ${item.numero_interior}` : ''}`.trim(),
-              colonia: item.asentamiento,
-              cp: item.codigo_postal,
-              destinatario: item.destinatario,
-            };
-            navigation?.navigate('PackageScreen', { package: packageForScreen });
-          }
-        }}
-      >
+      <View style={styles.packageItem}>
         <View style={styles.packageHeader}>
-          <View style={styles.packageIconContainer}>
-            <Text style={styles.routeNumber}>{routeIndex > 0 ? routeIndex : '?'}</Text>
-          </View>
 
+          <View style={styles.packageIconContainer}>
+              <Package size={moderateScale(20)} color={"#DE1484"}/>
+          </View>
+    
           <View style={styles.packageInfo}>
             <Text style={styles.packageSku} numberOfLines={1}>Guia: {item.numero_de_rastreo}</Text>
           </View>
-
+    
           <View style={styles.packageStatus}>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado_envio || 'desconocido') }]}>
-              <Text style={styles.statusText}>{getStatusText(item.estado_envio || 'Desconocido')}</Text>
+              <Text style={styles.statusText}>{(item.estado_envio || 'Desconocido').toUpperCase()}</Text>
             </View>
           </View>
-          
+              
         </View>
-
-        <View style={styles.packageAddress}>
-          <MapPin color="#666" size={moderateScale(16)} />
-          <Text style={styles.addressText} numberOfLines={2}>
-            {item.calle} {item.numero}{item.numero_interior ? ` Int. ${item.numero_interior}` : ''}, {item.asentamiento}
-          </Text>
-        </View>
-
-        <Text
-          style={styles.packageInstructions}
-          numberOfLines={2}
-        >
-          {item.referencia && item.referencia.trim() !== '' 
-            ? item.referencia 
-            : 'No hay referencias'}
-        </Text>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -632,7 +612,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
       <View style={styles.headerContainer}>
         <View style={styles.packagesAndUserContainer}>
           <Text style={styles.packagesText}>
-            {paquetesRestantes} paquetes restantes
+            {paquetesRestantes} paquetes cargados
           </Text>
           <TouchableOpacity style={styles.userButton} onPress={handleTerminarTurno}>
             <User color="white" size={moderateScale(20)} />
@@ -806,60 +786,60 @@ const styles = StyleSheet.create({
     padding: moderateScale(16),
   },
   packageItem: {
-    backgroundColor: '#fff',
-    borderRadius: moderateScale(12),
-    padding: moderateScale(16),
-    marginBottom: moderateScale(12),
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+        backgroundColor: '#fff',
+        borderRadius: moderateScale(12),
+        padding: moderateScale(16),
+        marginBottom: moderateScale(12),
+        shadowColor: '#000',
+        shadowOffset: {
+        width: 0,
+        height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  packageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: moderateScale(12),
-  },
-  packageIconContainer: {
-    width: moderateScale(40),
-    height: moderateScale(40),
-    borderRadius: moderateScale(20),
-    backgroundColor: '#FFE8F4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: moderateScale(12),
-  },
-  packageInfo: {
-    flex: 1,
-  },
-  packageSku: {
-    fontSize: moderateScale(16),
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: moderateScale(4),
-  },
-  packageGuia: {
-    fontSize: moderateScale(14),
-    color: '#666',
-  },
-  packageStatus: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: moderateScale(8),
-    paddingVertical: moderateScale(4),
-    borderRadius: moderateScale(12),
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: moderateScale(12),
-    fontWeight: '600',
-  },
+    packageHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: moderateScale(12),
+    },
+    packageIconContainer: {
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(20),
+        backgroundColor: '#FFE8F4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: moderateScale(12),
+    },
+    packageInfo: {
+        flex: 1,
+    },
+    packageSku: {
+        fontSize: moderateScale(16),
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: moderateScale(4),
+    },
+    packageGuia: {
+        fontSize: moderateScale(14),
+        color: '#666',
+    },
+    packageStatus: {
+        alignItems: 'flex-end',
+    },
+    statusBadge: {
+        paddingHorizontal: moderateScale(8),
+        paddingVertical: moderateScale(4),
+        borderRadius: moderateScale(12),
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: moderateScale(12),
+        fontWeight: '600',
+    },
   packageAddress: {
     flexDirection: 'row',
     alignItems: 'flex-start',

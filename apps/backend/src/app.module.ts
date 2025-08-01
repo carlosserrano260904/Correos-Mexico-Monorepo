@@ -33,6 +33,7 @@ import { Ubicaciones } from './ubicaciones/ubicaciones.module';
 import { EnviosModule } from './envios/envios.module';
 import { StripeModule } from './stripe/stripe.module';
 import { CardsModule } from './cards/cards.module';
+import { VendedorModule } from './vendedor/vendedor.module';
 
 
 @Module({
@@ -71,6 +72,7 @@ import { CardsModule } from './cards/cards.module';
     EnviosModule,
     StripeModule,
     CardsModule,
+    VendedorModule,
 
   ],
   controllers: [AppController, PostalController],

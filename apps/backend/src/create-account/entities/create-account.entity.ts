@@ -17,25 +17,28 @@ export class CreateAccount {
   @Column({ type: 'varchar' })
   correo: string;
 
-  @Column({ type: 'varchar', nullable: true, name: 'contrasena'  })
+  @Column({ type: 'varchar', nullable: true, name: 'contrasena' })
   password: string;
 
   @Column({ type: 'boolean', default: false })
   confirmado: boolean;
 
   @Column({ type: 'varchar', nullable: true })
-  token: string;
+  token: string | null;
 
-   @Column({ type: 'varchar', default: 'usuario' })
-    rol: string;
-  
-  @OneToMany(() => Favorito, favorito => favorito.usuario )
-    favoritos: Favorito[];
-  
+  @Column({ type: 'timestamp', nullable: true, name: 'token_created_at' })
+  tokenCreatedAt: Date | null;
+
+  @Column({ type: 'varchar', default: 'usuario' })
+  rol: string;
+
+  @OneToMany(() => Favorito, favorito => favorito.usuario)
+  favoritos: Favorito[];
+
   @OneToMany(() => Carrito, carrito => carrito.usuario)
-    carrito: Carrito[];
+  carrito: Carrito[];
 
-  @OneToOne(() => Profile, { cascade: true }) 
-@JoinColumn()
-profile: Profile;
+  @OneToOne(() => Profile, { cascade: true })
+  @JoinColumn()
+  profile: Profile;
 }

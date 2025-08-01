@@ -121,7 +121,17 @@ export default function SignUpScreen() {
       setLoading(false) // <-- Agrega esto aquí
       setPendingVerification(true)
     } catch (err) {
-      console.error('Signup error:', JSON.stringify(err, null, 2))
+      setLoading(false);
+      let errorMessage = "Error desconocido";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+
+      console.error('Signup error details:', err);
+      Alert.alert('Error al registrarse', errorMessage);
     }
   }
 

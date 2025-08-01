@@ -10,6 +10,7 @@ import { UpdatePasswordDto, EmailOtpDto, VerifyOtpDto } from './dto/update-passw
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Repository } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AuthService {
@@ -28,14 +29,12 @@ export class AuthService {
         if (userExists) {
             throw new UnauthorizedException('El correo ya está en uso');
         } else {
-            // Crear el customer en Stripe
             const Stripe = require('stripe');
             const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' });
             const customer = await stripe.customers.create({
                 name: dto.nombre || dto.correo.split('@')[0],
-                // Puedes agregar más campos si tienes email, etc.
             });
-            // Guardar perfil por defecto con stripeCustomerId
+            
             const profile = this.profileRepository.create({
                 nombre: dto.nombre || dto.correo.split('@')[0],
                 apellido: '',
@@ -48,7 +47,6 @@ export class AuthService {
                 stripeCustomerId: customer.id,
             });
 
-            // Crea el usuario con el perfil relacionado y la contraseña hasheada
             const user = await this.usuariosService.create({
                 nombre: dto.nombre || dto.correo.split('@')[0],
                 correo: dto.correo,
@@ -102,7 +100,6 @@ export class AuthService {
                 id_usuario: user.profile.id,
                 correo_asociado: dto.correo,
             });
-
         } else {
             user = await this.usuariosService.findById(proveedor.id_usuario);
         }
@@ -111,7 +108,6 @@ export class AuthService {
             profileId: user.profile.id,
             rol: user.rol || 'usuario',
         });
-
 
         return { token };
     }
@@ -156,25 +152,26 @@ export class AuthService {
         const user = await this.usuariosService.findByCorreo(dto.correo);
         console.log("user: ", user)
         if (!user) throw new UnauthorizedException('Usuario no encontrado');
-        await this.usuariosService.updateOTP(dto.correo, otp.toString());
+
+        await this.usuariosService.updateOTP(dto.correo, {
+            token: otp.toString(),
+            tokenCreatedAt: new Date()
+        });
 
         const nodemailer = require('nodemailer');
-
-        // Generar cuenta de prueba de Ethereal automáticamente
         const testAccount = await nodemailer.createTestAccount();
         console.log('Generated test account:', testAccount);
 
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST, // smtp.gmail.com
-            port: parseInt(process.env.SMTP_PORT || '587'), // 587
-            secure: false, // use STARTTLS
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: false,
             auth: {
-                user: process.env.SMTP_USER, // juandiego6290@gmail.com
-                pass: process.env.SMTP_PASS, // zplx mggs abmr blnt (App Password)
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
             },
         });
 
-        // Enviar email
         const info = await transporter.sendMail({
             from: '"Correos México" <noreply@correos.com>',
             to: dto.correo,
@@ -198,20 +195,56 @@ export class AuthService {
 
         return {
             message: 'OTP enviado correctamente',
-            previewUrl: nodemailer.getTestMessageUrl(info) // Para debug
+            previewUrl: nodemailer.getTestMessageUrl(info)
         };
-
     }
 
     async verifyOtp(dto: VerifyOtpDto) {
-        let isOtpVerified = false;
         const user = await this.usuariosService.findByCorreo(dto.correo);
-
         if (!user) throw new UnauthorizedException('Usuario no encontrado');
-        if (user.token === dto.token) {
-            await this.usuariosService.updateConfirmado(user.correo, true);
-            isOtpVerified = true;
+
+        // Verificar expiración (10 minutos)
+        if (user.tokenCreatedAt) {
+            const now = new Date();
+            const tokenExpiration = new Date(user.tokenCreatedAt.getTime() + 10 * 60 * 1000);
+            
+            if (now > tokenExpiration) {
+                // Limpiar el token expirado inmediatamente
+                await this.cleanSingleExpiredToken(user.correo);
+                throw new UnauthorizedException('El token ha expirado');
+            }
         }
-        return { isOtpVerified };
+
+        if (user.token === dto.token) {
+            await this.usuariosService.updateOTP(user.correo, {
+                token: null,
+                tokenCreatedAt: null,
+                confirmado: true
+            });
+            return { isOtpVerified: true };
+        }
+        
+        return { isOtpVerified: false };
+    }
+
+    // Limpiar token individual expirado
+    private async cleanSingleExpiredToken(email: string) {
+        await this.usuariosService.updateOTP(email, {
+            token: null,
+            tokenCreatedAt: null
+        });
+    }
+
+    // Tarea programada para limpiar tokens expirados (cada 5 minutos)
+    @Cron(CronExpression.EVERY_5_MINUTES)
+    async handleCleanExpiredTokens() {
+        console.log('Ejecutando limpieza de tokens expirados...');
+        try {
+            const expirationTime = new Date(Date.now() - 10 * 60 * 1000); // 10 minutos atrás
+            await this.usuariosService.cleanExpiredTokens();
+            console.log('Limpieza de tokens expirados completada');
+        } catch (error) {
+            console.error('Error en limpieza de tokens expirados:', error);
+        }
     }
 }

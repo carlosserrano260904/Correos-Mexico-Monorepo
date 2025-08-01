@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -41,6 +42,7 @@ import { VendedorModule } from './vendedor/vendedor.module';
      ConfigModule.forRoot({
       isGlobal:true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory:typeOrmConfig,
       inject:[ConfigService]

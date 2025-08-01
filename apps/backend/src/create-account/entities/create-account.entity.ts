@@ -26,7 +26,12 @@ export class CreateAccount {
   @Column({ type: 'varchar', nullable: true })
   token: string | null;
 
-  @Column({ type: 'timestamp', nullable: true, name: 'token_created_at' })
+  @Column({ 
+    type: 'timestamp', 
+    nullable: true, 
+    name: 'token_created_at',
+    default: () => 'CURRENT_TIMESTAMP' // Valor por defecto
+  })
   tokenCreatedAt: Date | null;
 
   @Column({ type: 'varchar', default: 'usuario' })

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { LessThan, Not, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
@@ -15,7 +15,10 @@ export class UserService {
   ) { }
 
   async create(data: Partial<CreateAccount> & { profile?: Profile }) {
-    const user = this.repo.create(data);
+    const user = this.repo.create({
+      ...data,
+      tokenCreatedAt: new Date() // Establecer fecha de creación del token
+    });
     return this.repo.save(user);
   }
 
@@ -107,12 +110,11 @@ export class UserService {
   async cleanExpiredTokens(): Promise<number> {
     try {
       const expirationTime = new Date(Date.now() - 10 * 60 * 1000); // 10 minutos atrás
-
       const result = await this.repo.createQueryBuilder()
         .update(CreateAccount)
         .set({
           token: null,
-          tokenCreatedAt: null // Cambiado a camelCase
+          tokenCreatedAt: null
         })
         .where("tokenCreatedAt < :expirationTime", { expirationTime })
         .andWhere("token IS NOT NULL")
@@ -120,11 +122,40 @@ export class UserService {
 
       const cleanedCount = result.affected || 0;
       this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
-
       return cleanedCount;
     } catch (error) {
       this.logger.error(`Error limpiando tokens expirados: ${error.message}`);
       throw error;
     }
   }
+
+  async cleanUnverifiedUsers(): Promise<number> {
+    try {
+      const expirationTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 horas
+
+      const result = await this.repo.createQueryBuilder()
+        .delete()
+        .where("confirmado = false")
+        .andWhere("tokenCreatedAt < :expirationTime", { expirationTime })
+        .andWhere("tokenCreatedAt IS NOT NULL")
+        .execute();
+
+      const deletedCount = result.affected || 0;
+      this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
+      return deletedCount;
+    } catch (error) {
+      this.logger.error(`Error limpiando usuarios no verificados: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async findUnverifiedUsers(expirationTime: Date) {
+    return this.repo.find({
+      where: {
+        confirmado: false,
+        tokenCreatedAt: LessThan(expirationTime)
+      }
+    });
+  }
+
 }

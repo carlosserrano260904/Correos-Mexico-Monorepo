@@ -35,6 +35,7 @@ import { EnviosModule } from './envios/envios.module';
 import { StripeModule } from './stripe/stripe.module';
 import { CardsModule } from './cards/cards.module';
 import { VendedorModule } from './vendedor/vendedor.module';
+import { EmailModule } from './enviar-correos/enviar-correos.module';
 
 
 @Module({
@@ -49,7 +50,7 @@ import { VendedorModule } from './vendedor/vendedor.module';
     }),
     CreateAccountModule,
     RoutesModule,
-    ProfileModule,
+    ProfileModule,  
     ProductsModule,
     TransactionsModule,
     UploadImageModule,
@@ -75,6 +76,7 @@ import { VendedorModule } from './vendedor/vendedor.module';
     StripeModule,
     CardsModule,
     VendedorModule,
+    EmailModule,
 
   ],
   controllers: [AppController, PostalController],

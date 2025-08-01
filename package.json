@@ -8,7 +8,7 @@
     "dev": "turbo dev",
     "build:backend": "cd apps/backend && npm run build",
     "start:backend:prod": "cd apps/backend && npm run start:prod",
-    "web": "concurrently \"cd apps/backend && npm run dev\" \"cd apps/front_web && npm run dev\""
+    "web": "concurrently \"cd apps/backend && npm run dev\" \"cd apps/frontend_web && npm run dev\""
   },
   "keywords": [],
   "author": "",
@@ -18,7 +18,7 @@
   "workspaces": [
     "apps/correos-movil",
     "apps/backend",
-    "apps/front_web"
+    "apps/frontend_web"
   ],
   "dependencies": {
     "@aws-sdk/client-s3": "^3.830.0",

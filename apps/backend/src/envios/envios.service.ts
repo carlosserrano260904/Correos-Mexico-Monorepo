@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
@@ -50,6 +50,20 @@ export class EnviosService {
 
     const fechaEntrega = new Date(fechaAsignacion);
     if (fechaAsignacion > horaLimite) fechaEntrega.setDate(fechaEntrega.getDate() + 1);
+
+    
+    const envioExistente = await this.envioRepository.findOne({
+      where: {
+        guia: { id_guia: dto.guiaId },
+        fecha_entrega_programada: fechaEntrega,
+      },
+    });
+
+    if (envioExistente) {
+      throw new BadRequestException(
+        `Ya existe un envío programado para la guía ${dto.guiaId} en la fecha ${fechaEntrega.toISOString().slice(0, 10)}.`
+      );
+    }
 
     const nombres = guia.destinatario?.nombres ?? '';
     const apellidos = guia.destinatario?.apellidos ?? '';

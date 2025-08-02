@@ -13,8 +13,8 @@ export class Product {
     @Column({type:'varchar',length:120})
     descripcion:string
 
-    @Column({type:'varchar',length:250,default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
-    imagen:string
+    @Column({type:'simple-array', default: 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
+    imagen:string[]
 
     @Column({type:'int'})
     inventario:number
@@ -25,8 +25,8 @@ export class Product {
     @Column({type:'varchar', nullable: true})
     categoria:string 
 
-    @Column({type:'varchar', nullable: true})
-    color:string
+    @Column({type:'simple-array', nullable: true})
+    color:string[]
 
     @OneToMany(() => Favorito, favorito => favorito.producto )
     favoritos: Favorito[];

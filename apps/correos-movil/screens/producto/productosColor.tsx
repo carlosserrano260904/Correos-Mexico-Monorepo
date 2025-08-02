@@ -21,7 +21,12 @@ import { moderateScale } from 'react-native-size-matters';
 import { StatusBar } from 'react-native';
 import Constants from 'expo-constants';
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+
+export const formatPrice = (price: number) => {
+  if (typeof price !== 'number' || isNaN(price)) return '';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
+};
 
 
 export default function ProductsScreen() {
@@ -35,11 +40,18 @@ export default function ProductsScreen() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch(`http://${IP}:3000/api/products`);
+        const response = await fetch(`${IP}/api/products`);
         const data = await response.json();
-        setProductos(data);
+        // Asegurarse de que la respuesta es un array antes de actualizar el estado
+        if (Array.isArray(data)) {
+          setProductos(data);
+        } else {
+          console.error('La respuesta de la API no es un arreglo:', data);
+          setProductos([]); // Establecer un array vacío para evitar errores
+        }
       } catch (error) {
         console.error('Error al cargar productos:', error);
+        setProductos([]); // También en caso de error de red/fetch
       } finally {
         setLoading(false);
       }

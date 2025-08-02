@@ -35,6 +35,7 @@ import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
 import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor';
 import FailedDeliveryScreen from '../screens/repartidor/FailedDeliveryScreen';
+import ProductUploadScreen from '../screens/vendedor/ProductUploadScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -78,6 +79,7 @@ export default function VendedorNavigator() {
             <Stack.Screen name="ChatBot" component={chat_bot} options={{ headerShown: false }} />
             <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{ headerShown: false }} />
             <Stack.Screen name="Correo-mex" component={Correomex} options={{ headerShown: false }} />
+            <Stack.Screen name="ProductUploadScreen" component={ProductUploadScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

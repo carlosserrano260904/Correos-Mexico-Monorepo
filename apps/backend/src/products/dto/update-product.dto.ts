@@ -14,7 +14,7 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
         descripcion: string
 
         @IsNotEmpty({ message: 'La imagen del producto es obligatoria' })
-        imagen: string
+        imagen: string[]
 
         @ApiProperty({ example: '10', description: 'La cantidad del producto en stock' })
         @IsNotEmpty({ message: 'La cantidad del producto es obligatoria' })
@@ -34,5 +34,5 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
         @ApiProperty({ example: '#000', description: 'El color es' })
         @IsNotEmpty({ message: 'El color del producto es necesaria' })
         @IsString({ message: 'Color no valido' })
-        color: string
+        color: string[]
 }

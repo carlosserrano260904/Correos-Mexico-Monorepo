@@ -17,7 +17,7 @@ export class CardsService {
     return this.cardRepository.find({ where: { profileId: (profile as any).id } });
   }
   private stripe = new Stripe('sk_test_51RdK19DfrKDC0J17G3kjTeavUjKqNy3ZHw8vKL90zUMVBawHey65e7bLpJWg5TeGcuDKVG9nRjfdiEbZk71pETiF00hAPYbMLI', {
-    apiVersion: '2025-06-30.basil',
+    apiVersion: '2025-07-30.basil',
   });
 
   constructor(

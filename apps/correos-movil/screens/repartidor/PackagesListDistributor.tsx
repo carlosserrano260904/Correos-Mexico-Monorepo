@@ -98,10 +98,36 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
     { key: 'lista', title: 'Paquetes' },
   ]);
 
-  const [destination, setDestination] = React.useState<LatLng>({
-    latitude: 24.009974534585247,
-    longitude: -104.44447330485218,
-  });
+  const [destination, setDestination] = React.useState<LatLng>();
+  
+  React.useEffect(() => {
+    const fetchOficinaCoords = async () => {
+      if (!unidadId) return;
+  
+      try {
+        const response = await fetch(`http://${IP}:3000/api/unidades/${unidadId}`);
+        const unidad = await response.json();
+  
+        if (
+          unidad?.oficina?.latitud &&
+          unidad?.oficina?.longitud &&
+          !isNaN(parseFloat(unidad.oficina.latitud)) &&
+          !isNaN(parseFloat(unidad.oficina.longitud))
+        ) {
+          setDestination({
+            latitude: parseFloat(unidad.oficina.latitud),
+            longitude: parseFloat(unidad.oficina.longitud),
+          });
+        } else {
+          console.warn("No se encontraron coordenadas válidas en la oficina de la unidad.");
+        }
+      } catch (error) {
+        console.error("Error al obtener coordenadas de la oficina:", error);
+      }
+    };
+  
+    fetchOficinaCoords();
+  }, [unidadId]);
 
   const [intermediates, setIntermediates] = React.useState<LatLng[]>([]);
   const [optimizedIntermediates, setOptimizedIntermediates] = React.useState<LatLng[]>([]);
@@ -162,6 +188,11 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('turno_activo');
+              await AsyncStorage.removeItem('sucursal');
+              await AsyncStorage.removeItem('unidadId');
+              await AsyncStorage.removeItem('datosExtra');
+              await AsyncStorage.removeItem('tipoUnidad');
+              
               if (navigation?.reset) {
                 navigation.reset({
                   index: 0,

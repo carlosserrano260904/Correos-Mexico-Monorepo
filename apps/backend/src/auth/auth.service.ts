@@ -231,7 +231,7 @@ export class AuthService {
     });
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  //@Cron(CronExpression.EVERY_5_MINUTES)
   async handleCleanExpiredTokens() {
     this.logger.log('Iniciando limpieza de tokens expirados...');
     try {
@@ -242,7 +242,7 @@ export class AuthService {
     }
   }
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  //@Cron(CronExpression.EVERY_12_HOURS)
   async handleCleanUnverifiedUsers() {
     this.logger.log('Iniciando limpieza de usuarios no verificados...');
     

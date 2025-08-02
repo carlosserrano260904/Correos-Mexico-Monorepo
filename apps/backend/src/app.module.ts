@@ -36,6 +36,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { CardsModule } from './cards/cards.module';
 import { VendedorModule } from './vendedor/vendedor.module';
 import { EmailModule } from './enviar-correos/enviar-correos.module';
+import { ViewdocModule } from './viewdoc/viewdoc.module';
 
 
 @Module({
@@ -77,6 +78,7 @@ import { EmailModule } from './enviar-correos/enviar-correos.module';
     CardsModule,
     VendedorModule,
     EmailModule,
+    ViewdocModule,
 
   ],
   controllers: [AppController, PostalController],

@@ -63,9 +63,17 @@ export default function LoadPackages() {
 
         const fetchPaquetes = async () => {
         try {
-            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}`);
+            const paq = await fetch(`http://${IP}:3000/api/envios/unidad/${unidadId}/hoy`);
+
+            if (!paq.ok) {
+                // Si el status es 404 o cualquier error
+                console.warn(`Error HTTP: ${paq.status}`);
+                setPaquetesTotal(0);
+                return;
+            }
 
             const paquete = await paq.json();
+            console.log("Paquetes: ", paquete)
             setPaquetesTotal(paquete.length)
         } catch (err) {
             console.log(err);

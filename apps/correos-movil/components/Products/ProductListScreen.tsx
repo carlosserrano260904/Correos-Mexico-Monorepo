@@ -55,15 +55,14 @@ const ProductoCard: React.FC<{
   articulo: Articulo;
   favoritos: Record<number, number>;
   toggleFavorito: (id: number) => void;
-  isInCart: boolean;
-}> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
+}> = ({ articulo, favoritos, toggleFavorito }) => {
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
   const isLiked = favoritos.hasOwnProperty(idNum);
-  const colores = (articulo.color ?? '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+const colores = (articulo.color ?? '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
   return (
     <View style={styles.tarjetaProducto}>
@@ -75,13 +74,9 @@ const ProductoCard: React.FC<{
         <ColorDisplay colores={colores} />
         <View style={styles.iconosAccion}>
           <TouchableOpacity onPress={() => toggleFavorito(idNum)}>
-            <Heart size={24} color={isLiked ? '#ffffffff' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
+            <Heart size={24} color={isLiked ? '#de1484' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
           </TouchableOpacity>
-          <ShoppingBag
-            size={24}
-            color={isInCart ? '#ffffffff' : 'gray'}
-            fill={isInCart ? '#de1484' : 'none'}
-          />
+          <ShoppingBag size={24} color="gray" />
         </View>
       </View>
 
@@ -89,9 +84,7 @@ const ProductoCard: React.FC<{
         <Text numberOfLines={1} ellipsizeMode="tail" style={styles.textoNombre}>
           {articulo.nombre}
         </Text>
-        <Text style={styles.textoPrecio}>
-          MXN $ {(parseFloat(articulo.precio) || 0).toFixed(2)}
-        </Text>
+        <Text style={styles.textoPrecio}>MXN {articulo.precio}</Text>
       </View>
     </View>
   );
@@ -101,7 +94,6 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
-  const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!userId) return;
@@ -134,34 +126,6 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   }, [userId]);
 
   useEffect(() => {
-    if (!userId) return;
-
-    fetch(`http://${IP}:3000/api/carrito/${userId}`)
-      .then(r => {
-        if (r.status === 404) {
-          return []; // Si el carrito está vacío, la API devuelve 404.
-        }
-        if (!r.ok) throw new Error('Error al obtener el carrito');
-        return r.json();
-      })
-      .then((data: Array<{ producto: { id: number } }>) => {
-        if (Array.isArray(data)) {
-          const cartMap = data.reduce(
-            (acc, item) => {
-              if (item && item.producto && item.producto.id) {
-                acc[item.producto.id] = true;
-              }
-              return acc;
-            },
-            {} as Record<number, boolean>,
-          );
-          setCartItems(cartMap);
-        }
-      })
-      .catch(err => console.error('Error al obtener el carrito:', err));
-  }, [userId]);
-
-  useEffect(() => {
     const searchText = search.toLowerCase().trim();
     const nuevos = productos.filter(p =>
       p.nombre.toLowerCase().includes(searchText)
@@ -179,26 +143,28 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     const originalFavoritos = { ...favoritos }; // Guardamos el estado original para rollback
 
     if (esFavorito) {
-
+      // --- Lógica para ELIMINAR un favorito (con UI optimista) ---
       const favoritoId = favoritos[productoId];
 
+      // 1. Actualizar la UI inmediatamente (optimista)
       setFavoritos(prev => {
         const newState = { ...prev };
         delete newState[productoId];
         return newState;
       });
 
+      // 2. Realizar la llamada a la API
       try {
         const url = `http://${IP}:3000/api/favoritos/${favoritoId}`;
         const response = await fetch(url, { method: 'DELETE' });
 
         if (!response.ok) {
-
+          // 3. Si la API falla, revertir el cambio en la UI
           console.error('Error al eliminar el favorito, revirtiendo estado.');
           setFavoritos(originalFavoritos);
         }
       } catch (error) {
-
+        // 4. Si hay un error de red, también revertir
         console.error('Error de red al eliminar favorito, revirtiendo estado:', error);
         setFavoritos(originalFavoritos);
       }
@@ -235,12 +201,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <ProductoCard
-            articulo={item}
-            favoritos={favoritos}
-            toggleFavorito={toggleFavorito}
-            isInCart={cartItems.hasOwnProperty(parseInt(item.id, 10))}
-          />
+          <ProductoCard articulo={item} favoritos={favoritos} toggleFavorito={toggleFavorito} />
         )}
         numColumns={numCols}
         columnWrapperStyle={styles.row}

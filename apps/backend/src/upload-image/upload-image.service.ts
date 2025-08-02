@@ -58,11 +58,7 @@ export class UploadImageService {
       ContentType: file.mimetype,
     });
     await this.s3.send(cmd);
-
-    // Construye y devuelve la URL pública y permanente del objeto.
-    // ¡Importante! Esto requiere que el bucket tenga acceso público a los objetos.
-    const publicUrl = `https://${this.config.get<string>('AWS_S3_ENDPOINT')}/${this.bucket}/${key}`;
-    return publicUrl;
+    return key;
   }
 
   async getSignedUrlForImage(key: string): Promise<string> {

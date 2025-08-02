@@ -4,38 +4,35 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-    private readonly uploadImageService: UploadImageService,
+    @InjectRepository(Product) private readonly productRepository:Repository<Product>
   ){
 
   }
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create({
-      ...createProductDto,
-    });
-    return this.productRepository.save(product);
+  async create(createProductDto: CreateProductDto,url:string) {
+    const producto = this.productRepository.create({
+    ...createProductDto,
+    imagen: url,
+  });
+   
+    return  await  this.productRepository.save(producto);
   }
 
-  async findAll(): Promise<Product[]> {
-    // Las URLs de las imágenes ya están guardadas permanentemente en la base de datos.
-    // Simplemente devolvemos los productos.
+  findAll() {
     return this.productRepository.find();
   }
 
-  async findOne(id: number): Promise<Product> {
+  async findOne(id: number) {
     const producto = await this.productRepository.findOne({
-      where: {
-        id,
-      },
-    });
-    if (!producto) {
-      throw new NotFoundException('Producto no encontrado');
+      where:{
+        id
+      }
+    })
+    if(!producto){
+      throw new NotFoundException('Producto no entontrado')
     }
     return producto;
   }

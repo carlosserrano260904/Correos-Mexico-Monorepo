@@ -1,66 +1,34 @@
-import { Type, Transform } from 'class-transformer';
-import {
-  IsArray,
-  ArrayNotEmpty,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsNumber,
-  Min,
-  MaxLength,
-  ValidateNested,
-  IsUrl,
-  ArrayMinSize,
-  ArrayMaxSize,
-  IsPositive,
-  IsDecimal,
-} from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger"
+import { IsNotEmpty, IsNumber, IsString } from "class-validator"
 
 export class CreateProductDto {
-  @IsNotEmpty({ message: 'El nombre es obligatorio.' })
-  @IsString({ message: 'El nombre debe ser una cadena de texto.' })
-  nombre: string;
+    @ApiProperty({example:'Television',description:'Producto'})
+    @IsNotEmpty({message:'El nombre del producto es obligatorio'})
+    @IsString({message:'Nombre no valido'})
+    nombre:string
+    @ApiProperty({example:'Television con excelente calidad',description:'Descripcion del producto'})
+    @IsNotEmpty({message:'La descripcion del producto es obligatorio'})
+    @IsString({message:'Descripcion no valida'})
+    descripcion:string
 
-  @IsNotEmpty({ message: 'La descripción es obligatoria.' })
-  @IsString({ message: 'La descripción debe ser una cadena de texto.' })
-  descripcion: string;
+    @ApiProperty({example:'10',description:'La cantidad del producto en stock'})
+    @IsNotEmpty({message:'La cantidad del producto es obligatoria'})
+    inventario:number
 
-  @IsOptional()
-  imagen?: string[];
+    @ApiProperty({example:'1200',description:'Precio costo del producto'})
+    @IsNotEmpty({message:'El precion del producto es obligatorio'})
+    precio:number
 
-  @IsNotEmpty({ message: 'El inventario es obligatorio.' })
-  @Type(() => Number)
-  @IsInt({ message: 'El inventario debe ser un número entero.' })
-  @Min(0, { message: 'El inventario no puede ser negativo.' })
-  inventario: number;
+    @ApiProperty({example:'Blancos',description:'El tipo de producto que es'})
+    @IsNotEmpty({message:'La categoria del producto es necesaria'})
+    @IsString({message:'Categoria no valida'})
+    categoria:string
 
-  @IsNotEmpty({ message: 'El precio es obligatorio.' })
-  @Type(() => Number)
-  @IsNumber({}, { message: 'El precio debe ser un número válido.' })
-  @Min(0, { message: 'El precio no puede ser negativo.' })
-  precio: number;
+    @ApiProperty({example:'#000',description:'El color es'})
+    @IsNotEmpty({message:'El color del producto es necesaria'})
+    @IsString({message:'Color no valido'})
+    color:string
 
-  @IsOptional()
-  @IsString({ message: 'La categoría debe ser una cadena de texto.' })
-  categoria?: string;
 
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      // acepta "rojo,azul" o "rojo, azul"
-      return value
-        .split(',')
-        .map((v: string) => v.trim())
-        .filter((v: string) => v.length > 0);
-    }
-    if (Array.isArray(value)) {
-      return value.map((v) => String(v).trim()).filter((v) => v.length > 0);
-    }
-    return [];
-  })
-  @IsArray({ message: 'Colores debe ser un arreglo de cadenas.' })
-  @ArrayNotEmpty({ message: 'El arreglo de colores no puede estar vacío si se proporciona.' })
-  @IsString({ each: true, message: 'Cada color debe ser una cadena de texto.' })
-  color?: string[];
+    
 }

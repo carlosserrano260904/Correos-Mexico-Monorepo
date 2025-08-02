@@ -149,7 +149,10 @@ export class EnviosService {
   }
 
   async marcarComoFallido(id: string, motivo: string): Promise<Envio> {
-    const envio = await this.envioRepository.findOneBy({ id });
+    const envio = await this.envioRepository.findOne({
+      where: { id },
+      relations: ['guia', 'unidad'],
+    });
 
     if (!envio) {
       throw new NotFoundException(`No se encontró un envío con el ID ${id}`);
@@ -158,8 +161,42 @@ export class EnviosService {
     envio.estado_envio = EstadoEnvio.FALLIDO;
     envio.motivo_fallo = motivo;
     envio.fecha_fallido = new Date();
+    await this.envioRepository.save(envio);
 
-    return this.envioRepository.save(envio);
+    // Calcular fecha siguiente
+    const nuevaFechaEntrega = new Date();
+    nuevaFechaEntrega.setDate(nuevaFechaEntrega.getDate() + 1);
+    nuevaFechaEntrega.setHours(0, 0, 0, 0); // normalizar a medianoche
+
+    // Verificar si ya existe un reintento para esa guía en esa fecha
+    const yaExiste = await this.envioRepository.findOne({
+      where: {
+        guia: { id_guia: envio.guia.id_guia },
+        unidad: { id: envio.unidad?.id },
+        fecha_entrega_programada: nuevaFechaEntrega,
+      },
+    });
+
+    if (yaExiste) {
+      console.warn(
+        `Ya existe un reintento para la guía ${envio.guia.id_guia} en la fecha ${nuevaFechaEntrega.toISOString()}`
+      );
+      return envio;
+    }
+
+    // Crear nuevo envío con fecha de entrega reprogramada
+    const nuevoEnvio = this.envioRepository.create({
+      guia: envio.guia,
+      unidad: envio.unidad,
+      estado_envio: EstadoEnvio.PENDIENTE,
+      fecha_asignacion: new Date(),
+      fecha_entrega_programada: nuevaFechaEntrega,
+    });
+
+    await this.envioRepository.save(nuevoEnvio);
+
+    return envio;
+
   }
 
   async actualizarEstatus(id: string, nuevoEstatus: string, nombreReceptor: string): Promise<Envio | null> {

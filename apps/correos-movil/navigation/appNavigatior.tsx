@@ -39,7 +39,10 @@ import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
 import CarritoScreen from '../screens/carrito/Carrito';
 import FavoritosScreen from '../screens/favorito/Favorito';
-
+import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
+import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
+import NameOfReceivePerson from '../screens/repartidor/NameOfReceivePerson';
+import CheckoutTabs from '../screens/usuario/detalles_pedido/CheckoutTabs';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -86,6 +89,11 @@ export default function AppNavigator() {
             <Stack.Screen name="LoadPackagesCarrier" component={LoadPackagesCarrier} options={{headerShown: false}} />
             <Stack.Screen name="Carrito" component={CarritoScreen} options={{headerShown: false}} />
             <Stack.Screen name="Favorito" component={FavoritosScreen} options={{headerShown: false}} />
+            <Stack.Screen name="PackagesListCarrier" component={PackagesListCarrier} options={{headerShown: false}} />
+            <Stack.Screen name="FormularioVendedor" component={FormularioVendedor} options={{headerShown: false}} />
+            <Stack.Screen name="NombreQuienRecibe" component={NameOfReceivePerson} options={{headerShown: false}} />
+            <Stack.Screen name="Checkout" component={CheckoutTabs} />
+
         </Stack.Navigator>
     );
 }

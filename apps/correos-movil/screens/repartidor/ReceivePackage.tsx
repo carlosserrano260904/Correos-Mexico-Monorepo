@@ -31,23 +31,28 @@ export default function ReceivePackage() {
             <Text style={styles.receiveText}>¿Quien recibe?</Text>
           </View>
           <View>
-            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TomarEvidencia', { package: packageData })}>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TomarEvidencia', { package: packageData, destinatario: packageData.destinatario })}>
               <Text style={styles.receiveItemText} numberOfLines={1} ellipsizeMode='tail'>{packageData.destinatario}</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.receiveItemContainer}>
-              <Text style={styles.receiveItemText}>Familiar ó amigo</Text>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('NombreQuienRecibe', { package: packageData, parentesco: "Familiar" })}>
+              <Text style={styles.receiveItemText}>Familiar</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.receiveItemContainer}>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('NombreQuienRecibe', { package: packageData, parentesco: "Recepcion" })}>
               <Text style={styles.receiveItemText}>Recepción</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.receiveItemContainer}>
-              <Text style={styles.receiveItemText}>Otro</Text>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('NombreQuienRecibe', { package: packageData, parentesco: "Amigo" })}>
+              <Text style={styles.receiveItemText}>Amigo</Text>
+              <ChevronRight size={moderateScale(24)}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('NombreQuienRecibe', { package: packageData, parentesco: "Vecino" })}>
+              <Text style={styles.receiveItemText}>Vecino</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>
           </View>
@@ -59,7 +64,8 @@ export default function ReceivePackage() {
 const styles = StyleSheet.create({
   container: {
     width: screenWidth,
-    height: screenHeight
+    height: screenHeight,
+    backgroundColor: "white"
   },
   arrowContainer: {
     height: "10%",

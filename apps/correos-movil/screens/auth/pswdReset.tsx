@@ -1,7 +1,17 @@
-import React, { useEffect, useState } from 'react'
-import { useAuth, useSignIn } from '@clerk/clerk-expo'
+// apps/correos-movil/screens/auth/pswdReset.tsx
+
+import React, { useState } from 'react'
+import { useSignIn } from '@clerk/clerk-expo'
 import { useNavigation } from '@react-navigation/native'
-import { TextInput, View, Text, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
+import {
+    TextInput,
+    View,
+    Text,
+    Button,
+    StyleSheet,
+    Alert,
+    ActivityIndicator
+} from 'react-native'
 
 export default function PswdResetScreen() {
     const [email, setEmail] = useState('')
@@ -13,15 +23,7 @@ export default function PswdResetScreen() {
     const [loading, setLoading] = useState(false)
 
     const navigation = useNavigation()
-    const { isSignedIn } = useAuth()
-    const { isLoaded, signIn, setActive } = useSignIn()
-
-    useEffect(() => {
-        if (isSignedIn) {
-            // Navigate to authenticated screens - adjust route name as needed
-            navigation.navigate('Tabs' as never)
-        }
-    }, [isSignedIn, navigation])
+    const { isLoaded, signIn } = useSignIn()
 
     if (!isLoaded) {
         return (
@@ -32,16 +34,12 @@ export default function PswdResetScreen() {
         )
     }
 
-    // Send the password reset code to the user's email
+    // 1) Enviar código de reset a email
     const sendResetCode = async () => {
         if (!email.trim()) {
-            Alert.alert('Error', 'Por favor ingresa tu email')
-            return
+            return Alert.alert('Error', 'Por favor ingresa tu email')
         }
-        
-        setLoading(true)
-        setError('')
-        
+        setLoading(true); setError('')
         try {
             await signIn?.create({
                 strategy: 'reset_password_email_code',
@@ -50,51 +48,73 @@ export default function PswdResetScreen() {
             setSuccessfulCreation(true)
             Alert.alert('Éxito', 'Código enviado a tu email')
         } catch (err: any) {
-            console.error('error', err.errors?.[0]?.longMessage)
-            const errorMessage = err.errors?.[0]?.longMessage || 'Error al enviar código'
-            setError(errorMessage)
-            Alert.alert('Error', errorMessage)
+            const msg = err.errors?.[0]?.longMessage || 'Error al enviar código'
+            setError(msg)
+            Alert.alert('Error', msg)
         } finally {
             setLoading(false)
         }
     }
 
+    // 2) Restablecer contraseña en Clerk y tu BD
     const resetPassword = async () => {
         if (!password.trim() || !code.trim()) {
-            Alert.alert('Error', 'Por favor completa todos los campos')
-            return
+            return Alert.alert('Error', 'Por favor completa todos los campos')
         }
-        
-        setLoading(true)
-        setError('')
-        
+        setLoading(true); setError('')
+
         try {
+            // A) Reset en Clerk
             const result = await signIn?.attemptFirstFactor({
                 strategy: 'reset_password_email_code',
                 code,
                 password,
             })
-            
+
             if (result?.status === 'needs_second_factor') {
                 setSecondFactor(true)
-                Alert.alert('2FA Requerido', 'Se requiere autenticación de dos factores')
-            } else if (result?.status === 'complete') {
-                // Set the active session (user is now signed in)
-                await setActive({ session: result.createdSessionId })
-                Alert.alert('Éxito', 'Contraseña restablecida correctamente')
-            } else {
-                console.log('Unexpected result:', result)
+                return Alert.alert('2FA Requerido', 'Se requiere autenticación de dos factores')
             }
+            if (result?.status !== 'complete') {
+                throw new Error('No se completó el reset en Clerk')
+            }
+
+            // B) Persistir en tu BD vía tu API NestJS
+            const resp = await fetch(
+                `${process.env.EXPO_PUBLIC_API_URL}/api/auth/update-password`,  // ← aquí
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        correo: email,
+                        contrasena: password,
+                    }),
+                }
+            )
+
+            if (!resp.ok) {
+                const err = await resp.json()
+                throw new Error(err.message || 'Error al actualizar contraseña en el servidor')
+            }
+
+            // C) Navegar al SignIn
+            Alert.alert(
+                'Éxito',
+                'Contraseña restablecida correctamente',
+                [{
+                    text: 'Ir a Iniciar Sesión',
+                    onPress: () => navigation.replace('SignIn')
+                }],
+                { cancelable: false }
+            )
         } catch (err: any) {
-            console.error('error', err.errors?.[0]?.longMessage)
-            const errorMessage = err.errors?.[0]?.longMessage || 'Error al restablecer contraseña'
-            setError(errorMessage)
-            Alert.alert('Error', errorMessage)
+            const msg = err.message || 'Error al restablecer contraseña'
+            setError(msg)
+            Alert.alert('Error', msg)
         } finally {
             setLoading(false)
         }
     }
-
 
     return (
         <View style={styles.container}>
@@ -112,8 +132,8 @@ export default function PswdResetScreen() {
                         autoCapitalize="none"
                         editable={!loading}
                     />
-                    <Button 
-                        title={loading ? "Enviando..." : "Enviar código de restablecimiento"} 
+                    <Button
+                        title={loading ? 'Enviando...' : 'Enviar código de restablecimiento'}
                         onPress={sendResetCode}
                         disabled={loading}
                         color="#DE1484"
@@ -131,10 +151,7 @@ export default function PswdResetScreen() {
                         secureTextEntry
                         editable={!loading}
                     />
-
-                    <Text style={styles.subtitle}>
-                        Ingresa el código que se envió a tu email
-                    </Text>
+                    <Text style={styles.subtitle}>Ingresa el código que se envió a tu email</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Código de restablecimiento"
@@ -143,9 +160,8 @@ export default function PswdResetScreen() {
                         editable={!loading}
                         keyboardType="number-pad"
                     />
-
-                    <Button 
-                        title={loading ? "Restableciendo..." : "Restablecer contraseña"} 
+                    <Button
+                        title={loading ? 'Restableciendo...' : 'Restablecer contraseña'}
                         onPress={resetPassword}
                         disabled={loading}
                         color="#DE1484"
@@ -159,54 +175,21 @@ export default function PswdResetScreen() {
                     Se requiere autenticación de dos factores, pero esta pantalla no la maneja aún
                 </Text>
             )}
-            
+
             {loading && <ActivityIndicator size="large" color="#DE1484" style={styles.loader} />}
         </View>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 30,
-        color: '#333',
-    },
-    subtitle: {
-        fontSize: 16,
-        marginBottom: 10,
-        color: '#666',
-    },
+    container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#fff' },
+    title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30, color: '#333' },
+    subtitle: { fontSize: 16, marginBottom: 10, color: '#666' },
     input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 15,
-        marginBottom: 15,
-        fontSize: 16,
-        backgroundColor: '#f9f9f9',
+        borderWidth: 1, borderColor: '#ddd', borderRadius: 8,
+        padding: 15, marginBottom: 15, fontSize: 16, backgroundColor: '#f9f9f9'
     },
-    errorText: {
-        color: '#ff0000',
-        textAlign: 'center',
-        marginTop: 10,
-        fontSize: 14,
-    },
-    warningText: {
-        color: '#ff9500',
-        textAlign: 'center',
-        marginTop: 20,
-        fontSize: 14,
-        fontStyle: 'italic',
-    },
-    loader: {
-        marginTop: 20,
-    },
-});
+    errorText: { color: '#ff0000', textAlign: 'center', marginTop: 10, fontSize: 14 },
+    warningText: { color: '#ff9500', textAlign: 'center', marginTop: 20, fontSize: 14, fontStyle: 'italic' },
+    loader: { marginTop: 20 },
+})

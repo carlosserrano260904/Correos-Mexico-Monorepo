@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -34,9 +33,6 @@ import { Ubicaciones } from './ubicaciones/ubicaciones.module';
 import { EnviosModule } from './envios/envios.module';
 import { StripeModule } from './stripe/stripe.module';
 import { CardsModule } from './cards/cards.module';
-import { VendedorModule } from './vendedor/vendedor.module';
-import { EmailModule } from './enviar-correos/enviar-correos.module';
-import { ViewdocModule } from './viewdoc/viewdoc.module';
 
 
 @Module({
@@ -44,14 +40,13 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
      ConfigModule.forRoot({
       isGlobal:true,
     }),
-    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory:typeOrmConfig,
       inject:[ConfigService]
     }),
     CreateAccountModule,
     RoutesModule,
-    ProfileModule,  
+    ProfileModule,
     ProductsModule,
     TransactionsModule,
     UploadImageModule,
@@ -76,9 +71,6 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
     EnviosModule,
     StripeModule,
     CardsModule,
-    VendedorModule,
-    EmailModule,
-    ViewdocModule,
 
   ],
   controllers: [AppController, PostalController],

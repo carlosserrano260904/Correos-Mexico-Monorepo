@@ -1,11 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
-import { Check, X, Store } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { moderateScale } from 'react-native-size-matters';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight} from '@fortawesome/free-solid-svg-icons';
 
 const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
@@ -113,12 +110,7 @@ export default function RoutesMapView({
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-
-        <Marker coordinate={destination} title="Sucursal destino">
-          <View style={styles.destinationMarker}>
-            <Store size={moderateScale(20)} color="#DE1484" strokeWidth={3}/>
-          </View>
-        </Marker>
+        <Marker coordinate={destination} title="Destino" />
 
         {optimizedIntermediates.map((point, index) => {
           const packageItem = getPackageByCoordinate(point);
@@ -181,8 +173,8 @@ export default function RoutesMapView({
 const styles = StyleSheet.create({
   numberMarker: {
     backgroundColor: 'orange',
-    borderRadius: moderateScale(20),
-    padding: moderateScale(6),
+    borderRadius: 20,
+    padding: 6,
     borderWidth: 2,
     borderColor: '#fff',
     alignItems: 'center',
@@ -196,9 +188,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  destinationMarker: {
-    padding: moderateScale(6),
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
 });

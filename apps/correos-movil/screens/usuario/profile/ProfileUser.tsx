@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useIsFocused } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,18 +19,15 @@ import axios from 'axios';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useUser } from '@clerk/clerk-expo';
 
-type SectionItem = {
-  label: string;
-  icon: string;
-  to: keyof RootStackParamList;
-  params?: Record<string, any>;
-};
-
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
-export default function ProfileUser({ navigation }: { navigation: ProfileNavProp }) {
+export default function ProfileUser() {
   const isFocused = useIsFocused();
+  const navigation = useNavigation<ProfileNavProp>();
   const { logout, userId } = useMyAuth();
+  const userIdType = typeof userId;
+  console.log('userIdType', userIdType);
+  console.log('userId', userId);
   const { user } = useUser();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
@@ -39,7 +36,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     (async () => {
       try {
         if (userId) {
-          const perfil = await usuarioPorId(parseInt(userId, 10));
+          const perfil = await usuarioPorId(parseInt(userId));
           setUsuario(perfil);
         } else {
           console.warn('No se encontró userId en AsyncStorage');
@@ -48,6 +45,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
         console.error('Error al cargar el perfil:', error);
       }
     })();
+
   }, [isFocused]);
 
   const handleSignOut = async () => {
@@ -65,9 +63,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
         console.error('No se pudo obtener el ID del usuario');
         return;
       }
-      const response = await axios.delete(
-        `http://${process.env.EXPO_PUBLIC_API_URL}/api/clerk/delete-user/${user.id}`
-      );
+      const response = await axios.delete(`http://${myIp}:3000/api/clerk/delete-user/${user.id}`);
 
       if (response.status === 200) {
         await handleSignOut();
@@ -81,7 +77,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     }
   };
 
-  const sections: { title: string; items: SectionItem[] }[] = [
+  const sections = [
     {
       title: 'Cuenta',
       items: [
@@ -102,7 +98,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
       title: 'Políticas',
       items: [
         { label: 'Prueba productos', icon: 'file-text', to: 'Productos' },
-        { label: 'Términos y condiciones', icon: 'file-text', to: 'Politicas', params: { key: 'docs/politicas.docx' } },
+        { label: 'Terminos y condiciones', icon: 'file-text', to: 'Politicas' },
       ],
     },
   ];
@@ -153,13 +149,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                   key={i}
                   style={styles.item}
                   activeOpacity={0.7}
-                  onPress={() => {
-                    if (item.params) {
-                      navigation.navigate(item.to, item.params);
-                    } else {
-                      navigation.navigate(item.to);
-                    }
-                  }}
+                  onPress={() => navigation.navigate(item.to)}
                 >
                   <View style={styles.itemLeft}>
                     <Icon name={item.icon} size={20} />
@@ -194,18 +184,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                 <Text style={[styles.itemText, { color: 'red' }]}>Eliminar cuenta</Text>
               </View>
               <Icon name="chevron-right" size={20} color="red" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.item}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('FormularioVendedor')}
-            >
-              <View style={styles.itemLeft}>
-                <Icon name="box" size={20} color="#E6007A" />
-                <Text style={[styles.itemText, { color: '#E6007A' }]}>Convierte en vendedor</Text>
-              </View>
-              <Icon name="chevron-right" size={20} color="#E6007A" />
             </TouchableOpacity>
           </View>
         </ScrollView>

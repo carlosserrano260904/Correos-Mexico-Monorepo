@@ -14,19 +14,11 @@ export default function MainPageDistributor() {
     React.useEffect(() => {
         const checkTurnoActivo = async () => {
             const activo = await AsyncStorage.getItem('turno_activo');
-            const tipo = await AsyncStorage.getItem('tipoUnidad');
-            if (activo === 'true' && [1, 2, 3].includes(Number(tipo))) {
+            if (activo === 'true') {
                 navigation.reset({
                 index: 0,
-                routes: [{ name: 'PackagesListCarrier' }],
+                routes: [{ name: 'PackagesList' }],
             });
-            } else {
-                if(activo === 'true'){
-                    navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'PackagesList' }],
-                });
-            }
             }
         };
 

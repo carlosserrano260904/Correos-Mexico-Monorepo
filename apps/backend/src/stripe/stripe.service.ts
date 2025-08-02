@@ -6,7 +6,7 @@ export class StripeService {
   private stripe = new Stripe(
     process.env.STRIPE_SECRET_KEY ?? (() => { throw new Error('STRIPE_SECRET_KEY no definida'); })(),
     {
-      apiVersion: '2025-07-30.basil',
+      apiVersion: '2025-06-30.basil',
     }
   );
 

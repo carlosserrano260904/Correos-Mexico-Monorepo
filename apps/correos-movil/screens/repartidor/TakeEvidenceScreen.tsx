@@ -23,14 +23,12 @@ export default function TakeEvidenceScreen() {
   const [canAskAgain, setCanAskAgain] = React.useState(true);
   const route = useRoute<TakeEvidenceRouteProp>();
   const packageData = route.params.package;
-  const destinatario = route.params.destinatario;
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = React.useState(false);
   const [showSuccess, setShowSuccess] = React.useState(false);
 
 
   React.useEffect(() => {
-    console.log("Destinatario: ",destinatario)
     requestPermission();
   }, []);
 
@@ -98,7 +96,7 @@ export default function TakeEvidenceScreen() {
         return;
       }
 
-      await actualizarEstatusPaquete(packageData.id, 'entregado', destinatario);
+      await actualizarEstatusPaquete(packageData.id, 'entregado', packageData.destinatario);
       setShowSuccess(true);
 
       setTimeout(() => {

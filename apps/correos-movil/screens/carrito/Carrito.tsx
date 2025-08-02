@@ -135,6 +135,7 @@ const CarritoScreen = () => {
   const proceedToPayment = async () => {
     try {
       setLoading(true);
+
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) {
         Alert.alert('Error', 'No se encontró el usuario');
@@ -142,22 +143,20 @@ const CarritoScreen = () => {
       }
 
       const response = await fetch(`${API_BASE_URL}/carrito/${userId}/proceder`);
-      if (!response.ok) throw new Error('Error al procesar el carrito');
+      if (!response.ok) throw new Error('Error al procesar pedido');
 
+      // Si deseas validar que el backend devolvió productos u orden, puedes hacerlo aquí
       const data = await response.json();
 
-      await AsyncStorage.setItem('resumen_carrito', JSON.stringify(data));
-
-      // Aquí rediriges a las pestañas del checkout
-      navigation.navigate('Checkout' as never);
+      // Redirigir directamente a la pantalla de Envío
+      navigation.navigate('Envio' as never);
 
     } catch (error) {
-      Alert.alert('Error', 'No se pudo proceder al pago');
+      Alert.alert('Error', 'No se pudo tramitar el pedido');
     } finally {
       setLoading(false);
     }
   };
-
 
 
   const renderItem = ({ item }: { item: CartItem }) => (
@@ -205,21 +204,13 @@ const CarritoScreen = () => {
   const CustomHeader = () => (
     <View style={headerStyles.header}>
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-    <TouchableOpacity
-      style={headerStyles.backButton}
-      onPress={() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Tabs' }],
-        });
-      }}
-      accessibilityLabel="Regresar"
-      accessibilityHint="Regresa a la pantalla principal"
-    >
-      <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-    </TouchableOpacity>
-
-
+        <TouchableOpacity
+          style={headerStyles.backButton}
+          onPress={() => navigation.goBack()}
+          accessibilityLabel="Regresar"
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
+        </TouchableOpacity>
         <Text style={headerStyles.headerTitle}>Carrito</Text>
       </View>
     </View>

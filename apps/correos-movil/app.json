@@ -21,8 +21,7 @@
         "foregroundImage": "assets/icons_correos_mexico/square_correos_clic_Logo.png"
       },
       "orientation": "portrait",
-      "edgeToEdgeEnabled": true,
-      "usesCleartextTraffic": true
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "assets/icons_correos_mexico/square_correos_clic_Logo.png"

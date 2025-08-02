@@ -8,7 +8,6 @@ import { UserModule } from '../usuarios/user.module';
 import { ProveedoresModule } from '../proveedores/proveedores.module';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailModule } from '../enviar-correos/enviar-correos.module';  
 
 @Module({
   imports: [
@@ -20,7 +19,6 @@ import { EmailModule } from '../enviar-correos/enviar-correos.module';
     }),
     UserModule,
     ProveedoresModule,
-    EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

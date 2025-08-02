@@ -1,24 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class UserService {
-  private readonly logger = new Logger(UserService.name);
-
   constructor(
     @InjectRepository(CreateAccount)
     private readonly repo: Repository<CreateAccount>,
   ) { }
 
-  async create(data: Partial<CreateAccount> & { profile?: Profile }) {
-    const user = this.repo.create({
-      ...data,
-      tokenCreatedAt: new Date() // Establecer fecha de creación del token
-    });
+  create(data: Partial<CreateAccount> & { profile?: Profile }) {
+    const user = this.repo.create(data);
     return this.repo.save(user);
   }
 
@@ -27,135 +22,26 @@ export class UserService {
   }
 
   findByCorreo(correo: string) {
-    return this.repo.findOne({
-      where: { correo },
-      relations: ['profile']
-    });
+    return this.repo.findOne({ where: { correo }, relations: ['profile'] });
   }
 
   findByCorreoNoOAuth(correo: string) {
-    return this.repo.findOne({
-      where: {
-        correo,
-        password: Not("N/A: OAuth")
-      }
-    });
+    return this.repo.findOne({ where: { correo, password: Not("N/A: OAuth") } });
   }
 
   findById(id: number) {
-    return this.repo.findOne({
-      where: { id },
-      relations: ['profile']
-    });
+    return this.repo.findOne({ where: { id }, relations: ['profile'] });
   }
 
-  async update(email: string, password: string) {
-    const result = await this.repo.update(
-      {
-        correo: email,
-        password: Not("N/A: OAuth")
-      },
-      { password }
-    );
-
-    if (result.affected === 0) {
-      this.logger.warn(`No se encontró usuario para actualizar: ${email}`);
-    }
-    return result;
+  update(email: string, password: string) {
+    return this.repo.update({ correo: email }, { password }); 
   }
 
-  async updateOTP(email: string, data: {
-    token?: string | null;
-    tokenCreatedAt?: Date | null;
-    confirmado?: boolean
-  }) {
-    try {
-      const result = await this.repo.update(
-        {
-          correo: email,
-          password: Not("N/A: OAuth")
-        },
-        {
-          token: data.token,
-          tokenCreatedAt: data.tokenCreatedAt, // Cambiado a camelCase
-          confirmado: data.confirmado
-        }
-      );
-
-      if (result.affected === 0) {
-        this.logger.warn(`No se pudo actualizar OTP para: ${email}`);
-      }
-      return result;
-    } catch (error) {
-      this.logger.error(`Error al actualizar OTP: ${error.message}`);
-      throw error;
-    }
+  updateOTP(email: string, token: string) {
+    return this.repo.update({ correo: email }, { token });
   }
 
-  async updateConfirmado(email: string, confirmado: boolean) {
-    const result = await this.repo.update(
-      {
-        correo: email,
-        password: Not("N/A: OAuth")
-      },
-      { confirmado }
-    );
-
-    if (result.affected === 0) {
-      this.logger.warn(`No se pudo actualizar estado de confirmación para: ${email}`);
-    }
-    return result;
+  updateConfirmado(email: string, confirmado: boolean) {
+    return this.repo.update({ correo: email }, { confirmado });
   }
-
-  async cleanExpiredTokens(): Promise<number> {
-    try {
-      const expirationTime = new Date(Date.now() - 10 * 60 * 1000); // 10 minutos atrás
-      const result = await this.repo.createQueryBuilder()
-        .update(CreateAccount)
-        .set({
-          token: null,
-          tokenCreatedAt: null
-        })
-        .where("tokenCreatedAt < :expirationTime", { expirationTime })
-        .andWhere("token IS NOT NULL")
-        .execute();
-
-      const cleanedCount = result.affected || 0;
-      this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
-      return cleanedCount;
-    } catch (error) {
-      this.logger.error(`Error limpiando tokens expirados: ${error.message}`);
-      throw error;
-    }
-  }
-
-  async cleanUnverifiedUsers(): Promise<number> {
-    try {
-      const expirationTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 horas
-
-      const result = await this.repo.createQueryBuilder()
-        .delete()
-        .where("confirmado = false")
-        .andWhere("tokenCreatedAt < :expirationTime", { expirationTime })
-        .andWhere("tokenCreatedAt IS NOT NULL")
-        .execute();
-
-      const deletedCount = result.affected || 0;
-      this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
-      return deletedCount;
-    } catch (error) {
-      this.logger.error(`Error limpiando usuarios no verificados: ${error.message}`);
-      throw error;
-    }
-  }
-
-  async findUnverifiedUsers(expirationTime: Date) {
-    return this.repo.find({
-      where: {
-        confirmado: false,
-        tokenCreatedAt: LessThan(expirationTime)
-      }
-    });
-  }
-
 }

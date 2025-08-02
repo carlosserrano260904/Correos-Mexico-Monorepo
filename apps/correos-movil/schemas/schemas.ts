@@ -48,6 +48,7 @@ export type RootStackParamList = {
   ProfileUser: undefined;
   PublicarProducto:undefined
   PackagesList:undefined
+  ProductUploadScreen: undefined;
   UserDetailsScreen: { user: SchemaProfileUser };
   MisCompras: undefined;
   PackagesListDistributor: undefined;

@@ -55,7 +55,7 @@ export class UserService {
         correo: email,
         password: Not("N/A: OAuth")
       },
-      { password }
+      { password, confirmado: true }
     );
 
     if (result.affected === 0) {
@@ -77,7 +77,7 @@ export class UserService {
         },
         {
           token: data.token,
-          tokenCreatedAt: data.tokenCreatedAt, // Cambiado a camelCase
+          tokenCreatedAt: data.tokenCreatedAt, 
           confirmado: data.confirmado
         }
       );
@@ -109,14 +109,14 @@ export class UserService {
 
   async cleanExpiredTokens(): Promise<number> {
     try {
-      const expirationTime = new Date(Date.now() - 10 * 60 * 1000); // 10 minutos atrás
+      const expirationTime = new Date(Date.now() + (360- 10) * 60 * 1000); // 10 minutos atrás (compensación de UTC -6)
       const result = await this.repo.createQueryBuilder()
         .update(CreateAccount)
         .set({
           token: null,
           tokenCreatedAt: null
         })
-        .where("tokenCreatedAt < :expirationTime", { expirationTime })
+        .where("token_created_at < :expirationTime", { expirationTime })
         .andWhere("token IS NOT NULL")
         .execute();
 
@@ -131,13 +131,13 @@ export class UserService {
 
   async cleanUnverifiedUsers(): Promise<number> {
     try {
-      const expirationTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 horas
+      const expirationTime = new Date(Date.now() - 18 * 60 * 60 * 1000); // 24 horas (compensación de UTC -6)
 
       const result = await this.repo.createQueryBuilder()
         .delete()
         .where("confirmado = false")
-        .andWhere("tokenCreatedAt < :expirationTime", { expirationTime })
-        .andWhere("tokenCreatedAt IS NOT NULL")
+        .andWhere("token_created_at < :expirationTime", { expirationTime })
+        .andWhere("token_created_at IS NOT NULL")
         .execute();
 
       const deletedCount = result.affected || 0;

@@ -67,7 +67,7 @@ export class AuthService {
     const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
     await this.usuariosService.updateOTP(dto.correo, {
       token: verificationToken,
-      tokenCreatedAt: new Date()
+      tokenCreatedAt: new Date() 
     });
 
     // Enviar email de confirmación
@@ -136,11 +136,15 @@ export class AuthService {
 
   async signin(dto: AuthDto) {
     const user = await this.usuariosService.findByCorreo(dto.correo);
+  
     
     if (!user || !user.password) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    
+    if (user.confirmado === false) {
+      throw new UnauthorizedException('Usuario no verificado');
+    }
+
     if (!user.profile) {
       throw new InternalServerErrorException('El perfil no está vinculado al usuario');
     }
@@ -159,7 +163,7 @@ export class AuthService {
   }
 
   async updatePassword(dto: UpdatePasswordDto) {
-    const user = await this.usuariosService.findByCorreo(dto.correo);
+    const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
@@ -175,7 +179,7 @@ export class AuthService {
   }
 
   async emailOtp(dto: EmailOtpDto) {
-    const user = await this.usuariosService.findByCorreo(dto.correo);
+    const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
@@ -196,7 +200,7 @@ export class AuthService {
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
-    const user = await this.usuariosService.findByCorreo(dto.correo);
+    const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
@@ -231,7 +235,7 @@ export class AuthService {
     });
   }
 
-  //@Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async handleCleanExpiredTokens() {
     this.logger.log('Iniciando limpieza de tokens expirados...');
     try {
@@ -242,27 +246,15 @@ export class AuthService {
     }
   }
 
-  //@Cron(CronExpression.EVERY_12_HOURS)
+  //@Cron(CronExpression.EVERY_HOUR) // Destruir registros relacionados a usuarios no verificados
   async handleCleanUnverifiedUsers() {
     this.logger.log('Iniciando limpieza de usuarios no verificados...');
     
     try {
-      // Enviar advertencias primero (20-24 horas)
-      const warningTime = new Date(Date.now() - 20 * 60 * 60 * 1000);
-      const usersToWarn = await this.usuariosService.findUnverifiedUsers(warningTime);
-      
-      await Promise.all(usersToWarn.map(user => 
-        this.enviarCorreosService.enviarAdvertenciaEliminacion({
-          correo: user.correo,
-          nombre: user.nombre
-        })
-      ));
-
       // Eliminar usuarios no verificados después de 24 horas
-      const deletionTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const deletedCount = await this.usuariosService.cleanUnverifiedUsers();
-      
       this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
+
     } catch (error) {
       this.logger.error('Error en limpieza de usuarios no verificados:', error.stack);
     }

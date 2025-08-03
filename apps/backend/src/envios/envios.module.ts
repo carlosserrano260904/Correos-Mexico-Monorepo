@@ -5,10 +5,10 @@ import { EnviosService } from './envios.service';
 import { Envio } from './entities/envios.entity';
 import { GuiaTypeormEntity } from 'src/guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
 import { Unidad } from '../unidades/entities/unidad.entity';
-import { UploadImageModule } from 'src/upload-image/upload-image.module';
+import { UploadGcsModule } from 'src/cloud-storage/upload-gcs.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad]), UploadImageModule],
+  imports: [TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad]), UploadGcsModule],
   controllers: [EnviosController],
   providers: [EnviosService],
 })

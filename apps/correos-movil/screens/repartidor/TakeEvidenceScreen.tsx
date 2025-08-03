@@ -159,6 +159,9 @@ export default function TakeEvidenceScreen() {
       const response = await fetch(`http://${IP}:3000/api/envios/${id}/evidencia`, {
         method: 'PATCH',
         body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       console.log('Status subirEvidencia:', response.status);

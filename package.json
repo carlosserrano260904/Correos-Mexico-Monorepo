@@ -27,6 +27,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-native-fontawesome": "^0.3.2",
+    "@google-cloud/storage": "^7.16.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.1.5",
     "@nestjs/config": "^4.0.2",

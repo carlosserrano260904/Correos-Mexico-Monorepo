@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  StatusBar,
-} from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useIsFocused } from '@react-navigation/native';
 import { usuarioPorId } from '../../../api/profile';
@@ -36,19 +27,27 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
 
   useEffect(() => {
     if (!isFocused) return;
+
     (async () => {
+      console.log('✅ useEffect ejecutado - ProfileUser');
+
       try {
+        console.log('userId desde AuthContext:', userId);
+        console.log('EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL);
+
         if (userId) {
           const perfil = await usuarioPorId(parseInt(userId, 10));
+          console.log('Perfil obtenido exitosamente:', perfil);
           setUsuario(perfil);
         } else {
-          console.warn('No se encontró userId en AsyncStorage');
+          console.warn('⚠️ No se encontró userId en AuthContext');
         }
       } catch (error) {
-        console.error('Error al cargar el perfil:', error);
+        console.error('❌ Error al cargar el perfil:', error);
       }
     })();
   }, [isFocused]);
+
 
   const handleSignOut = async () => {
     try {
@@ -118,7 +117,12 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
             onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
           >
             <Image
-              source={{ uri: usuario?.imagen || `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png` }}
+              source={{
+                uri:
+                  usuario?.imagen?.startsWith('http')
+                    ? usuario.imagen
+                    : `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png`,
+              }}
               style={styles.avatar}
             />
             <View style={styles.textContainer}>

@@ -1,28 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  StatusBar,
-  Platform
-} from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Alert, StatusBar, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { actualizarUsuarioPorId, obtenerUrlFirmada, uploadAvatar, usuarioPorId } from '../../../api/profile';
+import { actualizarUsuarioPorId, uploadAvatar, usuarioPorId } from '../../../api/profile';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CircularProgressAvatar from './CircularProgressAvatar'; // o la ruta correspondiente
-
+import CircularProgressAvatar from './CircularProgressAvatar';
 
 const PINK = '#E6007E';
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
@@ -37,11 +24,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
   
       const rawUser = await usuarioPorId(+storedId);
   
-      const nuevaImagen = rawUser.imagen?.trim() !== '' ? rawUser.imagen : defaultImage;
-  
-      if (nuevaImagen !== imagenCargadaRef.current) {
-        imagenCargadaRef.current = nuevaImagen;
-      }
+      imagenCargadaRef.current = rawUser.imagen?.trim() || defaultImage;
   
       setUserData(prev => ({
         ...rawUser,
@@ -51,13 +34,13 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
   
     fetchUser();
   }, []);  
-  
+
   const { user } = route.params;
   const [userData, setUserData] = useState({
     ...user,
     imagen: imagenCargadaRef.current,
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [colonias, setColonias] = useState<string[]>([]);
   const [selectedColonia, setSelectedColonia] = useState('');
@@ -119,11 +102,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
         !userData.imagen.startsWith('http')
       ) {
         if (storedId) {
-          const remoteKey = await uploadAvatar(userData.imagen, +storedId);
-          imagenKey = remoteKey;
-  
-          const signedUrl = await obtenerUrlFirmada(remoteKey);
-          setUserData(prev => ({ ...prev, imagen: signedUrl }));
+          imagenKey = await uploadAvatar(userData.imagen, +storedId);
         }
       }
   
@@ -145,15 +124,16 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       console.error('Error en handleSave:', err);
       Alert.alert('Error', 'Hubo un problema al actualizar el perfil.');
     }
-  };  
+  };
+  
 
   const handleCancel = async () => {
     try {
       const storedId = await AsyncStorage.getItem('userId');
       if (!storedId) throw new Error('No se encontró el userId');
-  
+
       const rawUser = await usuarioPorId(+storedId);
-  
+
       setUserData({
         ...rawUser,
         imagen:
@@ -165,7 +145,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     } catch (error) {
       console.error('Error al cancelar edición:', error);
     }
-  };  
+  };
 
   return (
     <>

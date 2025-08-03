@@ -84,3 +84,6 @@ pnpm-lock.yaml
 
 # === Ignore generated Prisma (if using) ===
 prisma/migrations/
+
+# === Key cloud storage ===
+apps/backend/keys/*.json

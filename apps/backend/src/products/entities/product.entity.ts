@@ -5,30 +5,30 @@ import { Carrito } from '../../carrito/entities/carrito.entity';
 @Entity()
 export class Product {
     @PrimaryGeneratedColumn()
-    id:number
+    id: number
 
-    @Column({type:'varchar',length:60})
-    nombre:string
+    @Column({ type: 'varchar', length: 60 })
+    nombre: string
 
-    @Column({type:'varchar',length:120})
-    descripcion:string
+    @Column({ type: 'varchar', length: 120 })
+    descripcion: string
 
-    @Column("text", { array: true })
+    @Column("text", { array: true, nullable: true })
     imagen: string[];
 
-    @Column({type:'int'})
-    inventario:number
+    @Column({ type: 'int' })
+    inventario: number
 
-    @Column({type:'decimal'})
-    precio:number
+    @Column({ type: 'decimal' })
+    precio: number
 
-    @Column({type:'varchar', nullable: true})
-    categoria:string 
+    @Column({ type: 'varchar', nullable: true })
+    categoria: string
 
     @Column("text", { array: true, nullable: true })
     color: string[];
 
-    @OneToMany(() => Favorito, favorito => favorito.producto )
+    @OneToMany(() => Favorito, favorito => favorito.producto)
     favoritos: Favorito[];
 
     @OneToMany(() => Carrito, carrito => carrito.producto)

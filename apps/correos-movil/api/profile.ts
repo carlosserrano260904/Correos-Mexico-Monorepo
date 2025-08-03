@@ -3,13 +3,9 @@ import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas";
 // ✅ Obtener perfil por ID
 export async function usuarioPorId(id: number): Promise<SchemaProfileUser> {
   const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`;
-  console.log("📡 Fetching perfil desde:", url);
 
   const response = await fetch(url);
   const text = await response.text();
-
-  console.log("📥 Status:", response.status);
-  console.log("📥 Response body:", text);
 
   if (!response.ok) {
     throw new Error("Error al obtener perfil");

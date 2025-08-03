@@ -29,15 +29,10 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     if (!isFocused) return;
 
     (async () => {
-      console.log('✅ useEffect ejecutado - ProfileUser');
 
       try {
-        console.log('userId desde AuthContext:', userId);
-        console.log('EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL);
-
         if (userId) {
           const perfil = await usuarioPorId(parseInt(userId, 10));
-          console.log('Perfil obtenido exitosamente:', perfil);
           setUsuario(perfil);
         } else {
           console.warn('⚠️ No se encontró userId en AuthContext');
@@ -52,7 +47,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
   const handleSignOut = async () => {
     try {
       await logout();
-      console.log('Logout successful');
     } catch (err) {
       console.error('Logout error:', JSON.stringify(err, null, 2));
     }

@@ -4,18 +4,17 @@ import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight} from '@fortawesome/free-solid-svg-icons';
+import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import DropdownComponent from "../../../components/DropDown/DropDownComponent";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import Constants from 'expo-constants';
-
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_IP_LOCAL;
 
 function ProductView() {
 	const navigation = useNavigation();
@@ -28,47 +27,39 @@ function ProductView() {
 	const [product, setProduct] = React.useState<any>(null);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const [liked, setLiked] = React.useState(false);
+	const [inCart, setInCart] = React.useState(false);
+	const [favoritoId, setFavoritoId] = React.useState<number | null>(null);
+	const [carritoId, setCarritoId] = React.useState<number | null>(null);
 
 	// Obtener datos del producto de la API
 	React.useEffect(() => {
 		const fetchProduct = async () => {
 			try {
 				setLoading(true);
-				// IMPORTANTE: Configuración de la URL base de la API.
-				// Si tu aplicación se ejecuta en un EMULADOR ANDROID, '10.0.2.2' es un alias para 'localhost' de tu máquina de desarrollo.
-				// Si usas un DISPOSITIVO FÍSICO, DEBES reemplazar '10.0.2.2' con la DIRECCIÓN IP REAL de tu máquina en tu red local (ej. '192.168.1.100').
-				// Puedes encontrar tu IP local abriendo la terminal y ejecutando 'ipconfig' (Windows) o 'ifconfig' / 'ip a' (Linux/macOS).
-				// Para iOS Simulator, 'localhost' generalmente funciona, pero usar tu IP real es más consistente.
-				// Asegúrate también que tu servidor backend esté escuchando en '0.0.0.0' para aceptar conexiones externas,
-				// no solo en '127.0.0.1' (localhost).
-				const API_BASE_URL = `http://${IP}:3000`; // <<--- VERIFICA Y MODIFICA ESTA LÍNEA SEGÚN TU ENTORNO ---
+				const API_BASE_URL = `http://${IP}:3000`;
 
-				// Implementar un controlador de Abort para el tiempo de espera
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de tiempo de espera
+				const timeoutId = setTimeout(() => controller.abort(), 10000);
 
 				const response = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal });
-				clearTimeout(timeoutId); // Limpiar el tiempo de espera si la respuesta llega a tiempo
+				clearTimeout(timeoutId);
 
 				if (!response.ok) {
-					// Lanza un error con un mensaje más descriptivo si la respuesta no es OK
-					const errorText = await response.text(); // Intenta leer el cuerpo del error para más detalles
+					const errorText = await response.text();
 					throw new Error(`HTTP error! Status: ${response.status}. Detalle: ${errorText}`);
 				}
 				const data = await response.json();
-				// Ajusta los nombres de las propiedades según el JSON proporcionado
 				const transformedData = {
 					id: data.id,
 					name: data.nombre,
 					description: data.descripcion,
-					// Si "imagen" es una URL, la ponemos en un array para el carrusel
 					images: data.imagen ? [data.imagen] : [],
-					price: parseFloat(data.precio), // Asegúrate de parsear el precio a un número
+					price: parseFloat(data.precio),
 					category: data.categoria,
-					color: data.color // Esto es el color directo del producto, no una lista de opciones
+					color: data.color
 				};
 				setProduct(transformedData);
-				// Establecer el color preseleccionado si viene en la respuesta del producto
 				if (transformedData.color) {
 					setSelectedColor(transformedData.color);
 				}
@@ -88,11 +79,109 @@ function ProductView() {
 		if (id) {
 			fetchProduct();
 		} else {
-			// Si no hay ID, no intentes cargar y muestra un error
 			setLoading(false);
 			setError("ID del producto no proporcionado en la ruta.");
 		}
-	}, [id]); // Vuelve a buscar si el ID del producto cambia
+	}, [id]);
+
+	// Verificar estado de favoritos y carrito
+	React.useEffect(() => {
+		const verificarEstado = async () => {
+			const userId = await AsyncStorage.getItem('userId');
+			if (!userId) return;
+
+			try {
+				const resFav = await fetch(`http://${IP}:3000/api/favoritos/${userId}`);
+				const favoritos = await resFav.json();
+				const fav = favoritos.find((f: any) => f.producto.id === Number(id));
+				if (fav) {
+					setLiked(true);
+					setFavoritoId(fav.id);
+				}
+
+				const resCart = await fetch(`http://${IP}:3000/api/carrito/${userId}`);
+				const carrito = await resCart.json();
+				const item = carrito.find((c: any) => c.producto.id === Number(id));
+				if (item) {
+					setInCart(true);
+					setCarritoId(item.id);
+				}
+
+			} catch (err) {
+				console.log("Error verificando favoritos o carrito:", err);
+			}
+		};
+
+		if (product) {
+			verificarEstado();
+		}
+	}, [product]);
+
+	// Funciones para favoritos
+	const toggleFavorito = async () => {
+		const userId = await AsyncStorage.getItem('userId');
+		if (!userId) return;
+
+		if (!liked) {
+			try {
+				const res = await fetch(`http://${IP}:3000/api/favoritos`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ profileId: Number(userId), productId: Number(id) }),
+				});
+				const data = await res.json();
+				setFavoritoId(data.id);
+				setLiked(true);
+			} catch (err) {
+				console.error("Error al agregar a favoritos:", err);
+			}
+		} else {
+			try {
+				await fetch(`http://${IP}:3000/api/favoritos/${favoritoId}`, {
+					method: 'DELETE',
+				});
+				setFavoritoId(null);
+				setLiked(false);
+			} catch (err) {
+				console.error("Error al quitar de favoritos:", err);
+			}
+		}
+	};
+
+	// Funciones para carrito
+	const toggleCarrito = async () => {
+		const userId = await AsyncStorage.getItem('userId');
+		if (!userId) return;
+
+		if (!inCart) {
+			try {
+				const res = await fetch(`http://${IP}:3000/api/carrito`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						profileId: Number(userId),
+						productId: Number(id),
+						cantidad: 1,
+					}),
+				});
+				const data = await res.json();
+				setCarritoId(data.id);
+				setInCart(true);
+			} catch (err) {
+				console.error("Error al agregar a carrito:", err);
+			}
+		} else {
+			try {
+				await fetch(`http://${IP}:3000/api/carrito/${carritoId}`, {
+					method: 'DELETE',
+				});
+				setCarritoId(null);
+				setInCart(false);
+			} catch (err) {
+				console.error("Error al quitar del carrito:", err);
+			}
+		}
+	};
 
 	// Configuración del carrusel
 	const progress = useSharedValue<number>(0);
@@ -111,11 +200,10 @@ function ProductView() {
 		});
 	};
 
-	// Usa product.images (ahora transformado desde product.imagen) o un array predeterminado
 	const carouselImageData = product?.images && product.images.length > 0
     ? product.images.map((img: string, index: number) => ({
         id: `img-${index}`,
-        image: { uri: img } // Asumiendo que las imágenes son URLs
+        image: { uri: img }
       }))
     : [
         { id: '1', image: require('../../../assets/ropa1.jpg') },
@@ -123,19 +211,11 @@ function ProductView() {
         { id: '3', image: require('../../../assets/ropa3.jpeg') },
       ];
 
-
 	const renderItem = ({ item }: { item: { id: string; image: any } }) => (
 		<View style={styles.itemContainer}>
 			<Image source={item.image} style={styles.image} resizeMode="cover" />
 		</View>
 	);
-
-	// Estado del botón de "Me gusta"
-	const [liked, setLiked] = React.useState(false);
-
-	const toggleLike = () => {
-		setLiked(!liked);
-	};
 
 	// Visibilidad de la sección de información
 	const [showInformation, setShowInformation] = React.useState(false);
@@ -148,38 +228,34 @@ function ProductView() {
 	const [selectedSize, setSelectedSize] = React.useState<string | null>(null);
 	const [selectedColor, setSelectedColor] = React.useState<string | null>(null);
 
-  	const sizes = [
-    	{ label: 'Chico', value: 'S' },
-    	{ label: 'Mediano', value: 'M' },
-    	{ label: 'Grande', value: 'L' },
-    	{ label: 'Extra Grande', value: 'XL' }
-  	];
+	const sizes = [
+		{ label: 'Chico', value: 'S' },
+		{ label: 'Mediano', value: 'M' },
+		{ label: 'Grande', value: 'L' },
+		{ label: 'Extra Grande', value: 'XL' }
+	];
 
-	// Colores predefinidos y añade el color del producto si es único
 	const initialColores = [
-    	{ label: 'Blanco Arena', value: '#fff' },
-    	{ label: 'Negro', value: '#000' },
-    	{ label: 'Rojo', value: '#FF0000' },
-    	{ label: 'Verde Lima', value: '#77a345' }
-  	];
+		{ label: 'Blanco Arena', value: '#fff' },
+		{ label: 'Negro', value: '#000' },
+		{ label: 'Rojo', value: '#FF0000' },
+		{ label: 'Verde Lima', value: '#77a345' }
+	];
 
-	// Añadir el color del producto si existe y no está ya en la lista
 	const availableColores = React.useMemo(() => {
 		if (product?.color && !initialColores.some(c => c.value === product.color)) {
-			// Intenta obtener un nombre de color si es un código hexadecimal simple
 			const colorNameMap: { [key: string]: string } = {
 				'#fff': 'Blanco',
 				'#000': 'Negro',
 				'#FF0000': 'Rojo',
 				'#77a345': 'Verde Lima',
-				'#FFC0CB': 'Rosa' // Ejemplo, puedes añadir más si lo necesitas
+				'#FFC0CB': 'Rosa'
 			};
 			const label = colorNameMap[product.color] || `Color ${product.color}`;
 			return [...initialColores, { label: label, value: product.color }];
 		}
 		return initialColores;
 	}, [product?.color]);
-
 
 	if (loading) {
 		return (
@@ -230,13 +306,13 @@ function ProductView() {
 					loop
 					onProgressChange={progress}
 					style={{ width: screenWidth, position: "relative"}}
-					data={carouselImageData} // Usa datos de imagen dinámicos
+					data={carouselImageData}
 					renderItem={renderItem}
 				/>
 
 				<Pagination.Basic<{ color: string }>
 				progress={progress}
-				data={carouselImageData.map((image) => ({ image }))} // Usa datos de imagen dinámicos para la paginación
+				data={carouselImageData.map((image) => ({ image }))}
 				size={scale(8)}
 				dotStyle={{
 					borderRadius: 100,
@@ -262,9 +338,13 @@ function ProductView() {
 					<FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black"/>
 				</TouchableOpacity>
 
-				<TouchableOpacity onPress={toggleLike} style={styles.heartContainer}>
-					<FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)}/>
-				</TouchableOpacity >
+				<TouchableOpacity onPress={toggleFavorito} style={styles.heartContainer}>
+					<FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)} />
+				</TouchableOpacity>
+
+				<TouchableOpacity onPress={toggleCarrito} style={[styles.heartContainer, { right: moderateScale(70) }]}>
+					<FontAwesomeIcon icon={faCartShopping} color={inCart ? "#DE1484" : "#000"} size={moderateScale(24)} />
+				</TouchableOpacity>
 
 			</View>
 
@@ -279,10 +359,10 @@ function ProductView() {
 							placeholderStyle={{fontSize: moderateScale(14)}}
 							inputSearchStyle={{fontSize: moderateScale(14)}}
 							selectedTextStyle={{fontSize: moderateScale(14)}}
-							data={product.availableSizes || sizes} // Usa los tamaños del producto si están disponibles, sino los predeterminados
-        					value={selectedSize}
-        					setValue={setSelectedSize}
-        					placeholder="Talla"
+							data={product.availableSizes || sizes}
+							value={selectedSize}
+							setValue={setSelectedSize}
+							placeholder="Talla"
 							iconStyle={{display: "none"}}	
 						/>
 					</View>
@@ -292,10 +372,10 @@ function ProductView() {
 							placeholderStyle={{fontSize: moderateScale(14)}}
 							inputSearchStyle={{fontSize: moderateScale(14)}}
 							selectedTextStyle={{fontSize: moderateScale(14)}}
-							data={availableColores} // Usa los colores disponibles, incluyendo el del producto
-        					value={selectedColor}
-        					setValue={setSelectedColor}
-        					placeholder="Color"
+							data={availableColores}
+							value={selectedColor}
+							setValue={setSelectedColor}
+							placeholder="Color"
 							iconStyle={{borderRadius: "100%", borderWidth: 1, width: moderateScale(16), height: moderateScale(16), marginRight: moderateScale(4), backgroundColor: selectedColor ?? "#fff"}}	
 						/>
 					</View>

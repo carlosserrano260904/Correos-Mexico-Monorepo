@@ -10,6 +10,6 @@ export const useCupons = () =>{
         addCupon:store.addCupon,
         updateCupon:store.updateCupon,
         deleteCupon:store.deleteCupon,
-        getProduct:store.getProduct
+        getCupon:store.getCupon
     }
 }

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plantilla } from "@/components/plantilla";
 import { CarrouselProducts } from "@/components/CarouselProducts";
+import { CommentsSection } from "@/components/CommentsSection";
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
 import {
   AlertDialog,
@@ -299,6 +300,11 @@ export default function ProductDetailPage() {
           <div className="basis-1/2 justify-center flex ">
             <img src={selectedProduct.ProductImageUrl} className=" max-h-80" />
           </div>
+        </div>
+
+        {/* Sección de comentarios */}
+        <div className="mt-12">
+          <CommentsSection productId={selectedProduct.ProductID.toString()} />
         </div>
       </div>
       <CarrouselProducts entradas={Products} title="Mas Productos"></CarrouselProducts>

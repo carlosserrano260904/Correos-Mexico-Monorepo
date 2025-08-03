@@ -14,7 +14,7 @@ import React from "react"
 import { ProductosPropsFront } from "@/types/interface"
 
 interface ProductSheetProps {
-  product: ProductosPropsFront
+  product?: ProductosPropsFront
   children?: React.ReactNode
   asTableRow?: boolean
 }

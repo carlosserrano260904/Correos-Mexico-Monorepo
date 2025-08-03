@@ -13,7 +13,7 @@ export class Product {
     @Column({type:'varchar',length:120})
     descripcion:string
 
-    @Column({type:'simple-array', default: 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
+    @Column({type:'simple-array', nullable: true})
     imagen:string[]
 
     @Column({type:'int'})
@@ -33,6 +33,4 @@ export class Product {
 
     @OneToMany(() => Carrito, carrito => carrito.producto)
     carrito: Carrito[];
-
-    
 }

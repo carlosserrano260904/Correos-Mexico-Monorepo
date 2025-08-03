@@ -147,7 +147,7 @@ const handleImageUpload = async () => {
     for (const uri of imageUris) {
       const filename = uri.split('/').pop();
       const match = /\.(\w+)$/.exec(filename!);
-      const type = match ? `imagen/${match[1]}` : `imagen`;
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
 
       // FormData en React Native necesita un objeto con uri, name y type
       data.append('imagen', { uri, name: filename, type } as any);

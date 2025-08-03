@@ -8,15 +8,12 @@ const screenHeight = Dimensions.get("screen").height;
 
 import { useNavigation } from '@react-navigation/native';
 
-
-
-
 export default function PaginaPrincipalVendedor() {
 
     const navigation = useNavigation();
 
     return (
-
+    <ScrollView>
         <View style={styles.container}>
             <View style={styles.titleContainer}>
                 <Text style={styles.tituloTextoNombre}>Hola, Juan!</Text>
@@ -131,7 +128,7 @@ export default function PaginaPrincipalVendedor() {
                 </TouchableOpacity>
             </View>
         </View>
-
+        </ScrollView> 
     )
 }
 

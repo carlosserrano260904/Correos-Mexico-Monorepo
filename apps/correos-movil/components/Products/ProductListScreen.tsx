@@ -19,7 +19,7 @@ export type Articulo = {
   id: string;
   nombre: string;
   precio: string;
-  imagen: string;
+  imagen: string[];
   color: string;
   categoria: string;
 };
@@ -33,9 +33,9 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   const max = 3;
   return (
     <View style={styles.contenedorColores}>
-      {colores.slice(0, max).map((c, i) => (
+      {colores.slice(0, max).map((c) => (
         <View
-          key={i}
+          key={c}
           style={[
             styles.circuloColor,
             { backgroundColor: c, borderWidth: c.toLowerCase() === '#fff' ? 1 : 0 },
@@ -60,15 +60,22 @@ const ProductoCard: React.FC<{
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
   const isLiked = favoritos.hasOwnProperty(idNum);
-  const colores = (articulo.color ?? '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+  // Procesamiento robusto de colores para manejar strings, arrays, o valores nulos.
+  // Esto previene el crash si la API devuelve un tipo de dato inesperado.
+  let colorArray: string[] = [];
+  if (typeof articulo.color === 'string' && articulo.color.length > 0) {
+    // Si es un string no vacío (ej: "rojo,azul"), lo dividimos.
+    colorArray = articulo.color.split(',');
+  } else if (Array.isArray(articulo.color)) {
+    // Si ya es un array (ej: ["rojo", "azul"]), lo usamos directamente.
+    colorArray = articulo.color;
+  }
+  const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
   return (
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
-        <Image source={{ uri: articulo.imagen }} style={styles.imagenProductoCard} />
+        <Image source={{ uri: articulo.imagen[0] }} style={styles.imagenProductoCard} />
       </TouchableOpacity>
 
       <View style={styles.estadoProducto}>

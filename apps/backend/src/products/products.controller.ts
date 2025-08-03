@@ -39,7 +39,7 @@ export class ProductsController {
     if (imagen && imagen.length > 0) {
       // El método uploadFile ahora devuelve directamente las URLs públicas permanentes.
       const imageUrls = await Promise.all(
-        imagen.map((file) => this.uploadImageService.uploadFile(file)),
+        imagen.map((file) => this.uploadImageService.uploadFileImage(file)),
       );
       createProductDto.imagen = imageUrls;
     }

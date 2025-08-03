@@ -40,7 +40,7 @@ export default function ProductsScreen() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch(`http://192.168.1.68:3000/api/products`);
+        const response = await fetch(`http://${IP}:3000/api/products`);
         const data = await response.json();
         // Asegurarse de que la respuesta es un array antes de actualizar el estado
         if (Array.isArray(data)) {

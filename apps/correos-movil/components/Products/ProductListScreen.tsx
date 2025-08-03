@@ -19,7 +19,7 @@ export type Articulo = {
   id: string;
   nombre: string;
   precio: string;
-  imagen: string[];
+  imagen: string;
   color: string;
   categoria: string;
 };
@@ -73,7 +73,7 @@ const ProductoCard: React.FC<{
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={{ uri: articulo.imagen[0] }}
+          source={{ uri: articulo.imagen }}
           style={styles.imagenProductoCard}
         />
       </TouchableOpacity>

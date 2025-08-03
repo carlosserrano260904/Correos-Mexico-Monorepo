@@ -48,7 +48,6 @@ export class CreateProductDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      // acepta "rojo,azul" o "rojo, azul"
       return value
         .split(',')
         .map((v: string) => v.trim())

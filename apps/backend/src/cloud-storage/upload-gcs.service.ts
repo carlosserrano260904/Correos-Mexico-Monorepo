@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuid } from 'uuid';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 @Injectable()
 export class UploadGcsService {
@@ -11,15 +11,20 @@ export class UploadGcsService {
 
   constructor(private readonly config: ConfigService) {
     const bucket = this.config.get<string>('GCS_BUCKET_NAME');
+    const keyPath = this.config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
 
     if (!bucket) {
       throw new Error('GCS_BUCKET_NAME is not defined');
     }
 
+    if (!keyPath) {
+      throw new Error('GOOGLE_APPLICATION_CREDENTIALS is not defined');
+    }
+
     this.bucketName = bucket;
 
     this.storage = new Storage({
-      keyFilename: join(__dirname, '../../keys/tactical-curve-461301-m9-b80678c35a6f.json'),
+      keyFilename: resolve(keyPath),
     });
   }
 

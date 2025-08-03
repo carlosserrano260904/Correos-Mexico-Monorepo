@@ -13,8 +13,8 @@ export class Product {
     @Column({type:'varchar',length:120})
     descripcion:string
 
-    @Column({type:'simple-array', nullable: true})
-    imagen:string[]
+    @Column("text", { array: true })
+    imagen: string[];
 
     @Column({type:'int'})
     inventario:number
@@ -25,8 +25,8 @@ export class Product {
     @Column({type:'varchar', nullable: true})
     categoria:string 
 
-    @Column({type:'simple-array', nullable: true})
-    color:string[]
+    @Column("text", { array: true, nullable: true })
+    color: string[];
 
     @OneToMany(() => Favorito, favorito => favorito.producto )
     favoritos: Favorito[];

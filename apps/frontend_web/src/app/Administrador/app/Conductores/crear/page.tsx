@@ -9,33 +9,36 @@ import { useConductorStore } from "@/stores/conductorStore";
 
 
 export default function CrearConductorPage() {
-  const {agregarConductor} = useConductorStore()
+  const agregarConductor = useConductorStore((state) => state.agregarConductor);
   const router = useRouter()
 
   const [form, setForm] = useState({
-    idConductor: "",
-    nombre: "",
+    nombreCompleto: "",
     curp: "",
     rfc: "",
     licencia: "",
     telefono: "",
-    email: "",
-    claveOficina:"",
-    licenciaVigente: ""
+    correo: "",
+    claveOficina: "",
+    licenciaVigente: true,
   })
 
   
   
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+  const { name, value } = e.target;
+  setForm({
+    ...form,
+    [name]: name === "licenciaVigente" ? value === "true" : value === "false" ? false : value,
+  });
+};
 
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    agregarConductor(form)
-    router.push("/Administrador/app/Conductores")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await agregarConductor(form);
+    router.push("/Administrador/app/Conductores");
   }
 
   return (
@@ -60,11 +63,11 @@ export default function CrearConductorPage() {
                   Nombre Completo
                 </label>
                 <input
-                  name="nombre"
+                  name="nombreCompleto"
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   placeholder=""
-                  value={form.nombre}
+                  value={form.nombreCompleto}
                   onChange={handleChange}
                 />
               </div>
@@ -135,15 +138,15 @@ export default function CrearConductorPage() {
                   Email
                 </label>
                 <input
-                  name="email"
+                  name="correo"
                   type="email"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   placeholder=""
-                  value={form.email}
+                  value={form.correo}
                   onChange={handleChange}
                 />
               </div>
-
+              
               {/* Clave Oficina */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -167,17 +170,20 @@ export default function CrearConductorPage() {
                 <div className="relative">
                   <select className="w-full appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   name="licenciaVigente"
-                  value={form.licenciaVigente}
+                  value={form.licenciaVigente ? "true" : "false"}
                   onChange={handleChange}
                   >
-                    <option value="">Estado</option>
-                    <option value="vigente">Vigente</option>
-                    <option value="vencida">Vencida</option>
-                    <option value="suspendida">Suspendida</option>
+                    <option value="" disabled>Estado</option>
+                    <option value="true">Vigente</option>
+                    <option value="false">No Vigente</option>
                   </select>
                   <IoChevronDownOutline className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                 </div>
-              </div>
+
+            </div>
+            <div>
+                  
+                </div>
 
               {/* Botón */}
               <div className="pt-3 pb-26">

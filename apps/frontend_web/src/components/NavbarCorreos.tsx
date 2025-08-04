@@ -8,7 +8,7 @@ interface NavbarCorreosProps {
 
 export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
     return(
-        <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-gray-50'}`}>
+        <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-gray-100'}`}>
             <div className="flex items-center justify-between w-full px-4 py-2">
                 {/* Logo y Links de navegación */}
                 <div className="flex items-center gap-12">

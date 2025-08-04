@@ -41,43 +41,48 @@ export default function CorreosMX() {
 
   const servicios = [
     {
-      id: 'correspondencia',
-      titulo: 'Correspondencia',
-      descripcion: 'Envío masivo de cartas, documentos y tarjetas postales por todo México y el mundo.',
+      id: 'servicios-ventanilla',
+      titulo: 'Servicios en Ventanilla',
+      descripcion: 'Todos los servicios disponibles en ventanilla en mas de 1,100 Oficinas postales por toda la republica.',
       icono: <IoMailOutline className="w-8 h-8" />
     },
     {
-      id: 'paqueteria',
-      titulo: 'Paquetería',
-      descripcion: 'Envío rápido de productos y mercancías empaquetadas por toda la República Mexicana.',
+      id: 'enviar',
+      titulo: 'Como Enviar...',
+      descripcion: 'Envía de manera económica y garantizada por toda la República Mexicana.',
       icono: <IoArchiveOutline className="w-8 h-8" />
     },
     {
-      id: 'impresos',
-      titulo: 'Impresos',
-      descripcion: 'Envía desde folletos, boletines, hasta carteles y catálogos y haz crecer tu negocio a través de nuestra red postal.',
+      id: 'prohibidos',
+      titulo: 'Articulos Prohibidos',
+      descripcion: 'El envío de artículos prohibidos puede causar la retención del paquete o intervención legal. Revisa antes de enviar.',
       icono: <IoDocumentTextOutline className="w-8 h-8" />
     },
     {
-      id: 'giro-postal',
-      titulo: 'Giro Postal',
-      descripcion: 'Envía dinero de forma segura y económica por toda la República Mexicana.',
+      id: 'corporativos',
+      titulo: 'Corporativos',
+      descripcion: 'Envío masivo de cartas, documentos o tarjetas postales por todo México y el mundo con tarifas corporativas',
       icono: <IoCashOutline className="w-8 h-8" />
-    },
-    {
-      id: 'servicios-adicionales',
-      titulo: 'Servicios Adicionales',
-      descripcion: 'Servicios complementarios para mejorar tu experiencia de envío y recepción de correspondencia.',
-      icono: <IoSettingsOutline className="w-8 h-8" />
     }
   ]
 
   return (
     <>
       <NavbarCorreos />
-      <div className='min-h-screen bg-gray-50 rounded-xl px-10 py-3 pt-9'>
-        <div className="w-full">
-          <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className='min-h-screen bg-gray-100 rounded-xl py-3 pt-9'>
+        <div className="w-full relative">
+          {/* Imagen de fondo solo para la sección del título */}
+          <div className="absolute left-0 right-0 top-0 rounded-xl overflow-hidden" style={{ height: '1000px', marginLeft: '-40px', marginRight: '-40px' }}>
+            <Image
+              src="/fondoCorreos.png"
+              alt="Fondo Correos de México"
+              fill
+              className="object-contain object-center opacity-100 w-full"
+              priority
+            />
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-6 py-16 relative z-10">
             {/* Título principal */}
             <div className="mb-12">
               <h1 className="text-6xl font-bold leading-tight">
@@ -136,7 +141,7 @@ export default function CorreosMX() {
           </div>
         </div>
 
-        <div className="w-full -mx-10 mt-16 relative min-h-[800px] bg-gray-50">
+        <div className="w-full -mx-10 mt-16 relative min-h-[800px] bg-gray-100">
           <div className="absolute top-40 left-0" style={{ width: '42%', height: '540px' }}>
             <div
               className="h-full bg-pink-500"

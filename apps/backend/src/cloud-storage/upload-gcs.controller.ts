@@ -13,4 +13,11 @@ export class UploadGcsController {
     const url = await this.uploadGcsService.uploadFile(file);
     return { url };
   }
+
+  @Post('evidenciaPaquete/image')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  async uploadEvidenceDistributor(@UploadedFile() file: Express.Multer.File) {
+    const url = await this.uploadGcsService.uploadFile(file);
+    return { url };
+  }
 }

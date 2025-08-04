@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useSignIn } from '@clerk/clerk-expo'
 import { useNavigation } from '@react-navigation/native'
 import {
   TextInput,
@@ -17,42 +16,40 @@ export default function PswdResetScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
-  const [successfulCreation, setSuccessfulCreation] = useState(false)
-  const [secondFactor, setSecondFactor] = useState(false)
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [successfulCreation, setSuccessfulCreation] = useState(false)
 
   // Estados para validar cada requisito de contraseña
   const [hasMinLength, setHasMinLength] = useState(false)
   const [hasUppercase, setHasUppercase] = useState(false)
   const [hasNumber, setHasNumber] = useState(false)
   const [hasSpecialChar, setHasSpecialChar] = useState(false)
-
+  
   const navigation = useNavigation()
-  const { isLoaded, signIn } = useSignIn()
 
-  const isPasswordValid =
-    hasMinLength && hasUppercase && hasNumber && hasSpecialChar
-
-  if (!isLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#DE1484" />
-        <Text>Cargando...</Text>
-      </View>
-    )
-  }
+  const isPasswordValid =hasMinLength && hasUppercase && hasNumber && hasSpecialChar
 
   const sendResetCode = async () => {
     if (!email.trim()) return Alert.alert('Error', 'Por favor ingresa tu email')
     setLoading(true)
-    setError('')
     try {
-      await signIn?.create({ strategy: 'reset_password_email_code', identifier: email })
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/email-otp`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: email }),
+        }
+      )
+      if (!res.ok) {
+        const errBody = await res.json()
+        throw new Error(errBody.message || 'Error al enviar código')
+      }
       setSuccessfulCreation(true)
       Alert.alert('Éxito', 'Código enviado a tu email')
     } catch (err: any) {
-      const msg = err.errors?.[0]?.longMessage || 'Error al enviar código'
+      const msg = err.message || 'Error al enviar código'
       setError(msg)
       Alert.alert('Error', msg)
     } finally {
@@ -63,22 +60,24 @@ export default function PswdResetScreen() {
   const resetPassword = async () => {
     if (!password.trim() || !code.trim())
       return Alert.alert('Error', 'Por favor completa todos los campos')
-
     setLoading(true)
-    setError('')
     try {
-      const result = await signIn?.attemptFirstFactor({
-        strategy: 'reset_password_email_code',
-        code,
-        password,
-      })
-      if (result?.status === 'needs_second_factor') {
-        setSecondFactor(true)
-        return Alert.alert('2FA Requerido', 'Se requiere autenticación de dos factores')
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/verify-otp`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: email, token: code }),
+        }
+      )
+      if (!res.ok) {
+        const errBody = await res.json()
+        setError(errBody.message || 'Error al verificar código') 
+        throw new Error(errBody.message || 'Error al verificar código')
+        
       }
-      if (result?.status !== 'complete') throw new Error('No se completó el reset en Clerk')
 
-      const resp = await fetch(
+      const res2 = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/api/auth/update-password`,
         {
           method: 'PUT',
@@ -86,9 +85,10 @@ export default function PswdResetScreen() {
           body: JSON.stringify({ correo: email, contrasena: password }),
         }
       )
-      if (!resp.ok) {
-        const errBody = await resp.json()
-        throw new Error(errBody.message || 'Error actualizando contraseña en el servidor')
+      if (!res2.ok) {
+        const errBody = await res2.json()
+        setError(errBody.message || 'Error al actualizar contraseña')
+        throw new Error(errBody.message || 'Error al actualizar contraseña')
       }
 
       Alert.alert(
@@ -97,15 +97,15 @@ export default function PswdResetScreen() {
         [
           {
             text: 'Ir a Iniciar Sesión',
-            onPress: () => navigation.replace('SignIn'),
+            onPress: () => navigation.navigate('SignIn' as never),
           },
         ],
         { cancelable: false }
       )
     } catch (err: any) {
       const msg = err.message || 'Error al restablecer contraseña'
-      setError(msg)
       Alert.alert('Error', msg)
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -204,11 +204,6 @@ export default function PswdResetScreen() {
         </View>
       )}
 
-      {secondFactor && (
-        <Text style={styles.warningText}>
-          Se requiere autenticación de dos factores, pero no se maneja en esta pantalla
-        </Text>
-      )}
 
       {loading && <ActivityIndicator size="large" color="#DE1484" style={styles.loader} />}
     </ScrollView>

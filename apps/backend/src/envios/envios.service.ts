@@ -251,14 +251,14 @@ export class EnviosService {
     return await this.envioRepository.save(envio);
   }
 
-  async anadirEvidencia(id: string, key: string, url: string): Promise<Envio | null> {
+  async anadirEvidencia(id: string, url: string): Promise<Envio | null> {
     const envio = await this.envioRepository.findOne({ where: { id } });
 
     if (!envio) {
       return null;
     }
 
-    envio.evidencia_entrega = url; // visible desde frontend
+    envio.evidencia_entrega = url;
     return await this.envioRepository.save(envio);
 
   }

@@ -36,7 +36,17 @@ export class UploadGcsService {
     await blob.save(file.buffer, {
       contentType: file.mimetype,
     });
-
     return key;
+  }
+
+  async uploadEvidenceDistributor(file: Express.Multer.File): Promise<string> {
+    const key = `evidenciasPaquetes/${uuid()}-${file.originalname}`;
+    const bucket = this.storage.bucket(this.bucketName);
+    const blob = bucket.file(key);
+
+    await blob.save(file.buffer, {
+      contentType: file.mimetype,
+    });
+    return `https://storage.googleapis.com/${this.bucketName}/${key}`;
   }
 }

@@ -206,13 +206,13 @@ export default function SignUpScreen() {
 
           const data = await res.json()
           await AsyncStorage.setItem('token', data.token)
-          Alert.alert('¡Inicio de sesión exitoso!', 'Bienvenido')
+          await reloadUserData()
+          setIsAuthenticated(true)
         } else {
-          Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor seleccionado')
+          console.warn(`[handleOAuthPress] ${strategy} - No session created`)
         }
       } catch (err) {
         await clerk.signOut()
-        Alert.alert('Error', 'No se pudo iniciar sesión con el proveedor')
         console.error(`[handleOAuthPress] OAuth ${strategy} error:`, err)
       }
     },

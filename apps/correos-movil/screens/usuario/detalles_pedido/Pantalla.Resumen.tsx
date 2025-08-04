@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { obtenerDirecciones } from '../../../api/direcciones';
 import {
   View,
   Text,
@@ -11,12 +12,9 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const { width, height } = Dimensions.get('window');
@@ -52,12 +50,25 @@ interface Direccion {
   codigo_postal: string;
 }
 
+interface PuntoRecogida {
+  id: number;
+  nombre: string;
+  lat: number;
+  lng: number;
+  direccion?: string;
+  horario?: string;
+}
+
 const PantallaResumen = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [direccion, setDireccion] = useState<Direccion | null>(null);
+  const [puntoRecogida, setPuntoRecogida] = useState<PuntoRecogida | null>(null);
+  const [modoEnvio, setModoEnvio] = useState<'domicilio' | 'puntoRecogida' | null>(null);
   const [tarjeta, setTarjeta] = useState<{ last4: string; brand: string } | null>(null);
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
   const loadCart = async () => {
     try {
@@ -68,14 +79,16 @@ const PantallaResumen = () => {
       const response = await axios.get(`${BASE_URL}/api/carrito/${userId}`);
       const data = response.data;
 
-      const formatted = data.map((item: any) => ({
-        id: item.id?.toString() || '',
-        name: item.producto?.nombre || 'Sin nombre',
-        price: Number(item.precio_unitario || item.producto?.precio || 0),
-        quantity: Number(item.cantidad || 1),
-        image: item.producto?.imagen || 'https://via.placeholder.com/120x120.png?text=Producto',
-        color: item.producto?.color || 'No especificado',
-      }));
+      const formatted = data
+        .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
+        .map((item: any) => ({
+          id: item.id?.toString() || '',
+          name: item.producto.nombre ?? 'Sin nombre',
+          price: Number(item.precio_unitario ?? item.producto.precio ?? 0),
+          quantity: Number(item.cantidad ?? 1),
+          image: item.producto.imagen ?? 'https://via.placeholder.com/120x120.png?text=Producto',
+          color: item.producto.color ?? 'No especificado',
+        }));
 
       setCart(formatted);
     } catch (error) {
@@ -85,14 +98,33 @@ const PantallaResumen = () => {
     }
   };
 
-  const loadDireccionSeleccionada = async () => {
+  const loadShippingInfo = async () => {
     try {
-      const data = await AsyncStorage.getItem('direccionSeleccionada');
-      if (data) {
-        setDireccion(JSON.parse(data));
+      const modo = await AsyncStorage.getItem('modoEnvio');
+      setModoEnvio(modo as 'domicilio' | 'puntoRecogida' | null);
+
+      if (modo === 'puntoRecogida') {
+        const punto = await AsyncStorage.getItem('puntoRecogidaSeleccionado');
+        if (punto) {
+          const data: PuntoRecogida = JSON.parse(punto);
+          setPuntoRecogida(data);
+        }
+      } else {
+        const seleccionada = await AsyncStorage.getItem('direccionSeleccionada');
+        if (seleccionada) {
+          setDireccion(JSON.parse(seleccionada));
+        } else {
+          const userId = await AsyncStorage.getItem('userId');
+          if (userId) {
+            const direcciones = await obtenerDirecciones(Number(userId));
+            if (direcciones.length > 0) {
+              setDireccion(direcciones[0]);
+            }
+          }
+        }
       }
     } catch (error) {
-      console.error('No se pudo cargar la dirección seleccionada');
+      console.error('Error al cargar información de envío:', error);
     }
   };
 
@@ -103,7 +135,6 @@ const PantallaResumen = () => {
 
       const perfilRes = await axios.get(`${BASE_URL}/api/profile/${userId}`);
       const profileId = perfilRes.data?.id;
-
       if (!profileId) return;
 
       const tarjetasRes = await axios.get(`${BASE_URL}/api/cards/${profileId}`);
@@ -114,7 +145,7 @@ const PantallaResumen = () => {
         setTarjeta({ brand: ultima.brand, last4: ultima.last4 });
       }
     } catch (error) {
-      console.error('Error al cargar tarjeta para resumen:', error);
+      console.error('Error al cargar tarjeta:', error);
     }
   };
 
@@ -125,60 +156,56 @@ const PantallaResumen = () => {
     [expandedIdx]
   );
 
-  const navigation = useNavigation();
-
-  const handleBack = () => {
-    Alert.alert('Volver al carrito', '¿Estás seguro de que deseas salir?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Sí',
-        onPress: () => navigation.navigate('Carrito' as never),
-      },
-    ]);
-  };
-
-
   const calculateTotal = () => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
   useEffect(() => {
-    loadCart();
-    loadDireccionSeleccionada();
-    loadUltimaTarjeta();
-  }, []);
+    if (isFocused) {
+      const loadData = async () => {
+        await Promise.all([
+          loadCart(),
+          loadShippingInfo(),
+          loadUltimaTarjeta(),
+        ]);
+      };
+      loadData();
+    }
+  }, [isFocused]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Resumen de Compra</Text>
-      </View>
-
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Dirección seleccionada */}
-        {direccion && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>Dirección seleccionada:</Text>
-            <Text>{direccion.calle}, {direccion.colonia_fraccionamiento}</Text>
-            <Text>N° {direccion.numero_exterior}{direccion.numero_interior ? ` Int. ${direccion.numero_interior}` : ''}</Text>
-            <Text>{direccion.codigo_postal}, {direccion.municipio}, {direccion.estado}</Text>
-          </View>
-        )}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>
+            {modoEnvio === 'puntoRecogida' ? '📍 Punto de recogida' : '🏠 Envío a domicilio'}
+          </Text>
+          {modoEnvio === 'puntoRecogida' && puntoRecogida ? (
+            <>
+              <Text style={styles.addressTitle}>{puntoRecogida.nombre}</Text>
+              <Text style={styles.addressText}>{puntoRecogida.direccion}</Text>
+              <Text style={styles.addressDetail}>Oficina de Correos de México</Text>
+              <Text style={styles.addressDetail}>Horario: {puntoRecogida.horario}</Text>
+            </>
+          ) : direccion ? (
+            <>
+              <Text style={styles.addressTitle}>Dirección de entrega</Text>
+              <Text style={styles.addressText}>{direccion.calle}, {direccion.colonia_fraccionamiento}</Text>
+              <Text style={styles.addressDetail}>N° {direccion.numero_exterior} {direccion.numero_interior ? `Int. ${direccion.numero_interior}` : ''}</Text>
+              <Text style={styles.addressDetail}>{direccion.codigo_postal}, {direccion.municipio}, {direccion.estado}</Text>
+            </>
+          ) : (
+            <Text style={styles.addressText}>No se ha seleccionado dirección</Text>
+          )}
+        </View>
 
-        {/* Tarjeta seleccionada */}
         {tarjeta && (
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>Tarjeta:</Text>
+            <Text style={styles.infoTitle}>💳 Método de pago</Text>
             <Text>{tarjeta.brand.toUpperCase()} •••• {tarjeta.last4}</Text>
           </View>
         )}
 
-        {/* Productos */}
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
@@ -192,22 +219,14 @@ const PantallaResumen = () => {
           <View style={styles.list}>
             {cart.map((item, idx) => (
               <View key={item.id}>
-                <TouchableOpacity
-                  style={styles.productCard}
-                  onPress={() => handleToggleProductDetails(idx)}
-                >
+                <TouchableOpacity style={styles.productCard} onPress={() => handleToggleProductDetails(idx)}>
                   <Image source={{ uri: item.image }} style={styles.image} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.name}>{item.name}</Text>
                     <Text style={styles.desc}>Color: {item.color}</Text>
                     <Text style={styles.desc}>Cantidad: {item.quantity}</Text>
-                    <Text style={styles.price}>MXN {item.price.toFixed(2)}</Text>
+                    <Text style={styles.price}>MXN {(item.price).toFixed(2)}</Text>
                   </View>
-                  <Ionicons
-                    name={expandedIdx === idx ? 'chevron-up' : 'chevron-down'}
-                    size={24}
-                    color={Colors.gray}
-                  />
                 </TouchableOpacity>
 
                 {expandedIdx === idx && (
@@ -235,26 +254,7 @@ const PantallaResumen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: height * 0.06,
-    paddingBottom: height * 0.02,
-    paddingHorizontal: width * 0.04,
-    backgroundColor: Colors.white,
-  },
-  backButton: {
-    marginRight: 12,
-    padding: 6,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.dark,
-  },
-  content: {
-    paddingHorizontal: 16,
-  },
+  content: { paddingHorizontal: 16 },
   infoBox: {
     backgroundColor: Colors.white,
     borderRadius: 12,
@@ -262,11 +262,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
   },
-  infoTitle: {
-    fontWeight: '600',
-    marginBottom: 4,
-    color: Colors.primary,
-  },
+  infoTitle: { fontWeight: '600', marginBottom: 8, color: Colors.primary },
+  addressTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4, color: Colors.dark },
+  addressText: { fontSize: 15, marginBottom: 4, color: Colors.textPrimary },
+  addressDetail: { fontSize: 14, color: Colors.textSecondary, marginBottom: 2 },
   list: { paddingVertical: 12 },
   productCard: {
     backgroundColor: Colors.white,
@@ -277,27 +276,10 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
   },
-  image: {
-    width: 70,
-    height: 70,
-    borderRadius: 8,
-    backgroundColor: Colors.lightGray,
-  },
-  name: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: Colors.dark,
-  },
-  desc: {
-    fontSize: 13,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-  price: {
-    marginTop: 4,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
+  image: { width: 70, height: 70, borderRadius: 8, backgroundColor: Colors.lightGray },
+  name: { fontWeight: '600', fontSize: 16, color: Colors.dark },
+  desc: { fontSize: 13, color: Colors.gray, marginTop: 2 },
+  price: { marginTop: 4, fontWeight: 'bold', color: Colors.primary },
   expanded: {
     backgroundColor: '#f9f9f9',
     padding: 12,
@@ -306,10 +288,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
   },
-  detail: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-  },
+  detail: { fontSize: 14, color: Colors.textPrimary },
   totalContainer: {
     marginTop: 20,
     borderTopWidth: 1,
@@ -318,16 +297,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  totalLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  totalAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
+  totalLabel: { fontSize: 18, fontWeight: '600', color: Colors.textPrimary },
+  totalAmount: { fontSize: 18, fontWeight: 'bold', color: Colors.primary },
   confirmBtn: {
     backgroundColor: Colors.primary,
     marginTop: 20,
@@ -335,19 +306,9 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  confirmText: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  loadingContainer: {
-    marginTop: 80,
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    marginTop: 60,
-    alignItems: 'center',
-  },
+  confirmText: { color: Colors.white, fontWeight: '600', fontSize: 16 },
+  loadingContainer: { marginTop: 80, alignItems: 'center' },
+  emptyContainer: { marginTop: 60, alignItems: 'center' },
 });
 
 export default PantallaResumen;

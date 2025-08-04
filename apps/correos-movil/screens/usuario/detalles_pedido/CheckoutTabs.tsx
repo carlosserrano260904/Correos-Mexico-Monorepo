@@ -3,13 +3,33 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import PantallaEnvio from '../../../screens/usuario/detalles_pedido/PantallaEnvio';
 import PantallaPago from '../../../screens/usuario/detalles_pedido/PantallaPago';
 import PantallaResumen from '../../../screens/usuario/detalles_pedido/Pantalla.Resumen';
-import { SafeAreaView, StyleSheet, View, Platform, StatusBar } from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Platform,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const Tab = createMaterialTopTabNavigator();
 
 const CheckoutTabs = () => {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* ✅ Header arriba de las pestañas */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#212121" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Detalles de la compra</Text>
+      </View>
+
       <View style={styles.wrapper}>
         <Tab.Navigator
           initialRouteName="Envio"
@@ -40,11 +60,28 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    elevation: 2,
+    zIndex: 100,
+  },
+  backButton: {
+    marginRight: 12,
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#212121',
+  },
   tabBar: {
     backgroundColor: '#FFFFFF',
     elevation: 4,
     zIndex: 10,
-    marginTop: 16, //  Ahora el tab está más abajo visualmente
   },
   label: {
     fontWeight: '500',

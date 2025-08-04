@@ -5,21 +5,47 @@ type Unidad = {
   tipoVehiculo: string
   placas: string
   volumenCarga: string
-  numeroEjes: string
-  numeroLlantas: string
+  numEjes: string
+  numLlantas: string
   claveOficina: string
   tarjetaCirculacion: string
-  asignacionConductor: boolean
-  curpConductor?: string
+  conductor?:string;
 };
 
 type UnidadStore = {
   unidades: Unidad[];
+  fetchUnidades:() => Promise<void>;
   agregarUnidad: (unidad: Unidad) => void;
+  
 };
 
-
-
+export const useUnidadStore = create<UnidadStore>((set, get) => ({
+  unidades: [],
+  fetchUnidades: async () => {
+    const res = await fetch("http://localhost:3000/api/unidades");
+    const data = await res.json();
+    set({ unidades: data });
+  },
+  agregarUnidad: async (unidad) => {
+    const payload = {
+      tipoVehiculo: unidad.tipoVehiculo,
+      placas: unidad.placas,
+      volumenCarga: Number(unidad.volumenCarga),
+      numEjes: Number(unidad.numEjes),
+      numLlantas: Number(unidad.numLlantas),
+      claveOficina: unidad.claveOficina,
+      tarjetaCirculacion: unidad.tarjetaCirculacion,
+    };
+    await fetch("http://localhost:3000/api/unidades", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    // recargar unidades después de agregar
+     await get().fetchUnidades();
+  },
+}));
+/*
 export const useUnidadStore = create<UnidadStore>()(
   persist(
     (set) => ({
@@ -35,3 +61,4 @@ export const useUnidadStore = create<UnidadStore>()(
     }
   )
 );
+*/

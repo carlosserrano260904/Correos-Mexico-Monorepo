@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { IoChevronDownOutline, IoAddOutline } from "react-icons/io5";
 import { useUnidadStore } from "@/stores/unidadStore";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import UnidadesPage from "../page";
 
 export default function RegistrarUnidadPage() {
 
   const [curpConductor, setCurpConductor] = useState("");
   const [asignado, setAsignado] = useState(false);
+  const Unidades = useUnidadStore((state) => state.unidades);
 
   const handleAsignarConductor = () => {
   if (curpConductor.trim() !== "") {
@@ -23,28 +25,35 @@ export default function RegistrarUnidadPage() {
 
   const {agregarUnidad} = useUnidadStore();
   const router = useRouter();
+
   const [form, setForm] = useState({
       tipoVehiculo: "",
       placas: "",
-      volumenCarga:"",
-      numeroEjes:"",
-      numeroLlantas:"",
-      claveOficina:"",
-      tarjetaCirculacion:"",
-      curpConductor:"",
-      asignacionConductor: asignado
+      volumenCarga: "",
+      numEjes: "",
+      numLlantas: "",
+      claveOficina: "",
+      tarjetaCirculacion: "",
     });
 
+    useEffect(() => {
+      console.log("asi estan las unidades", Unidades);
+    }, [Unidades]);
+
+    
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    agregarUnidad(form);
+    await agregarUnidad(form);
     router.push("/Administrador/app/Unidades"); // Redirige después de crear
     };
+    
+
+    
 
   return (
     <div>
@@ -74,10 +83,9 @@ export default function RegistrarUnidadPage() {
                     onChange={handleChange}
                     >
                       <option value="">Tipos</option>
-                      <option value="camion">Camión</option>
-                      <option value="camioneta">Camioneta</option>
-                      <option value="motocicleta">Motocicleta</option>
-                      <option value="van">Van</option>
+                      <option value="Camión de 10 ton">Camión de 10 ton</option>
+                      <option value="Automóvil 400 kg">Automóvil 400 kg</option>
+                      <option value="Camión de 5 ton">Camión de 5 ton</option>
                     </select>
                     <IoChevronDownOutline className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                   </div>
@@ -118,8 +126,8 @@ export default function RegistrarUnidadPage() {
                       Número de Ejes
                     </label>
                     <input
-                      name="numeroEjes"
-                      value={form.numeroEjes}
+                      name="numEjes"
+                      value={form.numEjes}
                       onChange={handleChange}
                       type="text"
                       className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -131,8 +139,8 @@ export default function RegistrarUnidadPage() {
                       Número de Llantas
                     </label>
                     <input
-                      name="numeroLlantas"
-                      value={form.numeroLlantas}
+                      name="numLlantas"
+                      value={form.numLlantas}
                       onChange={handleChange}
                       type="text"
                       className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"

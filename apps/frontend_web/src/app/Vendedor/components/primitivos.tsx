@@ -2,13 +2,14 @@
 import Link from 'next/link';
 import React from 'react'
 import { TableCell, TableRow } from '../../../components/ui/table';
-import { CuponesPropsFront, OrdenesProps, ProductosPropsFront } from '@/types/interface'
+import { CuponesPropsFront, DescuentosPropsFront, OrdenesProps, ProductosPropsFront } from '@/types/interface'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../../../components/ui/sheet';
 import { FaInfo } from 'react-icons/fa6';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { FaTrash, FaCaretUp } from "react-icons/fa6";
 import { useProducts } from '@/hooks/useProduct';
 import { useCupons } from '@/hooks/useCupons';
+import { useDescuentos } from '@/hooks/useDescuentos';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -116,6 +117,101 @@ export const Cupon = ({ CuponID, CuponCode, TimesUsed, CuponStatus, EndDate, var
       return (
         <div className='flex justify-between mb-1.5'>
           <div className='w-fit px-2 py-1 rounded-3xl bg-[#F3F4F6] font-medium'>{CuponCode}</div>
+          <div className='w-full flex place-content-end me-3 font-medium'>{TimesUsed}</div>
+        </div>
+      )
+
+    default:
+      return null;
+  }
+}
+
+export const Descuento = ({ DescuentoID, DescuentoName, TimesUsed, DescuentoStatus, EndDate, variant = 'full' }: DescuentosPropsFront) => {
+  const { deleteDescuento } = useDescuentos()
+  
+  const getStatusBadge = (status: number) => (
+    <span className={`w-max rounded-lg px-[6px] ${
+      status === 1 ? 'text-green-400 bg-green-100' :
+      status === 2 ? 'text-orange-400 bg-orange-100' :
+      status === 3 ? 'text-red-400 bg-red-100' : ''
+    }`}>
+      {
+        status === 1 ? 'Activo' :
+        status === 2 ? 'Borrado' :
+        status === 3 ? 'Caducado' : ''
+      }
+    </span>
+  );
+
+  switch (variant) {
+    case 'full':
+      return (
+        <TableRow key={DescuentoID}>
+          <TableCell>{DescuentoName}</TableCell>
+          <TableCell>{TimesUsed}</TableCell>
+          <TableCell>
+            {getStatusBadge(DescuentoStatus)}
+          </TableCell>
+          <TableCell>{EndDate}</TableCell>
+          <TableCell>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button className='bg-red-700 rounded-2xl w-[38px] h-[38px] p-0'>
+                  <FaTrash color='white' />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Seguro que quieres eliminar {DescuentoName}?</AlertDialogTitle>
+                  <AlertDialogDescription>Esto hará que el descuento no se pueda volver a usar</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction className='bg-red-700' onClick={() => deleteDescuento(DescuentoID)}>Borrar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button className='bg-blue-700 rounded-2xl ml-2 w-[38px] h-[38px] p-0'>
+                  <FaCaretUp color='white' size={14} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className='rounded-lg m-3 h-fit w-[800px]'>
+                <SheetHeader>
+                  <SheetTitle>{DescuentoName}</SheetTitle>
+                  <SheetDescription>
+                    Detalles del descuento
+                    <Separator className='mt-2' />
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mx-5 mb-5 text-sm">
+                  <div className='flex mt-3.5'>
+                    <div className='w-full'>Veces usado</div>
+                    <div className='w-full'>{TimesUsed}</div>
+                  </div>
+                  <div className='flex mt-3.5'>
+                    <div className='w-full'>Estatus</div>
+                    <div className='w-full'>
+                      {getStatusBadge(DescuentoStatus)}
+                    </div>
+                  </div>
+                  <div className='flex mt-3.5'>
+                    <div className='w-full'>Fecha de expiración</div>
+                    <div className='w-full'>{EndDate}</div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </TableCell>
+        </TableRow>
+      )
+
+    case 'compact':
+      return (
+        <div className='flex justify-between mb-1.5'>
+          <div className='w-fit px-2 py-1 rounded-3xl bg-[#F3F4F6] font-medium'>{DescuentoName}</div>
           <div className='w-full flex place-content-end me-3 font-medium'>{TimesUsed}</div>
         </div>
       )

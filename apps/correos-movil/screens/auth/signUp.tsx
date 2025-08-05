@@ -543,31 +543,70 @@ export default function SignUpScreen() {
               <Text style={styles.termsTitle}>TÉRMINOS Y CONDICIONES DE USO – CORREOS CLIC (APLICACIÓN MÓVIL){'\n\n'}</Text>
               
               <Text style={styles.sectionTitle}>1. Información General{'\n'}</Text>
-              La aplicación móvil “Correos Clic”, operada por el Servicio Postal Mexicano (SEPOMEX), 
-              está disponible para dispositivos Android e iOS y permite comprar, vender, 
-              rastrear envíos y recibir notificaciones comerciales.
-              
+              • La aplicación móvil “Correos Clic”, operada por el Servicio Postal Mexicano (SEPOMEX), está disponible para dispositivos Android e iOS y permite comprar, vender, 
+              rastrear envíos y recibir notificaciones comerciales.{'\n'}
+
               <Text style={styles.sectionTitle}>2. Objeto{'\n'}</Text>
-              Este documento regula el uso de la App, incluyendo permisos, pagos, envíos, notificaciones, seguridad y tratamiento de datos personales.
+              • Este documento regula el uso de la App, incluyendo permisos, pagos, envíos, notificaciones, seguridad y tratamiento de datos personales.{'\n'}
+
+              <Text style={styles.sectionTitle}>3. Acceso y Uso{'\n'}</Text>
+              • Es necesario tener un dispositivo móvil compatible y acceso a internet.{'\n'}
+              • Algunas funciones requieren permisos como acceso a cámara, ubicación o almacenamiento.{'\n'}
+              • El usuario puede configurar estos permisos desde su dispositivo.{'\n'}
+
+              <Text style={styles.sectionTitle}>4. Registro de Usuario{'\n'}</Text>
+              • Es necesario registrarse con datos verídicos.{'\n'}
+              • El usuario es responsable de su contraseña y del uso de su cuenta.{'\n'}
+              • Correos Clic puede suspender cuentas ante actividades sospechosas.{'\n'}
               
-              <Text style={styles.sectionTitle}>3. PRIVACIDAD Y DATOS PERSONALES{'\n'}</Text>
-              Recopilamos y procesamos sus datos personales de acuerdo con nuestra Política de Privacidad. Al aceptar estos términos, usted consiente el procesamiento de sus datos personales según se describe en dicha política.{'\n\n'}
+              <Text style={styles.sectionTitle}>5. Compras y Pagos{'\n'}</Text>
+              • Se procesan mediante pasarelas seguras (no se almacenan datos bancarios).{'\n'}
+              • Se aceptan tarjetas y otros métodos disponibles según región.{'\n'}
+              • Los precios incluyen IVA y están en pesos mexicanos{'\n'}
+
               
-              <Text style={styles.sectionTitle}>4. RESPONSABILIDADES DEL USUARIO{'\n'}</Text>
-              • Proporcionar información veraz y actualizada{'\n'}
-              • Mantener la confidencialidad de sus credenciales{'\n'}
-              • No usar el servicio para actividades ilegales{'\n'}
-              • Cumplir con todas las regulaciones aplicables{'\n\n'}
-              
-              <Text style={styles.sectionTitle}>5. LIMITACIÓN DE RESPONSABILIDAD{'\n'}</Text>
-              Correos de México no será responsable por daños indirectos, incidentales o consecuentes que resulten del uso de nuestros servicios.{'\n\n'}
-              
-              <Text style={styles.sectionTitle}>6. MODIFICACIONES{'\n'}</Text>
-              Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán efectivos cuando se publiquen en la aplicación.{'\n\n'}
-              
-              <Text style={styles.sectionTitle}>7. CONTACTO{'\n'}</Text>
-              Para preguntas sobre estos términos, contáctenos a través de los canales oficiales de Correos de México.
+              <Text style={styles.sectionTitle}>6. Envíos, Tiempos de Entrega y Devoluciones{'\n'}</Text>
+              • Entregas a través de Mexpost o socios autorizados.{'\n'}
+              • Tiempo estimado: 7 a 15 días hábiles.{'\n'}
+              • Las políticas de devolución están detalladas en el sitio.{'\n'}
+              • No aplican devoluciones para alimentos, ropa íntima o productos personalizados.{'\n'}
+
+              <Text style={styles.sectionTitle}>7. Notificaciones{'\n'}</Text>
+              • La App puede enviar notificaciones automáticas sobre pedidos, promociones y actualizaciones.{'\n'}
+              • El usuario puede desactivarlas desde la configuración de su dispositivo.{'\n'}
+
+              <Text style={styles.sectionTitle}>8. Privacidad y Protección de Datos{'\n'}</Text>
+              • La App solo solicita los datos necesarios para operar{'\n'}
+              • Se respetan los Derechos ARCO: 
+              ° Acceso, Rectificación, Cancelación y Oposición.{'\n'}
+              • Las solicitudes pueden enviarse a:
+              ○	Compradores: contactocc@correosdemexico.gob.mx
+              ○	Vendedores: correosclic@correosdemexico.gob.mx{'\n'}
+
+            <Text style={styles.sectionTitle}>9. Propiedad Intelectual{'\n'}</Text>
+              • El diseño, código fuente, interfaces y contenido de la App pertenecen al Servicio Postal Mexicano.{'\n'}
+              • Está prohibido su uso o reproducción sin autorización expresa.{'\n'}
+
+            <Text style={styles.sectionTitle}>10. Seguridad{'\n'}</Text>
+              • Se utilizan protocolos de cifrado.{'\n'}
+              • En operaciones sensibles se podrá requerir verificación de identidad.{'\n'}
+
+            <Text style={styles.sectionTitle}>11. Actualizaciones{'\n'}</Text>
+              • La App puede actualizarse automáticamente para mejorar funciones o corregir errores.{'\n'}
+              • El usuario es responsable de mantener la App actualizada.{'\n'}
+            
+            <Text style={styles.sectionTitle}>12. Legislación y Jurisdicción{'\n'}</Text>
+              • Aplican las leyes de los Estados Unidos Mexicanos.{'\n'}
+              • En caso de disputa, se acudirá a los tribunales de la Ciudad de México.{'\n'}
+            
+            <Text style={styles.sectionTitle}>13. Contacto{'\n'}</Text>
+              •	Sitio web: www.correosclic.gob.mx{'\n'}
+              •	Correo electrónico:{'\n'}
+              ○	Compradores: contactocc@correosdemexico.gob.mx{'\n'}
+              ○	Vendedores: correosclic@correosdemexico.gob.mx{'\n'}
+              •	Teléfono: (55) 5130 4100 ext. 4500 / 800 701 7000{'\n'}
             </Text>
+
           </ScrollView>
           
           <View style={styles.modalFooter}>

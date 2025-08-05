@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { GuiaTypeormEntity } from 'src/guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
-import { Unidad } from 'src/unidades/entities/unidad.entity';
+import { GuiaTypeormEntity } from '../../guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
+import { Unidad } from '../../unidades/entities/unidad.entity';
 
 export enum EstadoEnvio {
   PENDIENTE = 'pendiente',

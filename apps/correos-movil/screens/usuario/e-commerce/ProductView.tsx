@@ -10,11 +10,12 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMyAuth } from '../../../context/AuthContext';
+import ProductListScreen, { Articulo } from '../../../components/Products/ProductRecommended'
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
-const IP = process.env.EXPO_PUBLIC_IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_API_URL;
 
 function ProductView() {
     const navigation = useNavigation();
@@ -30,22 +31,39 @@ function ProductView() {
     const [favoritoId, setFavoritoId] = React.useState<number | null>(null);
     const [carritoId, setCarritoId] = React.useState<number | null>(null);
     const { userId } = useMyAuth();
+    const [recommended, setRecommended] = React.useState<any[]>([]);
+    const isMounted = React.useRef(true);
 
     // Formatear precio
     const formatPrice = (price: number) => {
         return `MXN $ ${price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
+    // Obtener userId una sola vez
+    const getUserId = React.useCallback(async () => {
+        try {
+            const storedUserId = await AsyncStorage.getItem('userId');
+            return storedUserId ? Number(storedUserId) : userId;
+        } catch (err) {
+            console.error("Error al obtener userId de AsyncStorage:", err);
+            return null;
+        }
+    }, [userId]);
+
+    React.useEffect(() => {
+        return () => {
+            isMounted.current = false; // Marcar componente como desmontado
+        };
+    }, []);
+
     React.useEffect(() => {
         const fetchProduct = async () => {
+            const controller = new AbortController();
             try {
                 setLoading(true);
-                const API_BASE_URL = `http://${IP}:3000`;
-
-                const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-                const response = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal });
+                const response = await fetch(`${IP}/api/products/${id}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
@@ -62,17 +80,22 @@ function ProductView() {
                     category: data.categoria,
                     color: data.color
                 };
-                setProduct(transformedData);
-
-            } catch (err: any) {
-                if (err.name === 'AbortError') {
-                    setError("La solicitud tardó demasiado en responder (tiempo de espera agotado).");
-                } else {
-                    setError(err.message || "Error desconocido al obtener los datos del producto.");
+                if (isMounted.current) {
+                    setProduct(transformedData);
                 }
-                console.error("Error fetching product:", err);
+            } catch (err: any) {
+                if (isMounted.current) {
+                    if (err.name === 'AbortError') {
+                        setError("La solicitud tardó demasiado en responder (tiempo de espera agotado).");
+                    } else {
+                        setError(err.message || "Error desconocido al obtener los datos del producto.");
+                    }
+                    console.error("Error fetching product:", err);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted.current) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -86,96 +109,152 @@ function ProductView() {
 
     React.useEffect(() => {
         const verificarEstado = async () => {
-            const userId = await AsyncStorage.getItem('userId');
+            const userId = await getUserId();
             if (!userId) return;
 
+            const controller = new AbortController();
             try {
-                const resFav = await fetch(`http://${IP}:3000/api/favoritos/${userId}`);
+                // Ejecutar solicitudes de forma secuencial para evitar condiciones de carrera
+                const resFav = await fetch(`${IP}/api/favoritos/${userId}`, { signal: controller.signal });
                 const favoritos = await resFav.json();
                 const fav = favoritos.find((f: any) => f.producto.id === Number(id));
-                if (fav) {
+                if (isMounted.current && fav) {
                     setLiked(true);
                     setFavoritoId(fav.id);
                 }
 
-                const resCart = await fetch(`http://${IP}:3000/api/carrito/${userId}`);
+                const resCart = await fetch(`${IP}/api/carrito/${userId}`, { signal: controller.signal });
                 const carrito = await resCart.json();
                 const item = carrito.find((c: any) => c.producto.id === Number(id));
-                if (item) {
+                if (isMounted.current && item) {
                     setInCart(true);
                     setCarritoId(item.id);
                 }
-
-            } catch (err) {
-                console.log("Error verificando favoritos o carrito:", err);
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    console.error("Error verificando favoritos o carrito:", err);
+                }
             }
         };
 
-        if (product) {
+        if (product && isMounted.current) {
             verificarEstado();
         }
+    }, [product, getUserId]);
+
+    React.useEffect(() => {
+        const controller = new AbortController();
+        const fetchRecommended = async () => {
+            try {
+                if (!product || !product.category) {
+                    console.log("No se puede cargar productos recomendados: product o category no están disponibles");
+                    return;
+                }
+                console.log("Cargando productos recomendados para la categoría:", product.category);
+                const response = await fetch(`${IP}/api/products/random/${product.category}`, {
+                    signal: controller.signal,
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (isMounted.current) {
+                    setRecommended(Array.isArray(data) ? data : []);
+                    console.log("Productos recomendados obtenidos (data):", data);
+                }
+            } catch (err: any) {
+                if (err.name !== "AbortError") {
+                    console.error("Error al cargar productos recomendados:", err);
+                    if (isMounted.current) {
+                        setRecommended([]);
+                    }
+                } else {
+                    console.log("Fetch abortado");
+                }
+            }
+        };
+
+        if (product && product.category && isMounted.current) {
+            fetchRecommended();
+        }
+
+        return () => {
+            controller.abort();
+        };
     }, [product]);
 
+
+
     const toggleFavorito = async () => {
-        const userId = await AsyncStorage.getItem('userId');
+        const userId = await getUserId();
         if (!userId) return;
 
-        if (!liked) {
-            try {
-                const res = await fetch(`http://${IP}:3000/api/favoritos`, {
+        const controller = new AbortController();
+        try {
+            if (!liked) {
+                const res = await fetch(`${IP}/api/favoritos`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ profileId: Number(userId), productId: Number(id) }),
+                    body: JSON.stringify({ profileId: userId, productId: Number(id) }),
+                    signal: controller.signal,
                 });
                 const data = await res.json();
-                setFavoritoId(data.id);
-                setLiked(true);
-            } catch (err) {
-                console.error("Error al agregar a favoritos:", err);
-            }
-        } else {
-            try {
-                await fetch(`http://${IP}:3000/api/favoritos/${favoritoId}`, {
+                if (isMounted.current) {
+                    setFavoritoId(data.id);
+                    setLiked(true);
+                }
+            } else if (favoritoId) {
+                await fetch(`${IP}/api/favoritos/${favoritoId}`, {
                     method: 'DELETE',
+                    signal: controller.signal,
                 });
-                setFavoritoId(null);
-                setLiked(false);
-            } catch (err) {
-                console.error("Error al quitar de favoritos:", err);
+                if (isMounted.current) {
+                    setFavoritoId(null);
+                    setLiked(false);
+                }
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error("Error al manejar favoritos:", err);
             }
         }
     };
 
     const toggleCarrito = async () => {
-        const userId = await AsyncStorage.getItem('userId');
+        const userId = await getUserId();
         if (!userId) return;
 
-        if (!inCart) {
-            try {
-                const res = await fetch(`http://${IP}:3000/api/carrito`, {
+        const controller = new AbortController();
+        try {
+            if (!inCart) {
+                const res = await fetch(`${IP}/api/carrito`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        profileId: Number(userId),
+                        profileId: userId,
                         productId: Number(id),
                         cantidad: 1,
                     }),
+                    signal: controller.signal,
                 });
                 const data = await res.json();
-                setCarritoId(data.id);
-                setInCart(true);
-            } catch (err) {
-                console.error("Error al agregar a carrito:", err);
-            }
-        } else {
-            try {
-                await fetch(`http://${IP}:3000/api/carrito/${carritoId}`, {
+                if (isMounted.current) {
+                    setCarritoId(data.id);
+                    setInCart(true);
+                }
+            } else if (carritoId) {
+                await fetch(`${IP}/api/carrito/${carritoId}`, {
                     method: 'DELETE',
+                    signal: controller.signal,
                 });
-                setCarritoId(null);
-                setInCart(false);
-            } catch (err) {
-                console.error("Error al quitar del carrito:", err);
+                if (isMounted.current) {
+                    setCarritoId(null);
+                    setInCart(false);
+                }
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error("Error al manejar carrito:", err);
             }
         }
     };
@@ -327,10 +406,9 @@ function ProductView() {
 
                 <View style={styles.recommendedContainer}>
                     <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
-                    <View style={styles.recommendedPlaceholder}>
-                        <Text style={styles.recommendedText}>Aquí van los productos recomendados</Text>
-                    </View>
+                    <ProductListScreen productos={recommended} />
                 </View>
+                
             </View>
         </ScrollView>
     );

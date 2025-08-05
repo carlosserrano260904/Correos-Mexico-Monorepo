@@ -51,6 +51,9 @@ export class GuiaTypeormEntity {
     @Column({ type: 'timestamptz', nullable: true })
     fecha_entrega_estimada: Date;
 
+    @Column({ type: 'varchar', nullable: true })
+    key_pdf: string | null;
+
     @OneToMany(() => Envio, envio => envio.guia)
     envios: Envio[];
 }

@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { In } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
@@ -58,4 +59,36 @@ export class ProductsService {
     await this.productRepository.remove(producto)
     return `Producto eliminado correctamente`;
   }
+
+  async get18RandomByCategoryOptimized(categoria: string): Promise<Product[]> {
+  if (!categoria) return [];
+
+  const idsResult = await this.productRepository
+    .createQueryBuilder('p')
+    .select('p.id', 'id') // alias para que el raw tenga { id: ... }
+    .where('LOWER(p.categoria) = LOWER(:categoria)', { categoria })
+    .orderBy('RANDOM()')
+    .limit(18)
+    .getRawMany<{ id: number }>();
+
+  const ids = idsResult.map(r => r.id).filter(Boolean);
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const productsUnordered = await this.productRepository.find({
+    where: { id: In(ids) },
+  });
+
+  const productsById = new Map<number, Product>();
+  productsUnordered.forEach(p => productsById.set(p.id, p));
+
+  const ordered: Product[] = [];
+  ids.forEach(id => {
+    const prod = productsById.get(id);
+    if (prod) ordered.push(prod);
+  });
+
+  return ordered;
+}
 }

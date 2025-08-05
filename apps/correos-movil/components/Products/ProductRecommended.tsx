@@ -10,10 +10,9 @@ import {
 } from 'react-native';
 import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import Constants from 'expo-constants';
 import { useMyAuth } from '../../context/AuthContext';
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_API_URL;
 
 export type Articulo = {
   id: string;
@@ -26,7 +25,6 @@ export type Articulo = {
 
 export type ProductListScreenProps = {
   productos: Articulo[];
-  search?: string;
 };
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -51,6 +49,8 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   );
 };
 
+// ... (importaciones y código previo sin cambios)
+
 const ProductoCard: React.FC<{
   articulo: Articulo;
   favoritos: Record<number, number>;
@@ -64,7 +64,6 @@ const ProductoCard: React.FC<{
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
     colorArray = articulo.color.split(',');
   } else if (Array.isArray(articulo.color)) {
-
     colorArray = articulo.color;
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
@@ -113,18 +112,15 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   useEffect(() => {
     if (!userId) return;
 
-    // Cambiamos al endpoint de favoritos para obtener los del usuario
-    fetch(`http://${IP}:3000/api/favoritos/${userId}`)
+    fetch(`${IP}/api/favoritos/${userId}`)
       .then(r => {
         if (r.status === 404) {
-          return []; // Si el usuario no tiene favoritos, la API devuelve 404. Lo tratamos como un array vacío.
+          return [];
         }
         return r.json();
       })
       .then((data: Array<{ id: number; producto: { id: number } }>) => {
-        // Si la respuesta es un array, procesamos los favoritos.
         if (Array.isArray(data)) {
-          // Transformamos la respuesta en un mapa para fácil acceso y borrado
           const favoritosMap = data.reduce(
             (acc, fav) => {
               if (fav && fav.producto && fav.producto.id) {
@@ -143,10 +139,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   useEffect(() => {
     if (!userId) return;
 
-    fetch(`http://${IP}:3000/api/carrito/${userId}`)
+    fetch(`${IP}/api/carrito/${userId}`)
       .then(r => {
         if (r.status === 404) {
-          return []; // Si el carrito está vacío, la API devuelve 404.
+          return [];
         }
         if (!r.ok) throw new Error('Error al obtener el carrito');
         return r.json();
@@ -183,12 +179,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     }
 
     const esFavorito = favoritos.hasOwnProperty(productoId);
-    const originalFavoritos = { ...favoritos }; // Guardamos el estado original para rollback
+    const originalFavoritos = { ...favoritos };
 
     if (esFavorito) {
-
       const favoritoId = favoritos[productoId];
-
       setFavoritos(prev => {
         const newState = { ...prev };
         delete newState[productoId];
@@ -196,23 +190,19 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       });
 
       try {
-        const url = `http://${IP}:3000/api/favoritos/${favoritoId}`;
+        const url = `${IP}/api/favoritos/${favoritoId}`;
         const response = await fetch(url, { method: 'DELETE' });
-
         if (!response.ok) {
-
           console.error('Error al eliminar el favorito, revirtiendo estado.');
           setFavoritos(originalFavoritos);
         }
       } catch (error) {
-
         console.error('Error de red al eliminar favorito, revirtiendo estado:', error);
         setFavoritos(originalFavoritos);
       }
     } else {
-      // --- Lógica para AGREGAR un favorito ---
       try {
-        const url = `http://${IP}:3000/api/favoritos`;
+        const url = `${IP}/api/favoritos`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -226,21 +216,18 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
 
         const nuevoFavorito = await response.json();
         setFavoritos(prev => ({ ...prev, [productoId]: nuevoFavorito.id }));
-
       } catch (error) {
         console.error('No se pudo agregar el favorito:', error);
       }
     }
   };
 
-  const cols = Dimensions.get('window').width;
-  const numCols = cols > 1024 ? 4 : cols > 768 ? 3 : 2;
-
   return (
     <View style={styles.container}>
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
+        horizontal
         renderItem={({ item }) => (
           <ProductoCard
             articulo={item}
@@ -249,10 +236,9 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
             isInCart={cartItems.hasOwnProperty(parseInt(item.id, 10))}
           />
         )}
-        numColumns={numCols}
-        columnWrapperStyle={styles.row}
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContentContainer}
-        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
       />
     </View>
   );
@@ -260,15 +246,13 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
   tarjetaProducto: {
-    flex: 1,
+    width: 160, // Ancho fijo para las tarjetas
     margin: 5,
     backgroundColor: 'white',
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3,
-    maxWidth: '48%'
   },
   imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
   estadoProducto: {
@@ -292,7 +276,7 @@ const styles = StyleSheet.create({
   },
   textoContador: { fontSize: 10, fontWeight: '600', color: '#666' },
   listContentContainer: {
-    paddingBottom: 20,
+    paddingBottom: 10,
     paddingHorizontal: 10,
   },
 });

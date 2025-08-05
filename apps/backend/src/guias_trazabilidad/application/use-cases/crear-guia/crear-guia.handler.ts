@@ -16,6 +16,10 @@ import {
   GOOGLE_GEOCODE_REPOSITORY_INTERFACE,
   GoogleGeocodeRepositoryInterface
 } from '../../ports/outbound/geocode.repository.interface';
+import {
+  AWS_REPOSITORY_INTERFACE,
+  AWSRepositoryInterface
+} from '../../ports/outbound/aws.repository.interface';
 import { CrearGuiaCommand } from './crear-guia.command';
 import { mapperCrearGuia } from './mapper/crear-guia.mapper';
 
@@ -31,7 +35,9 @@ export class CrearGuiaCommandHandler
     @Inject(QR_GENERATOR_REPOSITORY)
     private readonly qrRepository: QRGeneratorRepositoryInterface,
     @Inject(GOOGLE_GEOCODE_REPOSITORY_INTERFACE)
-    private readonly geocodeRepository: GoogleGeocodeRepositoryInterface
+    private readonly geocodeRepository: GoogleGeocodeRepositoryInterface,
+    @Inject(AWS_REPOSITORY_INTERFACE)
+    private readonly awsRepository: AWSRepositoryInterface
   ) {}
 
   async execute(command: CrearGuiaCommand): Promise<{ numeroRastreo: string; pdf: Buffer }> {
@@ -71,7 +77,6 @@ export class CrearGuiaCommandHandler
     // crear guia pasando por todas las validaciones
     const guia = mapperCrearGuia(command, coordenadasRemitente, coordenadasDestinatario);
 
-
     // persistencia
     await this.guiaRepository.save(guia);
 
@@ -100,6 +105,11 @@ export class CrearGuiaCommandHandler
         throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
       }
     }
+
+    // // subir pdf a s3
+    // const pdfBuffer = pdfResult.getValue();
+    // const pdfKey = await this.awsRepository.subirPDF(pdfBuffer, guia.NumeroRastreo.getNumeroRastreo);
+    // console.log(`Se subio el PDF a S3 con el key: ${pdfKey}`); // TODO: eliminar, comentario de debug
 
     return {
       numeroRastreo: guia.NumeroRastreo.getNumeroRastreo,

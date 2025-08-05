@@ -57,7 +57,7 @@ describe('UnidadesService', () => {
 
   const mockUnidad: Unidad = {
     id: '1',
-    tipoVehiculoId: 'camion de 10 mtrs',
+    tipoVehiculoId: 1,
     tipoVehiculo: mockTipoVehiculo,
     placas: 'ABC1234',
     volumenCarga: 120.5,
@@ -72,6 +72,7 @@ describe('UnidadesService', () => {
     zonaAsignada: '',
     estado: 'disponible' as const,
     envios: [],
+    asignada: "00304" as unknown as Oficina,
   };
 
   /**

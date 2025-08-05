@@ -10,6 +10,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { HistorialAsignacion } from '../entities/historial-asignacion.entity';
 import { HistorialAsignacionesService } from '../historial-asignaciones.service';
 
@@ -104,14 +105,28 @@ describe('HistorialAsignacionesService', () => {
    * @description Pruebas para el registro de llegada a destino
    */
   describe('registrarLlegadaDestino', () => {
-    /**
-     * @test
-     * @description Debe actualizar correctamente la fecha de llegada y oficina actual
-     * - Verifica que solo actualiza registros con fechaLlegadaDestino nula
-     * - Confirma que actualiza ambos campos (claveOficinaActual y fechaLlegadaDestino)
-     */
     it('debe actualizar fechaLlegadaDestino y claveOficinaActual', async () => {
-      mockRepository.update.mockResolvedValue({ affected: 1, generatedMaps: [], raw: [] });
+      const mockAsignacion: HistorialAsignacion = {
+        id: 1,
+        nombreConductor: 'Juan Pérez',
+        curp: 'GARC850101HDFLLL05',
+        placasUnidad: 'ABC1234',
+        claveOficinaSalida: 'OF001',
+        claveOficinaDestino: 'CUO002',
+        claveOficinaActual: 'OF001',
+        fechaAsignacion: new Date(),
+        fechaLlegadaDestino: null,
+        fechaFinalizacion: null,
+      };
+
+      // Mockear findOne para devolver una asignación existente
+      mockRepository.findOne.mockResolvedValue(mockAsignacion);
+      // Mockear save para devolver la asignación actualizada
+      mockRepository.save.mockResolvedValue({
+        ...mockAsignacion,
+        claveOficinaActual: 'CUO002',
+        fechaLlegadaDestino: new Date(),
+      });
 
       await service.registrarLlegadaDestino(
         'GARC850101HDFLLL05',
@@ -119,20 +134,36 @@ describe('HistorialAsignacionesService', () => {
         'CUO002',
       );
 
-      expect(mockRepository.update).toHaveBeenCalledWith(
-        {
+      // Verificar que se buscó la asignación correcta
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: {
           curp: 'GARC850101HDFLLL05',
           placasUnidad: 'ABC1234',
           fechaLlegadaDestino: IsNull(),
         },
-        {
-          claveOficinaActual: 'CUO002',
-          fechaLlegadaDestino: expect.any(Date),
-        },
-      );
+        order: { fechaAsignacion: 'DESC' },
+      });
+
+      // Verificar que se guardaron los cambios correctos
+      expect(mockRepository.save).toHaveBeenCalledWith({
+        ...mockAsignacion,
+        claveOficinaActual: 'CUO002',
+        fechaLlegadaDestino: expect.any(Date),
+      });
+    });
+
+    it('debe lanzar NotFoundException si no encuentra asignación activa', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.registrarLlegadaDestino(
+          'GARC850101HDFLLL05',
+          'ABC1234',
+          'CUO002',
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
   });
-
   /**
    * @describe finalizarAsignacion
    * @description Pruebas para la finalización de asignaciones
@@ -150,9 +181,9 @@ describe('HistorialAsignacionesService', () => {
       await service.finalizarAsignacion('GARC850101HDFLLL05', 'ABC1234');
 
       expect(mockRepository.update).toHaveBeenCalledWith(
-        { 
-          curp: 'GARC850101HDFLLL05', 
-          placasUnidad: 'ABC1234', 
+        {
+          curp: 'GARC850101HDFLLL05',
+          placasUnidad: 'ABC1234',
           fechaFinalizacion: IsNull(),
         },
         { fechaFinalizacion: expect.any(Date) },
@@ -191,11 +222,11 @@ describe('HistorialAsignacionesService', () => {
       mockRepository.find.mockResolvedValue(mockHistorial);
 
       const result = await service.getHistorial('ABC1234', 'GARC850101HDFLLL05');
-      
+
       expect(mockRepository.find).toHaveBeenCalledWith({
-        where: { 
-          placasUnidad: 'ABC1234', 
-          curp: 'GARC850101HDFLLL05' 
+        where: {
+          placasUnidad: 'ABC1234',
+          curp: 'GARC850101HDFLLL05'
         },
         order: { fechaAsignacion: 'DESC' },
       });

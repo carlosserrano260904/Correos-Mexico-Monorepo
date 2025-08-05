@@ -109,30 +109,11 @@ export class GuiaController {
 
     // !============= QUERIES =============
 
-    @Get('/:numero-rastreo')
-    @ApiOperation({ summary: 'Obtiene una guía completa por numero de rastreo con toda la trazabilidad' })
-    @ApiParam({ name: 'numeroRastreo', description: 'Numero de rastreo de la guia', example: 'GU123456789MX' })
-    @ApiResponse({ status: 200, description: 'Guia encontrada con historial completo' })
-    @ApiResponse({ status: 404, description: 'Guia no encontrada' })
-    async obtenerGuiaPorNumero(@Param('numeroRastreo') numeroRastreo: string) {
-        const query = new ObtenerGuiaPorNumeroQuery(numeroRastreo);
-        const result = await this.queryBus.execute(query);
-
-        if (result.isFailure()) {
-            throw new NotFoundException(result.getError());
-        }
-
-        return {
-            data: result.getValue(),
-            status: 'ok'
-        };
-    }
-
-    @Get('')
-    @ApiOperation({ summary: 'Lista todas las guías registradas' })
-    @ApiResponse({ status: 200, description: 'Lista de guías obtenida correctamente' })
-    async listarTodasLasGuias() {
-        const query = new ListarGuiasQuery();
+    @Get('/contactos')
+    @ApiOperation({ summary: 'Lista todos los contactos registrados' })
+    @ApiResponse({ status: 200, description: 'Lista de contactos obtenida correctamente' })
+    async listarTodosLosContactos() {
+        const query = new ListarContactosQuery();
         const result = await this.queryBus.execute(query);
 
         if (result.isFailure()) {
@@ -164,11 +145,11 @@ export class GuiaController {
         };
     }
 
-    @Get('/contactos')
-    @ApiOperation({ summary: 'Lista todos los contactos registrados' })
-    @ApiResponse({ status: 200, description: 'Lista de contactos obtenida correctamente' })
-    async listarTodosLosContactos() {
-        const query = new ListarContactosQuery();
+    @Get('')
+    @ApiOperation({ summary: 'Lista todas las guías registradas' })
+    @ApiResponse({ status: 200, description: 'Lista de guías obtenida correctamente' })
+    async listarTodasLasGuias() {
+        const query = new ListarGuiasQuery();
         const result = await this.queryBus.execute(query);
 
         if (result.isFailure()) {
@@ -178,6 +159,25 @@ export class GuiaController {
         return {
             data: result.getValue(),
             total: result.getValue().length,
+            status: 'ok'
+        };
+    }
+
+    @Get('/:numeroRastreo')
+    @ApiOperation({ summary: 'Obtiene una guía completa por numero de rastreo con toda la trazabilidad' })
+    @ApiParam({ name: 'numeroRastreo', description: 'Numero de rastreo de la guia', example: 'GU123456789MX' })
+    @ApiResponse({ status: 200, description: 'Guia encontrada con historial completo' })
+    @ApiResponse({ status: 404, description: 'Guia no encontrada' })
+    async obtenerGuiaPorNumero(@Param('numeroRastreo') numeroRastreo: string) {
+        const query = new ObtenerGuiaPorNumeroQuery(numeroRastreo);
+        const result = await this.queryBus.execute(query);
+
+        if (result.isFailure()) {
+            throw new NotFoundException(result.getError());
+        }
+
+        return {
+            data: result.getValue(),
             status: 'ok'
         };
     }
@@ -196,10 +196,10 @@ export class GuiaController {
                     'POST /guias/qrcode'
                 ],
                 queries: [
-                    'GET /guias/numero-rastreo',
-                    'GET /guias',
+                    'GET /guias/contactos',
                     'GET /guias/incidencias',
-                    'GET /guias/contactos'
+                    'GET /guias',
+                    'GET /guias/:numeroRastreo'
                 ]
             },
             status: 'ok'

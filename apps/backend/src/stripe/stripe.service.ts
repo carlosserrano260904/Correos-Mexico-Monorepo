@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
+import { Repository } from 'typeorm';
+import { Card } from 'src/cards/entities/card.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class StripeService {
@@ -9,6 +13,14 @@ export class StripeService {
       apiVersion: '2025-07-30.basil',
     }
   );
+
+  constructor(
+    @InjectRepository(Card)
+    private readonly cardRepo: Repository<Card>,
+
+    @InjectRepository(Profile)
+    private readonly profileRepo: Repository<Profile>,
+  ) {}
 
   async createCustomer(email: string) {
     return await this.stripe.customers.create({ email });
@@ -28,11 +40,38 @@ export class StripeService {
 
   async createPaymentIntent(amount: number, customerId: string, paymentMethodId: string) {
     return await this.stripe.paymentIntents.create({
-      amount, // en centavos: 100 = 1.00 MXN
+      amount,
       currency: 'mxn',
       customer: customerId,
       payment_method: paymentMethodId,
+      payment_method_types: ['card'],
       confirm: true,
     });
+  }
+
+  async saveCardToDatabase(paymentMethod: Stripe.PaymentMethod, profileId: number) {
+    const profile = await this.profileRepo.findOne({ where: { id: profileId } });
+    if (!profile) throw new Error('Perfil no encontrado');
+
+    const card = this.cardRepo.create({
+      stripeCardId: paymentMethod.id,
+      last4: paymentMethod.card?.last4 ?? '',
+      brand: paymentMethod.card?.brand ?? '',
+      profile,
+      profileId,
+    });
+
+    return await this.cardRepo.save(card);
+  }
+
+  async associateCardAndSave(customerId: string, paymentMethodId: string, profileId: number) {
+    // 1. Asociar tarjeta al cliente en Stripe
+    await this.attachPaymentMethod(customerId, paymentMethodId);
+
+    // 2. Obtener los datos de la tarjeta desde Stripe
+    const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodId);
+
+    // 3. Guardar en base de datos
+    return await this.saveCardToDatabase(paymentMethod, profileId);
   }
 }

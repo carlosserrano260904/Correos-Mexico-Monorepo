@@ -1,3 +1,4 @@
+// AgregarTarjetaScreen.tsx (CORREGIDO)
 import React, { useState } from 'react';
 import {
   Platform, StyleSheet, Text, TouchableOpacity, View, Alert
@@ -11,7 +12,8 @@ import axios from 'axios';
 import { useStripe, CardField, CardFieldInput } from '@stripe/stripe-react-native';
 
 type AgregarTarjetaNavProp = NativeStackNavigationProp<RootStackParamList, 'AgregarTarjetaScreen'>;
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL; // <-- TU IP LOCAL
+
 
 export default function AgregarTarjetaScreen() {
   const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
@@ -28,42 +30,35 @@ export default function AgregarTarjetaScreen() {
         return;
       }
 
-      // 1. Obtener el perfil del usuario para extraer profileId y stripeCustomerId
+      // 1. Obtener el perfil del usuario para el customerId
       const userProfileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
-      const userProfile = userProfileRes.data;
-      if (!userProfile || !userProfile.id || !userProfile.stripeCustomerId) {
-        throw new Error('No se pudo obtener el perfil o el stripeCustomerId.');
-      }
-      const profileId = userProfile.id;
-      const stripeCustomerId = userProfile.stripeCustomerId;
+      const { stripeCustomerId, id: profileId } = userProfileRes.data;
 
-      // 2. Crear token en Stripe
-      const { token, error } = await stripe.createToken({ type: 'Card' });
+      if (!stripeCustomerId || !profileId) throw new Error('No se encontró el customerId o profileId');
 
-      if (error || !token) {
-        console.log('Error creando token:', error);
+      // 2. Crear método de pago con Stripe
+      const { paymentMethod, error } = await stripe.createPaymentMethod({
+        paymentMethodType: 'Card',
+        card: cardDetails,
+      });
+
+      if (error || !paymentMethod) {
+        console.log('Error al crear paymentMethod:', error);
         Alert.alert('Error', 'No se pudo registrar la tarjeta.');
         return;
       }
 
-      // 2.b El ID del token (ej: 'tok_...') es lo único que se debe enviar al backend.
-      const stripeTokenId = token.id;
-
-      const payload = {
-        token: stripeTokenId,
-        profileId: profileId,
-      };
-      console.log('Datos enviados:', payload);
-
-      // 3. Enviar al backend con los campos correctos
-      await axios.post(`${API_URL}/api/cards`, payload);
-
+      // 3. Asociar la tarjeta al cliente
+      await axios.post(`${API_URL}/api/pagos/asociar-tarjeta`, {
+      customerId: stripeCustomerId,
+      paymentMethodId: paymentMethod.id,
+      profileId: profileId, // 👈 este dato es crucial
+    });
       Alert.alert('Éxito', 'Tarjeta guardada correctamente.');
       navigation.goBack();
 
     } catch (err: any) {
-      // Mostrar mensaje de error del backend si existe
-      const backendMsg = err?.response?.data?.message || err?.response?.data || err.message || 'No se pudo guardar la tarjeta.';
+      const backendMsg = err?.response?.data?.message || err.message || 'No se pudo guardar la tarjeta.';
       console.error('Error al agregar tarjeta:', backendMsg);
       Alert.alert('Error', backendMsg);
     }
@@ -82,18 +77,9 @@ export default function AgregarTarjetaScreen() {
 
       <CardField
         postalCodeEnabled={false}
-        placeholders={{
-          number: '4242 4242 4242 4242',
-        }}
-        cardStyle={{
-          backgroundColor: '#FFFFFF',
-          textColor: '#000000',
-        }}
-        style={{
-          width: '100%',
-          height: 50,
-          marginVertical: 10,
-        }}
+        placeholders={{ number: '4242 4242 4242 4242' }}
+        cardStyle={{ backgroundColor: '#FFFFFF', textColor: '#000000' }}
+        style={{ width: '100%', height: 50, marginVertical: 10 }}
         onCardChange={(cardDetails) => setCardDetails(cardDetails)}
       />
 
@@ -104,6 +90,7 @@ export default function AgregarTarjetaScreen() {
   );
 }
 
+// estilos iguales
 const styles = StyleSheet.create({
   container: {
     flex: 1,

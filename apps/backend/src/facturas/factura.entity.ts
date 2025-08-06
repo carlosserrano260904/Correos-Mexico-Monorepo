@@ -1,9 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Entity('facturas')
 export class Factura {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(() => Profile, (profile) => profile.facturas, { eager: true })
+  @JoinColumn({ name: 'profileId' }) // ⬅️ Esto crea la columna "profileId"
+  profile: Profile;
 
   @Column({ unique: true, comment: 'Número de factura, ej: F-2024-021' })
   numero_factura: string;

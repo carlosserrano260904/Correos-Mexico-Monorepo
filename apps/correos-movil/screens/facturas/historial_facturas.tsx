@@ -25,6 +25,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMyAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,90 +42,54 @@ const Colors = {
   error: '#EF4444',
 };
 
+interface Factura {
+  id: number;
+  precio: number;
+  status: string;
+  sucursal: string;
+  numero_factura: string;
+  fecha_creacion: string;
+  fecha_vencimiento: string;
+  productos: string[];
+  profileId: number;
+}
+
 const InvoiceHistoryScreen = () => {
   const navigation = useNavigation();
+  const { userId } = useMyAuth();
   
   // Estados para manejo de datos
-  const [invoices, setInvoices] = useState([]);
+  const [invoices, setInvoices] = useState<Factura[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Datos de ejemplo (reemplazar con llamadas reales al backend)
-  const mockInvoices = [
-    {
-      id: 'INV-001',
-      number: 'F-2024-001',
-      date: '2024-07-28',
-      amount: 1250.00,
-      status: 'paid',
-      customer: 'Empresa ABC S.A.',
-      dueDate: '2024-08-28',
-      services: ['Envío Express', 'Seguro']
-    },
-    {
-      id: 'INV-002',
-      number: 'F-2024-002',
-      date: '2024-07-25',
-      amount: 875.50,
-      status: 'pending',
-      customer: 'Comercial XYZ Ltda.',
-      dueDate: '2024-08-25',
-      services: ['Envío Estándar']
-    },
-    {
-      id: 'INV-003',
-      number: 'F-2024-003',
-      date: '2024-07-20',
-      amount: 2100.75,
-      status: 'overdue',
-      customer: 'Distribuidora 123',
-      dueDate: '2024-07-20',
-      services: ['Envío Express', 'Embalaje Especial', 'Seguro']
-    },
-    {
-      id: 'INV-004',
-      number: 'F-2024-004',
-      date: '2024-07-15',
-      amount: 650.25,
-      status: 'paid',
-      customer: 'Tienda El Sol',
-      dueDate: '2024-08-15',
-      services: ['Envío Estándar', 'Embalaje']
-    }
-  ];
-
   // Hook para cargar datos iniciales
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    if (userId) {
+      fetchInvoices();
+    }
+  }, [userId]);
 
-  // Funciones para conexión con backend (a implementar con tu API)
-  const fetchInvoices = async (filters = {}) => {
+  const fetchInvoices = async () => {
     setLoading(true);
     try {
-      /*
-      // CONEXIÓN BACKEND - Reemplazar esta sección con tu lógica real:
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/invoices`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/facturas/profile/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
       if (!response.ok) {
         throw new Error('Error fetching invoices');
       }
-      
+
       const data = await response.json();
-      setInvoices(data.invoices);
-      */
-      
-      // Simulación de delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setInvoices(mockInvoices);
+      setInvoices(data);
     } catch (error) {
       console.error('Error fetching invoices:', error);
       Alert.alert('Error', 'No se pudieron cargar las facturas');
@@ -159,16 +125,6 @@ const InvoiceHistoryScreen = () => {
 
   const searchInvoices = (query) => {
     setSearchQuery(query);
-    /*
-    // BÚSQUEDA EN BACKEND - Implementar debounce para optimizar:
-    if (query.length > 2 || query.length === 0) {
-      const searchParams = {
-        search: query,
-        status: selectedFilter !== 'all' ? selectedFilter : undefined
-      };
-      fetchInvoices(searchParams);
-    }
-    */
   };
 
   const onRefresh = async () => {
@@ -207,8 +163,8 @@ const InvoiceHistoryScreen = () => {
 
   // Facturas filtradas
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.customer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = invoice.numero_factura.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.sucursal.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'all' || invoice.status === selectedFilter;
     return matchesSearch && matchesFilter;
   });
@@ -253,7 +209,7 @@ const InvoiceHistoryScreen = () => {
         <Search size={20} color={Colors.gray} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por número o cliente..."
+          placeholder="Buscar por número o sucursal..."
           placeholderTextColor={Colors.gray}
           value={searchQuery}
           onChangeText={searchInvoices}
@@ -312,7 +268,7 @@ const InvoiceHistoryScreen = () => {
     </View>
   );
 
-  const renderInvoiceItem = ({ item }) => (
+  const renderInvoiceItem = ({ item }: { item: Factura }) => (
     <TouchableOpacity
       style={styles.invoiceCard}
       onPress={() => {
@@ -327,8 +283,8 @@ const InvoiceHistoryScreen = () => {
       {/* Header de la factura */}
       <View style={styles.invoiceHeader}>
         <View style={styles.invoiceHeaderLeft}>
-          <Text style={styles.invoiceNumber}>{item.number}</Text>
-          <Text style={styles.invoiceCustomer}>{item.customer}</Text>
+          <Text style={styles.invoiceNumber}>{item.numero_factura}</Text>
+          <Text style={styles.invoiceCustomer}>{item.sucursal}</Text>
         </View>
         <View style={styles.invoiceHeaderRight}>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
@@ -342,21 +298,21 @@ const InvoiceHistoryScreen = () => {
       <View style={styles.invoiceMainInfo}>
         <View style={styles.amountContainer}>
           <DollarSign size={18} color={Colors.primary} />
-          <Text style={styles.invoiceAmount}>{formatCurrency(item.amount)}</Text>
+          <Text style={styles.invoiceAmount}>{formatCurrency(item.precio)}</Text>
         </View>
         <View style={styles.dateContainer}>
           <Calendar size={16} color={Colors.gray} />
-          <Text style={styles.invoiceDate}>{formatDate(item.date)}</Text>
+          <Text style={styles.invoiceDate}>{formatDate(item.fecha_creacion)}</Text>
         </View>
       </View>
 
-      {/* Servicios */}
+      {/* Productos */}
       <View style={styles.servicesContainer}>
-        <Text style={styles.servicesLabel}>SERVICIOS:</Text>
+        <Text style={styles.servicesLabel}>PRODUCTOS:</Text>
         <View style={styles.servicesTagsContainer}>
-          {item.services.map((service, index) => (
+          {item.productos.map((producto, index) => (
             <View key={index} style={styles.serviceTag}>
-              <Text style={styles.serviceTagText}>{service}</Text>
+              <Text style={styles.serviceTagText}>{producto}</Text>
             </View>
           ))}
         </View>
@@ -365,7 +321,7 @@ const InvoiceHistoryScreen = () => {
       {/* Footer */}
       <View style={styles.invoiceFooter}>
         <Text style={styles.dueDateText}>
-          Vence: {formatDate(item.dueDate)}
+          Vence: {formatDate(item.fecha_vencimiento)}
         </Text>
         <TouchableOpacity
           onPress={(e) => {
@@ -415,7 +371,7 @@ const InvoiceHistoryScreen = () => {
         ) : (
           <FlatList
             data={filteredInvoices}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderInvoiceItem}
             contentContainerStyle={styles.invoicesList}
             refreshControl={

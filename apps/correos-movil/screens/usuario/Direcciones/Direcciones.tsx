@@ -46,6 +46,10 @@ interface ListaDireccionesProps {
     onEditar: (index: number) => void;
     onEliminar: (index: number) => void;
     navigation: any;
+    direccionSeleccionada: number | null;
+    setDireccionSeleccionada: (id: number) => void;
+    modoSeleccion: boolean;
+
 }
 
 function adaptarDireccion(apiDir: (typeof DireccionesSchema._type)): Direccion {
@@ -64,7 +68,35 @@ function adaptarDireccion(apiDir: (typeof DireccionesSchema._type)): Direccion {
     };
 }
 
-function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, navigation }: ListaDireccionesProps) {
+function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, navigation, direccionSeleccionada, setDireccionSeleccionada, modoSeleccion }: ListaDireccionesProps & { modoSeleccion: boolean }) {
+
+    const confirmarSeleccion = async () => {
+        if (direccionSeleccionada === null) {
+            Alert.alert('Selecciona una dirección');
+            return;
+        }
+
+        const direccion = direcciones.find(d => d.id === direccionSeleccionada);
+        if (!direccion) {
+            Alert.alert('Error', 'La dirección seleccionada no existe');
+            return;
+        }
+
+        try {
+            await AsyncStorage.setItem('direccionSeleccionadaId', String(direccion.id));
+            // console.log('Dirección guardada en AsyncStorage:', direccion.id);
+            Alert.alert('Dirección seleccionada');
+            //navigation.goBack();
+            // para usar en la vista que quieras el id
+            // const id = await AsyncStorage.getItem('direccionSeleccionadaId');
+
+        } catch (error) {
+            console.error('Error al guardar dirección:', error);
+            Alert.alert('Error', 'No se pudo guardar la dirección seleccionada');
+        }
+    };
+
+
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor={PINK} />
@@ -92,9 +124,30 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                 ) : (
                     direcciones.map((dir, index) => (
                         <View key={index} style={styles.card}>
-                            <Text style={styles.cardTitle}>
-                                {dir.direccion} {dir.numeroexterior}
-                            </Text>
+                            {/* ✅ Título + Checkbox de selección */}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.cardTitle}>
+                                    {dir.direccion} {dir.numeroexterior}
+                                </Text>
+
+                                {/* 🔘 Radio button si está en modo selección */}
+                                {modoSeleccion && (
+                                    <TouchableOpacity
+                                        onPress={() => setDireccionSeleccionada(dir.id!)}
+                                        style={{ paddingHorizontal: 5 }}
+                                    >
+                                        <Ionicons
+                                            name={
+                                                direccionSeleccionada === dir.id
+                                                    ? 'radio-button-on'
+                                                    : 'radio-button-off'
+                                            }
+                                            size={22}
+                                            color={PINK}
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
                             <Text>Nombre: {dir.nombre}</Text>
                             <Text>Teléfono: {dir.telefono}</Text>
                             {dir.numerointerior != null && <Text>Número interior: {dir.numerointerior}</Text>}
@@ -112,31 +165,42 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                                     <Ionicons name="pencil" size={17} color="#fff" />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={[styles.iconButton, { backgroundColor: '#FF3B30' }]}
-                                    onPress={() =>
-                                        Alert.alert('Confirmar eliminación', '¿Seguro que quieres eliminar esta dirección?', [
-                                            { text: 'Cancelar', style: 'cancel' },
-                                            { text: 'Eliminar', style: 'destructive', onPress: () => onEliminar(index) },
-                                        ])
-                                    }
-                                >
-                                    <Ionicons name="trash" size={17} color="#fff" />
-                                </TouchableOpacity>
+                                {!modoSeleccion && (
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { backgroundColor: '#FF3B30' }]}
+                                        onPress={() =>
+                                            Alert.alert('Confirmar eliminación', '¿Seguro que quieres eliminar esta dirección?', [
+                                                { text: 'Cancelar', style: 'cancel' },
+                                                { text: 'Eliminar', style: 'destructive', onPress: () => onEliminar(index) },
+                                            ])
+                                        }
+                                    >
+                                        <Ionicons name="trash" size={17} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     ))
                 )}
 
-                <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
-                    <Text style={styles.buttonText}>Agregar nueva dirección</Text>
-                </TouchableOpacity>
+                {!modoSeleccion && (
+                    <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
+                        <Text style={styles.buttonText}>Agregar nueva dirección</Text>
+                    </TouchableOpacity>
+                )}
+
+                {modoSeleccion && (
+                    <TouchableOpacity style={styles.button} onPress={confirmarSeleccion}>
+                        <Text style={styles.buttonText}>Usar esta dirección</Text>
+                    </TouchableOpacity>
+                )}
+
             </ScrollView>
         </>
     );
 }
 
-export default function AgregarDomicilio({ navigation }: { navigation: any }) {
+export default function AgregarDomicilio({ navigation, route }: { navigation: any, route: any }) {
     const [direcciones, setDirecciones] = useState<Direccion[]>([]);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -144,6 +208,11 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
     const [mostrarColonias, setMostrarColonias] = useState(false);
     const { userId } = useMyAuth();
     const [codigoPostalValido, setCodigoPostalValido] = useState(true);
+    const modoSeleccion = route?.params?.modoSeleccion || false;
+
+    const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
+
+
 
 
     const [formData, setFormData] = useState<Omit<Direccion, 'numerointerior' | 'numeroexterior'> & {
@@ -244,7 +313,7 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
     function isNombreValido(nombre: string): boolean {
         if (nombre.length < 3) return false;
 
-        
+
         const letras = nombre.toLowerCase().replace(/\s/g, '');
         return !/^([a-zA-Z])\1+$/.test(letras);
     }
@@ -566,6 +635,9 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
             onEditar={editarDireccion}
             onEliminar={eliminarDireccion}
             navigation={navigation}
+            direccionSeleccionada={direccionSeleccionada}
+            setDireccionSeleccionada={setDireccionSeleccionada}
+            modoSeleccion={modoSeleccion}
         />
     );
 };

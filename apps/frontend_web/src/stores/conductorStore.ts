@@ -9,7 +9,7 @@ type Conductor = {
     telefono: string;
     correo: string;
     claveOficina: string;
-    licenciaVigente: Boolean; 
+    licenciaVigente: boolean; 
 }
 
 type ConductorStore = {

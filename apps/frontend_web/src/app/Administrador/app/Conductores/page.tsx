@@ -91,6 +91,9 @@ export default function ConductoresPage() {
     const filteredConductores = useMemo(() => {
       let filtered = conductores;
       // Filtro por búsqueda solo en nombre, curp y rfc
+      
+
+
       if (searchTerm) {
         filtered = filtered.filter((conductor) =>
           (conductor.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,10 +181,10 @@ export default function ConductoresPage() {
                     <TableCell className="text-gray-700 text-sm border-0">{conductor.rfc || conductor.RFC}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{conductor.licencia}</TableCell>
                     <TableCell>
-                      {conductor.licenciaVigente === true || conductor.licenciaVigente === true ? (
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Vigente</span>
-                      ) : (
+                      {conductor.licenciaVigente  ? (
                         <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">No Vigente</span>
+                      ) : (
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Vigente</span>
                       )}
                     </TableCell>
                   </TableRow>

@@ -8,5 +8,6 @@ import { FacturasController } from './facturas.controller';
   imports: [TypeOrmModule.forFeature([Factura])],
   providers: [FacturasService],
   controllers: [FacturasController],
+  exports: [FacturasService], // ✅ <--- ¡esto es lo único que te faltaba!
 })
 export class FacturasModule {}

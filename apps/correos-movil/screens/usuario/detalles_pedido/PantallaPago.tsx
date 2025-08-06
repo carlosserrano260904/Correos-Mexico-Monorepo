@@ -8,7 +8,6 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,20 +42,17 @@ const PantallaPago = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('No se encontró el ID de usuario');
 
-      // 1. Obtener profileId
       const perfilRes = await axios.get(`${API_URL}/api/profile/${userId}`);
       const profileId = perfilRes.data?.id;
 
       if (!profileId) throw new Error('No se encontró el profileId');
 
-      // 2. Obtener tarjetas por profileId
       const tarjetasRes = await axios.get(`${API_URL}/api/cards/${profileId}`);
       const tarjetas = tarjetasRes.data;
 
       if (!tarjetas || tarjetas.length === 0) {
         setTarjeta(null);
       } else {
-        // Usar la más reciente (última en el array)
         const ultima = tarjetas[tarjetas.length - 1];
         setTarjeta({ brand: ultima.brand, last4: ultima.last4 });
       }
@@ -76,13 +72,6 @@ const PantallaPago = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Método de Pago</Text>
-      </View>
 
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Selecciona una tarjeta</Text>
@@ -107,17 +96,6 @@ const PantallaPago = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingTop: height * 0.06,
-    paddingBottom: height * 0.02,
-    paddingHorizontal: width * 0.04,
-    backgroundColor: Colors.white,
-  },
-  backButton: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: Colors.dark },
   content: { flex: 1, padding: 20 },
   sectionTitle: {
     fontSize: 16,

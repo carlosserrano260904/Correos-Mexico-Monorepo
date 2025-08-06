@@ -1,8 +1,6 @@
 import { DireccionesSchemaDB, DireccionesType } from "../schemas/schemas";
 import { Direccion } from "../screens/usuario/Direcciones/Direcciones"
 
-const obtenerusuarioId= 1;
-
 export async function obtenerDirecciones(obtenerusuarioId: number): Promise<DireccionesType> {
   
   const url = `${process.env.EXPO_PUBLIC_API_URL}/api/misdirecciones/usuario/${obtenerusuarioId}`;

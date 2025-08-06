@@ -8,6 +8,7 @@ import { IoSearchOutline, IoChevronDownOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useConductorStore } from "@/stores/conductorStore";
 import { useState, useMemo } from "react";
+import { useEffect } from "react";
 
 // Datos de ejemplo para los conductores
 /*
@@ -39,7 +40,7 @@ const conductores = [
 ];
 */
 
-
+/*
 export default function ConductoresPage() {
   const conductores = useConductorStore((state)=> state.conductores)
   const router = useRouter();
@@ -71,7 +72,49 @@ export default function ConductoresPage() {
 
     return filtered;
   }, [conductores, searchTerm, statusFilter]);
-  
+  */
+
+  export default function ConductoresPage() {
+    const conductores = useConductorStore((state) => state.conductores)
+    const fetchConductores = useConductorStore((state)=> state.fetchConductores)
+    const router = useRouter();
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+
+    useEffect(()=> {
+      fetchConductores();
+    }, [fetchConductores]);
+
+    console.log("Conductores cargados:", conductores);
+
+    const filteredConductores = useMemo(() => {
+      let filtered = conductores;
+      // Filtro por búsqueda solo en nombre, curp y rfc
+      
+
+
+      if (searchTerm) {
+        filtered = filtered.filter((conductor) =>
+          (conductor.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (conductor.curp || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (conductor.rfc || '').toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      // Filtro por estado de licencia
+      if (statusFilter) {
+        filtered = filtered.filter((conductor) =>
+          conductor.licenciaVigente === (statusFilter === "true")
+        );
+      }
+      return filtered;
+    }, [conductores, searchTerm, statusFilter]);
+
+    
+
+    
+
+
   return (
     <div>
       <Plantilla title="">
@@ -111,47 +154,39 @@ export default function ConductoresPage() {
                 className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Todos los estados</option>
-                <option value="vigente">Vigente</option>
-                <option value="vencida">Vencida</option>
-                <option value="suspendida">Suspendida</option>
+                <option value="true">Vigente</option>
+                <option value="false">No Vigente</option>
               </select>
               <IoChevronDownOutline className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
             </div>
           </div>
 
-          {/* Tabla de conductores */}
+          {/* Tabla de conductores con nombre, curp, RFC, licencia y estado de licencia */}
           <div className="rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-white">
-                  <TableHead className="font-medium text-gray-600 text-sm border-0">Clave Oficina</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Nombre</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">CURP</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">RFC</TableHead>
-                  <TableHead className="font-medium text-gray-600 text-sm border-0">Licencia Vigente</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Licencia</TableHead>
+                  <TableHead className="font-medium text-gray-600 text-sm border-0">Estado Licencia</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredConductores.map((conductor) => (
-                  <TableRow key={conductor.claveOficina} className="hover:bg-gray-50 border-b border-gray-100">
-                    <TableCell className="font-medium text-gray-900 text-sm border-0">{conductor.claveOficina}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{conductor.nombre}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{conductor.curp}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{conductor.rfc}</TableCell>
-                    <TableCell className="border-0">
-                      <Badge 
-                        variant={(conductor.licenciaVigente || '').toLowerCase() === "vigente" ? "default" : "destructive"}
-                        className={(conductor.licenciaVigente || '').toLowerCase() === "vigente" 
-                          ? "bg-green-100 text-green-700 hover:bg-green-100 text-xs px-2 py-1" 
-                          : "bg-red-100 text-red-700 hover:bg-red-100 text-xs px-2 py-1"
-                        }
-                      >
-                        {(conductor.licenciaVigente || '').toLowerCase() === "vigente" ? "Vigente" : 
-                         (conductor.licenciaVigente || '').toLowerCase() === "vencida" ? "Vencida" : "Suspendida"}
-                      </Badge>
-                    </TableCell>
+                {filteredConductores.map((conductor, index) => (
+                  <TableRow key={conductor.curp || index} className="hover:bg-gray-50 border-b border-gray-100">
+                    <TableCell className="text-gray-700 text-sm border-0">{conductor.nombreCompleto}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{conductor.curp || conductor.CURP}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{conductor.rfc || conductor.RFC}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{conductor.licencia}</TableCell>
+                    <TableCell>
+                      {conductor.licenciaVigente  ? (
+                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">No Vigente</span>
+                      ) : (
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Vigente</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

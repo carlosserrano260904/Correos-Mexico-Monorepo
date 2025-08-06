@@ -1,15 +1,22 @@
 import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas";
 
-//Obtener perfil con la imagen ya firmada (desde el backend con ?signed=true)
+// ✅ Obtener perfil por ID
 export async function usuarioPorId(id: number): Promise<SchemaProfileUser> {
-  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}?signed=true`;
+  const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`;
+
   const response = await fetch(url);
-  const json = await response.json();
-  const perfil = ProfileUserSchema.parse(json);
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error("Error al obtener perfil");
+  }
+
+  const json = JSON.parse(text);
+  const perfil = ProfileUserSchema.parse(json); // Valida estructura
   return perfil;
 }
 
-//Actualizar campos del usuario
+// ✅ Actualizar campos del perfil (PATCH)
 export async function actualizarUsuarioPorId(userData: SchemaProfileUser, id: number) {
   const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`, {
     method: "PATCH",
@@ -29,7 +36,6 @@ export async function actualizarUsuarioPorId(userData: SchemaProfileUser, id: nu
   return responseBody;
 }
 
-//Subir avatar: devuelve solo la "key" que se guarda en la BD
 export async function uploadAvatar(uri: string, id: number): Promise<string> {
   const form = new FormData();
   form.append("imagen", {
@@ -40,23 +46,21 @@ export async function uploadAvatar(uri: string, id: number): Promise<string> {
 
   const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}/avatar`, {
     method: "POST",
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
     body: form,
   });
 
-  if (!res.ok) throw new Error("Error subiendo avatar");
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Error subiendo avatar:", res.status, errorText);
+    throw new Error("Error subiendo avatar");
+  }
 
-  const { key } = await res.json();
-  return key;
+  const { url } = await res.json();
+  return url;
 }
 
-//Obtener una URL firmada desde la key (por separado)
-export async function obtenerUrlFirmada(key: string): Promise<string> {
-  const res = await fetch(
-    `${process.env.EXPO_PUBLIC_API_URL}/api/upload-image/signed-url?key=${encodeURIComponent(key)}`
-  );
-  const { signedUrl } = await res.json();
-  return signedUrl;
+// ✅ Construir URL pública
+export function buildPublicImageUrl(key: string): string {
+  const bucketName = process.env.EXPO_PUBLIC_GCS_BUCKET_NAME;
+  return `https://storage.googleapis.com/${bucketName}/${key}`;
 }

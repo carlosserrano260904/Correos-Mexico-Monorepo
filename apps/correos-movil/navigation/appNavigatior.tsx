@@ -36,6 +36,7 @@ import tarifador from '../screens/usuario/tarifador/tarifador';
 import chat_bot from '../screens/usuario/chat-bot/chat_bot';
 import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
 import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
+import PagoExitosoScreen from '../screens/usuario/detalles_pedido/PagoExitosoScreen';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
 import CarritoScreen from '../screens/carrito/Carrito';
 import FavoritosScreen from '../screens/favorito/Favorito';
@@ -61,6 +62,7 @@ export default function AppNavigator() {
             <Stack.Screen name="MisCompras" component={MisCompras} options={{ headerShown: false }} />
             <Stack.Screen name="MisCuponesScreen" component={MisCuponesScreen} options={{ headerShown: false }} />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="PagoExitosoScreen" component={PagoExitosoScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="LoadPackages" component={LoadPackages} options={{ headerShown: false }} />
             <Stack.Screen name="Direcciones" component={Direcciones} options={{ headerShown: false }}/>

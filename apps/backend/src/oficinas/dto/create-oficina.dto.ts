@@ -78,6 +78,10 @@ export class CreateOficinaDto {
   @IsDecimal()
   longitud: number;
 
+  @IsOptional()
   @IsBoolean()
-  activo: boolean;
+  activo?: boolean;
+
+  @IsString()
+  horario_atencion?: string;
 }

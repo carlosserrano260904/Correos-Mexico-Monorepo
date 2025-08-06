@@ -4,469 +4,607 @@ import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight} from '@fortawesome/free-solid-svg-icons';
+import { faXmark, faHeart as solidHeart, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
-import DropdownComponent from "../../../components/DropDown/DropDownComponent";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import Constants from 'expo-constants';
-
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMyAuth } from '../../../context/AuthContext';
+import ProductListScreen, { Articulo } from '../../../components/Products/ProductRecommended'
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_API_URL;
 
 function ProductView() {
-	const navigation = useNavigation();
-	const route = useRoute();
-	// Extrae el ID del producto de los parámetros de la ruta
-	const { id } = route.params as { id: string }; // Asumiendo que el ID puede ser una cadena ahora
-	console.log("ID del producto recibido en la ruta:", id); // Log para depuración
+    const navigation = useNavigation();
+    const route = useRoute();
+    const { id } = route.params as { id: string };
+    console.log("ID del producto recibido en la ruta:", id);
 
-	// Estado para almacenar los datos del producto, el estado de carga y el error
-	const [product, setProduct] = React.useState<any>(null);
-	const [loading, setLoading] = React.useState(true);
-	const [error, setError] = React.useState<string | null>(null);
+    const [product, setProduct] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+    const [liked, setLiked] = React.useState(false);
+    const [inCart, setInCart] = React.useState(false);
+    const [favoritoId, setFavoritoId] = React.useState<number | null>(null);
+    const [carritoId, setCarritoId] = React.useState<number | null>(null);
+    const { userId } = useMyAuth();
+    const [recommended, setRecommended] = React.useState<any[]>([]);
+    const isMounted = React.useRef(true);
 
-	// Obtener datos del producto de la API
-	React.useEffect(() => {
-		const fetchProduct = async () => {
-			try {
-				setLoading(true);
-				// IMPORTANTE: Configuración de la URL base de la API.
-				// Si tu aplicación se ejecuta en un EMULADOR ANDROID, '10.0.2.2' es un alias para 'localhost' de tu máquina de desarrollo.
-				// Si usas un DISPOSITIVO FÍSICO, DEBES reemplazar '10.0.2.2' con la DIRECCIÓN IP REAL de tu máquina en tu red local (ej. '192.168.1.100').
-				// Puedes encontrar tu IP local abriendo la terminal y ejecutando 'ipconfig' (Windows) o 'ifconfig' / 'ip a' (Linux/macOS).
-				// Para iOS Simulator, 'localhost' generalmente funciona, pero usar tu IP real es más consistente.
-				// Asegúrate también que tu servidor backend esté escuchando en '0.0.0.0' para aceptar conexiones externas,
-				// no solo en '127.0.0.1' (localhost).
-				const API_BASE_URL = `http://${IP}:3000`; // <<--- VERIFICA Y MODIFICA ESTA LÍNEA SEGÚN TU ENTORNO ---
+    // Formatear precio
+    const formatPrice = (price: number) => {
+        return `MXN $ ${price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
 
-				// Implementar un controlador de Abort para el tiempo de espera
-				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de tiempo de espera
+    // Obtener userId una sola vez
+    const getUserId = React.useCallback(async () => {
+        try {
+            const storedUserId = await AsyncStorage.getItem('userId');
+            return storedUserId ? Number(storedUserId) : userId;
+        } catch (err) {
+            console.error("Error al obtener userId de AsyncStorage:", err);
+            return null;
+        }
+    }, [userId]);
 
-				const response = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal });
-				clearTimeout(timeoutId); // Limpiar el tiempo de espera si la respuesta llega a tiempo
+    React.useEffect(() => {
+        return () => {
+            isMounted.current = false; // Marcar componente como desmontado
+        };
+    }, []);
 
-				if (!response.ok) {
-					// Lanza un error con un mensaje más descriptivo si la respuesta no es OK
-					const errorText = await response.text(); // Intenta leer el cuerpo del error para más detalles
-					throw new Error(`HTTP error! Status: ${response.status}. Detalle: ${errorText}`);
-				}
-				const data = await response.json();
-				// Ajusta los nombres de las propiedades según el JSON proporcionado
-				const transformedData = {
-					id: data.id,
-					name: data.nombre,
-					description: data.descripcion,
-					// Si "imagen" es una URL, la ponemos en un array para el carrusel
-					images: data.imagen ? [data.imagen] : [],
-					price: parseFloat(data.precio), // Asegúrate de parsear el precio a un número
-					category: data.categoria,
-					color: data.color // Esto es el color directo del producto, no una lista de opciones
-				};
-				setProduct(transformedData);
-				// Establecer el color preseleccionado si viene en la respuesta del producto
-				if (transformedData.color) {
-					setSelectedColor(transformedData.color);
-				}
+    React.useEffect(() => {
+        const fetchProduct = async () => {
+            const controller = new AbortController();
+            try {
+                setLoading(true);
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-			} catch (err: any) {
-				if (err.name === 'AbortError') {
-					setError("La solicitud tardó demasiado en responder (tiempo de espera agotado).");
-				} else {
-					setError(err.message || "Error desconocido al obtener los datos del producto.");
-				}
-				console.error("Error fetching product:", err);
-			} finally {
-				setLoading(false);
-			}
-		};
+                const response = await fetch(`${IP}/api/products/${id}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
 
-		if (id) {
-			fetchProduct();
-		} else {
-			// Si no hay ID, no intentes cargar y muestra un error
-			setLoading(false);
-			setError("ID del producto no proporcionado en la ruta.");
-		}
-	}, [id]); // Vuelve a buscar si el ID del producto cambia
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! Status: ${response.status}. Detalle: ${errorText}`);
+                }
+                const data = await response.json();
+                const transformedData = {
+                    id: data.id,
+                    name: data.nombre,
+                    description: data.descripcion,
+                    images: data.imagen ? [data.imagen, data.imagen, data.imagen] : [],
+                    price: parseFloat(data.precio),
+                    category: data.categoria,
+                    color: data.color
+                };
+                if (isMounted.current) {
+                    setProduct(transformedData);
+                }
+            } catch (err: any) {
+                if (isMounted.current) {
+                    if (err.name === 'AbortError') {
+                        setError("La solicitud tardó demasiado en responder (tiempo de espera agotado).");
+                    } else {
+                        setError(err.message || "Error desconocido al obtener los datos del producto.");
+                    }
+                    console.error("Error fetching product:", err);
+                }
+            } finally {
+                if (isMounted.current) {
+                    setLoading(false);
+                }
+            }
+        };
 
-	// Configuración del carrusel
-	const progress = useSharedValue<number>(0);
-	const baseOptions = {
-		vertical: false,
-		width: screenWidth,
-		height: verticalScale(350),
-	} as const;
+        if (id) {
+            fetchProduct();
+        } else {
+            setLoading(false);
+            setError("ID del producto no proporcionado en la ruta.");
+        }
+    }, [id]);
 
-	const ref = React.useRef<ICarouselInstance>(null);
+    React.useEffect(() => {
+        const verificarEstado = async () => {
+            const userId = await getUserId();
+            if (!userId) return;
 
-	const onPressPagination = (index: number) => {
-		ref.current?.scrollTo({
-			count: index - progress.value,
-			animated: true,
-		});
-	};
+            const controller = new AbortController();
+            try {
+                // Ejecutar solicitudes de forma secuencial para evitar condiciones de carrera
+                const resFav = await fetch(`${IP}/api/favoritos/${userId}`, { signal: controller.signal });
+                const favoritos = await resFav.json();
+                const fav = favoritos.find((f: any) => f.producto.id === Number(id));
+                if (isMounted.current && fav) {
+                    setLiked(true);
+                    setFavoritoId(fav.id);
+                }
 
-	// Usa product.images (ahora transformado desde product.imagen) o un array predeterminado
-	const carouselImageData = product?.images && product.images.length > 0
-    ? product.images.map((img: string, index: number) => ({
-        id: `img-${index}`,
-        image: { uri: img } // Asumiendo que las imágenes son URLs
-      }))
-    : [
-        { id: '1', image: require('../../../assets/ropa1.jpg') },
-        { id: '2', image: require('../../../assets/ropa2.jpg') },
-        { id: '3', image: require('../../../assets/ropa3.jpeg') },
-      ];
+                const resCart = await fetch(`${IP}/api/carrito/${userId}`, { signal: controller.signal });
+                const carrito = await resCart.json();
+                const item = carrito.find((c: any) => c.producto.id === Number(id));
+                if (isMounted.current && item) {
+                    setInCart(true);
+                    setCarritoId(item.id);
+                }
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    console.error("Error verificando favoritos o carrito:", err);
+                }
+            }
+        };
 
+        if (product && isMounted.current) {
+            verificarEstado();
+        }
+    }, [product, getUserId]);
 
-	const renderItem = ({ item }: { item: { id: string; image: any } }) => (
-		<View style={styles.itemContainer}>
-			<Image source={item.image} style={styles.image} resizeMode="cover" />
-		</View>
-	);
+    React.useEffect(() => {
+        const controller = new AbortController();
+        const fetchRecommended = async () => {
+            try {
+                if (!product || !product.category) {
+                    console.log("No se puede cargar productos recomendados: product o category no están disponibles");
+                    return;
+                }
+                console.log("Cargando productos recomendados para la categoría:", product.category);
+                const response = await fetch(`${IP}/api/products/random/${product.category}`, {
+                    signal: controller.signal,
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (isMounted.current) {
+                    setRecommended(Array.isArray(data) ? data : []);
+                    console.log("Productos recomendados obtenidos (data):", data);
+                }
+            } catch (err: any) {
+                if (err.name !== "AbortError") {
+                    console.error("Error al cargar productos recomendados:", err);
+                    if (isMounted.current) {
+                        setRecommended([]);
+                    }
+                } else {
+                    console.log("Fetch abortado");
+                }
+            }
+        };
 
-	// Estado del botón de "Me gusta"
-	const [liked, setLiked] = React.useState(false);
+        if (product && product.category && isMounted.current) {
+            fetchRecommended();
+        }
 
-	const toggleLike = () => {
-		setLiked(!liked);
-	};
-
-	// Visibilidad de la sección de información
-	const [showInformation, setShowInformation] = React.useState(false);
-
-	const toggleShowInformation = () => {
-		setShowInformation(!showInformation)
-	}
-
-	// Estados de los dropdowns
-	const [selectedSize, setSelectedSize] = React.useState<string | null>(null);
-	const [selectedColor, setSelectedColor] = React.useState<string | null>(null);
-
-  	const sizes = [
-    	{ label: 'Chico', value: 'S' },
-    	{ label: 'Mediano', value: 'M' },
-    	{ label: 'Grande', value: 'L' },
-    	{ label: 'Extra Grande', value: 'XL' }
-  	];
-
-	// Colores predefinidos y añade el color del producto si es único
-	const initialColores = [
-    	{ label: 'Blanco Arena', value: '#fff' },
-    	{ label: 'Negro', value: '#000' },
-    	{ label: 'Rojo', value: '#FF0000' },
-    	{ label: 'Verde Lima', value: '#77a345' }
-  	];
-
-	// Añadir el color del producto si existe y no está ya en la lista
-	const availableColores = React.useMemo(() => {
-		if (product?.color && !initialColores.some(c => c.value === product.color)) {
-			// Intenta obtener un nombre de color si es un código hexadecimal simple
-			const colorNameMap: { [key: string]: string } = {
-				'#fff': 'Blanco',
-				'#000': 'Negro',
-				'#FF0000': 'Rojo',
-				'#77a345': 'Verde Lima',
-				'#FFC0CB': 'Rosa' // Ejemplo, puedes añadir más si lo necesitas
-			};
-			const label = colorNameMap[product.color] || `Color ${product.color}`;
-			return [...initialColores, { label: label, value: product.color }];
-		}
-		return initialColores;
-	}, [product?.color]);
+        return () => {
+            controller.abort();
+        };
+    }, [product]);
 
 
-	if (loading) {
-		return (
-			<View style={styles.centeredContainer}>
-				<ActivityIndicator size="large" color="#DE1484" />
-				<Text style={{ marginTop: moderateScale(10) }}>Cargando producto...</Text>
-			</View>
-		);
-	}
 
-	if (error) {
-		return (
-			<View style={styles.centeredContainer}>
-				<Text style={styles.errorText}>Error al cargar el producto:</Text>
-				<Text style={styles.errorText}>{error}</Text>
-				<Text style={styles.errorTextSmall}>
-					Este error a menudo se debe a problemas de conexión o configuración del servidor.
-					Verifica lo siguiente:
-					1.  **`API_BASE_URL` en el código:**
-						* Para emuladores Android: usa `http://10.0.2.2:3000`.
-						* Para dispositivos físicos: usa la dirección IP local de tu PC (ej. `http://192.168.1.100:3000`).
-					2.  **Configuración del servidor backend:** Asegúrate de que tu servidor Express esté escuchando en `0.0.0.0` (todas las interfaces) y no solo en `127.0.0.1`.
-					3.  **Firewall:** Comprueba que tu firewall no esté bloqueando las conexiones entrantes al puerto `3000`.
-					4.  **ID del producto:** Verifica que el ID del producto (`${id}`) sea válido y exista en tu base de datos.
-				</Text>
-			</View>
-		);
-	}
+    const toggleFavorito = async () => {
+        const userId = await getUserId();
+        if (!userId) return;
 
-	if (!product) {
+        const controller = new AbortController();
+        try {
+            if (!liked) {
+                const res = await fetch(`${IP}/api/favoritos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profileId: userId, productId: Number(id) }),
+                    signal: controller.signal,
+                });
+                const data = await res.json();
+                if (isMounted.current) {
+                    setFavoritoId(data.id);
+                    setLiked(true);
+                }
+            } else if (favoritoId) {
+                await fetch(`${IP}/api/favoritos/${favoritoId}`, {
+                    method: 'DELETE',
+                    signal: controller.signal,
+                });
+                if (isMounted.current) {
+                    setFavoritoId(null);
+                    setLiked(false);
+                }
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error("Error al manejar favoritos:", err);
+            }
+        }
+    };
+
+    const toggleCarrito = async () => {
+        const userId = await getUserId();
+        if (!userId) return;
+
+        const controller = new AbortController();
+        try {
+            if (!inCart) {
+                const res = await fetch(`${IP}/api/carrito`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profileId: userId,
+                        productId: Number(id),
+                        cantidad: 1,
+                    }),
+                    signal: controller.signal,
+                });
+                const data = await res.json();
+                if (isMounted.current) {
+                    setCarritoId(data.id);
+                    setInCart(true);
+                }
+            } else if (carritoId) {
+                await fetch(`${IP}/api/carrito/${carritoId}`, {
+                    method: 'DELETE',
+                    signal: controller.signal,
+                });
+                if (isMounted.current) {
+                    setCarritoId(null);
+                    setInCart(false);
+                }
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error("Error al manejar carrito:", err);
+            }
+        }
+    };
+
+    const progress = useSharedValue<number>(0);
+    const baseOptions = {
+        vertical: false,
+        width: screenWidth,
+        height: verticalScale(350),
+    } as const;
+
+    const ref = React.useRef<ICarouselInstance>(null);
+
+    const onPressPagination = (index: number) => {
+        ref.current?.scrollTo({
+            count: index - progress.value,
+            animated: true,
+        });
+    };
+
+    const placeholderImage = require('../../../assets/placeholder.jpg');
+
+    const carouselImageData = product?.images && product.images.length > 0
+        ? product.images.map((img: string, index: number) => ({
+            id: `img-${index}`,
+            image: { uri: img }
+        }))
+        : [
+            { id: '1', image: placeholderImage },
+            { id: '2', image: placeholderImage },
+            { id: '3', image: placeholderImage },
+        ];
+
+    const renderItem = ({ item }: { item: { id: string; image: any } }) => (
+        <View style={styles.itemContainer}>
+            <Image source={item.image} style={styles.image} resizeMode="cover" />
+        </View>
+    );
+
+    const colorNameMap: { [key: string]: string } = {
+        '#fff': 'Blanco',
+        '#000': 'Negro',
+        '#FF0000': 'Rojo',
+        '#77a345': 'Verde Lima',
+        '#FFC0CB': 'Rosa'
+    };
+
+    const colorName = product?.color ? colorNameMap[product.color] || `Color ${product.color}` : 'No disponible';
+
+    if (loading) {
         return (
             <View style={styles.centeredContainer}>
-                <Text style={styles.errorText}>No se encontró el producto con ID: {id}.</Text>
-				<Text style={styles.errorTextSmall}>
-					Esto puede suceder si el ID proporcionado en la ruta no corresponde a ningún producto en tu API,
-					o si la API devuelve un resultado vacío/nulo a pesar de un status 200 OK.
-				</Text>
+                <ActivityIndicator size="large" color="#DE1484" />
+                <Text style={styles.loadingText}>Cargando producto...</Text>
             </View>
         );
     }
 
-	return (
-		<ScrollView style={{flex: 1, backgroundColor: "white"}}>
-			<View style={{borderRadius: 20}}>
-				<Carousel
-					ref={ref}
-					{...baseOptions}
-					loop
-					onProgressChange={progress}
-					style={{ width: screenWidth, position: "relative"}}
-					data={carouselImageData} // Usa datos de imagen dinámicos
-					renderItem={renderItem}
-				/>
+    if (error) {
+        return (
+            <View style={styles.centeredContainer}>
+                <Text style={styles.errorText}>Error al cargar el producto:</Text>
+                <Text style={styles.errorText}>{error}</Text>
+                <Text style={styles.errorTextSmall}>
+                    Este error a menudo se debe a problemas de conexión o configuración del servidor.
+                    Verifica lo siguiente:
+                    1.  **`API_BASE_URL` en el código:** Usa `http://10.0.2.2:3000` para emuladores Android o la IP local de tu PC para dispositivos físicos.
+                    2.  **Configuración del servidor backend:** Asegúrate de que el servidor Express esté escuchando en `0.0.0.0`.
+                    3.  **Firewall:** Comprueba que el puerto `3000` no esté bloqueado.
+                    4.  **ID del producto:** Verifica que el ID (`${id}`) sea válido en tu base de datos.
+                </Text>
+            </View>
+        );
+    }
 
-				<Pagination.Basic<{ color: string }>
-				progress={progress}
-				data={carouselImageData.map((image) => ({ image }))} // Usa datos de imagen dinámicos para la paginación
-				size={scale(8)}
-				dotStyle={{
-					borderRadius: 100,
-					backgroundColor: "#FFFFFF",
-				}}
-				activeDotStyle={{
-					borderRadius: 100,
-					overflow: "hidden",
-					backgroundColor: "#DE1484",
-				}}
-				containerStyle={{
-					position: "absolute",
-					bottom: 10,
-					alignSelf: "center",
-					zIndex: 10,
-					gap: 5,
-				}}
-				horizontal
-				onPress={onPressPagination}
-			/>
+    if (!product) {
+        return (
+            <View style={styles.centeredContainer}>
+                <Text style={styles.errorText}>No se encontró el producto con ID: {id}.</Text>
+                <Text style={styles.errorTextSmall}>
+                    Esto puede suceder si el ID no corresponde a un producto en la API o si la API devuelve un resultado vacío.
+                </Text>
+            </View>
+        );
+    }
 
-				<TouchableOpacity  style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
-					<FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black"/>
-				</TouchableOpacity>
+    return (
+        <ScrollView style={styles.container}>
+            <View style={styles.carouselContainer}>
+                <Carousel
+                    ref={ref}
+                    {...baseOptions}
+                    loop
+                    onProgressChange={progress}
+                    style={styles.carousel}
+                    data={carouselImageData}
+                    renderItem={renderItem}
+                />
+                <Pagination.Basic<{ color: string }>
+                    progress={progress}
+                    data={carouselImageData.map((image) => ({ image }))}
+                    size={scale(8)}
+                    dotStyle={styles.dotStyle}
+                    activeDotStyle={styles.activeDotStyle}
+                    containerStyle={styles.paginationContainer}
+                    horizontal
+                    onPress={onPressPagination}
+                />
+                <TouchableOpacity style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
+                    <FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={toggleFavorito} style={styles.heartContainer}>
+                    <FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={toggleCarrito} style={[styles.heartContainer, styles.cartContainer]}>
+                    <FontAwesomeIcon icon={faCartShopping} color={inCart ? "#DE1484" : "#000"} size={moderateScale(24)} />
+                </TouchableOpacity>
+            </View>
 
-				<TouchableOpacity onPress={toggleLike} style={styles.heartContainer}>
-					<FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)}/>
-				</TouchableOpacity >
+            <View style={styles.contentContainer}>
+                <View style={styles.productNameContainer}>
+                    <Text style={styles.productName} numberOfLines={3} ellipsizeMode="tail">
+                        {product.name || 'Nombre del Producto'}
+                    </Text>
+                    <Text style={styles.productPrice}>{formatPrice(product.price || 0)}</Text>
+                </View>
 
-			</View>
+                <View style={styles.infoContainer}>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Categoría:</Text>
+                        <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Color:</Text>
+                        <View style={styles.colorDisplay}>
+                            <View style={[styles.colorCircle, { backgroundColor: product.color || '#fff' }]} />
+                            <Text style={styles.infoValue}>{colorName}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.descriptionContainer}>
+                        <Text style={styles.infoLabel}>Descripción:</Text>
+                        <Text style={styles.description}>{product.description || 'Descripción del producto.'}</Text>
+                    </View>
+                </View>
 
-			<View style={{}}>
-				<View style={styles.productNameContainer}>
-					<Text style={{flex: 1, fontWeight: 400, fontSize: moderateScale(16)}} numberOfLines={3} ellipsizeMode="tail">{product.name || 'Nombre del Producto'}</Text>
-					<Text style={{fontWeight: 700, fontSize: moderateScale(16), marginLeft: moderateScale(8), flexShrink: 0}}>MXN {product.price ? product.price.toFixed(2) : '0.00'}</Text>
-				</View>
-				<View style={styles.dropDownContainer}>
-					<View style={styles.dropDown}>
-						<DropdownComponent 
-							placeholderStyle={{fontSize: moderateScale(14)}}
-							inputSearchStyle={{fontSize: moderateScale(14)}}
-							selectedTextStyle={{fontSize: moderateScale(14)}}
-							data={product.availableSizes || sizes} // Usa los tamaños del producto si están disponibles, sino los predeterminados
-        					value={selectedSize}
-        					setValue={setSelectedSize}
-        					placeholder="Talla"
-							iconStyle={{display: "none"}}	
-						/>
-					</View>
+                <TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
+                    <Text style={styles.addButtonText}>{inCart ? 'Quitar del carrito' : 'Añadir al carrito'}</Text>
+                </TouchableOpacity>
 
-					<View style={styles.dropDown}>
-						<DropdownComponent 
-							placeholderStyle={{fontSize: moderateScale(14)}}
-							inputSearchStyle={{fontSize: moderateScale(14)}}
-							selectedTextStyle={{fontSize: moderateScale(14)}}
-							data={availableColores} // Usa los colores disponibles, incluyendo el del producto
-        					value={selectedColor}
-        					setValue={setSelectedColor}
-        					placeholder="Color"
-							iconStyle={{borderRadius: "100%", borderWidth: 1, width: moderateScale(16), height: moderateScale(16), marginRight: moderateScale(4), backgroundColor: selectedColor ?? "#fff"}}	
-						/>
-					</View>
-
-					<View >
-						<TouchableOpacity style={styles.addButton}>
-							<Text style={{color: "white", fontSize: moderateScale(16), fontWeight: 600}}>Añadir</Text>
-						</TouchableOpacity>
-					</View>
-				</View>
-
-				<View style={{paddingHorizontal: moderateScale(12)}}>
-					<Text style={{fontWeight: 300, fontSize: moderateScale(12)}}>{product.description || 'Descripción del producto.'}</Text>
-				</View>
-
-				<TouchableOpacity onPress={toggleShowInformation} style={styles.informationContainer}>
-					<View style={styles.careTitleContainer}>
-						<Text style={{fontWeight: 400, fontSize: moderateScale(16)}}>Composición y Cuidados</Text>
-						<FontAwesomeIcon icon={plus} style={{display: showInformation ? "none" : "flex"}} size={moderateScale(16)}/>
-						<FontAwesomeIcon icon={minus} style={{display: showInformation ? "flex" : "none"}} size={moderateScale(16)}/>
-					</View>
-					<Text style={{fontWeight: 300, fontSize: moderateScale(12), display: showInformation ? "flex" : "none", marginTop: moderateScale(12) }}>{product.careInstructions || 'Información sobre composición y cuidados no disponible.'}</Text>
-				</TouchableOpacity>
-
-				<View style={{paddingHorizontal: moderateScale(12), width: screenWidth}}>
-					<Text style={{fontSize: moderateScale(16), fontWeight: 700, paddingBottom: moderateScale(12)}}>Más información</Text>
-					<View>
-						<TouchableOpacity style={styles.moreInfoContainer}>
-							<View style={{width: "40%"}}>
-								<Text numberOfLines={2} ellipsizeMode="tail">Envíos y devoluciones</Text>
-							</View>
-
-							<View style={{flexDirection: "row", alignItems: "center", width: "56%", justifyContent: "center"}}>
-								<Text style={{color: "#DE1484", fontSize: moderateScale(12), flex: 1}} numberOfLines={1} ellipsizeMode="tail">{product.shippingInfo || 'Información de envío no disponible'}</Text>
-								<FontAwesomeIcon style={{flexShrink: 0}} icon={faAngleRight} size={moderateScale(16)}/>
-							</View>
-						</TouchableOpacity>
-					</View>
-				</View>
-
-				<View style={styles.forYouContainer}>
-					<Text style={{fontWeight: 700, fontSize: moderateScale(20), marginBottom: moderateScale(12)}}>Recomendados para ti</Text>
-
-					<View>
-						<Text>Aquí van los productos Recomendados</Text>
-					</View>
-				</View>
-			</View>
-
-		</ScrollView>
-	);
+                <View style={styles.recommendedContainer}>
+                    <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
+                    <ProductListScreen productos={recommended} />
+                </View>
+                
+            </View>
+        </ScrollView>
+    );
 }
 
 const styles = StyleSheet.create({
-	centeredContainer: {
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+    carouselContainer: {
+        borderRadius: moderateScale(20),
+        overflow: 'hidden',
+    },
+    carousel: {
+        width: screenWidth,
+        position: 'relative',
+    },
+    centeredContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'white',
+        padding: moderateScale(20),
+    },
+    loadingText: {
+        marginTop: moderateScale(10),
+        fontSize: moderateScale(16),
+        color: '#333',
     },
     errorText: {
         color: 'red',
         fontSize: moderateScale(16),
         textAlign: 'center',
-        marginHorizontal: moderateScale(20),
+        marginBottom: moderateScale(10),
     },
-	errorTextSmall: {
+    errorTextSmall: {
         color: 'red',
         fontSize: moderateScale(12),
         textAlign: 'center',
         marginHorizontal: moderateScale(20),
-        marginTop: moderateScale(10),
     },
-	itemContainer: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	itemText: {
-		color: "#fff",
-		fontWeight: "bold",
-	},
-	image: {
-		width: "100%",
-		height: "100%"
-	},
-	xmarkerContainer: {
-		position: "absolute", 
-		zIndex: 10, 
-		top: moderateScale(40), 
-		left: moderateScale(12),
-		backgroundColor: "rgba(255,255,255,0.8)",
-		borderRadius: "100%",
-		width: moderateScale(24),
-		height: moderateScale(24),
-		alignItems: "center",
-		justifyContent: "center"
-	},
-	heartContainer: {
-		position: "absolute",
-		zIndex: 11,
-		bottom: moderateScale(20),
-		right: moderateScale(12),
-		backgroundColor: "rgba(255,255,255,0.8)",
-		borderRadius: "100%",
-		width: moderateScale(50),
-		height: moderateScale(50),
-		alignItems: "center",
-		justifyContent: "center"
-	},
-	productNameContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		paddingHorizontal: moderateScale(12),
-		marginTop: moderateScale(20),
-		width: screenWidth
-	},
-	dropDownContainer: {
-		flexDirection: "row",
-		width: screenWidth,
-		alignItems: "center",
-		marginVertical: moderateScale(20),
-		height: moderateScale(50),
-	},
-	dropDown: {
-		width: screenWidth / 3,
-		borderColor: "#c9c9c9",
-		borderBottomWidth: 1,
-		borderTopWidth: 1,
-		borderRightWidth: 1,
-		height: "100%",
-		justifyContent: "center",
-		paddingHorizontal: moderateScale(12)
-	},
-	addButton: {
-		backgroundColor: "#DE1484",
-		width: screenWidth / 3,
-		height: "100%",
-		alignItems: "center",
-		justifyContent: "center"
-	},
-	careTitleContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center"
-	},
-	informationContainer: {
-		paddingHorizontal: moderateScale(12),
-		paddingVertical: moderateScale(12),
-		marginVertical: moderateScale(20),
-		borderColor: "#c9c9c9",
-		borderTopWidth: 1,
-		borderBottomWidth: 1,
-		width: screenWidth
-	},
-	moreInfoContainer: {
-		backgroundColor: "#F3F4F6", 
-		flexDirection: "row", 
-		alignItems: "center", 
-		justifyContent: "space-between",
-		height: moderateScale(50),
-		borderRadius: 8,
-		paddingHorizontal: moderateScale(8),
-	},
-	forYouContainer: {
-		width: screenWidth,
-		paddingHorizontal: moderateScale(12),
-		marginVertical: moderateScale(20),
-		marginBottom: moderateScale(52)
-	}
+    itemContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+    },
+    xmarkerContainer: {
+        position: 'absolute',
+        zIndex: 10,
+        top: moderateScale(40),
+        left: moderateScale(12),
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        borderRadius: moderateScale(12),
+        width: moderateScale(40),
+        height: moderateScale(40),
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    heartContainer: {
+        position: 'absolute',
+        zIndex: 11,
+        bottom: moderateScale(20),
+        right: moderateScale(12),
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        borderRadius: moderateScale(25),
+        width: moderateScale(50),
+        height: moderateScale(50),
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    cartContainer: {
+        right: moderateScale(70),
+    },
+    dotStyle: {
+        borderRadius: 100,
+        backgroundColor: '#FFFFFF',
+    },
+    activeDotStyle: {
+        borderRadius: 100,
+        backgroundColor: '#DE1484',
+    },
+    paginationContainer: {
+        position: 'absolute',
+        bottom: moderateScale(10),
+        alignSelf: 'center',
+        zIndex: 10,
+        gap: moderateScale(5),
+    },
+    contentContainer: {
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(20),
+    },
+    productNameContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: moderateScale(16),
+    },
+    productName: {
+        flex: 1,
+        fontWeight: '500',
+        fontSize: moderateScale(18),
+        color: '#333',
+    },
+    productPrice: {
+        fontWeight: '700',
+        fontSize: moderateScale(18),
+        color: '#DE1484',
+    },
+    infoContainer: {
+        marginBottom: moderateScale(20),
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: moderateScale(12),
+    },
+    infoLabel: {
+        fontWeight: '600',
+        fontSize: moderateScale(14),
+        color: '#333',
+        width: moderateScale(100),
+    },
+    infoValue: {
+        fontSize: moderateScale(14),
+        color: '#555',
+    },
+    colorDisplay: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    colorCircle: {
+        width: moderateScale(16),
+        height: moderateScale(16),
+        borderRadius: moderateScale(8),
+        borderWidth: 1,
+        borderColor: '#c9c9c9',
+        marginRight: moderateScale(8),
+    },
+    descriptionContainer: {
+        marginTop: moderateScale(12),
+    },
+    description: {
+        fontSize: moderateScale(14),
+        color: '#555',
+        lineHeight: moderateScale(20),
+    },
+    addButton: {
+        backgroundColor: '#DE1484',
+        borderRadius: moderateScale(8),
+        paddingVertical: moderateScale(12),
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: moderateScale(24),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    addButtonText: {
+        color: 'white',
+        fontSize: moderateScale(16),
+        fontWeight: '600',
+    },
+    recommendedContainer: {
+        marginBottom: moderateScale(32),
+    },
+    recommendedTitle: {
+        fontWeight: '700',
+        fontSize: moderateScale(20),
+        color: '#333',
+        marginBottom: moderateScale(16),
+    },
+    recommendedPlaceholder: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: moderateScale(8),
+        padding: moderateScale(16),
+        alignItems: 'center',
+    },
+    recommendedText: {
+        fontSize: moderateScale(14),
+        color: '#555',
+    },
 });
 
 export default ProductView;

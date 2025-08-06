@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -42,9 +43,35 @@ export default function SignInScreen() {
         body: JSON.stringify({ correo: emailAddress, contrasena: password }),
       })
 
+      
+      if (!res.ok && res.status === 401) {
+        const errorData = await res.json()
+        const errorMessage = errorData.message || ''
+
+        if (errorMessage === 'Usuario no verificado') {
+          Alert.alert('Error', 'Usuario no verificado, por favor recuperar tu contraseña para poder ingresar.', [
+            {
+              text: 'Recuperar contraseña',
+              onPress: () => navigation.navigate('PswdReset' as never)
+            },
+            { text: 'Cancelar', style: 'cancel' }
+          ])
+          return
+        } else if (errorMessage === 'Credenciales inválidas') {
+          Alert.alert('Error', 'Credenciales inválidas, por favor verifica tu correo electrónico y contraseña.')
+          return
+        } else if (errorMessage === 'El perfil no está vinculado al usuario') {
+          Alert.alert('Error', 'El perfil no está vinculado al usuario, por favor contacta al administrador.')
+          return
+        } else {
+          Alert.alert('Error', 'Ocurrió un error, por favor intenta nuevamente más tarde o contacta al administrador.')
+          return
+        }
+      }
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(`Signin backend error: ${res.status} - ${errorText}`)
+        Alert.alert('Error', `Error del servidor: ${res.status} - ${errorText}`)
+        return
       }
 
       const data = await res.json()

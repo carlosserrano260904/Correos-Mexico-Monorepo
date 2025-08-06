@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { IoSearchOutline, IoChevronDownOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useSucursalStore } from "@/stores/sucursalStore";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 // Datos de ejemplo para las sucursales
 /*
 const sucursales = [
@@ -59,6 +59,11 @@ export default function SucursalesPage() {
   const { sucursales } = useSucursalStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const fetchSucursales = useSucursalStore((state) => state.fetchSucursales);
+
+  console.log("Sucursales cargadas:", sucursales);
+
+ 
 
   // Filtrado de sucursales
   const filteredSucursales = useMemo(() => {
@@ -67,24 +72,31 @@ export default function SucursalesPage() {
     // Filtro por búsqueda
     if (searchTerm) {
       filtered = filtered.filter((sucursal) =>
-        (sucursal.claveOficinaPostal || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (sucursal.nombreEntidad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (sucursal.tipoCUO || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sucursal.clave_oficina_postal || '').toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sucursal.nombre_entidad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sucursal.tipo_cuo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (sucursal.domicilio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (sucursal.municipio || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (sucursal.nombre_municipio || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Filtro por status (case-insensitive)
     if (statusFilter) {
-      filtered = filtered.filter((sucursal) => {
-        const activoStatus = sucursal.activo ? sucursal.activo.toLowerCase() : '';
-        return activoStatus === statusFilter.toLowerCase();
-      });
-    }
+    filtered = filtered.filter((sucursal) => {
+      if (statusFilter === "activo") return sucursal.activo === true;
+      if (statusFilter === "inactivo") return sucursal.activo === false;
+      return true;
+    });
+
+    
+  }
 
     return filtered;
   }, [sucursales, searchTerm, statusFilter]);
+
+ useEffect(() => {
+    fetchSucursales();
+  }, [fetchSucursales]);
   
 
   return (
@@ -149,26 +161,24 @@ export default function SucursalesPage() {
               <TableBody>
                 {filteredSucursales.map((sucursal, i) => (
                   <TableRow key={i} className="hover:bg-gray-50 border-b border-gray-100">
-                    <TableCell className="font-medium text-gray-900 text-sm border-0">{sucursal.claveOficinaPostal}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{sucursal.nombreEntidad}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{sucursal.tipoCUO}
-                      {sucursal.tipoCUO === "administrativa" && "Administrativa"}
-                      {sucursal.tipoCUO === "ventanilla" && "Ventanilla"}
-                      {sucursal.tipoCUO === "coordinacion" && "Coordinación"}
+                    <TableCell className="font-medium text-gray-900 text-sm border-0">{sucursal.clave_oficina_postal}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{sucursal.nombre_entidad}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">
+                      {sucursal.tipo_cuo}
                     </TableCell>
                     <TableCell className="border-0">
                       <Badge 
-                        variant={(sucursal.activo || '').toLowerCase() === "activo" ? "default" : "destructive"}
-                        className={(sucursal.activo || '').toLowerCase() === "activo" 
+                        variant={sucursal.activo ? "default" : "destructive"}
+                        className={sucursal.activo
                           ? "bg-green-100 text-green-700 hover:bg-green-100 text-xs px-2 py-1" 
                           : "bg-red-100 text-red-700 hover:bg-red-100 text-xs px-2 py-1"
                         }
                       >
-                        {(sucursal.activo || '').toLowerCase() === "activo" ? "Activo" : "Inactivo"}
+                        {sucursal.activo ? "Activo" : "Inactivo"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{sucursal.domicilio}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{sucursal.municipio}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{sucursal.nombre_municipio}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -179,3 +189,4 @@ export default function SucursalesPage() {
     </div>
   )
 }
+

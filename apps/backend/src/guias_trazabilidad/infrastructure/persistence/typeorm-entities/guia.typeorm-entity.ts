@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { ContactosTypeormEntity } from "./contactos.typeorm-entity";
-import { Envio } from "src/envios/entities/envios.entity";
+import { Envio } from "../../../../envios/entities/envios.entity";
 
 @Entity({ name: 'guias' })
 export class GuiaTypeormEntity {
@@ -50,6 +50,9 @@ export class GuiaTypeormEntity {
 
     @Column({ type: 'timestamptz', nullable: true })
     fecha_entrega_estimada: Date;
+
+    @Column({ type: 'varchar', nullable: true })
+    key_pdf: string | null;
 
     @OneToMany(() => Envio, envio => envio.guia)
     envios: Envio[];

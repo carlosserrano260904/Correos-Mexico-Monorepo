@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { IoSearchOutline, IoChevronDownOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useUnidadStore } from "@/stores/unidadStore";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // Datos de ejemplo para las unidades
 /*
@@ -45,8 +45,14 @@ const unidades = [
 export default function UnidadesPage() {
   const router = useRouter();
   const unidades = useUnidadStore((state) => state.unidades);
+  const fetchUnidades = useUnidadStore((state) => state.fetchUnidades);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  useEffect(() => {
+    fetchUnidades();
+  }, [fetchUnidades]);
 
   // Filtrado de unidades
   const filteredUnidades = useMemo(() => {
@@ -58,20 +64,19 @@ export default function UnidadesPage() {
         unidad.claveOficina.toLowerCase().includes(searchTerm.toLowerCase()) ||
         unidad.tipoVehiculo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         unidad.placas.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        unidad.tarjetaCirculacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (unidad.curpConductor && unidad.curpConductor.toLowerCase().includes(searchTerm.toLowerCase()))
+        unidad.tarjetaCirculacion.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Filtro por status (asignación de conductor)
     if (statusFilter === "asignado") {
-      filtered = filtered.filter((unidad) => unidad.asignacionConductor === true);
+      filtered = filtered.filter((unidad) => unidad.conductor && unidad.conductor !== "S/C");
     } else if (statusFilter === "sin-asignar") {
-      filtered = filtered.filter((unidad) => unidad.asignacionConductor === false);
+      filtered = filtered.filter((unidad) => !unidad.conductor || unidad.conductor === "S/C");
     }
 
     return filtered;
-  }, [unidades, searchTerm, statusFilter]);
+  }, [unidades, searchTerm, statusFilter]); 
 
   return (
     <div>
@@ -139,13 +144,13 @@ export default function UnidadesPage() {
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.placas}</TableCell>
                     <TableCell className="border-0">
                       <Badge 
-                        variant={unidad.asignacionConductor  ? "default" : "destructive"}
-                        className={unidad.asignacionConductor 
+                        variant={unidad.conductor && unidad.conductor !== "S/C" ? "default" : "destructive"}
+                        className={unidad.conductor && unidad.conductor !== "S/C"
                           ? "bg-green-100 text-green-700 hover:bg-green-100 text-xs px-2 py-1" 
                           : "bg-red-100 text-red-700 hover:bg-red-100 text-xs px-2 py-1"
                         }
                       >
-                        {unidad.asignacionConductor ? "Sí": "No"}
+                        {unidad.conductor !== "S/C" ? "Sí": "No"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.tarjetaCirculacion}</TableCell>

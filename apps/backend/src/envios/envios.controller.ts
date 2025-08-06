@@ -4,13 +4,16 @@ import { EnviosService } from './envios.service';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
 import { CreateEnvioDto } from './dto/CrearEnvioDto.dto';
 import { FalloEnvioDto } from './dto/FalloEnvio.dto';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadGcsService } from 'src/cloud-storage/upload-gcs.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Envios')
 @Controller('envios')
 export class EnviosController {
-  constructor(private readonly enviosService: EnviosService, private readonly uploadService: UploadImageService) {}
+  constructor(
+              private readonly enviosService: EnviosService,
+              private readonly uploadGcsService: UploadGcsService
+            ) {}
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los registros de envíos' })
@@ -132,14 +135,11 @@ export class EnviosController {
       throw new BadRequestException('No se subió ningún archivo.');
     }
 
-    // 1. Subir archivo y obtener key
-    const key = await this.uploadService.uploadFile(file);
+    // 1. Subir archivo y obtener url
+    const url = await this.uploadGcsService.uploadEvidenceDistributor(file);
 
-    // 2. Obtener URL firmada temporal
-    const signedUrl = await this.uploadService.getSignedUrlForImage(key);
-
-    // 3. Guardar key (y opcionalmente URL) en la entidad
-    const actualizado = await this.enviosService.anadirEvidencia(id, key, signedUrl);
+    // 3. Guardar url en la entidad
+    const actualizado = await this.enviosService.anadirEvidencia(id, url);
 
     if (!actualizado) {
       throw new NotFoundException(`No se encontró el envío con ID ${id}`);

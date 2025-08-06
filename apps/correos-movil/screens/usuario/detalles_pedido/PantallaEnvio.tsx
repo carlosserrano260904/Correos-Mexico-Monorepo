@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,18 +54,11 @@ const PantallaEnvio = () => {
 
   const handleBack = useCallback(() => {
     navigation.navigate('Carrito');
-  }, []);
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Opciones de Envío</Text>
-      </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.tabContent}>
@@ -72,13 +66,20 @@ const PantallaEnvio = () => {
             iconName="location-outline"
             title="Punto de recogida"
             subtitle="Consulta puntos de Correos de México"
-            onPress={() => navigation.navigate('MapaPuntosRecogida')}
+            onPress={async () => {
+              await AsyncStorage.setItem('modoEnvio', 'puntoRecogida');
+              navigation.navigate('MapaPuntosRecogida');
+            }}
           />
+
           <ShippingOption
             iconName="home-outline"
             title="Domicilio"
             subtitle="Configura el envío a domicilio"
-            onPress={() => navigation.navigate('Direcciones')}
+            onPress={async () => {
+              await AsyncStorage.setItem('modoEnvio', 'domicilio');
+              navigation.navigate('Direcciones');
+            }}
           />
         </View>
       </ScrollView>
@@ -90,23 +91,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: width * 0.04,
-    paddingTop: height * 0.06,
-    paddingBottom: height * 0.02,
-    backgroundColor: Colors.white,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.dark,
   },
   content: {
     flex: 1,

@@ -1,18 +1,25 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiOperation, ApiParam, ApiResponse, ApiOkResponse, ApiInternalServerErrorResponse } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiOkResponse,
+  ApiInternalServerErrorResponse,
+} from '@nestjs/swagger';
+
 import { ProfileService } from './profile.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UploadGcsService } from 'src/cloud-storage/upload-gcs.service';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
 
 @Controller('profile')
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
-    private readonly uploadImageService: UploadGcsService,
-  ) { }
+    private readonly uploadImageService: UploadImageService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo perfil' })
@@ -67,12 +74,14 @@ export class ProfileController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
+  @ApiOperation({ summary: 'Subir avatar de perfil' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID del perfil', example: 1 })
+  @ApiOkResponse({ description: 'Avatar actualizado correctamente' })
   async uploadAvatar(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const key = await this.uploadImageService.uploadFile(file);
-    const publicUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${key}`;
+    const publicUrl = await this.uploadImageService.uploadFileImage(file);
     await this.profileService.updateAvatar(+id, publicUrl);
     return { url: publicUrl };
   }

@@ -1,29 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+// src/profile/profile.controller.ts
 import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
-  ApiOkResponse,
-  ApiInternalServerErrorResponse,
+  ApiTags,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 import { ProfileService } from './profile.service';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { ProfileResponseDto } from './dto/profile-response.dto';
 
+@ApiTags('Perfiles')
+@ApiBearerAuth() // si usas guardas JWT
 @Controller('profile')
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
-    private readonly uploadImageService: UploadImageService,
+    private readonly uploadImageService: UploadImageService,  // <-- Inyección añadida
   ) {}
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo perfil' })
-  @ApiResponse({ status: 201, description: 'Perfil creado correctamente' })
+  @ApiResponse({
+    status: 201,
+    description: 'Perfil creado correctamente',
+    type: ProfileResponseDto,
+  })
   create(@Body() createProfileDto: CreateProfileDto) {
     return this.profileService.create(createProfileDto);
   }
@@ -32,35 +53,58 @@ export class ProfileController {
   @ApiOperation({ summary: 'Listar todos los perfiles' })
   @ApiOkResponse({
     description: 'Arreglo de perfiles',
-    type: CreateProfileDto,
+    type: ProfileResponseDto,
     isArray: true,
   })
-  @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   findAll() {
     return this.profileService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener perfil por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del perfil', example: 1 })
-  @ApiOkResponse({ description: 'Perfil encontrado', type: CreateProfileDto })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del perfil',
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Perfil encontrado',
+    type: ProfileResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Perfil no encontrado' })
-  async findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.profileService.findOne(+id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar perfil por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del perfil', example: 1 })
-  @ApiResponse({ status: 200, description: 'Perfil actualizado correctamente' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del perfil',
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Perfil actualizado correctamente',
+    type: ProfileResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Perfil no encontrado' })
-  update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
     return this.profileService.update(+id, updateProfileDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar perfil por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del perfil', example: 1 })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del perfil',
+    example: 1,
+  })
   @ApiResponse({ status: 204, description: 'Perfil eliminado correctamente' })
   @ApiResponse({ status: 404, description: 'Perfil no encontrado' })
   remove(@Param('id') id: string) {
@@ -68,15 +112,33 @@ export class ProfileController {
   }
 
   @Post(':id/avatar')
+  @ApiOperation({ summary: 'Subir avatar de perfil' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        imagen: {
+          type: 'string',
+          format: 'binary',
+          description: 'Archivo de imagen (jpg, png)',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Avatar actualizado correctamente',
+    schema: {
+      example: { url: 'https://.../avatar-abc123.jpg' },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Perfil no encontrado' })
   @UseInterceptors(
     FileInterceptor('imagen', {
       storage: memoryStorage(),
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
-  @ApiOperation({ summary: 'Subir avatar de perfil' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del perfil', example: 1 })
-  @ApiOkResponse({ description: 'Avatar actualizado correctamente' })
   async uploadAvatar(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,

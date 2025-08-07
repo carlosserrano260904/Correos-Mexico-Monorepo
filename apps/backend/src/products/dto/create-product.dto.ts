@@ -27,6 +27,8 @@ export class CreateProductDto {
   descripcion: string;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   imagen?: string[];
 
   @IsNotEmpty({ message: 'El inventario es obligatorio.' })

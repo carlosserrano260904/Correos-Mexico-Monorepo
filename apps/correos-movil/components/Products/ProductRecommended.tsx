@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,13 +14,48 @@ import { useMyAuth } from '../../context/AuthContext';
 
 const IP = process.env.EXPO_PUBLIC_API_URL;
 
-export type Articulo = {
-  id: string;
-  nombre: string;
-  precio: string;
-  imagen: string;
-  color: string;
-  categoria: string;
+export interface Articulo {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    imagen: string[];
+    precio: number;
+    categoria: string;
+    color: string;
+}
+
+interface ProductRecommendedProps {
+    productos: Articulo[];
+    likeTrigger?: number;
+}
+
+const ProductRecommended: React.FC<ProductRecommendedProps> = ({ productos = [], likeTrigger }) => {
+    const [items, setItems] = useState<Articulo[]>(productos);
+
+    useEffect(() => {
+        // Si productos es null o undefined, usa array vacío
+        setItems(productos ?? []);
+        // Si necesitas hacer fetch aquí, hazlo usando likeTrigger como dependencia
+        // Ejemplo:
+        // fetchRecommended().then(data => setItems(data));
+    }, [productos, likeTrigger]);
+
+    return (
+        <React.Fragment>
+            {items.length === 0 ? (
+                <View style={{ alignItems: 'center', padding: 16 }}>
+                    <Text>No hay productos recomendados.</Text>
+                </View>
+            ) : (
+                items.map(item => (
+                    <View key={item.id} style={{ marginBottom: 12 }}>
+                        <Text>{item.nombre}</Text>
+                        {/* Renderiza más detalles aquí */}
+                    </View>
+                ))
+            )}
+        </React.Fragment>
+    );
 };
 
 export type ProductListScreenProps = {
@@ -49,8 +84,6 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   );
 };
 
-// ... (importaciones y código previo sin cambios)
-
 const ProductoCard: React.FC<{
   articulo: Articulo;
   favoritos: Record<number, number>;
@@ -72,7 +105,7 @@ const ProductoCard: React.FC<{
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={{ uri: articulo.imagen }}
+          source={{ uri: articulo.imagen[0] }}
           style={styles.imagenProductoCard}
         />
       </TouchableOpacity>

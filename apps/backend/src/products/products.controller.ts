@@ -15,23 +15,22 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadGcsService } from 'src/cloud-storage/upload-gcs.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
-    private readonly uploadImageService: UploadImageService,
+    private readonly uploadImageService: UploadGcsService,
   ) { }
 
   @Post()
-  @UseInterceptors(FilesInterceptor('imagen', 10)) // 'imagen' es el campo para los archivos, máximo 10.
+  @UseInterceptors(FilesInterceptor('imagen', 10))
   @ApiOperation({ summary: 'Creación de un nuevo producto con imágenes' })
   @ApiResponse({ status: 201, description: 'Producto creado correctamente' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'Datos del producto y archivos de imagen. Los campos del DTO como `color` pueden enviarse como texto separado por comas (ej: "rojo,azul").',
     type: CreateProductDto,
   })
   async create(
@@ -39,9 +38,8 @@ export class ProductsController {
     @UploadedFiles() imagen: Array<Express.Multer.File>,
   ) {
     if (imagen && imagen.length > 0) {
-      // El método uploadFile ahora devuelve directamente las URLs públicas permanentes.
       const imageUrls = await Promise.all(
-        imagen.map((file) => this.uploadImageService.uploadFileImage(file)),
+        imagen.map((file) => this.uploadImageService.uploadImageProduct(file)),
       );
       createProductDto.imagen = imageUrls;
     }

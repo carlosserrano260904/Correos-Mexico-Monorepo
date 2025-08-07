@@ -11,6 +11,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMyAuth } from '../../../context/AuthContext';
 import ProductListScreen, { Articulo } from '../../../components/Products/ProductRecommended'
+import Animated from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -32,6 +33,7 @@ function ProductView() {
     const [carritoId, setCarritoId] = React.useState<number | null>(null);
     const { userId } = useMyAuth();
     const [recommended, setRecommended] = React.useState<any[]>([]);
+    const [likeTrigger, setLikeTrigger] = React.useState(0);
     const isMounted = React.useRef(true);
 
     // Formatear precio
@@ -75,7 +77,11 @@ function ProductView() {
                     id: data.id,
                     name: data.nombre,
                     description: data.descripcion,
-                    images: data.imagen ? [data.imagen, data.imagen, data.imagen] : [],
+                    images: Array.isArray(data.imagen)
+                        ? data.imagen.filter((img: any) => typeof img === 'string' && img.length > 0)
+                        : typeof data.imagen === 'string' && data.imagen.length > 0
+                            ? [data.imagen]
+                            : [],
                     price: parseFloat(data.precio),
                     category: data.categoria,
                     color: data.color
@@ -150,7 +156,6 @@ function ProductView() {
                     console.log("No se puede cargar productos recomendados: product o category no están disponibles");
                     return;
                 }
-                console.log("Cargando productos recomendados para la categoría:", product.category);
                 const response = await fetch(`${IP}/api/products/random/${product.category}`, {
                     signal: controller.signal,
                 });
@@ -160,7 +165,6 @@ function ProductView() {
                 const data = await response.json();
                 if (isMounted.current) {
                     setRecommended(Array.isArray(data) ? data : []);
-                    console.log("Productos recomendados obtenidos (data):", data);
                 }
             } catch (err: any) {
                 if (err.name !== "AbortError") {
@@ -202,6 +206,7 @@ function ProductView() {
                 if (isMounted.current) {
                     setFavoritoId(data.id);
                     setLiked(true);
+                    setLikeTrigger(prev => prev + 1); // <-- dispara recarga
                 }
             } else if (favoritoId) {
                 await fetch(`${IP}/api/favoritos/${favoritoId}`, {
@@ -211,6 +216,7 @@ function ProductView() {
                 if (isMounted.current) {
                     setFavoritoId(null);
                     setLiked(false);
+                    setLikeTrigger(prev => prev + 1); // <-- dispara recarga
                 }
             }
         } catch (err: any) {
@@ -280,7 +286,9 @@ function ProductView() {
     const carouselImageData = product?.images && product.images.length > 0
         ? product.images.map((img: string, index: number) => ({
             id: `img-${index}`,
-            image: { uri: img }
+            image: typeof img === 'string' && img.length > 0
+                ? { uri: img }
+                : placeholderImage
         }))
         : [
             { id: '1', image: placeholderImage },
@@ -289,9 +297,9 @@ function ProductView() {
         ];
 
     const renderItem = ({ item }: { item: { id: string; image: any } }) => (
-        <View style={styles.itemContainer}>
+        <Animated.View style={styles.itemContainer}>
             <Image source={item.image} style={styles.image} resizeMode="cover" />
-        </View>
+        </Animated.View>
     );
 
     const colorNameMap: { [key: string]: string } = {
@@ -406,7 +414,7 @@ function ProductView() {
 
                 <View style={styles.recommendedContainer}>
                     <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
-                    <ProductListScreen productos={recommended} />
+                    <ProductListScreen productos={recommended} likeTrigger={likeTrigger} />
                 </View>
                 
             </View>

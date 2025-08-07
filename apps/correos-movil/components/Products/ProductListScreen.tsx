@@ -19,8 +19,8 @@ export type Articulo = {
   id: string;
   nombre: string;
   precio: string;
-  imagen: string;
-  color: string;
+  imagen: string[];
+  color: string[];
   categoria: string;
 };
 
@@ -56,16 +56,17 @@ const ProductoCard: React.FC<{
   favoritos: Record<number, number>;
   toggleFavorito: (id: number) => void;
   isInCart: boolean;
-}> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
+}> = ({ articulo, favoritos = {}, toggleFavorito, isInCart }) => {
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
-  const isLiked = favoritos.hasOwnProperty(idNum);
+  const isLiked = favoritos && favoritos.hasOwnProperty(idNum);
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
     colorArray = articulo.color.split(',');
   } else if (Array.isArray(articulo.color)) {
-
     colorArray = articulo.color;
+  } else {
+    colorArray = [];
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
@@ -73,7 +74,12 @@ const ProductoCard: React.FC<{
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={{ uri: articulo.imagen }}
+          source={{
+            uri:
+              Array.isArray(articulo.imagen) && articulo.imagen[0]
+                ? articulo.imagen[0]
+                : 'https://via.placeholder.com/150', // Imagen por defecto
+          }}
           style={styles.imagenProductoCard}
         />
       </TouchableOpacity>
@@ -107,7 +113,7 @@ const ProductoCard: React.FC<{
 export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '' }) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
-  const [favoritos, setFavoritos] = useState<Record<number, number>>({});
+  const [favoritos, setFavoritos] = useState<Record<number, number>>({} as Record<number, number>);
   const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
 
   useEffect(() => {

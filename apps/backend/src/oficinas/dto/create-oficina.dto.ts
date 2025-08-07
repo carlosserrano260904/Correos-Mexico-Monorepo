@@ -72,10 +72,10 @@ export class CreateOficinaDto {
   @IsString()
   pais?: string;
 
-  @IsDecimal()
+  @IsNumber()
   latitud: number;
 
-  @IsDecimal()
+  @IsNumber()
   longitud: number;
 
   @IsOptional()

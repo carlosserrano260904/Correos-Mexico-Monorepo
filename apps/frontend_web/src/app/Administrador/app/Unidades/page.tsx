@@ -142,7 +142,11 @@ export default function UnidadesPage() {
                     <TableCell className="font-medium text-gray-900 text-sm border-0">{unidad.claveOficina}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.tipoVehiculo}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.placas}</TableCell>
-                    <TableCell className="border-0">
+                    <TableCell className="text-gray-700 text-sm border-0">{unidad.conductor && unidad.curpConductor?.trim() !== "" ? 
+                    unidad.conductor 
+                    : "S/C"}
+                    </TableCell>
+                   {/* <TableCell className="border-0">
                       <Badge 
                         variant={unidad.conductor && unidad.conductor !== "S/C" ? "default" : "destructive"}
                         className={unidad.conductor && unidad.conductor !== "S/C"
@@ -150,9 +154,9 @@ export default function UnidadesPage() {
                           : "bg-red-100 text-red-700 hover:bg-red-100 text-xs px-2 py-1"
                         }
                       >
-                        {unidad.conductor !== "S/C" ? "Sí": "No"}
+                        {unidad.conductor !== "S/C" ? "Sí": "No"}  
                       </Badge>
-                    </TableCell>
+                    </TableCell>*/}
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.tarjetaCirculacion}</TableCell>
                   </TableRow>
                 ))}

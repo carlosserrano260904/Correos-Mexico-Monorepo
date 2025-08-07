@@ -24,8 +24,6 @@ export class ViewdocService {
       endpoint = `https://${endpoint}`;
     }
 
-    this.logger.debug(`Usando endpoint S3: ${endpoint}`);
-
     this.s3 = new S3Client({
       region,
       credentials: { accessKeyId, secretAccessKey },
@@ -44,7 +42,6 @@ export class ViewdocService {
   }
 
   async getHtmlFromDocx(key: string): Promise<string> {
-    this.logger.debug(`Descargando ${key} desde bucket ${this.bucket}`);
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,

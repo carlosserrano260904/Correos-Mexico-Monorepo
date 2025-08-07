@@ -42,7 +42,7 @@ export default function Politicas() {
   }, [key]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#E6007A' }}>
+    <View style={{ flex: 1, backgroundColor: 'fff' }}>
       <StatusBar barStyle="light-content" backgroundColor="#E6007A" />
       {/* Header */}
       <SafeAreaView style={styles.headerContainer}>

@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ProductView from '../screens/usuario/e-commerce/ProductView';
+import HistorialFacturasScreen from '../screens/facturas/historial_facturas';
 import RoutesView from '../screens/repartidor/RoutesView';
 import PackageScreen from '../screens/repartidor/PackageScreen';
 import ProductsScreen from '../screens/producto/productosColor';
@@ -61,6 +62,7 @@ export default function AppNavigator() {
             <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} options={{ headerShown: false }} /> 
             <Stack.Screen name="MisCompras" component={MisCompras} options={{ headerShown: false }} />
             <Stack.Screen name="MisCuponesScreen" component={MisCuponesScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="HistorialFacturas" component={HistorialFacturasScreen} options={{ headerShown: false }} />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PagoExitosoScreen" component={PagoExitosoScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />

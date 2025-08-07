@@ -54,7 +54,7 @@ export class PagosService {
       status: 'success',
       message: 'Pago confirmado y factura generada',
       paymentIntentId: paymentIntent.id,
-      factura,
+      profile: { id: profile.id },
     };
   }
 }

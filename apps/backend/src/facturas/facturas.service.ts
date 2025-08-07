@@ -47,7 +47,7 @@ export class FacturasService {
       productos,
       fecha_creacion: new Date(),
       fecha_vencimiento: new Date(new Date().setDate(new Date().getDate() + 30)),
-      profile,
+      profile: { id: profile.id },
     });
 
     return this.facturasRepository.save(nuevaFactura);

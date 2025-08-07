@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { FacturasModule } from './facturas/facturas.module';
 import { PagosModule } from './pagos/pagos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfig } from './config/typeorm.config';
@@ -56,6 +57,7 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
     PagosModule,
     ProductsModule,
     TransactionsModule,
+    FacturasModule,
     UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,

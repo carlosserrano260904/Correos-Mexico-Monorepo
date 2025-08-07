@@ -5,7 +5,7 @@ import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/s
 @ApiTags('Pagos (Stripe)¿')
 @Controller('pagos')
 export class StripeController {
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(private readonly stripeService: StripeService) { }
 
   @Post('crear-cliente')
   @ApiOperation({ summary: 'Crear un cliente en Stripe' })
@@ -101,4 +101,5 @@ export class StripeController {
     });
     return tarjetas;
   }
+
 }

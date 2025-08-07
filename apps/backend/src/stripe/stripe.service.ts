@@ -20,7 +20,7 @@ export class StripeService {
 
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
-  ) {}
+  ) { }
 
   async createCustomer(email: string) {
     return await this.stripe.customers.create({ email });
@@ -74,4 +74,5 @@ export class StripeService {
     // 3. Guardar en base de datos
     return await this.saveCardToDatabase(paymentMethod, profileId);
   }
+
 }

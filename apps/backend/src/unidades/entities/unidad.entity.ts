@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMan
 import { TipoVehiculo } from '../entities/tipo-vehiculo.entity';
 import { Conductor } from '../../conductores/entities/conductor.entity';
 import { Oficina } from '../../oficinas/entities/oficina.entity';
-import { Envio } from 'src/envios/entities/envios.entity';
+import { Envio } from '../../envios/entities/envios.entity';
 
 @Entity('unidades')
 export class Unidad {

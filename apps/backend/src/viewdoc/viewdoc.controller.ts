@@ -25,8 +25,6 @@ export class ViewdocController {
       throw new HttpException('Falta el parámetro ?key=', HttpStatus.BAD_REQUEST);
     }
 
-    this.logger.debug(`Petición recibida para key="${key}"`);
-
     try {
       const html = await this.docsService.getHtmlFromDocx(key);
       res.type('text/html');

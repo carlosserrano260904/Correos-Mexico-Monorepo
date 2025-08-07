@@ -72,12 +72,16 @@ export class CreateOficinaDto {
   @IsString()
   pais?: string;
 
-  @IsDecimal()
+  @IsNumber()
   latitud: number;
 
-  @IsDecimal()
+  @IsNumber()
   longitud: number;
 
+  @IsOptional()
   @IsBoolean()
-  activo: boolean;
+  activo?: boolean;
+
+  @IsString()
+  horario_atencion?: string;
 }

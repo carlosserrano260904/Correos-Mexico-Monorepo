@@ -12,10 +12,10 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 type MisTarjetasNavProp = NativeStackNavigationProp<RootStackParamList, 'MisTarjetasScreen'>;
 
 interface Tarjeta {
-  id: string;
-  tipo: string;
-  ultimos: string;
-  marca: string;
+  id: t.stripe_payment_method_id;
+  tipo: t.brand,
+  ultimos: t.last4;
+  marca: 'Stripe' | 'Banorte' | 'Santander' | 'HSBC' | 'BBVA';
 }
 
 export default function MistarjetasScreen() {
@@ -34,7 +34,9 @@ export default function MistarjetasScreen() {
         if (!API_URL) {
           throw new Error('La URL de la API no está configurada. Revisa tus variables de entorno.');
         }
-        const response = await axios.get(`${API_URL}/api/cards/user/${userId}`);
+        const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
+        const profileId = profileRes.data?.id;
+        const response = await axios.get(`${API_URL}/api/pagos/mis-tarjetas/${profileId}`);
         if (response.status !== 200) {
           throw new Error(`La respuesta del servidor no fue exitosa. Status: ${response.status}. Cuerpo: ${JSON.stringify(response.data)}`);
         }

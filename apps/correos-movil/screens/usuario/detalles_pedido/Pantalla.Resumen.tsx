@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { obtenerDirecciones } from '../../../api/direcciones';
 import {
   View,
   Text,
@@ -12,9 +11,13 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import Constants from 'expo-constants';
+import { Ionicons } from '@expo/vector-icons';
+import { obtenerDirecciones } from '../../../api/direcciones';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const { width, height } = Dimensions.get('window');
@@ -66,9 +69,9 @@ const PantallaResumen = () => {
   const [direccion, setDireccion] = useState<Direccion | null>(null);
   const [puntoRecogida, setPuntoRecogida] = useState<PuntoRecogida | null>(null);
   const [modoEnvio, setModoEnvio] = useState<'domicilio' | 'puntoRecogida' | null>(null);
-  const [tarjeta, setTarjeta] = useState<{ last4: string; brand: string } | null>(null);
-  const isFocused = useIsFocused();
+  const [tarjeta, setTarjeta] = useState<{ stripeCardId: string; last4: string; brand: string } | null>(null);
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const loadCart = async () => {
     try {
@@ -142,7 +145,7 @@ const PantallaResumen = () => {
 
       if (tarjetas && tarjetas.length > 0) {
         const ultima = tarjetas[tarjetas.length - 1];
-        setTarjeta({ brand: ultima.brand, last4: ultima.last4 });
+        setTarjeta({ stripeCardId: ultima.stripeCardId, brand: ultima.brand, last4: ultima.last4 });
       }
     } catch (error) {
       console.error('Error al cargar tarjeta:', error);
@@ -160,14 +163,40 @@ const PantallaResumen = () => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  const confirmarCompra = async () => {
+    try {
+      const profileId = await AsyncStorage.getItem('userId');
+      if (!profileId || !tarjeta?.stripeCardId) {
+        Alert.alert('Error', 'No se encontró tarjeta o usuario.');
+        return;
+      }
+
+      const total = calculateTotal();
+
+      const res = await axios.post(
+        `${Constants.expoConfig.extra.IP_LOCAL ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api` : BASE_URL}/pagos/confirmar`,
+        {
+          profileId,
+          total,
+          stripeCardId: tarjeta.stripeCardId,
+        }
+      );
+
+      if (res.data?.status === 'success') {
+        navigation.navigate('PagoExitosoScreen' as never);
+      } else {
+        Alert.alert('Error', 'El pago no se pudo completar.');
+      }
+    } catch (error: any) {
+      console.error('Error en confirmación de pago:', error?.response?.data || error.message);
+      Alert.alert('Error', 'Ocurrió un error al procesar el pago.');
+    }
+  };
+
   useEffect(() => {
     if (isFocused) {
       const loadData = async () => {
-        await Promise.all([
-          loadCart(),
-          loadShippingInfo(),
-          loadUltimaTarjeta(),
-        ]);
+        await Promise.all([loadCart(), loadShippingInfo(), loadUltimaTarjeta()]);
       };
       loadData();
     }
@@ -175,6 +204,7 @@ const PantallaResumen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 20 }}>
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>
@@ -225,7 +255,7 @@ const PantallaResumen = () => {
                     <Text style={styles.name}>{item.name}</Text>
                     <Text style={styles.desc}>Color: {item.color}</Text>
                     <Text style={styles.desc}>Cantidad: {item.quantity}</Text>
-                    <Text style={styles.price}>MXN {(item.price).toFixed(2)}</Text>
+                    <Text style={styles.price}>MXN {item.price.toFixed(2)}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -242,7 +272,7 @@ const PantallaResumen = () => {
               <Text style={styles.totalAmount}>MXN {calculateTotal().toFixed(2)}</Text>
             </View>
 
-            <TouchableOpacity style={styles.confirmBtn}>
+            <TouchableOpacity style={styles.confirmBtn} onPress={confirmarCompra}>
               <Text style={styles.confirmText}>Confirmar compra</Text>
             </TouchableOpacity>
           </View>

@@ -8,11 +8,13 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Product } from './entities/product.entity';
 import { UploadImageService } from 'src/upload-image/upload-image.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
@@ -75,6 +77,20 @@ findAll() {
 findOne(@Param('id') id: string) {
   return this.productsService.findOne(+id);
 }
+
+  @Get('random/:categoria')
+  async getRandomByCategory(@Param('categoria') categoria: string): Promise<Product[]> {
+    const products = await this.productsService.get18RandomByCategoryOptimized(categoria);
+    if (!products || products.length === 0) {
+      // opcional: devolver 204 para indicar "sin contenido"
+      // Si prefieres siempre 200 con array vacío, quita la siguiente línea y simplemente return products.
+      throw {
+        status: HttpStatus.NO_CONTENT,
+        message: `No se encontraron productos para la categoría "${categoria}"`,
+      };
+    }
+    return products;
+  }
 
 @Patch(':id')
 @ApiOperation({ summary: 'Actualizar un producto por su ID' })

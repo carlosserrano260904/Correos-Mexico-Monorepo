@@ -1,5 +1,6 @@
 import { Transaction } from 'src/transactions/entities/transaction.entity'
 import { Favorito } from 'src/favoritos/entities/favorito.entity'
+import { Factura } from '../../facturas/factura.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity'
 import {Column,Entity,OneToMany,OneToOne,PrimaryGeneratedColumn} from 'typeorm'
 import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
@@ -11,6 +12,7 @@ export class Profile {
     @PrimaryGeneratedColumn()
     id:number
     @Column({type:'varchar',length:30})
+
     nombre:string
 //prueba 
     @Column({type:'varchar',length:30})
@@ -18,6 +20,9 @@ export class Profile {
 
     @Column({type:'varchar',length:10})
     numero:string
+
+    @OneToMany(() => Factura, (factura) => factura.profile)
+    facturas: Factura[];
 
     @Column({type:'varchar'})
     estado:string

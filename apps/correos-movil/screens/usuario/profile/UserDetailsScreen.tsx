@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Alert, StatusBar, Platform } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Alert, StatusBar, Platform, KeyboardAvoidingView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -21,19 +21,19 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     const fetchUser = async () => {
       const storedId = await AsyncStorage.getItem('userId');
       if (!storedId) return;
-  
+
       const rawUser = await usuarioPorId(+storedId);
-  
+
       imagenCargadaRef.current = rawUser.imagen?.trim() || defaultImage;
-  
+
       setUserData(prev => ({
         ...rawUser,
         imagen: imagenCargadaRef.current,
       }));
     };
-  
+
     fetchUser();
-  }, []);  
+  }, []);
 
   const { user } = route.params;
   const [userData, setUserData] = useState({
@@ -90,11 +90,11 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     if (userData.codigoPostal && !/^\d{5}$/.test(userData.codigoPostal)) {
       return Alert.alert('Advertencia', 'El código postal debe tener 5 dígitos.');
     }
-  
+
     try {
       const storedId = await AsyncStorage.getItem('userId');
       let imagenKey = userData.imagen;
-  
+
       if (
         isEditing &&
         userData.imagen !== user.imagen &&
@@ -105,13 +105,13 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
           imagenKey = await uploadAvatar(userData.imagen, +storedId);
         }
       }
-  
+
       if (storedId) {
         const usuario = await actualizarUsuarioPorId(
           { ...userData, imagen: imagenKey },
           +storedId
         );
-  
+
         if (usuario && typeof usuario === 'object') {
           Alert.alert('Éxito', 'Perfil actualizado', [
             { text: 'OK', onPress: () => setIsEditing(false) },
@@ -125,7 +125,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       Alert.alert('Error', 'Hubo un problema al actualizar el perfil.');
     }
   };
-  
+
 
   const handleCancel = async () => {
     try {
@@ -161,161 +161,168 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       </SafeAreaView>
 
       <SafeAreaView style={styles.contentSafe}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <View style={styles.content}>
-            <View>
-              <CircularProgressAvatar userData={userData} imageUri={userData.imagen} />
-              {isEditing && (
-                <TouchableOpacity
-                  onPress={pickImage}
-                  style={styles.cameraOverlay}
-                >
-                  <Ionicons name="camera" size={20} color="#fff" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-
-            {isEditing ? (
-              <>
-                <TextInput
-                  style={[styles.name, styles.input]}
-                  value={userData.nombre}
-                  onChangeText={text => handleChange('nombre', text)}
-                  placeholder="Nombre"
-                />
-                <TextInput
-                  style={[styles.name, styles.input]}
-                  value={userData.apellido}
-                  onChangeText={text => handleChange('apellido', text)}
-                  placeholder="Apellido"
-                />
-              </>
-            ) : (
-              <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                <Text style={styles.name}>{userData.nombre?.trim() || 'Sin nombre'}</Text>
-                <Text style={styles.lastname}>{userData.apellido?.trim() || 'Sin apellido'}</Text>
-              </View>
-            )}
-
-            <View style={styles.divider} />
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Contacto</Text>
-              <View style={styles.infoRow}>
-                <Ionicons name="call" size={18} color={PINK} style={styles.icon} />
-                {isEditing ? (
-                  <TextInput
-                    style={[styles.infoText, styles.input]}
-                    value={userData.numero}
-                    onChangeText={text => handleChange('numero', text)}
-                    keyboardType="phone-pad"
-                    placeholder="Teléfono"
-                  />
-                ) : (
-                  <Text style={styles.infoText}>{userData.numero?.trim() || 'Sin número'}</Text>
-                )}
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="location" size={18} color={PINK} style={styles.icon} />
-                {isEditing ? (
-                  <TextInput
-                    style={[styles.infoText, styles.input]}
-                    value={userData.ciudad}
-                    onChangeText={text => handleChange('ciudad', text)}
-                    placeholder="Ciudad"
-                  />
-                ) : (
-                  <Text style={styles.infoText}>
-                    {[userData.ciudad, userData.estado].filter(Boolean).join(', ') || 'Sin ubicación'}
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Dirección</Text>
-              <View style={styles.infoRow}>
-                <Ionicons name="home" size={18} color={PINK} style={styles.icon} />
-                {isEditing ? (
-                  colonias.length > 0 ? (
-                    <Picker
-                      selectedValue={selectedColonia}
-                      onValueChange={(itemValue) => {
-                        setSelectedColonia(itemValue);
-                        setUserData(prev => ({ ...prev, fraccionamiento: itemValue }));
-                      }}
-                      style={{ flex: 1 }}
-                    >
-                      {colonias.map((colonia, index) => (
-                        <Picker.Item key={index} label={colonia} value={colonia} />
-                      ))}
-                    </Picker>
-                  ) : (
-                    <TextInput
-                      style={[styles.infoText, styles.input]}
-                      value={userData.fraccionamiento}
-                      onChangeText={text => handleChange('fraccionamiento', text)}
-                      placeholder="Fraccionamiento"
-                    />
-                  )
-                ) : (
-                  <Text style={styles.infoText}>{userData.fraccionamiento?.trim() || 'Sin fraccionamiento'}</Text>
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator
+          >
+            <View style={styles.content}>
+              <View>
+                <CircularProgressAvatar userData={userData} imageUri={userData.imagen} />
+                {isEditing && (
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    style={styles.cameraOverlay}
+                  >
+                    <Ionicons name="camera" size={20} color="#fff" />
+                  </TouchableOpacity>
                 )}
               </View>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="business" size={18} color={PINK} style={styles.icon} />
-                {isEditing ? (
-                  <TextInput
-                    style={[styles.infoText, styles.input]}
-                    value={userData.calle}
-                    onChangeText={text => handleChange('calle', text)}
-                    placeholder="Calle"
-                  />
-                ) : (
-                  <Text style={styles.infoText}>{userData.calle?.trim() || 'Sin calle'}</Text>
-                )}
-              </View>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="pricetag" size={18} color={PINK} style={styles.icon} />
-                {isEditing ? (
-                  <TextInput
-                    style={[styles.infoText, styles.input]}
-                    value={userData.codigoPostal}
-                    onChangeText={text => handleChange('codigoPostal', text)}
-                    keyboardType="numeric"
-                    placeholder="CP"
-                  />
-                ) : (
-                  <Text style={styles.infoText}>{userData.codigoPostal?.trim() || 'Sin CP'}</Text>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.buttonsContainer}>
               {isEditing ? (
                 <>
-                  <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
-                    <Text style={styles.cancelText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
-                    <Text style={styles.saveText}>Guardar Cambios</Text>
-                  </TouchableOpacity>
+                  <TextInput
+                    style={[styles.name, styles.input]}
+                    value={userData.nombre}
+                    onChangeText={text => handleChange('nombre', text)}
+                    placeholder="Nombre"
+                  />
+                  <TextInput
+                    style={[styles.name, styles.input]}
+                    value={userData.apellido}
+                    onChangeText={text => handleChange('apellido', text)}
+                    placeholder="Apellido"
+                  />
                 </>
               ) : (
-                <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={() => setIsEditing(true)}>
-                  <Text style={styles.saveText}>Editar</Text>
-                </TouchableOpacity>
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                  <Text style={styles.name}>{userData.nombre?.trim() || 'Sin nombre'}</Text>
+                  <Text style={styles.lastname}>{userData.apellido?.trim() || 'Sin apellido'}</Text>
+                </View>
               )}
+
+              <View style={styles.divider} />
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Contacto</Text>
+                <View style={styles.infoRow}>
+                  <Ionicons name="call" size={18} color={PINK} style={styles.icon} />
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.infoText, styles.input]}
+                      value={userData.numero}
+                      onChangeText={text => handleChange('numero', text)}
+                      keyboardType="phone-pad"
+                      placeholder="Teléfono"
+                    />
+                  ) : (
+                    <Text style={styles.infoText}>{userData.numero?.trim() || 'Sin número'}</Text>
+                  )}
+                </View>
+                <View style={styles.infoRow}>
+                  <Ionicons name="location" size={18} color={PINK} style={styles.icon} />
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.infoText, styles.input]}
+                      value={userData.ciudad}
+                      onChangeText={text => handleChange('ciudad', text)}
+                      placeholder="Ciudad"
+                    />
+                  ) : (
+                    <Text style={styles.infoText}>
+                      {[userData.ciudad, userData.estado].filter(Boolean).join(', ') || 'Sin ubicación'}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Dirección</Text>
+                <View style={styles.infoRow}>
+                  <Ionicons name="home" size={18} color={PINK} style={styles.icon} />
+                  {isEditing ? (
+                    colonias.length > 0 ? (
+                      <Picker
+                        selectedValue={selectedColonia}
+                        onValueChange={(itemValue) => {
+                          setSelectedColonia(itemValue);
+                          setUserData(prev => ({ ...prev, fraccionamiento: itemValue }));
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        {colonias.map((colonia, index) => (
+                          <Picker.Item key={index} label={colonia} value={colonia} />
+                        ))}
+                      </Picker>
+                    ) : (
+                      <TextInput
+                        style={[styles.infoText, styles.input]}
+                        value={userData.fraccionamiento}
+                        onChangeText={text => handleChange('fraccionamiento', text)}
+                        placeholder="Fraccionamiento"
+                      />
+                    )
+                  ) : (
+                    <Text style={styles.infoText}>{userData.fraccionamiento?.trim() || 'Sin fraccionamiento'}</Text>
+                  )}
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Ionicons name="business" size={18} color={PINK} style={styles.icon} />
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.infoText, styles.input]}
+                      value={userData.calle}
+                      onChangeText={text => handleChange('calle', text)}
+                      placeholder="Calle"
+                    />
+                  ) : (
+                    <Text style={styles.infoText}>{userData.calle?.trim() || 'Sin calle'}</Text>
+                  )}
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Ionicons name="pricetag" size={18} color={PINK} style={styles.icon} />
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.infoText, styles.input]}
+                      value={userData.codigoPostal}
+                      onChangeText={text => handleChange('codigoPostal', text)}
+                      keyboardType="numeric"
+                      placeholder="CP"
+                    />
+                  ) : (
+                    <Text style={styles.infoText}>{userData.codigoPostal?.trim() || 'Sin CP'}</Text>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.buttonsContainer}>
+                {isEditing ? (
+                  <>
+                    <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
+                      <Text style={styles.cancelText}>Cancelar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
+                      <Text style={styles.saveText}>Guardar Cambios</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={() => setIsEditing(true)}>
+                    <Text style={styles.saveText}>Editar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </>
   );

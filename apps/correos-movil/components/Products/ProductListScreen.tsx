@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { useMyAuth } from '../../context/AuthContext';
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_API_URL;
 
 export type Articulo = {
   id: string;
@@ -114,7 +114,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     if (!userId) return;
 
     // Cambiamos al endpoint de favoritos para obtener los del usuario
-    fetch(`http://${IP}:3000/api/favoritos/${userId}`)
+    fetch(`${IP}/api/favoritos/${userId}`)
       .then(r => {
         if (r.status === 404) {
           return []; // Si el usuario no tiene favoritos, la API devuelve 404. Lo tratamos como un array vacío.
@@ -143,7 +143,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   useEffect(() => {
     if (!userId) return;
 
-    fetch(`http://${IP}:3000/api/carrito/${userId}`)
+    fetch(`${IP}/api/carrito/${userId}`)
       .then(r => {
         if (r.status === 404) {
           return []; // Si el carrito está vacío, la API devuelve 404.
@@ -196,7 +196,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       });
 
       try {
-        const url = `http://${IP}:3000/api/favoritos/${favoritoId}`;
+        const url = `${IP}/api/favoritos/${favoritoId}`;
         const response = await fetch(url, { method: 'DELETE' });
 
         if (!response.ok) {
@@ -212,7 +212,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     } else {
       // --- Lógica para AGREGAR un favorito ---
       try {
-        const url = `http://${IP}:3000/api/favoritos`;
+        const url = `${IP}/api/favoritos`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

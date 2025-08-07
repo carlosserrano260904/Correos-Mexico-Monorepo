@@ -1,6 +1,6 @@
 import { ProfileUserSchema, SchemaProfileUser } from "../schemas/schemas";
 
-// ✅ Obtener perfil por ID
+// Obtener perfil por ID
 export async function usuarioPorId(id: number): Promise<SchemaProfileUser> {
   const url = `${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`;
 
@@ -16,7 +16,7 @@ export async function usuarioPorId(id: number): Promise<SchemaProfileUser> {
   return perfil;
 }
 
-// ✅ Actualizar campos del perfil (PATCH)
+// Actualizar campos del perfil (PATCH)
 export async function actualizarUsuarioPorId(userData: SchemaProfileUser, id: number) {
   const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${id}`, {
     method: "PATCH",
@@ -36,6 +36,7 @@ export async function actualizarUsuarioPorId(userData: SchemaProfileUser, id: nu
   return responseBody;
 }
 
+// Subir avatar (imagen pública)
 export async function uploadAvatar(uri: string, id: number): Promise<string> {
   const form = new FormData();
   form.append("imagen", {
@@ -57,10 +58,4 @@ export async function uploadAvatar(uri: string, id: number): Promise<string> {
 
   const { url } = await res.json();
   return url;
-}
-
-// ✅ Construir URL pública
-export function buildPublicImageUrl(key: string): string {
-  const bucketName = process.env.EXPO_PUBLIC_GCS_BUCKET_NAME;
-  return `https://storage.googleapis.com/${bucketName}/${key}`;
 }

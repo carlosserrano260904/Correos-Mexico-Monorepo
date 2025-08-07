@@ -10,6 +10,7 @@ type Unidad = {
   claveOficina: string
   tarjetaCirculacion: string
   conductor?:string;
+  curpConductor?:string;
 };
 
 type UnidadStore = {

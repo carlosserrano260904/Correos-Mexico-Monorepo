@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { ContactosTypeormEntity } from "./contactos.typeorm-entity";
-import { Envio } from "src/envios/entities/envios.entity";
+import { Envio } from "../../../../envios/entities/envios.entity";
 
 @Entity({ name: 'guias' })
 export class GuiaTypeormEntity {

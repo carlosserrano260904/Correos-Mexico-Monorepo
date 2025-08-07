@@ -25,6 +25,12 @@ export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
       case 'prohibidos':
         router.push('/articulosprohibidos')
         break
+      case 'enviar':
+        router.push('/como-enviar')
+        break
+      case 'corporativos':
+        router.push('/corporativos')
+        break
       // Agregar más casos cuando tengamos más páginas
       default:
         console.log(`Página no disponible para: ${servicioId}`)

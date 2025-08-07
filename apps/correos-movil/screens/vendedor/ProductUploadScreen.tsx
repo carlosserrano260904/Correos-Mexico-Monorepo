@@ -19,7 +19,7 @@ import ColorPalette from 'react-native-color-palette';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
 
-const IP = Constants.expoConfig?.extra?.IP_LOCAL;
+const IP = process.env.EXPO_PUBLIC_API_URL;
 
 const MAX_IMAGES = 9;
 
@@ -154,7 +154,7 @@ const handleImageUpload = async () => {
     }
 
     try {
-      const response = await fetch(`http://${IP}:3000/api/products`, {
+      const response = await fetch(`${IP}/api/products`, {
         method: 'POST',
         body: data,
         // No establezcas 'Content-Type', fetch lo hará automáticamente

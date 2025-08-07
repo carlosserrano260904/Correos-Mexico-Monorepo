@@ -350,6 +350,9 @@ export const Navbar = () => {
                                 <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium">
                                     Historial
                                 </Link>
+                                <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium">
+                                    Solicitar Cuenta de Vendedor
+                                </Link>
                                 <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium">
                                     Vendedor
                                 </Link>

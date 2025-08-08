@@ -1,98 +1,82 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Oficina } from '../oficinas/entities/oficina.entity';
-import { Repository, Like, ILike } from 'typeorm';
+import { Repository } from 'typeorm';
+
 @Injectable()
 export class OficinasService {
   constructor(
     @InjectRepository(Oficina)
     private readonly oficinaRepository: Repository<Oficina>,
-  ) { }
+  ) {}
 
-
-  // Método que busca oficinas por código postal
-  async findByCodigoPostal(codigo_postal: string) {
+  // Método unificado de búsqueda optimizado
+  async buscarOficinas(termino: string): Promise<Oficina[]> {
     try {
-      const codigoPostalStr = codigo_postal.trim(); // Limpia el código postal
-
-      console.log('Buscando código postal:', codigoPostalStr);  // Verifica que el código postal sea correcto
-
-      // Realiza la consulta utilizando createQueryBuilder para buscar por código postal
-      const oficinas = await this.oficinaRepository
-        .createQueryBuilder('oficina')
-        .where('oficina.codigo_postal = :codigo_postal', { codigo_postal: codigoPostalStr })
-        .andWhere('oficina.activo = true')  // Asegúrate de que la oficina esté activa
-        .getMany();
-
-      if (oficinas.length === 0) {
-        throw new HttpException('Oficina no encontrada', HttpStatus.NOT_FOUND);
+      const terminoLimpio = termino.trim();
+      
+      if (!terminoLimpio) {
+        return [];
       }
 
-      return oficinas; // Devuelve las oficinas encontradas
+      let query = this.oficinaRepository
+        .createQueryBuilder('oficina')
+        .where('oficina.activo = true');
+
+      // Detectar si es código postal (5 dígitos)
+      if (/^\d{5}$/.test(terminoLimpio)) {
+        query = query.andWhere('oficina.codigo_postal = :codigo_postal', { 
+          codigo_postal: terminoLimpio 
+        });
+      } else {
+        // Buscar por nombre de entidad o municipio
+        query = query.andWhere(
+          '(oficina.nombre_entidad ILIKE :nombre OR oficina.nombre_municipio ILIKE :nombre)',
+          { nombre: `%${terminoLimpio}%` }
+        );
+      }
+
+      // Obtener todas las oficinas que coincidan
+      const todasLasOficinas = await query
+        .orderBy('oficina.id_oficina', 'ASC')
+        .getMany();
+
+      // DEDUPLICACIÓN MANUAL: Eliminar duplicados por domicilio
+      const oficinasSinDuplicados: Oficina[] = [];
+
+      const domiciliosVistos = new Set();
+
+      for (const oficina of todasLasOficinas) {
+        // Normalizar domicilio para comparación (sin espacios extra, mayúsculas)
+        const domicilioNormalizado = oficina.domicilio
+          .toLowerCase()
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (!domiciliosVistos.has(domicilioNormalizado)) {
+          domiciliosVistos.add(domicilioNormalizado);
+          oficinasSinDuplicados.push(oficina);
+        }
+      }
+
+      return oficinasSinDuplicados; // Siempre devuelve array (vacío si no encuentra)
+      
     } catch (error) {
-      console.error('Error en findByCodigoPostal:', error);
-      throw new HttpException('Error interno', HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error('Error en buscarOficinas:', error);
+      return []; // Devuelve array vacío en lugar de lanzar excepción
     }
   }
 
-
-  async findByNombreEntidad(nombre_entidad: string) {
-    try {
-      const oficinas = await this.oficinaRepository
-        .createQueryBuilder('oficina')
-        .where('oficina.nombre_entidad ILIKE :nombre', { nombre: `%${nombre_entidad}%` })
-        .andWhere('oficina.activo = true')
-        .getMany();
-
-      if (oficinas.length === 0) {
-        // Devolvemos 404 directamente
-        throw new HttpException('No se encontraron oficinas con ese nombre de entidad', HttpStatus.NOT_FOUND);
-      }
-
-      return oficinas;
-    } catch (error) {
-      console.error('Error en findByNombreEntidad:', error);
-
-      // Si el error ya es un HttpException, no lo reemplaces
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      throw new HttpException('Error interno', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  // Métodos específicos (mantener por compatibilidad si es necesario)
+  async findByCodigoPostal(codigo_postal: string): Promise<Oficina[]> {
+    return this.buscarOficinas(codigo_postal);
   }
 
-
-  async findByNombreMunicipio(nombre_municipio: string) {
-    try {
-      const oficinas = await this.oficinaRepository
-        .createQueryBuilder('oficina')
-        .where('oficina.nombre_municipio ILIKE :nombre', { nombre: `%${nombre_municipio}%` })
-        .andWhere('oficina.activo = true')
-        .getMany();
-
-      if (oficinas.length === 0) {
-        // Devolvemos 404 directamente
-        throw new HttpException('No se encontraron oficinas con ese nombre de municipio', HttpStatus.NOT_FOUND);
-      }
-
-      return oficinas;
-    } catch (error) {
-      console.error('Error en findByNombreEntidad:', error);
-
-      // Si el error ya es un HttpException, no lo reemplaces
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      throw new HttpException('Error interno', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  async findByNombreEntidad(nombre_entidad: string): Promise<Oficina[]> {
+    return this.buscarOficinas(nombre_entidad);
   }
 
-  // async buscarPorNombre(nombre: string): Promise<Oficina[]> {
-  //   return this.oficinaRepository.find({
-  //     where: { nombre_entidad: ILike(`%${nombre}%`) }, // ILike para búsqueda insensible a mayúsculas/minúsculas
-  //   });
-  // }
-
+  async findByNombreMunicipio(nombre_municipio: string): Promise<Oficina[]> {
+    return this.buscarOficinas(nombre_municipio);
+  }
 }

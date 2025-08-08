@@ -3,11 +3,10 @@ import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { UploadImageModule } from 'src/upload-image/upload-image.module';
-import { UploadGcsModule } from 'src/cloud-storage/upload-gcs.module';
+import { UploadImageModule } from '../upload-image/upload-image.module'; // Import the UploadImageModule
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), UploadImageModule, UploadGcsModule,], 
+  imports: [TypeOrmModule.forFeature([Product]), UploadImageModule], 
   controllers: [ProductsController],
   providers: [ProductsService],
 })

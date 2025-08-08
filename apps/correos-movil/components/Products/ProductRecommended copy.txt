@@ -4,6 +4,7 @@ import {
   Text,
   Image,
   StyleSheet,
+  Dimensions,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
@@ -28,7 +29,38 @@ interface ProductRecommendedProps {
     likeTrigger?: number;
 }
 
-const placeholderImage = require('../../assets/placeholder.jpg');
+const ProductRecommended: React.FC<ProductRecommendedProps> = ({ productos = [], likeTrigger }) => {
+    const [items, setItems] = useState<Articulo[]>(productos);
+
+    useEffect(() => {
+        // Si productos es null o undefined, usa array vacío
+        setItems(productos ?? []);
+        // Si necesitas hacer fetch aquí, hazlo usando likeTrigger como dependencia
+        // Ejemplo:
+        // fetchRecommended().then(data => setItems(data));
+    }, [productos, likeTrigger]);
+
+    return (
+        <React.Fragment>
+            {items.length === 0 ? (
+                <View style={{ alignItems: 'center', padding: 16 }}>
+                    <Text>No hay productos recomendados.</Text>
+                </View>
+            ) : (
+                items.map(item => (
+                    <View key={item.id} style={{ marginBottom: 12 }}>
+                        <Text>{item.nombre}</Text>
+                        {/* Renderiza más detalles aquí */}
+                    </View>
+                ))
+            )}
+        </React.Fragment>
+    );
+};
+
+export type ProductListScreenProps = {
+  productos: Articulo[];
+};
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   const max = 3;
@@ -52,6 +84,8 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   );
 };
 
+const placeholderImage = require('../../assets/placeholder.jpg'); // Ajusta la ruta si es necesario
+
 const ProductoCard: React.FC<{
   articulo: Articulo;
   favoritos: Record<number, number>;
@@ -59,7 +93,7 @@ const ProductoCard: React.FC<{
   isInCart: boolean;
 }> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
   const nav = useNavigation<any>();
-  const idNum = parseInt(articulo.id.toString(), 10);
+  const idNum = parseInt(articulo.id, 10);
   const isLiked = favoritos.hasOwnProperty(idNum);
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
@@ -69,6 +103,7 @@ const ProductoCard: React.FC<{
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
+  // Validación de imagen
   const imagenValida =
     Array.isArray(articulo.imagen) &&
     articulo.imagen.length > 0 &&
@@ -107,48 +142,45 @@ const ProductoCard: React.FC<{
           {articulo.nombre}
         </Text>
         <Text style={styles.textoPrecio}>
-          MXN $ {(articulo.precio || 0).toFixed(2)}
+          MXN $ {(parseFloat(articulo.precio) || 0).toFixed(2)}
         </Text>
       </View>
     </View>
   );
 };
 
-export const ProductListScreen: React.FC<ProductRecommendedProps> = ({ productos, likeTrigger }) => {
+export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '' }) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
   const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
 
-  const fetchFavorites = async () => {
+  useEffect(() => {
     if (!userId) return;
 
-    try {
-      const response = await fetch(`${IP}/api/favoritos/${userId}`);
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        const favoritosMap = data.reduce(
-          (acc, fav) => {
-            if (fav && fav.producto && fav.producto.id) {
-              acc[fav.producto.id] = fav.id;
-            }
-            return acc;
-          },
-          {} as Record<number, number>,
-        );
-        setFavoritos(favoritosMap);
-      }
-    } catch (err) {
-      console.error('Error al obtener favoritos:', err);
-      if (response.status === 404) {
-        setFavoritos({});
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchFavorites();
-  }, [userId, likeTrigger]); // Añadir likeTrigger como dependencia
+    fetch(`${IP}/api/favoritos/${userId}`)
+      .then(r => {
+        if (r.status === 404) {
+          return [];
+        }
+        return r.json();
+      })
+      .then((data: Array<{ id: number; producto: { id: number } }>) => {
+        if (Array.isArray(data)) {
+          const favoritosMap = data.reduce(
+            (acc, fav) => {
+              if (fav && fav.producto && fav.producto.id) {
+                acc[fav.producto.id] = fav.id;
+              }
+              return acc;
+            },
+            {} as Record<number, number>,
+          );
+          setFavoritos(favoritosMap);
+        }
+      })
+      .catch(err => console.error('Error al obtener favoritos:', err));
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -179,8 +211,12 @@ export const ProductListScreen: React.FC<ProductRecommendedProps> = ({ productos
   }, [userId]);
 
   useEffect(() => {
-    setFiltered(productos);
-  }, [productos]);
+    const searchText = search.toLowerCase().trim();
+    const nuevos = productos.filter(p =>
+      p.nombre.toLowerCase().includes(searchText)
+    );
+    setFiltered(nuevos);
+  }, [productos, search]);
 
   const toggleFavorito = async (productoId: number) => {
     if (!userId) {
@@ -236,14 +272,14 @@ export const ProductListScreen: React.FC<ProductRecommendedProps> = ({ productos
     <View style={styles.container}>
       <FlatList
         data={filtered}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.id}
         horizontal
         renderItem={({ item }) => (
           <ProductoCard
             articulo={item}
             favoritos={favoritos}
             toggleFavorito={toggleFavorito}
-            isInCart={cartItems.hasOwnProperty(parseInt(item.id.toString(), 10))}
+            isInCart={cartItems.hasOwnProperty(parseInt(item.id, 10))}
           />
         )}
         showsHorizontalScrollIndicator={false}
@@ -257,7 +293,7 @@ export const ProductListScreen: React.FC<ProductRecommendedProps> = ({ productos
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   tarjetaProducto: {
-    width: 160,
+    width: 160, // Ancho fijo para las tarjetas
     margin: 5,
     backgroundColor: 'white',
     borderRadius: 10,

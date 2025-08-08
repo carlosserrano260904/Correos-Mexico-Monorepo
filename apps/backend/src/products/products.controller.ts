@@ -15,14 +15,14 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
-import { UploadGcsService } from 'src/cloud-storage/upload-gcs.service';
+import { UploadImageService } from './../upload-image/upload-image.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
-    private readonly uploadImageService: UploadGcsService,
+    private readonly uploadImageService: UploadImageService,
   ) { }
 
   @Post()
@@ -39,7 +39,7 @@ export class ProductsController {
   ) {
     if (imagen && imagen.length > 0) {
       const imageUrls = await Promise.all(
-        imagen.map((file) => this.uploadImageService.uploadImageProduct(file)),
+        imagen.map((file) => this.uploadImageService.uploadFileImage(file)),
       );
       createProductDto.imagen = imageUrls;
     }

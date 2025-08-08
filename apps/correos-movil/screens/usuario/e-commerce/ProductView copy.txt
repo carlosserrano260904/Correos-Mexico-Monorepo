@@ -10,7 +10,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMyAuth } from '../../../context/AuthContext';
-import { ProductListScreen, Articulo } from '../../../components/Products/ProductRecommended';
+import ProductListScreen, { Articulo } from '../../../components/Products/ProductRecommended'
 import Animated from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
@@ -36,10 +36,12 @@ function ProductView() {
     const [likeTrigger, setLikeTrigger] = React.useState(0);
     const isMounted = React.useRef(true);
 
+    // Formatear precio
     const formatPrice = (price: number) => {
         return `MXN $ ${price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
+    // Obtener userId una sola vez
     const getUserId = React.useCallback(async () => {
         try {
             const storedUserId = await AsyncStorage.getItem('userId');
@@ -52,7 +54,7 @@ function ProductView() {
 
     React.useEffect(() => {
         return () => {
-            isMounted.current = false;
+            isMounted.current = false; // Marcar componente como desmontado
         };
     }, []);
 
@@ -118,6 +120,7 @@ function ProductView() {
 
             const controller = new AbortController();
             try {
+                // Ejecutar solicitudes de forma secuencial para evitar condiciones de carrera
                 const resFav = await fetch(`${IP}/api/favoritos/${userId}`, { signal: controller.signal });
                 const favoritos = await resFav.json();
                 const fav = favoritos.find((f: any) => f.producto.id === Number(id));
@@ -161,14 +164,7 @@ function ProductView() {
                 }
                 const data = await response.json();
                 if (isMounted.current) {
-                    // TRANSFORMACIÓN AQUÍ
-                    const transformed = Array.isArray(data)
-                        ? data.map((item: any) => ({
-                            ...item,
-                            precio: parseFloat(item.precio) || 0,
-                        }))
-                        : [];
-                    setRecommended(transformed);
+                    setRecommended(Array.isArray(data) ? data : []);
                 }
             } catch (err: any) {
                 if (err.name !== "AbortError") {
@@ -176,6 +172,8 @@ function ProductView() {
                     if (isMounted.current) {
                         setRecommended([]);
                     }
+                } else {
+                    console.log("Fetch abortado");
                 }
             }
         };
@@ -188,6 +186,8 @@ function ProductView() {
             controller.abort();
         };
     }, [product]);
+
+
 
     const toggleFavorito = async () => {
         const userId = await getUserId();
@@ -206,7 +206,7 @@ function ProductView() {
                 if (isMounted.current) {
                     setFavoritoId(data.id);
                     setLiked(true);
-                    setLikeTrigger(prev => prev + 1);
+                    setLikeTrigger(prev => prev + 1); // <-- dispara recarga
                 }
             } else if (favoritoId) {
                 await fetch(`${IP}/api/favoritos/${favoritoId}`, {
@@ -216,7 +216,7 @@ function ProductView() {
                 if (isMounted.current) {
                     setFavoritoId(null);
                     setLiked(false);
-                    setLikeTrigger(prev => prev + 1);
+                    setLikeTrigger(prev => prev + 1); // <-- dispara recarga
                 }
             }
         } catch (err: any) {
@@ -426,6 +426,7 @@ function ProductView() {
                     <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
                     <ProductListScreen productos={recommended} likeTrigger={likeTrigger} />
                 </View>
+                
             </View>
         </ScrollView>
     );
@@ -611,6 +612,16 @@ const styles = StyleSheet.create({
         fontSize: moderateScale(20),
         color: '#333',
         marginBottom: moderateScale(16),
+    },
+    recommendedPlaceholder: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: moderateScale(8),
+        padding: moderateScale(16),
+        alignItems: 'center',
+    },
+    recommendedText: {
+        fontSize: moderateScale(14),
+        color: '#555',
     },
 });
 

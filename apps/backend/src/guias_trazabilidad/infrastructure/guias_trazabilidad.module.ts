@@ -92,6 +92,9 @@ import { GoogleGeocodeRepository } from "./google-geocode/google-geocode.reposit
             provide: AWS_REPOSITORY_INTERFACE,
             useClass: AWSRepository
         }
+    ],
+    exports: [
+        CqrsModule
     ]
 })
 export class GuiasTrazabilidadModule { }

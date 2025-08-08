@@ -94,7 +94,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     {
       title: 'Políticas',
       items: [
-        { label: 'Prueba productos', icon: 'file-text', to: 'Productos' },
         { label: 'Términos y condiciones', icon: 'file-text', to: 'Politicas', params: { key: 'docs/politicas.docx' } },
       ],
     },

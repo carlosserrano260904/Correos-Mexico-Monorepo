@@ -44,6 +44,7 @@ interface CartItem {
 }
 
 interface Direccion {
+  id?: number;
   calle: string;
   colonia_fraccionamiento: string;
   numero_exterior: number | null;
@@ -101,6 +102,7 @@ const PantallaResumen = () => {
     }
   };
 
+  // 🔧 Cambiado: ahora lee `direccionSeleccionadaId` y busca en la lista del backend.
   const loadShippingInfo = async () => {
     try {
       const modo = await AsyncStorage.getItem('modoEnvio');
@@ -112,19 +114,29 @@ const PantallaResumen = () => {
           const data: PuntoRecogida = JSON.parse(punto);
           setPuntoRecogida(data);
         }
-      } else {
-        const seleccionada = await AsyncStorage.getItem('direccionSeleccionada');
-        if (seleccionada) {
-          setDireccion(JSON.parse(seleccionada));
-        } else {
-          const userId = await AsyncStorage.getItem('userId');
-          if (userId) {
-            const direcciones = await obtenerDirecciones(Number(userId));
-            if (direcciones.length > 0) {
-              setDireccion(direcciones[0]);
-            }
-          }
+        return;
+      }
+
+      // domicilio
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) return;
+
+      const direcciones = await obtenerDirecciones(Number(userId));
+
+      // si hay una dirección seleccionada por ID, úsala
+      const seleccionadaId = await AsyncStorage.getItem('direccionSeleccionadaId');
+      if (seleccionadaId) {
+        const idNum = Number(seleccionadaId);
+        const match = direcciones.find((d: any) => d.id === idNum);
+        if (match) {
+          setDireccion(match);
+          return;
         }
+      }
+
+      // fallback: primera dirección
+      if (direcciones && direcciones.length > 0) {
+        setDireccion(direcciones[0]);
       }
     } catch (error) {
       console.error('Error al cargar información de envío:', error);
@@ -221,8 +233,12 @@ const PantallaResumen = () => {
             <>
               <Text style={styles.addressTitle}>Dirección de entrega</Text>
               <Text style={styles.addressText}>{direccion.calle}, {direccion.colonia_fraccionamiento}</Text>
-              <Text style={styles.addressDetail}>N° {direccion.numero_exterior} {direccion.numero_interior ? `Int. ${direccion.numero_interior}` : ''}</Text>
-              <Text style={styles.addressDetail}>{direccion.codigo_postal}, {direccion.municipio}, {direccion.estado}</Text>
+              <Text style={styles.addressDetail}>
+                N° {direccion.numero_exterior} {direccion.numero_interior ? `Int. ${direccion.numero_interior}` : ''}
+              </Text>
+              <Text style={styles.addressDetail}>
+                {direccion.codigo_postal}, {direccion.municipio}, {direccion.estado}
+              </Text>
             </>
           ) : (
             <Text style={styles.addressText}>No se ha seleccionado dirección</Text>

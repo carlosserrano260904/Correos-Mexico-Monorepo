@@ -19,6 +19,9 @@ import {
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CheckoutButton from '../../../components/Boton-pago-tariffador/CheckoutButton';
 
 const TarificadorMexpost = () => {
   const navigation = useNavigation();
@@ -41,6 +44,33 @@ const TarificadorMexpost = () => {
   const [loadingQuote, setLoadingQuote] = useState(false)
   const [datosEnvio, setDatosEnvio] = useState(null)
   const [cotizacionData, setCotizacionData] = useState(null)
+  const costo = cotizacionData?.costoTotal || 0;
+  const email = 'cliente@example.com';
+  const [profileId, setProfileId] = useState(null);
+
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+
+  //obtener profielid
+useEffect(() => {
+  const fetchProfileId = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) throw new Error('No se encontró el ID del usuario.');
+      if (!API_URL) throw new Error('La URL de la API no está configurada.');
+
+      const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
+      const profileId = profileRes.data?.id;
+      setProfileId(profileId); // ✅ Guardamos solo el profileId
+    } catch (err) {
+      console.error('Error al cargar el profileId:', err);
+    }
+  };
+
+  fetchProfileId();
+}, []);
+
+
 
   useEffect(() => {
     if (!showCountryModal) return
@@ -360,9 +390,9 @@ const TarificadorMexpost = () => {
             )}
             {!showQuote && (
               <>
-              <View style={styles.infoRow}>
-                <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
-              </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
+                </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Peso en kg"
@@ -459,7 +489,7 @@ const TarificadorMexpost = () => {
                       <View style={styles.detalleRow}>
                         <Text style={styles.detalleLabel}>Precio base:</Text>
                         <Text style={styles.detalleValue}>
-                           USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
+                          USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
                         </Text>
                       </View>
                       <View style={styles.detalleRow}>
@@ -473,11 +503,30 @@ const TarificadorMexpost = () => {
                 </View>
                 {/* Solo mostrar el resumen de costo total en Nacional */}
                 {activeTab === "Nacional" && (
-                  <View style={styles.costoTotalContainer}>
-                    <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                    <Text style={styles.costoTotalValue}>
-                      MXN {cotizacionData.costoTotal || "N/A"}
-                    </Text>
+                  <View>
+                    <View style={styles.costoTotalContainer}>
+                      <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                      <Text style={styles.costoTotalValue}>
+                        MXN {costo || 'N/A'}
+                      </Text>
+                    </View>
+
+                    {/* Boton de pago simplificado */}
+                    <CheckoutButton
+                      amount={costo}
+                      email={email}
+                      profileId={115}
+                      onPaymentSuccess={(paymentResult) => {
+                        console.log('Pago exitoso:', paymentResult);
+                        // Aquí puedes hacer lo que necesites después del pago
+                        // Por ejemplo, redirigir, limpiar formulario, etc.
+                        Alert.alert('Éxito', 'El pago se procesó correctamente');
+                      }}
+                      onPaymentError={(error) => {
+                        console.error('Error en pago:', error);
+                        // Manejar errores si es necesario
+                      }}
+                    />
                   </View>
                 )}
 
@@ -669,7 +718,7 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: "#fff",
     borderWidth: 2,
-    borderColor: "#e91e63", 
+    borderColor: "#e91e63",
   },
   searchButtonText: {
     color: "#fff",

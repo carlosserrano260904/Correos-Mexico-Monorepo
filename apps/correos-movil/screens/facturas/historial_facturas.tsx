@@ -25,6 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,144 +41,94 @@ const Colors = {
   error: '#EF4444',
 };
 
+interface Factura {
+  id: number;
+  precio: number;
+  status: string;
+  sucursal: string;
+  numero_factura: string;
+  fecha_creacion: string;
+  fecha_vencimiento: string;
+  productos: string[];
+  profileId: number;
+}
+
 const InvoiceHistoryScreen = () => {
   const navigation = useNavigation();
-  
-  // Estados para manejo de datos
-  const [invoices, setInvoices] = useState([]);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<Factura[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Datos de ejemplo (reemplazar con llamadas reales al backend)
-  const mockInvoices = [
-    {
-      id: 'INV-001',
-      number: 'F-2024-001',
-      date: '2024-07-28',
-      amount: 1250.00,
-      status: 'paid',
-      customer: 'Empresa ABC S.A.',
-      dueDate: '2024-08-28',
-      services: ['Envío Express', 'Seguro']
-    },
-    {
-      id: 'INV-002',
-      number: 'F-2024-002',
-      date: '2024-07-25',
-      amount: 875.50,
-      status: 'pending',
-      customer: 'Comercial XYZ Ltda.',
-      dueDate: '2024-08-25',
-      services: ['Envío Estándar']
-    },
-    {
-      id: 'INV-003',
-      number: 'F-2024-003',
-      date: '2024-07-20',
-      amount: 2100.75,
-      status: 'overdue',
-      customer: 'Distribuidora 123',
-      dueDate: '2024-07-20',
-      services: ['Envío Express', 'Embalaje Especial', 'Seguro']
-    },
-    {
-      id: 'INV-004',
-      number: 'F-2024-004',
-      date: '2024-07-15',
-      amount: 650.25,
-      status: 'paid',
-      customer: 'Tienda El Sol',
-      dueDate: '2024-08-15',
-      services: ['Envío Estándar', 'Embalaje']
-    }
-  ];
-
-  // Hook para cargar datos iniciales
   useEffect(() => {
-    fetchInvoices();
+    const init = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (storedUserId) {
+        setUserId(storedUserId);
+        fetchInvoices(storedUserId);
+      } else {
+        console.warn('No se encontró userId en AsyncStorage');
+      }
+    };
+    init();
   }, []);
 
-  // Funciones para conexión con backend (a implementar con tu API)
-  const fetchInvoices = async (filters = {}) => {
-    setLoading(true);
-    try {
-      /*
-      // CONEXIÓN BACKEND - Reemplazar esta sección con tu lógica real:
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/invoices`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Error fetching invoices');
-      }
-      
-      const data = await response.json();
-      setInvoices(data.invoices);
-      */
-      
-      // Simulación de delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setInvoices(mockInvoices);
-    } catch (error) {
-      console.error('Error fetching invoices:', error);
-      Alert.alert('Error', 'No se pudieron cargar las facturas');
-    } finally {
-      setLoading(false);
+  const fetchInvoices = async (profileId: string) => {
+  setLoading(true);
+  try {
+    const token = await AsyncStorage.getItem('token');
+    console.log('token:', token);
+    console.log('profileId usado:', profileId);
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/facturas/profile/${profileId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text(); // 👈 mensaje del backend
+      console.error('❌ Error HTTP:', response.status);
+      console.error('❌ Respuesta del backend:', errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
     }
-  };
 
-  const downloadInvoice = async (invoiceId) => {
-    try {
-      /*
-      // DESCARGA DE FACTURA - Implementar con tu backend:
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/invoices/${invoiceId}/download`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${userToken}`
-        }
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        // Lógica para descargar el archivo en dispositivo móvil
-      }
-      */
-      
-      console.log('Downloading invoice:', invoiceId);
-      Alert.alert('Descarga', `Descargando factura ${invoiceId}`);
-    } catch (error) {
-      console.error('Error downloading invoice:', error);
-      Alert.alert('Error', 'No se pudo descargar la factura');
-    }
-  };
+    const data = await response.json();
+    console.log('✅ Facturas obtenidas:', data);
+    setInvoices(data);
+  } catch (error) {
+    console.error('❌ Error fetching invoices:', error);
+    Alert.alert('Error', 'No se pudieron cargar las facturas');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const searchInvoices = (query) => {
-    setSearchQuery(query);
-    /*
-    // BÚSQUEDA EN BACKEND - Implementar debounce para optimizar:
-    if (query.length > 2 || query.length === 0) {
-      const searchParams = {
-        search: query,
-        status: selectedFilter !== 'all' ? selectedFilter : undefined
-      };
-      fetchInvoices(searchParams);
-    }
-    */
-  };
+const downloadInvoice = async (invoiceId) => {
+  try {
+    console.log('Downloading invoice:', invoiceId);
+    Alert.alert('Descarga', `Descargando factura ${invoiceId}`);
+  } catch (error) {
+    console.error('Error downloading invoice:', error);
+    Alert.alert('Error', 'No se pudo descargar la factura');
+  }
+};
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchInvoices();
-    setRefreshing(false);
-  };
+const searchInvoices = (query) => {
+  setSearchQuery(query);
+};
 
-  // Filtros disponibles
+const onRefresh = async () => {
+  if (!userId) return;
+  setRefreshing(true);
+  await fetchInvoices(userId);
+  setRefreshing(false);
+};
+
+
   const filters = [
     { key: 'all', label: 'Todas', count: invoices.length },
     { key: 'paid', label: 'Pagadas', count: invoices.filter(inv => inv.status === 'paid').length },
@@ -185,7 +136,6 @@ const InvoiceHistoryScreen = () => {
     { key: 'overdue', label: 'Vencidas', count: invoices.filter(inv => inv.status === 'overdue').length }
   ];
 
-  // Función para obtener color del estado
   const getStatusColor = (status) => {
     const colors = {
       paid: Colors.success,
@@ -195,7 +145,6 @@ const InvoiceHistoryScreen = () => {
     return colors[status] || Colors.gray;
   };
 
-  // Función para obtener texto del estado
   const getStatusText = (status) => {
     const texts = {
       paid: 'Pagada',
@@ -205,10 +154,9 @@ const InvoiceHistoryScreen = () => {
     return texts[status] || 'Desconocido';
   };
 
-  // Facturas filtradas
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.customer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = invoice.numero_factura.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.sucursal.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'all' || invoice.status === selectedFilter;
     return matchesSearch && matchesFilter;
   });
@@ -216,7 +164,7 @@ const InvoiceHistoryScreen = () => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-MX', {
       day: '2-digit',
-      month: '2-digit', 
+      month: '2-digit',
       year: 'numeric'
     });
   };
@@ -253,7 +201,7 @@ const InvoiceHistoryScreen = () => {
         <Search size={20} color={Colors.gray} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por número o cliente..."
+          placeholder="Buscar por número o sucursal..."
           placeholderTextColor={Colors.gray}
           value={searchQuery}
           onChangeText={searchInvoices}
@@ -312,23 +260,17 @@ const InvoiceHistoryScreen = () => {
     </View>
   );
 
-  const renderInvoiceItem = ({ item }) => (
+  const renderInvoiceItem = ({ item }: { item: Factura }) => (
     <TouchableOpacity
       style={styles.invoiceCard}
       onPress={() => {
-        /*
-        // NAVEGACIÓN A DETALLE - Implementar con tu navegación:
-        // Para Expo Router: router.push(`/invoices/${item.id}`);
-        // Para React Navigation: navigation.navigate('InvoiceDetail', { invoiceId: item.id });
-        */
         console.log('Navigate to invoice detail:', item.id);
       }}
     >
-      {/* Header de la factura */}
       <View style={styles.invoiceHeader}>
         <View style={styles.invoiceHeaderLeft}>
-          <Text style={styles.invoiceNumber}>{item.number}</Text>
-          <Text style={styles.invoiceCustomer}>{item.customer}</Text>
+          <Text style={styles.invoiceNumber}>{item.numero_factura}</Text>
+          <Text style={styles.invoiceCustomer}>{item.sucursal}</Text>
         </View>
         <View style={styles.invoiceHeaderRight}>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
@@ -338,34 +280,31 @@ const InvoiceHistoryScreen = () => {
         </View>
       </View>
 
-      {/* Información principal */}
       <View style={styles.invoiceMainInfo}>
         <View style={styles.amountContainer}>
           <DollarSign size={18} color={Colors.primary} />
-          <Text style={styles.invoiceAmount}>{formatCurrency(item.amount)}</Text>
+          <Text style={styles.invoiceAmount}>{formatCurrency(item.precio)}</Text>
         </View>
         <View style={styles.dateContainer}>
           <Calendar size={16} color={Colors.gray} />
-          <Text style={styles.invoiceDate}>{formatDate(item.date)}</Text>
+          <Text style={styles.invoiceDate}>{formatDate(item.fecha_creacion)}</Text>
         </View>
       </View>
 
-      {/* Servicios */}
       <View style={styles.servicesContainer}>
-        <Text style={styles.servicesLabel}>SERVICIOS:</Text>
+        <Text style={styles.servicesLabel}>PRODUCTOS:</Text>
         <View style={styles.servicesTagsContainer}>
-          {item.services.map((service, index) => (
+          {item.productos.map((producto, index) => (
             <View key={index} style={styles.serviceTag}>
-              <Text style={styles.serviceTagText}>{service}</Text>
+              <Text style={styles.serviceTagText}>{producto}</Text>
             </View>
           ))}
         </View>
       </View>
 
-      {/* Footer */}
       <View style={styles.invoiceFooter}>
         <Text style={styles.dueDateText}>
-          Vence: {formatDate(item.dueDate)}
+          Vence: {formatDate(item.fecha_vencimiento)}
         </Text>
         <TouchableOpacity
           onPress={(e) => {
@@ -402,12 +341,12 @@ const InvoiceHistoryScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <CustomHeader />
-      
+
       <View style={styles.content}>
         <SearchBar />
         <FilterButtons />
         <RefreshButton />
-        
+
         {loading ? (
           <LoadingState />
         ) : filteredInvoices.length === 0 ? (
@@ -415,7 +354,7 @@ const InvoiceHistoryScreen = () => {
         ) : (
           <FlatList
             data={filteredInvoices}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderInvoiceItem}
             contentContainerStyle={styles.invoicesList}
             refreshControl={

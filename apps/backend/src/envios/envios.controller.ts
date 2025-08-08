@@ -4,7 +4,7 @@ import { EnviosService } from './envios.service';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
 import { CreateEnvioDto } from './dto/CrearEnvioDto.dto';
 import { FalloEnvioDto } from './dto/FalloEnvio.dto';
-import { UploadGcsService } from 'src/cloud-storage/upload-gcs.service';
+import { UploadImageService } from 'src/upload-image/upload-image.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Envios')
@@ -12,7 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class EnviosController {
   constructor(
               private readonly enviosService: EnviosService,
-              private readonly uploadGcsService: UploadGcsService
+              private readonly uploadImageService: UploadImageService
             ) {}
 
   @Get()
@@ -136,7 +136,7 @@ export class EnviosController {
     }
 
     // 1. Subir archivo y obtener url
-    const url = await this.uploadGcsService.uploadEvidenceDistributor(file);
+    const url = await this.uploadImageService.uploadEvidenceDistributor(file);
 
     // 3. Guardar url en la entidad
     const actualizado = await this.enviosService.anadirEvidencia(id, url);

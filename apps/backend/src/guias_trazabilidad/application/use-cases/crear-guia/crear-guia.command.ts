@@ -34,7 +34,7 @@ interface DimensionesProps {
     largo_cm: number;
 }
 
-enum TipoServicio {
+export enum TipoServicio {
     NACIONAL = 'nacional',
     INTERNACIONAL = 'internacional'
 }

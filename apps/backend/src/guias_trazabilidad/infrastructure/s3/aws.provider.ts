@@ -32,9 +32,7 @@ export const AWSProvider: Provider = {
 
     return new S3Client({
       region,
-      // endpoint: config.get<string>('AWS_S3_ENDPOINT'),
       credentials: { accessKeyId, secretAccessKey },
-      // forcePathStyle: true
     });
   },
   inject: [ConfigService],

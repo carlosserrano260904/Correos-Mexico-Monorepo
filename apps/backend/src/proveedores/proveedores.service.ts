@@ -18,4 +18,6 @@ export class ProveedoresService {
     findBySub(sub: string) {
         return this.repo.findOne({ where: { sub } });
     }
+
+    
 }

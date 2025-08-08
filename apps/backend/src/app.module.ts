@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { FacturasModule } from './facturas/facturas.module';
+import { PagosModule } from './pagos/pagos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -37,6 +39,7 @@ import { CardsModule } from './cards/cards.module';
 import { VendedorModule } from './vendedor/vendedor.module';
 import { EmailModule } from './enviar-correos/enviar-correos.module';
 import { ViewdocModule } from './viewdoc/viewdoc.module';
+import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.module';
 
 
 @Module({
@@ -52,8 +55,10 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
     CreateAccountModule,
     RoutesModule,
     ProfileModule,  
+    PagosModule,
     ProductsModule,
     TransactionsModule,
+    FacturasModule,
     UploadImageModule,
     GuiasTrazabilidadModule,
     UserModule,
@@ -79,7 +84,7 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
     VendedorModule,
     EmailModule,
     ViewdocModule,
-
+    EjemploUsarGuiasModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

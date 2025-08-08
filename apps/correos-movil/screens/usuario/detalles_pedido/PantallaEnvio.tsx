@@ -78,7 +78,7 @@ const PantallaEnvio = () => {
             subtitle="Configura el envío a domicilio"
             onPress={async () => {
               await AsyncStorage.setItem('modoEnvio', 'domicilio');
-              navigation.navigate('Direcciones');
+              navigation.navigate('Direcciones', {modoSeleccion: true});
             }}
           />
         </View>

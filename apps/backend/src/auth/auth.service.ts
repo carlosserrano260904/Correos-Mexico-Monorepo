@@ -119,7 +119,7 @@ export class AuthService {
       proveedor = await this.proveedoresService.create({
         proveedor: dto.proveedor,
         sub: dto.sub,
-        id_usuario: user.profile.id,
+        id_usuario: user.id,
         correo_asociado: dto.correo,
       });
     } else {

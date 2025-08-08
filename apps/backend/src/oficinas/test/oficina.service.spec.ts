@@ -52,12 +52,11 @@ describe('OficinasService', () => {
           },
         },
       ],
-    }).compile()
+    }).compile();
 
     service = module.get<OficinasService>(OficinasService);
     repo = module.get(getRepositoryToken(Oficina));
   });
-
 
   describe('update', () => {
     it('Actualizar una oficina existente', async () => {
@@ -67,8 +66,8 @@ describe('OficinasService', () => {
         const id = (where as any).id_oficina;
         return id === 304 ? Promise.resolve(mockOficina) : Promise.resolve(null);
       });
-      repo.merge.mockImplementation((entity, data) => Object.assign(entity, data));  
-      repo.save.mockResolvedValue({ ...mockOficina, ...updateDto }); 
+      repo.merge.mockImplementation((entity, data) => Object.assign(entity, data));
+      repo.save.mockResolvedValue({ ...mockOficina, ...updateDto });
       repo.update.mockResolvedValue({ affected: 1 } as any);
 
       const result = await service.update(304, updateDto);
@@ -81,7 +80,7 @@ describe('OficinasService', () => {
     it('Error si la oficina no existe', async () => {
       repo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.update(17899, { nombre_cuo: 'Nueva' })).rejects.toThrowError(
+      await expect(service.update(17899, { nombre_cuo: 'Nueva' })).rejects.toThrow(
         new NotFoundException('Oficina no encontrada')
       );
     });
@@ -103,7 +102,7 @@ describe('OficinasService', () => {
     it('Error si la oficina no existe', async () => {
       repo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.activate(17899)).rejects.toThrowError(
+      await expect(service.activate(17899)).rejects.toThrow(
         new NotFoundException('La oficina con id 17899 no existe.')
       );
     });
@@ -125,7 +124,7 @@ describe('OficinasService', () => {
     it('Error si la oficina no existe', async () => {
       repo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.deactivate(17899)).rejects.toThrowError(
+      await expect(service.deactivate(17899)).rejects.toThrow(
         new NotFoundException('La oficina con id 17899 no existe.')
       );
     });

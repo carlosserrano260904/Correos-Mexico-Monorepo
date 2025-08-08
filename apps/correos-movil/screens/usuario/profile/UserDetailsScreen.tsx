@@ -1,56 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  StatusBar,
-  Platform,
-  KeyboardAvoidingView
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker'; // Para seleccionar imágenes de la galería
-import { Ionicons } from '@expo/vector-icons'; // Iconos de Ionicons
-import { Picker } from '@react-native-picker/picker'; // Selector de listas desplegables
+import { SafeAreaView, ScrollView, View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Alert, StatusBar, Platform, KeyboardAvoidingView } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  actualizarUsuarioPorId,
-  uploadAvatar,
-  usuarioPorId
-} from '../../../api/profile'; // Funciones API para usuario
-import { obtenerDatosPorCodigoPostal } from '../../../api/postal'; // Función API para CP
-import { moderateScale } from 'react-native-size-matters'; // Escalado responsive
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Almacenamiento local
-import CircularProgressAvatar from './CircularProgressAvatar'; // Componente de avatar con progreso
+import { actualizarUsuarioPorId, uploadAvatar, usuarioPorId } from '../../../api/profile';
+import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
+import { moderateScale } from 'react-native-size-matters';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CircularProgressAvatar from './CircularProgressAvatar';
 
-const PINK = '#E6007E'; // Constante de color principal
+const PINK = '#E6007E';
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
 
 export default function UserDetailsScreen({ route, navigation }: Props) {
-  // URL de imagen por defecto
   const defaultImage = `${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png`;
-
-  // Referencia para la URI de la imagen cargada (persistente entre renders)
-  const imagenCargadaRef = useRef<string>(
-    route.params.user.imagen || defaultImage
-  );
-
-  // useEffect para recuperar datos actualizados del usuario al montar
+  const imagenCargadaRef = useRef<string>(route.params.user.imagen || defaultImage);
   useEffect(() => {
     const fetchUser = async () => {
       const storedId = await AsyncStorage.getItem('userId');
       if (!storedId) return;
 
-      // Fetch del perfil desde la API
       const rawUser = await usuarioPorId(+storedId);
 
-      // Actualizamos la referencia de imagen y el estado
       imagenCargadaRef.current = rawUser.imagen?.trim() || defaultImage;
+
       setUserData(prev => ({
         ...rawUser,
         imagen: imagenCargadaRef.current,
@@ -60,35 +35,25 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     fetchUser();
   }, []);
 
-  // Estado local para los datos del usuario
   const { user } = route.params;
   const [userData, setUserData] = useState({
     ...user,
     imagen: imagenCargadaRef.current,
   });
 
-  // Controla si estamos en modo edición o solo lectura
   const [isEditing, setIsEditing] = useState(false);
-  // Lista de colonias obtenidas por CP
   const [colonias, setColonias] = useState<string[]>([]);
   const [selectedColonia, setSelectedColonia] = useState('');
 
-  /**
-   * handleChange: actualiza un campo del estado userData.
-   * Si el campo es 'codigoPostal' y ya tiene 5 dígitos, hace fetch de colonias.
-   */
   const handleChange = async (field: string, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
 
     if (field === 'codigoPostal' && value.length === 5) {
       const datosArray = await obtenerDatosPorCodigoPostal(value);
-
       if (datosArray && datosArray.length > 0) {
-        // Mapeamos colonias y preseleccionamos la primera
         const coloniasList = datosArray.map(d => d.d_asenta);
         setColonias(coloniasList);
         setSelectedColonia(coloniasList[0]);
-        // Actualizamos estado, ciudad y fraccionamiento
         setUserData(prev => ({
           ...prev,
           estado: datosArray[0].d_estado || '',
@@ -96,24 +61,16 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
           fraccionamiento: datosArray[0].d_asenta || '',
         }));
       } else {
-        // Si no hay datos, limpiamos la lista
         setColonias([]);
         setSelectedColonia('');
       }
     }
   };
 
-  /**
-   * pickImage: abre la galería para seleccionar un avatar.
-   * Solicita permisos y actualiza userData.imagen con la URI local.
-   */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      return Alert.alert(
-        'Permiso denegado',
-        'Necesitamos acceso a tus fotos para cambiar la foto de perfil.'
-      );
+      return Alert.alert('Permiso denegado', 'Necesitamos acceso a tus fotos para cambiar la foto de perfil.');
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -126,15 +83,10 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     }
   };
 
-  /**
-   * handleSave: valida campos, sube avatar si cambió y guarda datos en backend.
-   */
   const handleSave = async () => {
-    // Validación de teléfono (10 dígitos)
     if (userData.numero && !/^\d{10}$/.test(userData.numero)) {
       return Alert.alert('Advertencia', 'El número debe tener 10 dígitos.');
     }
-    // Validación de CP (5 dígitos)
     if (userData.codigoPostal && !/^\d{5}$/.test(userData.codigoPostal)) {
       return Alert.alert('Advertencia', 'El código postal debe tener 5 dígitos.');
     }
@@ -143,7 +95,6 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
       const storedId = await AsyncStorage.getItem('userId');
       let imagenKey = userData.imagen;
 
-      // Si editamos y cambiamos la imagen local, la subimos al servidor
       if (
         isEditing &&
         userData.imagen !== user.imagen &&
@@ -155,7 +106,6 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
         }
       }
 
-      // Actualizamos el perfil en la API
       if (storedId) {
         const usuario = await actualizarUsuarioPorId(
           { ...userData, imagen: imagenKey },
@@ -176,9 +126,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
     }
   };
 
-  /**
-   * handleCancel: descarta cambios y recarga datos originales del servidor.
-   */
+
   const handleCancel = async () => {
     try {
       const storedId = await AsyncStorage.getItem('userId');
@@ -201,24 +149,17 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
 
   return (
     <>
-      {/* Barra de estado */}
       <StatusBar barStyle="light-content" backgroundColor={PINK} />
-
-      {/* Encabezado con botón de retroceso */}
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mi perfil</Text>
-          <View style={{ width: 40 }} /> {/* Espacio para centrar el título */}
+          <View style={{ width: 40 }} />
         </View>
       </SafeAreaView>
 
-      {/* Contenido principal */}
       <SafeAreaView style={styles.contentSafe}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -232,13 +173,8 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
             showsVerticalScrollIndicator
           >
             <View style={styles.content}>
-              {/* Avatar con progreso */}
               <View>
-                <CircularProgressAvatar
-                  userData={userData}
-                  imageUri={userData.imagen}
-                />
-                {/* Botón para cambiar imagen solo en edición */}
+                <CircularProgressAvatar userData={userData} imageUri={userData.imagen} />
                 {isEditing && (
                   <TouchableOpacity
                     onPress={pickImage}
@@ -249,7 +185,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                 )}
               </View>
 
-              {/* Nombre y apellido en modo lectura o inputs en edición */}
+
               {isEditing ? (
                 <>
                   <TextInput
@@ -267,18 +203,13 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                 </>
               ) : (
                 <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                  <Text style={styles.name}>
-                    {userData.nombre?.trim() || 'Sin nombre'}
-                  </Text>
-                  <Text style={styles.lastname}>
-                    {userData.apellido?.trim() || 'Sin apellido'}
-                  </Text>
+                  <Text style={styles.name}>{userData.nombre?.trim() || 'Sin nombre'}</Text>
+                  <Text style={styles.lastname}>{userData.apellido?.trim() || 'Sin apellido'}</Text>
                 </View>
               )}
 
               <View style={styles.divider} />
 
-              {/* Sección Contacto */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Contacto</Text>
                 <View style={styles.infoRow}>
@@ -292,9 +223,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                       placeholder="Teléfono"
                     />
                   ) : (
-                    <Text style={styles.infoText}>
-                      {userData.numero?.trim() || 'Sin número'}
-                    </Text>
+                    <Text style={styles.infoText}>{userData.numero?.trim() || 'Sin número'}</Text>
                   )}
                 </View>
                 <View style={styles.infoRow}>
@@ -308,17 +237,14 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                     />
                   ) : (
                     <Text style={styles.infoText}>
-                      {[userData.ciudad, userData.estado].filter(Boolean).join(', ') ||
-                        'Sin ubicación'}
+                      {[userData.ciudad, userData.estado].filter(Boolean).join(', ') || 'Sin ubicación'}
                     </Text>
                   )}
                 </View>
               </View>
 
-              {/* Sección Dirección */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Dirección</Text>
-                {/* Fraccionamiento: picker o input */}
                 <View style={styles.infoRow}>
                   <Ionicons name="home" size={18} color={PINK} style={styles.icon} />
                   {isEditing ? (
@@ -344,13 +270,10 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                       />
                     )
                   ) : (
-                    <Text style={styles.infoText}>
-                      {userData.fraccionamiento?.trim() || 'Sin fraccionamiento'}
-                    </Text>
+                    <Text style={styles.infoText}>{userData.fraccionamiento?.trim() || 'Sin fraccionamiento'}</Text>
                   )}
                 </View>
 
-                {/* Calle */}
                 <View style={styles.infoRow}>
                   <Ionicons name="business" size={18} color={PINK} style={styles.icon} />
                   {isEditing ? (
@@ -365,7 +288,6 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                   )}
                 </View>
 
-                {/* Código Postal */}
                 <View style={styles.infoRow}>
                   <Ionicons name="pricetag" size={18} color={PINK} style={styles.icon} />
                   {isEditing ? (
@@ -377,35 +299,23 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
                       placeholder="CP"
                     />
                   ) : (
-                    <Text style={styles.infoText}>
-                      {userData.codigoPostal?.trim() || 'Sin CP'}
-                    </Text>
+                    <Text style={styles.infoText}>{userData.codigoPostal?.trim() || 'Sin CP'}</Text>
                   )}
                 </View>
               </View>
 
-              {/* Botones de acción: editar, guardar o cancelar */}
               <View style={styles.buttonsContainer}>
                 {isEditing ? (
                   <>
-                    <TouchableOpacity
-                      style={[styles.button, styles.cancelButton]}
-                      onPress={handleCancel}
-                    >
+                    <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
                       <Text style={styles.cancelText}>Cancelar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.button, styles.saveButton]}
-                      onPress={handleSave}
-                    >
+                    <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
                       <Text style={styles.saveText}>Guardar Cambios</Text>
                     </TouchableOpacity>
                   </>
                 ) : (
-                  <TouchableOpacity
-                    style={[styles.button, styles.saveButton]}
-                    onPress={() => setIsEditing(true)}
-                  >
+                  <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={() => setIsEditing(true)}>
                     <Text style={styles.saveText}>Editar</Text>
                   </TouchableOpacity>
                 )}
@@ -549,7 +459,6 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     marginTop: 24,
     width: '100%',
-    flexDirection: 'row',
   },
   button: {
     flex: 1,

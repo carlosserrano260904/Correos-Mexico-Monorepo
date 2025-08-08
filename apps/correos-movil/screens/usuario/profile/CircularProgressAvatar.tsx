@@ -3,19 +3,17 @@ import React, { useMemo } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import { Svg, Circle } from 'react-native-svg';
 
-// Definición de constantes para el círculo de progreso
-const RADIUS = 67; // Radio del círculo de fondo y progreso
-const STROKE_WIDTH = 5; // Grosor del trazo del círculo
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // Longitud total del perímetro del círculo
+const RADIUS = 67; // Radio del círculo
+const STROKE_WIDTH = 5;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 type Props = {
-  userData: any;      // Datos del usuario con campos para calcular completitud
-  imageUri: string;   // URI de la imagen de avatar
-  size?: number;      // Tamaño del SVG y el avatar (opcional, por defecto 140)
+  userData: any;
+  imageUri: string;
+  size?: number;
 };
 
 export default function CircularProgressAvatar({ userData, imageUri, size = 140 }: Props) {
-  // Agrupamos los campos relevantes del perfil para calcular cuántos están completados
   const campos = useMemo(() => [
     userData.nombre,
     userData.apellido,
@@ -28,41 +26,35 @@ export default function CircularProgressAvatar({ userData, imageUri, size = 140 
     userData.estado,
   ], [userData]);
 
-  // Contamos cuántos campos no están vacíos o solo contienen espacios
   const completados = campos.reduce((acc, campo) => acc + (campo?.trim() ? 1 : 0), 0);
-  // Calculamos el porcentaje de campos completados
   const porcentaje = Math.round((completados / campos.length) * 100);
-  // Convertimos el porcentaje en desplazamiento para strokeDashoffset
   const progress = CIRCUMFERENCE - (porcentaje / 100) * CIRCUMFERENCE;
 
   return (
       <View style={styles.wrapper}>
           <View style={styles.svgWrapper}>
-              {/* Círculo de fondo en gris */}
               <Svg width={size} height={size}>
                   <Circle
-                      stroke="#E0E0E0" // Color de fondo
+                      stroke="#E0E0E0"
                       fill="none"
-                      cx={size / 2}     // Centro X
-                      cy={size / 2}     // Centro Y
-                      r={RADIUS}        // Radio
+                      cx={size / 2}
+                      cy={size / 2}
+                      r={RADIUS}
                       strokeWidth={STROKE_WIDTH}
                   />
-                  {/* Círculo de progreso en rosa, rotado -90° para que comience arriba */}
                   <Circle
-                      stroke="#E6007E" // Color del progreso
+                      stroke="#E6007E"
                       fill="none"
                       cx={size / 2}
                       cy={size / 2}
                       r={RADIUS}
                       strokeDasharray={CIRCUMFERENCE}
-                      strokeDashoffset={progress} // Desplazamiento según porcentaje
-                      strokeLinecap="round"      // Bordes redondeados
+                      strokeDashoffset={progress}
+                      strokeLinecap="round"
                       strokeWidth={STROKE_WIDTH}
                       transform={`rotate(-90 ${size / 2} ${size / 2})`}
                   />
               </Svg>
-              {/* Avatar centrado sobre el SVG */}
               <Image
                   source={{ uri: imageUri }}
                   style={[
@@ -75,7 +67,6 @@ export default function CircularProgressAvatar({ userData, imageUri, size = 140 
                   ]}
               />
           </View>
-          {/* Texto que muestra el porcentaje */}
           <Text style={styles.percentageText}>{porcentaje}%</Text>
       </View>
   );
@@ -83,21 +74,22 @@ export default function CircularProgressAvatar({ userData, imageUri, size = 140 
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignItems: 'center',       // Centrar contenido horizontal
-    justifyContent: 'center',   // Centrar contenido vertical
-    marginBottom: 16,           // Margen inferior
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   svgWrapper: {
-    justifyContent: 'center',   // Centrar SVG
+    justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',       // Para posicionar el Image absolut
+    position: 'relative',
   },
   image: {
-    position: 'absolute',       // Avatar encima del SVG
+    position: 'absolute',
   },
   percentageText: {
-    marginTop: 7,               // Separación respecto al SVG
-    color: '#E6007E',           // Color del texto
-    fontWeight: 'bold',         // Negrita
+    marginTop: 7,
+    color: '#E6007E',
+    fontWeight: 'bold',
   },
 });
+

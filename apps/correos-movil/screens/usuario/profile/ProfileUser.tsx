@@ -1,109 +1,3 @@
-// CircularProgressAvatar.tsx
-import React, { useMemo } from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
-import { Svg, Circle } from 'react-native-svg';
-
-// Definición de constantes para el círculo de progreso
-const RADIUS = 67; // Radio del círculo de fondo y progreso
-const STROKE_WIDTH = 5; // Grosor del trazo del círculo
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // Longitud total del perímetro del círculo
-
-type Props = {
-  userData: any;      // Datos del usuario con campos para calcular completitud
-  imageUri: string;   // URI de la imagen de avatar
-  size?: number;      // Tamaño del SVG y el avatar (opcional, por defecto 140)
-};
-
-export default function CircularProgressAvatar({ userData, imageUri, size = 140 }: Props) {
-  // Agrupamos los campos relevantes del perfil para calcular cuántos están completados
-  const campos = useMemo(() => [
-    userData.nombre,
-    userData.apellido,
-    userData.imagen,
-    userData.numero,
-    userData.codigoPostal,
-    userData.calle,
-    userData.fraccionamiento,
-    userData.ciudad,
-    userData.estado,
-  ], [userData]);
-
-  // Contamos cuántos campos no están vacíos o solo contienen espacios
-  const completados = campos.reduce((acc, campo) => acc + (campo?.trim() ? 1 : 0), 0);
-  // Calculamos el porcentaje de campos completados
-  const porcentaje = Math.round((completados / campos.length) * 100);
-  // Convertimos el porcentaje en desplazamiento para strokeDashoffset
-  const progress = CIRCUMFERENCE - (porcentaje / 100) * CIRCUMFERENCE;
-
-  return (
-      <View style={styles.wrapper}>
-          <View style={styles.svgWrapper}>
-              {/* Círculo de fondo en gris */}
-              <Svg width={size} height={size}>
-                  <Circle
-                      stroke="#E0E0E0" // Color de fondo
-                      fill="none"
-                      cx={size / 2}     // Centro X
-                      cy={size / 2}     // Centro Y
-                      r={RADIUS}        // Radio
-                      strokeWidth={STROKE_WIDTH}
-                  />
-                  {/* Círculo de progreso en rosa, rotado -90° para que comience arriba */}
-                  <Circle
-                      stroke="#E6007E" // Color del progreso
-                      fill="none"
-                      cx={size / 2}
-                      cy={size / 2}
-                      r={RADIUS}
-                      strokeDasharray={CIRCUMFERENCE}
-                      strokeDashoffset={progress} // Desplazamiento según porcentaje
-                      strokeLinecap="round"      // Bordes redondeados
-                      strokeWidth={STROKE_WIDTH}
-                      transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                  />
-              </Svg>
-              {/* Avatar centrado sobre el SVG */}
-              <Image
-                  source={{ uri: imageUri }}
-                  style={[
-                      styles.image,
-                      {
-                          width: size - STROKE_WIDTH * 2,
-                          height: size - STROKE_WIDTH * 2,
-                          borderRadius: (size - STROKE_WIDTH * 2) / 2,
-                      },
-                  ]}
-              />
-          </View>
-          {/* Texto que muestra el porcentaje */}
-          <Text style={styles.percentageText}>{porcentaje}%</Text>
-      </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  wrapper: {
-    alignItems: 'center',       // Centrar contenido horizontal
-    justifyContent: 'center',   // Centrar contenido vertical
-    marginBottom: 16,           // Margen inferior
-  },
-  svgWrapper: {
-    justifyContent: 'center',   // Centrar SVG
-    alignItems: 'center',
-    position: 'relative',       // Para posicionar el Image absolut
-  },
-  image: {
-    position: 'absolute',       // Avatar encima del SVG
-  },
-  percentageText: {
-    marginTop: 7,               // Separación respecto al SVG
-    color: '#E6007E',           // Color del texto
-    fontWeight: 'bold',         // Negrita
-  },
-});
-
-
-// ProfileUser.tsx
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -116,30 +10,28 @@ import axios from 'axios';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useUser } from '@clerk/clerk-expo';
 
-// Tipo para los items de navegación en la sección de perfil
 type SectionItem = {
-  label: string;              // Texto a mostrar
-  icon: string;               // Icono de Feather
-  to: keyof RootStackParamList; // Pantalla a la que navega
-  params?: Record<string, any>; // Parámetros opcionales
+  label: string;
+  icon: string;
+  to: keyof RootStackParamList;
+  params?: Record<string, any>;
 };
 
 type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser'>;
 
 export default function ProfileUser({ navigation }: { navigation: ProfileNavProp }) {
-  const isFocused = useIsFocused(); // Saber si la pantalla está activa
-  const { logout, userId } = useMyAuth(); // Contexto de autenticación
-  const { user } = useUser();          // Usuario de Clerk
-  const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null); // Estado del perfil
+  const isFocused = useIsFocused();
+  const { logout, userId } = useMyAuth();
+  const { user } = useUser();
+  const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
-  // Efecto para cargar perfil cuando la pantalla está en foco
   useEffect(() => {
-    if (!isFocused) return; // No hacer nada si no está activa
+    if (!isFocused) return;
 
     (async () => {
+
       try {
         if (userId) {
-          // Llamada API para obtener datos del usuario
           const perfil = await usuarioPorId(parseInt(userId, 10));
           setUsuario(perfil);
         } else {
@@ -151,7 +43,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     })();
   }, [isFocused]);
 
-  // Función para cerrar sesión
+
   const handleSignOut = async () => {
     try {
       await logout();
@@ -160,7 +52,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     }
   };
 
-  // Función para eliminar la cuenta en el backend y luego cerrar sesión
   const deleteAccount = async () => {
     try {
       if (!user?.id) {
@@ -183,7 +74,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     }
   };
 
-  // Configuración de secciones y items para navegación
   const sections: { title: string; items: SectionItem[] }[] = [
     {
       title: 'Cuenta',
@@ -211,17 +101,14 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
 
   return (
     <>
-      {/* Barra de estado con fondo rosa */}
       <StatusBar barStyle="light-content" backgroundColor="#E6007A" />
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
-          {/* Botón para navegar a detalles del usuario */}
           <TouchableOpacity
             style={styles.profileButton}
             activeOpacity={0.8}
             onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
           >
-            {/* Avatar del usuario */}
             <Image
               source={{
                 uri:
@@ -232,7 +119,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
               style={styles.avatar}
             />
             <View style={styles.textContainer}>
-              {/* Nombre del usuario */}
               <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
                 {usuario?.nombre} {usuario?.apellido}
               </Text>
@@ -256,7 +142,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator
         >
-          {/* Renderizado de secciones y items */}
           {sections.map((sec, si) => (
             <View key={si} style={styles.section}>
               <Text style={styles.sectionTitle}>{sec.title}</Text>
@@ -284,7 +169,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
           ))}
 
           <View style={styles.section}>
-            {/* Botón para cerrar sesión */}
             <TouchableOpacity
               style={styles.item}
               activeOpacity={0.7}
@@ -297,7 +181,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
               <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
 
-            {/* Botón para eliminar cuenta */}
             <TouchableOpacity
               style={styles.item}
               activeOpacity={0.7}
@@ -310,7 +193,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
               <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
 
-            {/* Botón para convertirse en vendedor */}
             <TouchableOpacity
               style={styles.item}
               activeOpacity={0.7}
@@ -331,14 +213,14 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
 
 const styles = StyleSheet.create({
   headerSafe: {
-    backgroundColor: '#E6007A', // Fondo rosa del header
+    backgroundColor: '#E6007A',
   },
   contentSafe: {
     flex: 1,
-    backgroundColor: '#fff',      // Fondo blanco del contenido
+    backgroundColor: '#fff',
   },
   header: {
-    flexDirection: 'row',         // Layout horizontal
+    flexDirection: 'row',
     alignItems: 'center',
     marginTop: 30,
     padding: moderateScale(16),
@@ -349,7 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: moderateScale(48),     // Tamaño del avatar
+    width: moderateScale(48),
     height: moderateScale(48),
     borderRadius: moderateScale(24),
     backgroundColor: '#fff',
@@ -359,9 +241,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: moderateScale(18),  // Tamaño de fuente del nombre
+    fontSize: moderateScale(18),
     fontWeight: 'bold',
-    color: '#fff',                // Color de texto blanco
+    color: '#fff',
   },
   subtitleRow: {
     flexDirection: 'row',

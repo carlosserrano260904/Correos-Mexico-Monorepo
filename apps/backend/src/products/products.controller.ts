@@ -95,12 +95,30 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @Patch(':id')
-  @ApiParam({ name: 'id', type: Number })
-  @ApiOkResponse({ description: 'Producto actualizado' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
-    return this.productsService.update(id, dto);
+ @Patch(':id')
+@UseInterceptors(FilesInterceptor('images', 10)) // <-- permite leer multipart
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description: 'Actualizar producto (todos los campos opcionales)',
+  schema: {
+    type: 'object',
+    properties: {
+      nombre: { type: 'string', example: 'Producto actualizado' },
+      descripcion: { type: 'string', example: 'Desc...' },
+      precio: { type: 'number', example: 1299.9 },
+      categoria: { type: 'string', example: 'Calzado' },
+      images: { type: 'array', items: { type: 'string', format: 'binary' } }
+    }
   }
+})
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() dto: UpdateProductDto,
+  @UploadedFiles() files?: Express.Multer.File[]
+) {
+  return this.productsService.updateWithImages(id, dto, files);
+}
+
 
   @Delete(':id')
   @ApiParam({ name: 'id', type: Number })

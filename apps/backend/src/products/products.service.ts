@@ -104,6 +104,40 @@ export class ProductsService {
     return "Imagen eliminada";
   }
 
+  async updateWithImages(
+  id: number,
+  dto: UpdateProductDto,
+  files?: Express.Multer.File[]
+) {
+  const producto = await this.findOne(id);
+
+  // convierte precio si viene como string (multipart)
+  if (dto?.precio != null) {
+    (dto as any).precio = Number(dto.precio);
+  }
+
+  Object.assign(producto, dto);
+  await this.productRepository.save(producto);
+
+  if (files?.length) {
+    const uploads = await Promise.all(
+      files.map(async (file, idx) => {
+        const url = await this.uploadImageService.uploadFileImage(file);
+        return this.productImageRepository.save(
+          this.productImageRepository.create({
+            url,
+            orden: idx,
+            productId: producto.id,
+          })
+        );
+      })
+    );
+    producto.images = [...(producto.images ?? []), ...uploads];
+  }
+
+  return producto; // devuelve el objeto guardado para verificar cambios
+}
+
   // Tu método optimizado, agregando relations para imágenes
   async get18RandomByCategoryOptimized(categoria: string): Promise<Product[]> {
     if (!categoria) return [];

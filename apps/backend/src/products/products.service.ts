@@ -1,94 +1,131 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
-import { In } from 'typeorm';
+// products.service.ts
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { Product } from "./entities/product.entity";
+import { ProductImage } from "./entities/product-image.entity";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { UpdateProductDto } from "./dto/update-product.dto";
+import { UploadImageService } from "src/upload-image/upload-image.service";
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    private readonly uploadImageService: UploadImageService,
-  ){
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
+    private readonly uploadImageService: UploadImageService
+  ) {}
 
+  // Crear producto + subir imágenes (multipart/form-data)
+  async createWithImages(
+    createProductDto: CreateProductDto,
+    files?: Express.Multer.File[]
+  ): Promise<Product> {
+    const product = this.productRepository.create({ ...createProductDto });
+    await this.productRepository.save(product);
+
+    if (files?.length) {
+      // sube cada archivo a S3 y guarda su fila en product_images
+      const uploads = await Promise.all(
+        files.map(async (file, idx) => {
+          const url = await this.uploadImageService.uploadFileImage(file);
+          const img = this.productImageRepository.create({
+            url,
+            orden: idx,
+            productId: product.id,
+          });
+          return this.productImageRepository.save(img);
+        })
+      );
+      product.images = uploads;
+    } else {
+      product.images = [];
+    }
+
+    return product;
   }
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create({
-      ...createProductDto,
-    });
-    return this.productRepository.save(product);
+
+  async addImages(
+    productId: number,
+    files: Express.Multer.File[],
+    ordenes?: number[]
+  ) {
+    const product = await this.productRepository.findOne({ where: { id: productId } });
+    if (!product) throw new NotFoundException("Producto no encontrado");
+
+    const imgs = await Promise.all(
+      files.map(async (file, i) => {
+        const url = await this.uploadImageService.uploadFileImage(file);
+        return this.productImageRepository.save(
+          this.productImageRepository.create({
+            url,
+            orden: ordenes?.[i] ?? 0,
+            productId: productId,
+          })
+        );
+      })
+    );
+
+    return imgs;
   }
 
   async findAll(): Promise<Product[]> {
-    // Las URLs de las imágenes ya están guardadas permanentemente en la base de datos.
-    // Simplemente devolvemos los productos.
-    return this.productRepository.find();
+    return this.productRepository.find({ relations: { images: true } });
   }
 
   async findOne(id: number): Promise<Product> {
     const producto = await this.productRepository.findOne({
-      where: {
-        id,
-      },
+      where: { id },
+      relations: { images: true },
     });
-    if (!producto) {
-      throw new NotFoundException('Producto no encontrado');
-    }
+    if (!producto) throw new NotFoundException("Producto no encontrado");
     return producto;
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const producto = await this.findOne(id)
-    producto.nombre = updateProductDto.nombre
-    producto.descripcion = updateProductDto.descripcion
-    producto.imagen = updateProductDto.imagen
-    producto.inventario = updateProductDto.inventario
-    producto.precio = updateProductDto.precio
-    producto.categoria = updateProductDto.categoria;
-    producto.color = updateProductDto.color;
-    await this.productRepository.save(producto)
-    return `Producto actualizado correctamente`;
+    const producto = await this.findOne(id);
+    Object.assign(producto, updateProductDto);
+    await this.productRepository.save(producto);
+    return "Producto actualizado correctamente";
   }
 
   async remove(id: number) {
-    const producto = await this.findOne(id)
-    await this.productRepository.remove(producto)
-    return `Producto eliminado correctamente`;
+    const producto = await this.findOne(id);
+    await this.productRepository.remove(producto);
+    return "Producto eliminado correctamente";
   }
 
+  async removeImage(imageId: number, productId: number) {
+    const img = await this.productImageRepository.findOne({ where: { id: imageId, productId } });
+    if (!img) throw new NotFoundException("Imagen no encontrada");
+    await this.productImageRepository.remove(img);
+    return "Imagen eliminada";
+  }
+
+  // Tu método optimizado, agregando relations para imágenes
   async get18RandomByCategoryOptimized(categoria: string): Promise<Product[]> {
-  if (!categoria) return [];
+    if (!categoria) return [];
 
-  const idsResult = await this.productRepository
-    .createQueryBuilder('p')
-    .select('p.id', 'id') // alias para que el raw tenga { id: ... }
-    .where('LOWER(p.categoria) = LOWER(:categoria)', { categoria })
-    .orderBy('RANDOM()')
-    .limit(18)
-    .getRawMany<{ id: number }>();
+    const idsResult = await this.productRepository
+      .createQueryBuilder("p")
+      .select("p.id", "id")
+      .where("LOWER(p.categoria) = LOWER(:categoria)", { categoria })
+      .orderBy("RANDOM()")
+      .limit(18)
+      .getRawMany<{ id: number }>();
 
-  const ids = idsResult.map(r => r.id).filter(Boolean);
-  if (ids.length === 0) {
-    return [];
+    const ids = idsResult.map((r) => r.id).filter(Boolean);
+    if (ids.length === 0) return [];
+
+    const productsUnordered = await this.productRepository.find({
+      where: { id: In(ids) },
+      relations: { images: true },
+    });
+
+    const map = new Map<number, Product>();
+    productsUnordered.forEach((p) => map.set(p.id, p));
+    return ids.map((id) => map.get(id)).filter(Boolean) as Product[];
   }
-
-  const productsUnordered = await this.productRepository.find({
-    where: { id: In(ids) },
-  });
-
-  const productsById = new Map<number, Product>();
-  productsUnordered.forEach(p => productsById.set(p.id, p));
-
-  const ordered: Product[] = [];
-  ids.forEach(id => {
-    const prod = productsById.get(id);
-    if (prod) ordered.push(prod);
-  });
-
-  return ordered;
-}
 }

@@ -40,6 +40,7 @@ import { VendedorModule } from './vendedor/vendedor.module';
 import { EmailModule } from './enviar-correos/enviar-correos.module';
 import { ViewdocModule } from './viewdoc/viewdoc.module';
 import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.module';
+import { CategoriesModule } from './categories/categories.module';
 
 
 @Module({
@@ -85,6 +86,7 @@ import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.modu
     EmailModule,
     ViewdocModule,
     EjemploUsarGuiasModule,
+    CategoriesModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

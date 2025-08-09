@@ -235,16 +235,16 @@ export class AuthService {
     });
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  async handleCleanExpiredTokens() {
-    this.logger.log('Iniciando limpieza de tokens expirados...');
-    try {
-      const cleanedCount = await this.usuariosService.cleanExpiredTokens();
-      this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
-    } catch (error) {
-      this.logger.error('Error en limpieza de tokens expirados:', error.stack);
-    }
-  }
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async handleCleanExpiredTokens() {
+  //   this.logger.log('Iniciando limpieza de tokens expirados...');
+  //   try {
+  //     const cleanedCount = await this.usuariosService.cleanExpiredTokens();
+  //     this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
+  //   } catch (error) {
+  //     this.logger.error('Error en limpieza de tokens expirados:', error.stack);
+  //   }
+  // }
 
   //@Cron(CronExpression.EVERY_HOUR) // Destruir registros relacionados a usuarios no verificados
   async handleCleanUnverifiedUsers() {

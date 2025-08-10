@@ -15,7 +15,7 @@ export class ConductoresService {
   ) {}
 
   private mapToResponseDto(conductor: Conductor): ConductorResponseDto {
-    return {
+    return { //informacion que aparecera
       nombreCompleto: conductor.nombreCompleto,
       CURP: conductor.curp,
       RFC: conductor.rfc,
@@ -23,6 +23,8 @@ export class ConductoresService {
       telefono: conductor.telefono,
       correo: conductor.correo,
       sucursal: conductor.oficina?.clave_cuo,
+      disponibilidad: conductor.disponibilidad,         
+      licenciaVigente: conductor.licenciaVigente     
     };
   }
 

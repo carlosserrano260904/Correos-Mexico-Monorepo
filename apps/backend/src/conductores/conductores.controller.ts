@@ -20,6 +20,15 @@ export class ConductoresController {
   constructor(private readonly conductoresService: ConductoresService) {}
 
   @Get()
+  @ApiOperation({ 
+    summary: 'Obtener todos los conductores',
+    description: 'Retorna una lista completa de todos los conductores con su información, incluyendo disponibilidad y estado de licencia' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de conductores',
+    type: [ConductorResponseDto] 
+  })
   async getAll(): Promise<ConductorResponseDto[]> {
     return this.conductoresService.findAll();
   }

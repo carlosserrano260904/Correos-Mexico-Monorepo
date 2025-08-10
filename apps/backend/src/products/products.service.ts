@@ -72,13 +72,14 @@ export class ProductsService {
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productRepository.find({ relations: { images: true } });
+    return this.productRepository.find({ relations: { images: true,reviews: { profile: true, images: true } }
+    });
   }
 
   async findOne(id: number): Promise<Product> {
     const producto = await this.productRepository.findOne({
       where: { id },
-      relations: { images: true },
+      relations: { images: true,reviews: { profile: true, images: true } }
     });
     if (!producto) throw new NotFoundException("Producto no encontrado");
     return producto;

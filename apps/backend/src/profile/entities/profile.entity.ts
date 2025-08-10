@@ -6,6 +6,7 @@ import {Column,Entity,OneToMany,OneToOne,PrimaryGeneratedColumn} from 'typeorm'
 import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Card } from '../../cards/entities/card.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity()
 export class Profile {
@@ -61,4 +62,8 @@ usuario: CreateAccount;
 
     @Column({ type: 'varchar', nullable: true })
     stripeCustomerId: string;
+
+    @OneToMany(() => Review, review => review.profile)
+    reviews: Review[];
+
 }

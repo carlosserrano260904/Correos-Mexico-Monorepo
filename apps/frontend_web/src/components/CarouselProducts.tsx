@@ -1,5 +1,6 @@
 'use client'
-import { ProductosProps } from "@/types/interface"
+
+import { ProductosProps } from '@/types' 
 import { Carousel, CarouselContent } from "./ui/carousel"
 import { ColectionCard, ProductCard } from "./primitivos"
 import { useProducts } from "@/hooks/useProduct" // Ajusta la ruta según tu estructura
@@ -25,7 +26,7 @@ export const CarrouselProducts = ({entradas, className, title}: Data) =>{
           {entradas.map((card) => (
               <ProductCard
                 key={card.ProductID}
-                ProductColors={card.variants.map(variant => variant.valor)}
+                ProductColors={card.variants?.map(variant => variant.valor) || []}
                 ProductID ={card.ProductID}
                 ProductImage ={card.ProductImageUrl}
                 ProductName ={card.ProductName}

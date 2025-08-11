@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { ProductosProps } from '../types/interface'
+import { ProductosProps } from '../types/index'
 
 interface FavoritesState {
   favorites: ProductosProps[];

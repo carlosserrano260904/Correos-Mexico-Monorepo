@@ -17,7 +17,7 @@ export class ProductsController {
   @ApiResponse({status:201,description:'Producto creado correctamente'})
    @UseInterceptors(FileInterceptor('imagen'))
   async create(@Body() createProductDto: CreateProductDto,
-  @UploadedFile() file: Express.Multer.File,
+  @UploadedFile() file?: Express.Multer.File,
 ) {
     const url = await this.uploadImageService.uploadFile(file); 
     return this.productsService.create(createProductDto,url);

@@ -9,7 +9,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
-export class UploadImageService {
+export class  UploadImageService {
   private readonly bucket: string;
   private readonly region: string;
   private readonly s3: S3Client;
@@ -49,7 +49,12 @@ export class UploadImageService {
     });
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
+  async uploadFile(file?: Express.Multer.File): Promise<string> {
+      // ✅ AGREGAR ESTA VERIFICACIÓN AL INICIO:
+        if (!file) {
+          console.log('⚠️ No file provided, using default image');
+          return 'default'; // Devolver un key por defecto
+        }
     const key = `images/${uuid()}-${file.originalname}`;
     const cmd = new PutObjectCommand({
       Bucket: this.bucket,
@@ -62,6 +67,11 @@ export class UploadImageService {
   }
 
   async getSignedUrlForImage(key: string): Promise<string> {
+
+     if (key === 'default' || !key) {
+    return 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
+  }
+
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,

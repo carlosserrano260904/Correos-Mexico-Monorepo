@@ -11,10 +11,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Eye } from "lucide-react"
 import React from "react"
-import { ProductosPropsFront } from "@/types/interface"
+import { ProductosProps } from "@/types/index"
 
 interface ProductSheetProps {
-  product: ProductosPropsFront
+  product: ProductosProps
   children?: React.ReactNode
   asTableRow?: boolean
 }

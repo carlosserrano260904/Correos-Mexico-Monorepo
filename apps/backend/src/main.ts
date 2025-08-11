@@ -23,7 +23,7 @@ async function bootstrap() {
     app.use(
       cors({
         origin: ['http://localhost:4200', 'https://midominio.com', 'http://localhost:3001'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
       }),

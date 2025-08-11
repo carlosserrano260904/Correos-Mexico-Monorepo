@@ -21,7 +21,7 @@ type ConductorStore = {
 export const useConductorStore = create<ConductorStore>((set,get) => ({
   conductores: [],
   fetchConductores: async () => {
-    const res = await fetch('http://localhost:3000/api/conductores/disponibles'); // Ajusta la URL según tu backend
+    const res = await fetch('http://localhost:3000/api/conductores'); // Ajusta la URL según tu backend
     const data = await res.json();
     set({ conductores: data });
   },

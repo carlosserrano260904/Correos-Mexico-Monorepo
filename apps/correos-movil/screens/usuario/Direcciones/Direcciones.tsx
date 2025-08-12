@@ -85,8 +85,8 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
         try {
             await AsyncStorage.setItem('direccionSeleccionadaId', String(direccion.id));
             // console.log('Dirección guardada en AsyncStorage:', direccion.id);
-            Alert.alert('Dirección seleccionada');
-            //navigation.goBack();
+            //Alert.alert('Dirección seleccionada');
+            navigation.goBack();
             // para usar en la vista que quieras el id
             // const id = await AsyncStorage.getItem('direccionSeleccionadaId');
 

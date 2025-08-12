@@ -69,11 +69,23 @@ export class OficinasService {
   }
 
   async deactivate(id: number) {
+    const oficina = await this.oficinaRepo.findOneBy({ id_oficina: id });
+
+    if (!oficina) {
+      throw new NotFoundException(`La oficina con id ${id} no existe.`);
+    }
+
     await this.oficinaRepo.update(id, { activo: false });
     return { message: 'Oficina desactivada correctamente' };
   }
 
   async activate(id: number) {
+    const oficina = await this.oficinaRepo.findOneBy({ id_oficina: id });
+
+    if (!oficina) {
+      throw new NotFoundException(`La oficina con id ${id} no existe.`);
+    }
+
     await this.oficinaRepo.update(id, { activo: true });
     return { message: 'Oficina activada correctamente' };
   }

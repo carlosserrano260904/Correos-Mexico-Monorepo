@@ -3,8 +3,9 @@ import React from 'react'
 import TableroOrdenes from './Componentes/tableroOrdenes'
 import { Separator } from '../../../../components/ui/separator'
 import { Filtros } from '../../components/filtros';
+import { OrdenesProps } from '../../../../types/interface';
 
-const Data = [
+const Data: OrdenesProps[] = [
   {
     OrderID: 5,
     OrderInfo: [
@@ -13,7 +14,7 @@ const Data = [
         ProductImageUrl: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=1500",
         ProductName: "Playera Negra básica",
         ProductQuantity: 3,
-        ProductPrice: 600,
+        productPrice: 600,
         ProductBrand: "nike",
         
       },
@@ -22,7 +23,7 @@ const Data = [
         ProductImageUrl: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=1500",
         ProductName: "Playera azul básica",
         ProductQuantity: 3,
-        ProductPrice: 400,
+        productPrice: 400,
         ProductBrand: "nike"
       }
     ],
@@ -44,7 +45,7 @@ const Data = [
         ProductImageUrl: "https://via.placeholder.com/150",
         ProductName: "Playera Negra",
         ProductQuantity: 5,
-        ProductPrice: 145,
+        productPrice: 145,
         ProductBrand: "nike"
       }
     ],
@@ -66,7 +67,7 @@ const Data = [
         ProductImageUrl: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=1500",
         ProductName: "Playera Negra básica",
         ProductQuantity: 3,
-        ProductPrice: 600,
+        productPrice: 600,
         ProductBrand: "nike"
       }
     ],
@@ -88,7 +89,7 @@ const Data = [
         ProductImageUrl: "https://via.placeholder.com/150",
         ProductName: "Playera Negra",
         ProductQuantity: 5,
-        ProductPrice: 100,
+        productPrice: 100,
         ProductBrand: "nike"
       }
     ],

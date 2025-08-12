@@ -15,7 +15,7 @@ export class ConductoresService {
   ) {}
 
   private mapToResponseDto(conductor: Conductor): ConductorResponseDto {
-    return {
+    return { //informacion que aparecera
       nombreCompleto: conductor.nombreCompleto,
       CURP: conductor.curp,
       RFC: conductor.rfc,
@@ -23,7 +23,16 @@ export class ConductoresService {
       telefono: conductor.telefono,
       correo: conductor.correo,
       sucursal: conductor.oficina?.clave_cuo,
+      disponibilidad: conductor.disponibilidad,         
+      licenciaVigente: conductor.licenciaVigente     
     };
+  }
+
+  async findAll(): Promise<ConductorResponseDto[]> {
+    const conductores = await this.conductorRepository.find({
+      relations: ['oficina'],
+    });
+    return conductores.map(this.mapToResponseDto);
   }
 
   async findAllDisponibles(): Promise<ConductorResponseDto[]> {
@@ -32,6 +41,17 @@ export class ConductoresService {
         disponibilidad: true,
         licenciaVigente: true,
       },
+      relations: ['oficina'],
+    });
+    return conductores.map(this.mapToResponseDto);
+  }
+
+  async findAllNoDisponibles(): Promise<ConductorResponseDto[]> {
+    const conductores = await this.conductorRepository.find({
+      where: {
+        disponibilidad: false,
+      },
+      relations: ['oficina'],
     });
     return conductores.map(this.mapToResponseDto);
   }
@@ -46,18 +66,17 @@ export class ConductoresService {
     return conductores.map(this.mapToResponseDto);
   }
 
-
   async create(createConductorDto: CreateConductorDto): Promise<Conductor> {
     const conductor = this.conductorRepository.create({
       ...createConductorDto,
       fechaAlta: new Date(),
-      disponibilidad: true, // Por defecto disponible al crear
+      disponibilidad: true,
     });
     return this.conductorRepository.save(conductor);
   }
 
   async updateDisponibilidad(
-  curp: string,
+    curp: string,
     updateDisponibilidadDto: UpdateDisponibilidadDto,
   ): Promise<Conductor> {
     const conductor = await this.conductorRepository.findOne({ where: { curp } });
@@ -68,9 +87,10 @@ export class ConductoresService {
     conductor.disponibilidad = updateDisponibilidadDto.disponibilidad;
     return this.conductorRepository.save(conductor);
   }
+
   async updateLicenciaVigente(
-  curp: string,
-  dto: UpdateLicenciaVigenteDto,
+    curp: string,
+    dto: UpdateLicenciaVigenteDto,
   ): Promise<Conductor> {
     const conductor = await this.conductorRepository.findOne({ where: { curp } });
     if (!conductor) {
@@ -79,5 +99,12 @@ export class ConductoresService {
 
     conductor.licenciaVigente = dto.licenciaVigente;
     return this.conductorRepository.save(conductor);
+  }
+
+  async deleteByCurp(curp: string): Promise<void> {
+    const result = await this.conductorRepository.delete({ curp });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Conductor con CURP ${curp} no encontrado`);
+    }
   }
 }

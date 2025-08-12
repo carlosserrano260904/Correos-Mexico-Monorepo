@@ -1,4 +1,5 @@
 import React from "react"
+import { useRouter } from 'next/navigation'
 import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel"
 import { IoMailOutline, IoArchiveOutline, IoDocumentTextOutline, IoCashOutline, IoSettingsOutline, IoArrowForwardOutline } from 'react-icons/io5'
 
@@ -14,6 +15,27 @@ interface CarouselServiciosProps {
 }
 
 export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
+  const router = useRouter()
+
+  const handleCardClick = (servicioId: string) => {
+    switch (servicioId) {
+      case 'servicios-ventanilla':
+        router.push('/servicios-ventanilla')
+        break
+      case 'prohibidos':
+        router.push('/articulosprohibidos')
+        break
+      case 'enviar':
+        router.push('/como-enviar')
+        break
+      case 'corporativos':
+        router.push('/corporativos')
+        break
+      // Agregar más casos cuando tengamos más páginas
+      default:
+        console.log(`Página no disponible para: ${servicioId}`)
+    }
+  }
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       {/* Carousel */}
@@ -46,14 +68,17 @@ export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
                 </p>
                 
                 {/* Botón "Más información" */}
-                <div className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-full">
+                <button 
+                  onClick={() => handleCardClick(servicio.id)}
+                  className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-pointer w-full"
+                >
                   <span className="text-sm font-medium text-gray-700">
                     Más información
                   </span>
                   <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white">
                     <IoArrowForwardOutline className="w-4 h-4" />
                   </div>
-                </div>
+                </button>
               </div>
             </CarouselItem>
           ))}

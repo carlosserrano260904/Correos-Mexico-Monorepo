@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HistorialAsignacion } from './entities/historial-asignacion.entity';
 import { HistorialAsignacionesService } from './historial-asignaciones.service';
-import { HistorialAsignacionesController } from './historial-asignaciones.controller'; // Asegúrate de importar el controlador
+import { HistorialAsignacionesController } from './historial-asignaciones.controller'; 
 
 @Module({
   imports: [TypeOrmModule.forFeature([HistorialAsignacion])],

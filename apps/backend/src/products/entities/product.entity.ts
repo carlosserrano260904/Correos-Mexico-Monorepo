@@ -1,38 +1,43 @@
-    import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-    import { Favorito } from '../../favoritos/entities/favorito.entity';
-    import { Carrito } from '../../carrito/entities/carrito.entity';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Favorito } from "../../favoritos/entities/favorito.entity";
+import { Carrito } from "../../carrito/entities/carrito.entity";
+import { ProductImage } from "./product-image.entity";
+import { ApiProperty } from "@nestjs/swagger";
+import { Review } from "src/review/entities/review.entity";
 
-    @Entity()
-    export class Product {
-        @PrimaryGeneratedColumn()
-        id:number
+@Entity("productos")
+export class Product {
+  @ApiProperty({ example: 12 })
+  @PrimaryGeneratedColumn()
+  id: number;
 
-        @Column({type:'varchar',length:60})
-        nombre:string
+  @ApiProperty({ example: "Tenis Runner" })
+  @Column({ type: "varchar", length: 60 })
+  nombre: string;
 
-        @Column({type:'varchar',length:120})
-        descripcion:string
+  @ApiProperty({ example: "Tenis deportivos para correr" })
+  @Column({ type: "varchar", length: 120 })
+  descripcion: string;
 
-        @Column({type:'varchar',length:250,default:'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'})
-        imagen:string
+  @ApiProperty({ example: 1299.9 })
+  @Column({ type: "decimal", precision: 10, scale: 2 })
+  precio: number;
 
-        @Column({type:'int'})
-        inventario:number
+  @ApiProperty({ example: "Calzado", nullable: true })
+  @Column({ type: "varchar", nullable: true })
+  categoria: string | null;
 
-        @Column({type:'decimal'})
-        precio:number
+  @ApiProperty({ type: () => [ProductImage] })
+  @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })
+  images: ProductImage[];
 
-        @Column({type:'varchar', nullable: true})
-        categoria:string 
+  // Estas dos propiedades son las que necesitan tus otras entidades
+  @OneToMany(() => Favorito, (favorito) => favorito.producto)
+  favoritos: Favorito[];
 
-        @Column({type:'varchar', nullable: true})
-        color:string
+  @OneToMany(() => Carrito, (carrito) => carrito.producto)
+  carrito: Carrito[];
 
-        @OneToMany(() => Favorito, favorito => favorito.producto )
-        favoritos: Favorito[];
-
-        @OneToMany(() => Carrito, carrito => carrito.producto)
-        carrito: Carrito[];
-
-        
-    }
+  @OneToMany(() => Review, review => review.product)
+  reviews: Review[];
+}

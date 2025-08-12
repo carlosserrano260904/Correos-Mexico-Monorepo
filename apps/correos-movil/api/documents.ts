@@ -1,11 +1,13 @@
 
 import { Platform } from 'react-native';
 
-export const BACKEND_URL = 'http://192.168.1.72:3000' // cambie a tu ip
+
+const LA_ip: string = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
 
 
 export async function fetchDocumentHtml(key: string): Promise<string> {
-  const url = `${BACKEND_URL}/api/document-html?key=${encodeURIComponent(key)}`;
+  const url = `${LA_ip}/api/document-html?key=${encodeURIComponent(key)}`;
   console.log('⏳ Fetching HTML from:', url);
   const res = await fetch(url);
   if (!res.ok) {

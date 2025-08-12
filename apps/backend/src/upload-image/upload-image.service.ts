@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
@@ -19,9 +14,8 @@ export class  UploadImageService {
     const region = this.config.get<string>('AWS_REGION');
     const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY');
-    const endpoint = this.config.get<string>('AWS_S3_ENDPOINT');
 
-    if (!bucket || !region || !accessKeyId || !secretAccessKey || !endpoint) {
+    if (!bucket || !region || !accessKeyId || !secretAccessKey) {
       throw new Error(
         'Faltan variables de entorno requeridas: ' +
           [
@@ -29,7 +23,6 @@ export class  UploadImageService {
             !region && 'AWS_REGION',
             !accessKeyId && 'AWS_ACCESS_KEY_ID',
             !secretAccessKey && 'AWS_SECRET_ACCESS_KEY',
-            !endpoint && 'AWS_S3_ENDPOINT',
           ]
             .filter(Boolean)
             .join(', ')
@@ -44,7 +37,6 @@ export class  UploadImageService {
         accessKeyId,
         secretAccessKey,
       },
-      endpoint: `https://${endpoint}`,
       forcePathStyle: true,
     });
   }
@@ -62,23 +54,38 @@ export class  UploadImageService {
       Body: file.buffer,
       ContentType: file.mimetype,
     });
+
     await this.s3.send(cmd);
     return key;
   }
 
-  async getSignedUrlForImage(key: string): Promise<string> {
-
-     if (key === 'default' || !key) {
-    return 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
-  }
-
-    const command = new GetObjectCommand({
+  async uploadFileImage(file: Express.Multer.File): Promise<string> {
+    const key = `images/${uuid()}-${file.originalname}`;
+    const cmd = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
     });
 
-    return await getSignedUrl(this.s3, command, {
-      expiresIn: 3600,
+    await this.s3.send(cmd);
+
+    const publicUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+    return publicUrl;
+  }
+
+  async uploadEvidenceDistributor(file: Express.Multer.File): Promise<string> {
+    const key = `evidenciasPaquetes/${uuid()}-${file.originalname}`;
+    const cmd = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
     });
+
+    await this.s3.send(cmd);
+
+    const publicUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+    return publicUrl;
   }
 }

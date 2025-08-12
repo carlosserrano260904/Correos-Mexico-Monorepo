@@ -49,7 +49,6 @@ export class TransactionsService {
               `El producto con el ID: ${contentItem.productId} no existe`,
             );
           }
-          product.inventario -= contentItem.cantidad;
           await transactionEntityManager.save(product);
 
           const transactionContent = new TransactionContents();

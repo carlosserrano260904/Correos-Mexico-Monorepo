@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ProductView from '../screens/usuario/e-commerce/ProductView';
+import HistorialFacturasScreen from '../screens/facturas/historial_facturas';
 import RoutesView from '../screens/repartidor/RoutesView';
 import PackageScreen from '../screens/repartidor/PackageScreen';
 import ProductsScreen from '../screens/producto/productosColor';
@@ -36,12 +37,14 @@ import tarifador from '../screens/usuario/tarifador/tarifador';
 import chat_bot from '../screens/usuario/chat-bot/chat_bot';
 import ubi_oficnas from '../screens/usuario/ubicaciones-oficinas/ubicaciones';
 import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
+import PagoExitosoScreen from '../screens/usuario/detalles_pedido/PagoExitosoScreen';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
 import CarritoScreen from '../screens/carrito/Carrito';
 import FavoritosScreen from '../screens/favorito/Favorito';
 import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
 import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
 import NameOfReceivePerson from '../screens/repartidor/NameOfReceivePerson';
+import CheckoutTabs from '../screens/usuario/detalles_pedido/CheckoutTabs';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -59,7 +62,9 @@ export default function AppNavigator() {
             <Stack.Screen name="UserDetailsScreen" component={UserDetailsScreen} options={{ headerShown: false }} /> 
             <Stack.Screen name="MisCompras" component={MisCompras} options={{ headerShown: false }} />
             <Stack.Screen name="MisCuponesScreen" component={MisCuponesScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="HistorialFacturas" component={HistorialFacturasScreen} options={{ headerShown: false }} />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="PagoExitosoScreen" component={PagoExitosoScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DistributorPage" component={MainPageDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="LoadPackages" component={LoadPackages} options={{ headerShown: false }} />
             <Stack.Screen name="Direcciones" component={Direcciones} options={{ headerShown: false }}/>
@@ -91,6 +96,8 @@ export default function AppNavigator() {
             <Stack.Screen name="PackagesListCarrier" component={PackagesListCarrier} options={{headerShown: false}} />
             <Stack.Screen name="FormularioVendedor" component={FormularioVendedor} options={{headerShown: false}} />
             <Stack.Screen name="NombreQuienRecibe" component={NameOfReceivePerson} options={{headerShown: false}} />
+            <Stack.Screen name="Checkout" component={CheckoutTabs} />
+
         </Stack.Navigator>
     );
 }

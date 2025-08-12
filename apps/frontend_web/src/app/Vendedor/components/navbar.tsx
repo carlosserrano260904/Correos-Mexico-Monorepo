@@ -16,6 +16,7 @@ export const Navbar = () => {
     {href: '/Vendedor/app/Productos', label: 'Productos'},
     {href: '/Vendedor/app/Ordenes', label: 'Ordenes'},
     {href: '/Vendedor/app/Cupones', label: 'Cupones'},
+    {href: '/Vendedor/app/Descuentos', label: 'Descuentos'},
   ]
 
   return (

@@ -1,90 +1,140 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
+// products.controller.ts
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { UploadImageService } from 'src/upload-image/upload-image.service'; 
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AddImagesDto } from './dto/add-images.dto';
+import { Product } from './entities/product.entity';
 
+@ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService,
-    private readonly uploadImageService: UploadImageService 
-  ) {}
+  constructor(private readonly productsService: ProductsService) {}
 
+  // Crear producto + imágenes
   @Post()
-  @ApiOperation({summary:'Creacion de un nuevo producto'})
-  @ApiResponse({status:201,description:'Producto creado correctamente'})
-   @UseInterceptors(FileInterceptor('imagen'))
-  async create(@Body() createProductDto: CreateProductDto,
-  @UploadedFile() file?: Express.Multer.File,
-) {
-    const url = await this.uploadImageService.uploadFile(file); 
-    return this.productsService.create(createProductDto,url);
+  @UseInterceptors(FilesInterceptor('images', 10))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Crear producto con imágenes',
+    schema: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', example: 'Tenis Runner' },
+        descripcion: { type: 'string', example: 'Tenis deportivos para correr' },
+        precio: { type: 'number', example: 1299.9 },
+        categoria: { type: 'string', example: 'Calzado', nullable: true },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' }, // múltiples archivos
+        },
+      },
+      required: ['nombre', 'descripcion', 'precio'],
+    },
+  })
+  @ApiCreatedResponse({ description: 'Producto creado', type: Product })
+  @ApiBadRequestResponse({ description: 'Datos inválidos' })
+  create(
+    @Body() dto: CreateProductDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.productsService.createWithImages(dto, files);
+  }
+
+  // Agregar imágenes a un producto existente
+  @Post(':id/images')
+  @UseInterceptors(FilesInterceptor('images', 10))
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', type: Number, description: 'ID del producto' })
+  @ApiBody({
+    description: 'Agregar imágenes a un producto existente',
+    schema: {
+      type: 'object',
+      properties: {
+        ordenes: { type: 'array', items: { type: 'number' }, example: [0, 1] },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+  })
+  @ApiOkResponse({ description: 'Imágenes agregadas' })
+  addImages(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() _dto: AddImagesDto, // Solo para documentar "ordenes" en Swagger
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const ordenes = (_dto as any)?.ordenes;
+    return this.productsService.addImages(id, files, ordenes);
   }
 
   @Get()
-  @ApiOperation({summary:'Lista de todos los productos'})
-  @ApiOkResponse({
-    description:'Arreglo de todos los productos',
-    type:CreateProductDto,
-    isArray:true
-  })
-  @ApiInternalServerErrorResponse({description:'Error interno del servidor'})
+  @ApiOkResponse({ description: 'Lista de productos', type: [Product] })
   findAll() {
     return this.productsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({summary:'Obtener un producto por su perfil'})
-  @ApiParam({
-    name:'id',
-    type:Number,
-    description:'Identificador unico del producto',
-    example:2
-  })
-  @ApiOkResponse({
-    description:'Producto encontrado',
-    type:CreateProductDto
-  })
-  @ApiResponse({status:200,description:'Producto encontrado'})
-  @ApiResponse({status:404,description:'Producto no encontrado'})
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({ description: 'Detalle de producto', type: Product })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.findOne(id);
   }
 
-@Patch(':id')
-@ApiOperation({ summary: 'Actualizar un producto por su ID' })
-@ApiParam({
-  name: 'id',
-  type: Number,
-  description: 'Identificador unico del producto',
-  example: 2
+ @Patch(':id')
+@UseInterceptors(FilesInterceptor('images', 10)) // <-- permite leer multipart
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description: 'Actualizar producto (todos los campos opcionales)',
+  schema: {
+    type: 'object',
+    properties: {
+      nombre: { type: 'string', example: 'Producto actualizado' },
+      descripcion: { type: 'string', example: 'Desc...' },
+      precio: { type: 'number', example: 1299.9 },
+      categoria: { type: 'string', example: 'Calzado' },
+      images: { type: 'array', items: { type: 'string', format: 'binary' } }
+    }
+  }
 })
-@ApiResponse({
-  status: 200,
-  description: 'Producto actualizado correctamente',
-  type: UpdateProductDto
-})
-@ApiResponse({ status: 404, description: 'Producto no encontrado' })
-update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-  return this.productsService.update(+id, updateProductDto);
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() dto: UpdateProductDto,
+  @UploadedFiles() files?: Express.Multer.File[]
+) {
+  return this.productsService.updateWithImages(id, dto, files);
 }
 
+
   @Delete(':id')
-   @ApiOperation({summary:'Eliminar un producto por su ID'})
-  @ApiParam({
-    name:'id',
-    type:Number,
-    description:'Identificador unico del producto',
-    example:2
-  })
-  @ApiResponse({
-    status:204,
-    description:'Producto eliminado correctamente'
-  })
-  @ApiResponse({status:404,description:'Producto no encontrado'})
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({ description: 'Producto eliminado' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.remove(id);
+  }
+
+  @Delete(':id/images/:imageId')
+  @ApiParam({ name: 'id', type: Number, description: 'ID del producto' })
+  @ApiParam({ name: 'imageId', type: Number, description: 'ID de la imagen' })
+  @ApiOkResponse({ description: 'Imagen eliminada' })
+  removeImage(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('imageId', ParseIntPipe) imageId: number,
+  ) {
+    return this.productsService.removeImage(imageId, id);
   }
 }

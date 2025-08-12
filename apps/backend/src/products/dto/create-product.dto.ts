@@ -1,34 +1,26 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsNotEmpty, IsNumber, IsString } from "class-validator"
+// create-product.dto.ts
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductDto {
-    @ApiProperty({example:'Television',description:'Producto'})
-    @IsNotEmpty({message:'El nombre del producto es obligatorio'})
-    @IsString({message:'Nombre no valido'})
-    nombre:string
-    @ApiProperty({example:'Television con excelente calidad',description:'Descripcion del producto'})
-    @IsNotEmpty({message:'La descripcion del producto es obligatorio'})
-    @IsString({message:'Descripcion no valida'})
-    descripcion:string
+  @ApiProperty({ example: 'Tenis Runner', description: 'Nombre del producto', maxLength: 60 })
+  @IsString()
+  @IsNotEmpty()
+  nombre: string;
 
-    @ApiProperty({example:'10',description:'La cantidad del producto en stock'})
-    @IsNotEmpty({message:'La cantidad del producto es obligatoria'})
-    inventario:number
+  @ApiProperty({ example: 'Tenis deportivos para correr', description: 'Descripción del producto', maxLength: 120 })
+  @IsString()
+  @IsNotEmpty()
+  descripcion: string;
 
-    @ApiProperty({example:'1200',description:'Precio costo del producto'})
-    @IsNotEmpty({message:'El precion del producto es obligatorio'})
-    precio:number
+  @ApiProperty({ example: 1299.90, description: 'Precio del producto', minimum: 0 })
+  @Type(() => Number)
+  @IsNumber()
+  precio: number;
 
-    @ApiProperty({example:'Blancos',description:'El tipo de producto que es'})
-    @IsNotEmpty({message:'La categoria del producto es necesaria'})
-    @IsString({message:'Categoria no valida'})
-    categoria:string
-
-    @ApiProperty({example:'#000',description:'El color es'})
-    @IsNotEmpty({message:'El color del producto es necesaria'})
-    @IsString({message:'Color no valido'})
-    color:string
-
-
-    
+  @ApiPropertyOptional({ example: 'Calzado', description: 'Categoría del producto' })
+  @IsOptional()
+  @IsString()
+  categoria?: string;
 }

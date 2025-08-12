@@ -6,120 +6,130 @@ import { ChartNetwork, Hourglass, PackageCheck, X, CirclePlus } from 'lucide-rea
 const screenWidht = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
+import { useNavigation } from '@react-navigation/native';
+
 export default function PaginaPrincipalVendedor() {
-  return (
-    <View style={styles.container}>
-        <View style={styles.titleContainer}>
-            <Text style={styles.tituloTextoNombre}>Hola, Juan!</Text>
-            <Text style={styles.tituloTexto}>Aquí tienes un resumen de tu tienda</Text>
-        </View>
 
-        <View style={styles.cardsContainer}>
-            <View style={[styles.card, styles.active]}>
-                <Text style={styles.number}>15</Text>
-                <Text style={styles.label}>Activos</Text>
-                <View style={styles.iconContainer}>
-                    <ChartNetwork color="white" size={moderateScale(24)}/>
+    const navigation = useNavigation();
+
+    return (
+    <ScrollView>
+        <View style={styles.container}>
+            <View style={styles.titleContainer}>
+                <Text style={styles.tituloTextoNombre}>Hola, Juan!</Text>
+                <Text style={styles.tituloTexto}>Aquí tienes un resumen de tu tienda</Text>
+            </View>
+
+            <View style={styles.cardsContainer}>
+                <View style={[styles.card, styles.active]}>
+                    <Text style={styles.number}>15</Text>
+                    <Text style={styles.label}>Activos</Text>
+                    <View style={styles.iconContainer}>
+                        <ChartNetwork color="white" size={moderateScale(24)} />
+                    </View>
+                </View>
+
+                <View style={[styles.card, styles.paused]}>
+                    <Text style={styles.number}>3</Text>
+                    <Text style={styles.label}>Pausados</Text>
+                    <View style={styles.iconContainer}>
+                        <Hourglass color="white" size={moderateScale(24)} strokeWidth={3} />
+                    </View>
+                </View>
+
+                <View style={[styles.card, styles.sold]}>
+                    <Text style={styles.number}>8</Text>
+                    <Text style={styles.label}>Vendidos</Text>
+                    <View style={styles.iconContainer}>
+                        <PackageCheck color="white" size={moderateScale(24)} strokeWidth={2} />
+                    </View>
+                </View>
+
+                <View style={[styles.card, styles.outOfStock]}>
+                    <Text style={styles.number}>2</Text>
+                    <Text style={styles.label}>Sin stock</Text>
+                    <View style={styles.iconContainer}>
+                        <X color="white" size={moderateScale(24)} strokeWidth={3} />
+                    </View>
+
                 </View>
             </View>
 
-            <View style={[styles.card, styles.paused]}>
-                <Text style={styles.number}>3</Text>
-                <Text style={styles.label}>Pausados</Text>
-                <View style={styles.iconContainer}>
-                    <Hourglass color="white" size={moderateScale(24)} strokeWidth={3}/>
+            <View style={styles.ventasContainer}>
+                <View>
+                    <Text style={styles.textoVentas}>Ventas del mes</Text>
+                    <Text style={styles.textoVsVentas}>+ 15% vs el mes anterior</Text>
+                </View>
+
+                <View>
+                    <Text style={styles.textoCantidadVentas}>$12,450</Text>
                 </View>
             </View>
 
-            <View style={[styles.card, styles.sold]}>
-                <Text style={styles.number}>8</Text>
-                <Text style={styles.label}>Vendidos</Text>
-                <View style={styles.iconContainer}>
-                    <PackageCheck color="white" size={moderateScale(24)} strokeWidth={2}/>
-                </View>
-            </View>
-
-            <View style={[styles.card, styles.outOfStock]}>
-                <Text style={styles.number}>2</Text>
-                <Text style={styles.label}>Sin stock</Text>
-                <View style={styles.iconContainer}>
-                    <X color="white" size={moderateScale(24)} strokeWidth={3}/>
-                </View>
-                
-            </View>
-        </View>
-
-        <View style={styles.ventasContainer}>
             <View>
-                <Text style={styles.textoVentas}>Ventas del mes</Text>
-                <Text style={styles.textoVsVentas}>+ 15% vs el mes anterior</Text>
+                <View style={styles.historialTextContainer}>
+                    <Text style={styles.historialTexto}>Historial de cupones</Text>
+                    <TouchableOpacity>
+                        <Text style={styles.seeAll}>Ver todos</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} style={{ height: screenHeight * 0.150 }}>
+                    <TouchableOpacity style={[styles.cuponesContainer, styles.active]}>
+                        <View style={{ width: "80%" }}>
+                            <Text style={styles.cuponesTitulo}>VERANO25</Text>
+                            <Text style={styles.cuponesTexto} numberOfLines={1}>25% descuento <Text style={{ fontWeight: 700 }}>Activo</Text></Text>
+                        </View>
+
+                        <View style={styles.cuponesCantidadContainer}>
+                            <Text style={styles.cuponesTitulo}>156</Text>
+                            <Text style={styles.cuponesTexto}>usos</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.cuponesContainer, styles.paused]}>
+                        <View style={{ width: "80%" }}>
+                            <Text style={styles.cuponesTitulo}>TECH15</Text>
+                            <Text style={styles.cuponesTexto} numberOfLines={1}>15% descuento <Text style={{ fontWeight: 700 }}>Expirado</Text></Text>
+                        </View>
+
+                        <View style={styles.cuponesCantidadContainer}>
+                            <Text style={styles.cuponesTitulo}>89</Text>
+                            <Text style={styles.cuponesTexto}>usos</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.cuponesContainer, styles.sold]}>
+                        <View style={{ width: "80%" }}>
+                            <Text style={styles.cuponesTitulo}>COMPRA1</Text>
+                            <Text style={styles.cuponesTexto} numberOfLines={1}>$500 descuento <Text style={{ fontWeight: 700 }}>Activo</Text></Text>
+                        </View>
+
+                        <View style={styles.cuponesCantidadContainer}>
+                            <Text style={styles.cuponesTitulo}>23</Text>
+                            <Text style={styles.cuponesTexto}>usos</Text>
+                        </View>
+                    </TouchableOpacity>
+                </ScrollView>
             </View>
 
-            <View>
-                <Text style={styles.textoCantidadVentas}>$12,450</Text>
-            </View>
-        </View>
+            <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                    style={styles.botonNuevo}
+                    onPress={() => navigation.navigate('ProductUploadScreen')}
+                    activeOpacity={0.7}
+                >
+                    <CirclePlus color="#fff" />
+                    <Text style={styles.botonNuevoTexto}>Nuevo</Text>
+                </TouchableOpacity>
 
-        <View>
-            <View style={styles.historialTextContainer}>
-                <Text style={styles.historialTexto}>Historial de cupones</Text>
-                <TouchableOpacity>
-                    <Text style={styles.seeAll}>Ver todos</Text>
+                <TouchableOpacity style={styles.botonVerProductos}>
+                    <Text style={styles.botonVerProductosTexto}>Ver Productos</Text>
                 </TouchableOpacity>
             </View>
-
-            <ScrollView showsVerticalScrollIndicator={false} style={{height: screenHeight * 0.150}}>
-                <TouchableOpacity style={[styles.cuponesContainer, styles.active]}>
-                    <View style={{width: "80%"}}>
-                        <Text style={styles.cuponesTitulo}>VERANO25</Text>
-                        <Text style={styles.cuponesTexto} numberOfLines={1}>25% descuento <Text style={{fontWeight: 700}}>Activo</Text></Text>
-                    </View>
-
-                    <View style={styles.cuponesCantidadContainer}>
-                        <Text style={styles.cuponesTitulo}>156</Text>
-                        <Text style={styles.cuponesTexto}>usos</Text>
-                    </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.cuponesContainer, styles.paused]}>
-                    <View style={{width: "80%"}}>
-                        <Text style={styles.cuponesTitulo}>TECH15</Text>
-                        <Text style={styles.cuponesTexto} numberOfLines={1}>15% descuento <Text style={{fontWeight: 700}}>Expirado</Text></Text>
-                    </View>
-
-                    <View style={styles.cuponesCantidadContainer}>
-                        <Text style={styles.cuponesTitulo}>89</Text>
-                        <Text style={styles.cuponesTexto}>usos</Text>
-                    </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.cuponesContainer, styles.sold]}>
-                    <View style={{width: "80%"}}>
-                        <Text style={styles.cuponesTitulo}>COMPRA1</Text>
-                        <Text style={styles.cuponesTexto} numberOfLines={1}>$500 descuento <Text style={{fontWeight: 700}}>Activo</Text></Text>
-                    </View>
-
-                    <View style={styles.cuponesCantidadContainer}>
-                        <Text style={styles.cuponesTitulo}>23</Text>
-                        <Text style={styles.cuponesTexto}>usos</Text>
-                    </View>
-                </TouchableOpacity>
-            </ScrollView>
         </View>
-
-        <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.botonNuevo}>
-                <CirclePlus color={"white"}/>
-                <Text style={styles.botonNuevoTexto}>Nuevo</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.botonVerProductos}>
-                <Text style={styles.botonVerProductosTexto}>Ver Productos</Text>
-            </TouchableOpacity>
-        </View>
-    </View>
-    
-  )
+        </ScrollView> 
+    )
 }
 
 const cardSize = (screenWidht - 50) / 2;
@@ -129,7 +139,7 @@ const styles = StyleSheet.create({
         width: screenWidht,
         height: screenHeight,
         paddingHorizontal: moderateScale(12),
-        backgroundColor: "white"
+        backgroundColor: "white",
     },
     buttonsContainer: {
         flexDirection: "row",
@@ -220,8 +230,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f4465e',
     },
     iconContainer: {
-        position: "absolute", 
-        right: moderateScale(16), 
+        position: "absolute",
+        right: moderateScale(16),
         top: moderateScale(12)
     },
     ventasContainer: {

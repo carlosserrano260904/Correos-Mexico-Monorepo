@@ -26,6 +26,11 @@ import { QR_GENERATOR_REPOSITORY } from "../application/ports/outbound/qr-genera
 import { QRGeneratorRepository } from "./qr-generator/qr-generator.repository";
 import { PDF_GENERATOR_REPOSITORY_INTERFACE } from "../application/ports/outbound/pdf-generator.repository.interface";
 import { PDFGeneratorRepository } from "./pdf-generator/pdf-generator.repository";
+import { AWS_REPOSITORY_INTERFACE } from "../application/ports/outbound/aws.repository.interface";
+import { AWSRepository } from "./s3/aws.repository";
+
+// providers
+import { AWSProvider } from "./s3/aws.provider";
 
 // TypeORM Entities
 import { GuiaTypeormEntity } from "./persistence/typeorm-entities/guia.typeorm-entity";
@@ -59,6 +64,9 @@ import { GoogleGeocodeRepository } from "./google-geocode/google-geocode.reposit
         ListarIncidenciasQueryHandler,
         ListarContactosQueryHandler,
 
+        // Providers
+        AWSProvider,
+
         // Repositories
         {
             provide: GUIAREPOSITORYINTERFACE,
@@ -79,7 +87,14 @@ import { GoogleGeocodeRepository } from "./google-geocode/google-geocode.reposit
         {
             provide: GOOGLE_GEOCODE_REPOSITORY_INTERFACE,
             useClass: GoogleGeocodeRepository
+        },
+        {
+            provide: AWS_REPOSITORY_INTERFACE,
+            useClass: AWSRepository
         }
+    ],
+    exports: [
+        CqrsModule
     ]
 })
 export class GuiasTrazabilidadModule { }

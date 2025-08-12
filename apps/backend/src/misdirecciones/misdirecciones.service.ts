@@ -31,34 +31,10 @@ async findOne(id: number): Promise<Misdireccione> {
   return direccion;
 }
 
-/*
-async create(dto: CreateMisdireccioneDto) {
-  const usuario = await this.connection.getRepository(Profile).findOne({
-    where: { id: dto.usuarioId },
-  });
-
-  if (!usuario) {
-    throw new NotFoundException('Usuario no encontrado');
-  }
-
-  const direccion = this.misdireccionesRepository.create({
-    ...dto,
-    usuario,
-  });
-
-  return this.misdireccionesRepository.save(direccion);
-}*/
-
- // create(createMisdireccioneDto: CreateMisdireccioneDto) {
-   // return 'This action adds a new misdireccione';
-  //}
-
-
-
 async create(createDto: CreateMisdireccioneDto): Promise<Misdireccione> {
   const direccion = this.misdireccionesRepository.create({
     ...createDto,
-    usuario: { id: createDto.usuarioId }, // vincular con el usuario
+    usuario: { id: createDto.usuarioId }, 
   });
 
   return this.misdireccionesRepository.save(direccion);
@@ -70,9 +46,6 @@ async create(createDto: CreateMisdireccioneDto): Promise<Misdireccione> {
     return `This action returns all misdirecciones`;
   }
 
-  //findOne(id: number) {
-  //  return `This action returns a #${id} misdireccione`;
-  //}
 
   async update(id: number, dto: UpdateMisdireccioneDto): Promise<Misdireccione> {
   const direccion = await this.misdireccionesRepository.findOne({ where: { id } });

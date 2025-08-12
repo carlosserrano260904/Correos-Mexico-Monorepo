@@ -8,7 +8,10 @@ import { Unidad } from '../unidades/entities/unidad.entity';
 import { UploadImageModule } from 'src/upload-image/upload-image.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad]), UploadImageModule],
+  imports: [
+    TypeOrmModule.forFeature([Envio, GuiaTypeormEntity, Unidad]),
+    UploadImageModule,
+  ],
   controllers: [EnviosController],
   providers: [EnviosService],
 })

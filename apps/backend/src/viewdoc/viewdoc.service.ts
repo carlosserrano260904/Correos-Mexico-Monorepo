@@ -15,23 +15,14 @@ export class ViewdocService {
     const region = this.config.get<string>('AWS_REGION')!;
     const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID')!;
     const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY')!;
-    let endpoint = this.config.get<string>('AWS_S3_ENDPOINT')!;
-
-    // 1) Elimina barras finales
-    endpoint = endpoint.replace(/\/+$/, '');
-    // 2) Si no tiene http(s)://, agréga-lo
-    if (!/^https?:\/\//i.test(endpoint)) {
-      endpoint = `https://${endpoint}`;
-    }
-
-    this.logger.debug(`Usando endpoint S3: ${endpoint}`);
 
     this.s3 = new S3Client({
       region,
       credentials: { accessKeyId, secretAccessKey },
-      endpoint,
       forcePathStyle: true,
     });
+
+    this.logger.debug(`Cliente S3 configurado con bucket: ${this.bucket}`);
   }
 
   private streamToBuffer(stream: Readable): Promise<Buffer> {
@@ -44,14 +35,15 @@ export class ViewdocService {
   }
 
   async getHtmlFromDocx(key: string): Promise<string> {
-    this.logger.debug(`Descargando ${key} desde bucket ${this.bucket}`);
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
+
     const { Body } = await this.s3.send(cmd);
     const buffer = await this.streamToBuffer(Body as Readable);
     const { value: html } = await mammoth.convertToHtml({ buffer });
+
     return html;
   }
 }

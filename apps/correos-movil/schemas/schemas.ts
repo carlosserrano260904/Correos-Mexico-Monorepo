@@ -48,6 +48,7 @@ export type RootStackParamList = {
   ProfileUser: undefined;
   PublicarProducto:undefined
   PackagesList:undefined
+  ProductUploadScreen: undefined;
   UserDetailsScreen: { user: SchemaProfileUser };
   MisCompras: undefined;
   PackagesListDistributor: undefined;
@@ -78,7 +79,7 @@ export const ProductoSchema = z.object({
   id: z.number(),
   nombre: z.string(),
   descripcion: z.string(),
-  imagen: z.string(),
+  imagen: z.string().nullable().optional(),
   categoria: z.string().nullable(),
   inventario: z.number(),
   precio: z.string(),

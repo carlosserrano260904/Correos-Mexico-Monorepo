@@ -1,7 +1,8 @@
 // api/miscompras.ts
 import { MisComprasSchemaDB, MisComprasType } from "../schemas/schemas";
 
-export const myIp = "192.168.0.183"; // ← Tu IP actual
+
+export const myIp = process.env.EXPO_PUBLIC_API_URL || "";
 
 export async function obtenerMisCompras(id: number): Promise<MisComprasType[]> {
   const url = `${process.env.EXPO_PUBLIC_API_URL}/api/transactions/user/${id}`;

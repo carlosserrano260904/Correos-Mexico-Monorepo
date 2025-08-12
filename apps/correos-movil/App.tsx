@@ -1,10 +1,19 @@
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import AuthNavigator from './navigation/authNavigator';
 import AppNavigator from './navigation/appNavigatior';
-import { AuthProvider, useMyAuth } from './context/AuthContext';
 import VendedorNavigator from './navigation/vendedorNavigator';
-import { StripeProvider } from '@stripe/stripe-react-native'; // 👈 Importar StripeProvider
+import DistributorNavigator from './navigation/distributorNavigator';
+import { AuthProvider, useMyAuth } from './context/AuthContext';
+import { StripeProvider } from '@stripe/stripe-react-native';
+
+const clerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
+
+if (!clerkKey || !stripeKey) {
+  throw new Error('Missing API keys. Check your .env file');
+}
 
 function RootNavigation() {
   const { isAuthenticated, userRol } = useMyAuth();
@@ -17,18 +26,14 @@ function RootNavigation() {
         <VendedorNavigator />
       ) : userRol === 'usuario' ? (
         <AppNavigator />
+      ) : userRol === 'repartidor' ? (
+        <DistributorNavigator />
       ) : (
         <AuthNavigator />
-      )}
+      )
+      }
     </NavigationContainer>
   );
-}
-
-const clerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
-const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
-
-if (!clerkKey || !stripeKey) {
-  throw new Error('Missing API keys. Check your .env file');
 }
 
 export default function App() {
@@ -37,7 +42,7 @@ export default function App() {
       <AuthProvider>
         <StripeProvider
           publishableKey={stripeKey}
-          merchantIdentifier="merchant.com.tuapp" // Requerido para Apple Pay (puedes dejarlo así si no usas Apple Pay)
+          merchantIdentifier="merchant.com.tuapp"
         >
           <RootNavigation />
         </StripeProvider>

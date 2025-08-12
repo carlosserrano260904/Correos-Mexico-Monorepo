@@ -86,15 +86,14 @@ export class CrearGuiaDto {
             apellidos: 'Garcia Lopez',
             telefono: '+525512345678',
             direccion: {
-                calle: 'Av. Reforma',
-                numero: '456',
-                numeroInterior: 'Depto 3B',
-                asentamiento: 'Juarez',
-                codigoPostal: '06600',
-                localidad: 'Ciudad de Mexico',
-                estado: 'CDMX',
+                calle: 'Diamante',
+                numero: '328',
+                asentamiento: 'Joyas del Valle',
+                codigoPostal: '34237',
+                localidad: 'Durango',
+                estado: 'Durango',
                 pais: 'Mexico',
-                referencia: 'Entre Niza y Florencia, edificio azul'
+                referencia: 'Casa roja'
             }
         },
         description: 'El remitente de la guia'
@@ -108,14 +107,14 @@ export class CrearGuiaDto {
             apellidos: 'Rodriguez Martinez',
             telefono: '+523398765432',
             direccion: {
-                calle: 'Calle Independencia',
-                numero: '789',
-                asentamiento: 'Centro Historico',
-                codigoPostal: '44100',
-                localidad: 'Guadalajara',
-                estado: 'Jalisco',
+                calle: 'Invierno',
+                numero: '112',
+                asentamiento: 'Villas del Sol',
+                codigoPostal: '34237',
+                localidad: 'Durango',
+                estado: 'Durango',
                 pais: 'Mexico',
-                referencia: 'Frente a la Catedral'
+                referencia: 'Casa verde'
             }
         },
         description: 'El destinatario de la guia'

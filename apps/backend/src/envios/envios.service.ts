@@ -168,6 +168,31 @@ export class EnviosService {
     nuevaFechaEntrega.setDate(nuevaFechaEntrega.getDate() + 1);
     nuevaFechaEntrega.setHours(0, 0, 0, 0); // normalizar a medianoche
 
+    // Contar intentos fallidos previos
+    const intentosFallidos = await this.envioRepository.count({
+      where: {
+        guia: { id_guia: envio.guia.id_guia },
+        unidad: { id: envio.unidad?.id },
+        estado_envio: EstadoEnvio.FALLIDO,
+      },
+    });
+
+    // Si ya falló 3 veces, marcar como RETIRAR_SUCURSAL (no se crea más intentos)
+    if (intentosFallidos >= 3) {
+      console.warn(`Guía ${envio.guia.id_guia} ha fallado 3 veces. Cambiando a RETIRAR_SUCURSAL.`);
+
+      const retiro = this.envioRepository.create({
+        guia: envio.guia,
+        unidad: envio.unidad,
+        estado_envio: EstadoEnvio.RETIRAR_SUCURSAL,
+        fecha_asignacion: new Date(),
+        fecha_entrega_programada: nuevaFechaEntrega, // puede mantenerse como hoy
+      });
+
+      await this.envioRepository.save(retiro);
+      return envio;
+    }
+
     // Verificar si ya existe un reintento para esa guía en esa fecha
     const yaExiste = await this.envioRepository.findOne({
       where: {
@@ -226,14 +251,14 @@ export class EnviosService {
     return await this.envioRepository.save(envio);
   }
 
-  async anadirEvidencia(id: string, key: string, url: string): Promise<Envio | null> {
+  async anadirEvidencia(id: string, url: string): Promise<Envio | null> {
     const envio = await this.envioRepository.findOne({ where: { id } });
 
     if (!envio) {
       return null;
     }
 
-    envio.evidencia_entrega = url; // visible desde frontend
+    envio.evidencia_entrega = url;
     return await this.envioRepository.save(envio);
 
   }

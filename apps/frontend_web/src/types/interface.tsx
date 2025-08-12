@@ -76,6 +76,20 @@ export type CuponesPropsFront = Pick<CuponProps, 'CuponID' | 'CuponCode' | 'Cupo
   variant?: 'full' | 'compact'
 }
 
+export interface DescuentoProps {
+  DescuentoID: number,
+  DescuentoName: string,
+  TimesUsed: number,
+  DescuentoStatus: number,
+  DiscountAmount: number,
+  EndDate: string,
+  DescuentoProductsId: number[]
+}
+
+export type DescuentosPropsFront = Pick<DescuentoProps, 'DescuentoID' | 'DescuentoName' | 'DescuentoStatus' | 'EndDate' | 'TimesUsed'> & {
+  variant?: 'full' | 'compact'
+}
+
 type ProductoOrden = Pick<ProductosProps, 'ProductID' | 'ProductImageUrl' | 'ProductName' | 'ProductBrand' | 'productPrice' > & {
   ProductQuantity: number,
 }

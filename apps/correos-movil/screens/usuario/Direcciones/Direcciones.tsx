@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     Alert,
     SafeAreaView,
@@ -23,6 +24,8 @@ import { useMyAuth } from '../../../context/AuthContext';
 
 const PINK = '#E6007E';
 
+
+
 export interface Direccion {
     id?: number;
     nombre: string;
@@ -43,6 +46,10 @@ interface ListaDireccionesProps {
     onEditar: (index: number) => void;
     onEliminar: (index: number) => void;
     navigation: any;
+    direccionSeleccionada: number | null;
+    setDireccionSeleccionada: (id: number) => void;
+    modoSeleccion: boolean;
+
 }
 
 function adaptarDireccion(apiDir: (typeof DireccionesSchema._type)): Direccion {
@@ -61,7 +68,35 @@ function adaptarDireccion(apiDir: (typeof DireccionesSchema._type)): Direccion {
     };
 }
 
-function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, navigation }: ListaDireccionesProps) {
+function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, navigation, direccionSeleccionada, setDireccionSeleccionada, modoSeleccion }: ListaDireccionesProps & { modoSeleccion: boolean }) {
+
+    const confirmarSeleccion = async () => {
+        if (direccionSeleccionada === null) {
+            Alert.alert('Selecciona una dirección');
+            return;
+        }
+
+        const direccion = direcciones.find(d => d.id === direccionSeleccionada);
+        if (!direccion) {
+            Alert.alert('Error', 'La dirección seleccionada no existe');
+            return;
+        }
+
+        try {
+            await AsyncStorage.setItem('direccionSeleccionadaId', String(direccion.id));
+            // console.log('Dirección guardada en AsyncStorage:', direccion.id);
+            Alert.alert('Dirección seleccionada');
+            //navigation.goBack();
+            // para usar en la vista que quieras el id
+            // const id = await AsyncStorage.getItem('direccionSeleccionadaId');
+
+        } catch (error) {
+            console.error('Error al guardar dirección:', error);
+            Alert.alert('Error', 'No se pudo guardar la dirección seleccionada');
+        }
+    };
+
+
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor={PINK} />
@@ -89,9 +124,30 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                 ) : (
                     direcciones.map((dir, index) => (
                         <View key={index} style={styles.card}>
-                            <Text style={styles.cardTitle}>
-                                {dir.direccion} {dir.numeroexterior}
-                            </Text>
+                            {/* ✅ Título + Checkbox de selección */}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.cardTitle}>
+                                    {dir.direccion} {dir.numeroexterior}
+                                </Text>
+
+                                {/* 🔘 Radio button si está en modo selección */}
+                                {modoSeleccion && (
+                                    <TouchableOpacity
+                                        onPress={() => setDireccionSeleccionada(dir.id!)}
+                                        style={{ paddingHorizontal: 5 }}
+                                    >
+                                        <Ionicons
+                                            name={
+                                                direccionSeleccionada === dir.id
+                                                    ? 'radio-button-on'
+                                                    : 'radio-button-off'
+                                            }
+                                            size={22}
+                                            color={PINK}
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
                             <Text>Nombre: {dir.nombre}</Text>
                             <Text>Teléfono: {dir.telefono}</Text>
                             {dir.numerointerior != null && <Text>Número interior: {dir.numerointerior}</Text>}
@@ -109,38 +165,55 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                                     <Ionicons name="pencil" size={17} color="#fff" />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={[styles.iconButton, { backgroundColor: '#FF3B30' }]}
-                                    onPress={() =>
-                                        Alert.alert('Confirmar eliminación', '¿Seguro que quieres eliminar esta dirección?', [
-                                            { text: 'Cancelar', style: 'cancel' },
-                                            { text: 'Eliminar', style: 'destructive', onPress: () => onEliminar(index) },
-                                        ])
-                                    }
-                                >
-                                    <Ionicons name="trash" size={17} color="#fff" />
-                                </TouchableOpacity>
+                                {!modoSeleccion && (
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { backgroundColor: '#FF3B30' }]}
+                                        onPress={() =>
+                                            Alert.alert('Confirmar eliminación', '¿Seguro que quieres eliminar esta dirección?', [
+                                                { text: 'Cancelar', style: 'cancel' },
+                                                { text: 'Eliminar', style: 'destructive', onPress: () => onEliminar(index) },
+                                            ])
+                                        }
+                                    >
+                                        <Ionicons name="trash" size={17} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     ))
                 )}
 
-                <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
-                    <Text style={styles.buttonText}>Agregar nueva dirección</Text>
-                </TouchableOpacity>
+                {!modoSeleccion && (
+                    <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
+                        <Text style={styles.buttonText}>Agregar nueva dirección</Text>
+                    </TouchableOpacity>
+                )}
+
+                {modoSeleccion && (
+                    <TouchableOpacity style={styles.button} onPress={confirmarSeleccion}>
+                        <Text style={styles.buttonText}>Usar esta dirección</Text>
+                    </TouchableOpacity>
+                )}
+
             </ScrollView>
         </>
     );
 }
 
-// 👇 Asegúrate de recibir navigation como prop desde React Navigation
-export default function AgregarDomicilio({ navigation }: { navigation: any }) {
-     const { userId } = useMyAuth(); 
+export default function AgregarDomicilio({ navigation, route }: { navigation: any, route: any }) {
     const [direcciones, setDirecciones] = useState<Direccion[]>([]);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [coloniasDisponibles, setColoniasDisponibles] = useState<string[]>([]);
     const [mostrarColonias, setMostrarColonias] = useState(false);
+    const { userId } = useMyAuth();
+    const [codigoPostalValido, setCodigoPostalValido] = useState(true);
+    const modoSeleccion = route?.params?.modoSeleccion || false;
+
+    const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
+
+
+
 
     const [formData, setFormData] = useState<Omit<Direccion, 'numerointerior' | 'numeroexterior'> & {
         numerointerior: string;
@@ -175,18 +248,14 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
                 const id = direcciones[editIndex].id!;
                 await actualizarDireccionAPI(id, payload);
             } else {
-                if(userId){
-                    await agregarDireccionAPI(payload, +userId);
-                }
+                await agregarDireccionAPI(payload, userId);
             }
 
-            if(userId){
-            const resultado = await obtenerDirecciones(+userId);
+            const resultado = await obtenerDirecciones(userId);
             const adaptadas = resultado.map(adaptarDireccion);
             setDirecciones(adaptadas);
             setMostrarFormulario(false);
             setEditIndex(null);
-            }
         } catch (err) {
             console.error(err);
             Alert.alert('Error', 'No se pudo guardar la dirección');
@@ -196,11 +265,10 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
     useEffect(() => {
         async function cargar() {
             try {
-                if(userId){
-                    const resultado = await obtenerDirecciones(+userId);
-                    const adaptadas = resultado.map(adaptarDireccion);
-                    setDirecciones(adaptadas);
-                }
+                const resultado = await obtenerDirecciones(userId);
+                const adaptadas = resultado.map(adaptarDireccion);
+                setDirecciones(adaptadas);
+
             } catch (err) {
                 console.error('Error cargando direcciones:', err);
                 Alert.alert('Error', 'No se pudieron cargar las direcciones');
@@ -234,7 +302,7 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
 
         try {
             await eliminarDireccionAPI(direccion.id);
-            const resultado = await obtenerDirecciones(1);
+            const resultado = await obtenerDirecciones(userId);
             const adaptadas = resultado.map(adaptarDireccion);
             setDirecciones(adaptadas);
         } catch (err) {
@@ -242,56 +310,81 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
             Alert.alert('Error', 'No se pudo eliminar la dirección');
         }
     };
+    function isNombreValido(nombre: string): boolean {
+        if (nombre.length < 3) return false;
+
+
+        const letras = nombre.toLowerCase().replace(/\s/g, '');
+        return !/^([a-zA-Z])\1+$/.test(letras);
+    }
+
 
     if (mostrarFormulario) {
         return (
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.content}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View>
-                                <TouchableOpacity
-                                    style={[styles.button, { backgroundColor: '#555', marginBottom: 20 }]}
-                                    onPress={() => {
-                                        setMostrarFormulario(false);
-                                        setEditIndex(null);
-                                        setFormData({
-                                            nombre: '',
-                                            telefono: '',
-                                            direccion: '',
-                                            numerointerior: '',
-                                            numeroexterior: '',
-                                            masInfo: '',
-                                            codigoPostal: '',
-                                            municipio: '',
-                                            colonia: '',
-                                            estado: '',
-                                        });
-                                    }}
-                                >
-                                    <Text style={styles.buttonText}>← Volver a la lista</Text>
-                                </TouchableOpacity>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View>
+                            <TouchableOpacity
+                                style={[styles.button, { backgroundColor: '#555', marginBottom: 20 }]}
+                                onPress={() => {
+                                    setCodigoPostalValido(true);
+                                    setMostrarFormulario(false);
+                                    setEditIndex(null);
+                                    setFormData({
+                                        nombre: '',
+                                        telefono: '',
+                                        direccion: '',
+                                        numerointerior: '',
+                                        numeroexterior: '',
+                                        masInfo: '',
+                                        codigoPostal: '',
+                                        municipio: '',
+                                        colonia: '',
+                                        estado: '',
+                                    });
+                                }}
+                            >
+                                <Text style={styles.buttonText}>← Volver a la lista</Text>
+                            </TouchableOpacity>
 
-                                <Text style={styles.sectionTitle}>Datos Personales</Text>
+                            <Text style={styles.sectionTitle}>Datos Personales</Text>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Nombre *</Text>
                                 <TextInput
-                                    placeholder="Nombre *"
-                                    style={styles.input}
+                                    style={[
+                                        styles.input,
+                                        formData.nombre.length === 0
+                                            ? null
+                                            : isNombreValido(formData.nombre)
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+                                    ]}
                                     value={formData.nombre}
-                                    maxLength={99}
+                                    maxLength={40}
                                     onChangeText={(text) => handleChange('nombre', text)}
                                 />
+                                {formData.nombre.length > 0 && !isNombreValido(formData.nombre) && (
+                                    <Text style={styles.errorText}>Ingresa un nombre válido (mínimo 3 letras, sin letras repetidas).</Text>
+                                )}
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Teléfono móvil *</Text>
                                 <TextInput
-                                    placeholder="Teléfono móvil *"
                                     keyboardType="phone-pad"
-                                    style={styles.input}
+                                    style={[styles.input,
+                                    formData.telefono.length === 0
+                                        ? null
+                                        : formData.telefono.length === 10
+                                            ? styles.inputValido
+                                            : styles.inputInvalido,
+                                    ]}
                                     value={formData.telefono}
                                     onChangeText={(text) => {
                                         const clean = text.replace(/[^0-9]/g, '');
@@ -300,33 +393,46 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
                                         }
                                     }}
                                 />
+                            </View>
 
-                                <Text style={styles.sectionTitle}>Datos de envío</Text>
+                            <Text style={styles.sectionTitle}>Datos de envío</Text>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Dirección *</Text>
                                 <TextInput
-                                    placeholder="Dirección *"
-                                    style={styles.input}
+                                    style={[styles.input,
+                                    formData.direccion.length === 0
+                                        ? null
+                                        : formData.direccion.length >= 3
+                                            ? styles.inputValido
+                                            : styles.inputInvalido,
+                                    ]}
                                     value={formData.direccion}
                                     maxLength={99}
                                     onChangeText={(text) => handleChange('direccion', text)}
                                 />
+                            </View>
 
-                                <View style={styles.row}>
+                            <View style={styles.row}>
+                                <View style={[styles.inputContainer, styles.halfInput]}>
+                                    <Text style={styles.label}>Número exterior</Text>
                                     <TextInput
-                                        placeholder="Número exterior"
-                                        style={[styles.input, styles.halfInput]}
+                                        style={[styles.input,
+                                        formData.numeroexterior.length === 0
+                                            ? null
+                                            : formData.numeroexterior.length > 0
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+                                        ]}
                                         value={formData.numeroexterior ?? ''}
                                         keyboardType="number-pad"
                                         onChangeText={(text) => {
                                             const soloNumeros = text.replace(/[^0-9]/g, '');
-
                                             if (soloNumeros === '') {
                                                 handleChange('numeroexterior', soloNumeros);
                                                 return;
                                             }
-
                                             const valor = parseInt(soloNumeros, 10);
-
                                             if (!isNaN(valor) && valor < 32768) {
                                                 handleChange('numeroexterior', soloNumeros);
                                             } else {
@@ -334,21 +440,27 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
                                             }
                                         }}
                                     />
+                                </View>
+
+                                <View style={[styles.inputContainer, styles.halfInput]}>
+                                    <Text style={styles.label}>Número interior</Text>
                                     <TextInput
-                                        placeholder="Número interior"
-                                        style={[styles.input, styles.halfInput]}
+                                        style={[styles.input,
+                                        formData.numerointerior.length === 0
+                                            ? null
+                                            : formData.numerointerior.length >= 0
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+                                        ]}
                                         value={formData.numerointerior ?? ''}
                                         keyboardType="number-pad"
                                         onChangeText={(text) => {
                                             const soloNumeros = text.replace(/[^0-9]/g, '');
-
                                             if (soloNumeros === '') {
                                                 handleChange('numerointerior', soloNumeros);
                                                 return;
                                             }
-
                                             const valor = parseInt(soloNumeros, 10);
-
                                             if (!isNaN(valor) && valor < 32768) {
                                                 handleChange('numerointerior', soloNumeros);
                                             } else {
@@ -357,86 +469,146 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
                                         }}
                                     />
                                 </View>
+                            </View>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Más información</Text>
                                 <TextInput
-                                    placeholder="Más información"
-                                    style={styles.input}
+                                    style={[styles.input,
+                                    formData.masInfo.length === 0
+                                        ? null
+                                        : formData.masInfo.length > 3
+                                            ? styles.inputValido
+                                            : styles.inputInvalido,
+                                    ]}
                                     value={formData.masInfo}
                                     maxLength={99}
                                     onChangeText={(text) => handleChange('masInfo', text)}
                                 />
+                            </View>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Código Postal *</Text>
                                 <TextInput
-                                    placeholder="Código postal *"
-                                    style={styles.input}
+                                    style={[
+                                        styles.input,
+                                        formData.codigoPostal.length === 0
+                                            ? null
+                                            : codigoPostalValido
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+
+                                    ]}
+
                                     value={formData.codigoPostal}
                                     keyboardType="number-pad"
                                     maxLength={5}
                                     onChangeText={async (text) => {
                                         const clean = text.replace(/[^0-9]/g, '');
+
                                         if (clean.length <= 5) {
                                             handleChange('codigoPostal', clean);
-
+                                            setCodigoPostalValido(false);
                                             if (clean.length === 5) {
                                                 try {
                                                     const resultado = await obtenerDatosPorCodigoPostal(clean);
                                                     if (resultado && resultado.length > 0) {
+                                                        setCodigoPostalValido(true);
                                                         const colonias = resultado.map((item: any) => item.d_asenta);
                                                         setColoniasDisponibles(colonias);
                                                         setMostrarColonias(colonias.length > 0);
                                                         handleChange('colonia', '');
-
                                                         const datos = resultado[0];
                                                         handleChange('municipio', datos.d_mnpio);
                                                         handleChange('estado', datos.d_estado);
                                                     } else {
-                                                        Alert.alert('Aviso', 'No se encontraron datos para este código postal');
+                                                        setCodigoPostalValido(false);
                                                     }
                                                 } catch (error) {
+
                                                     Alert.alert('Error', 'No se pudo buscar el código postal');
                                                 }
                                             }
                                         }
                                     }}
                                 />
-
-                                {mostrarColonias && coloniasDisponibles.length > 0 && (
-                                    <View style={styles.input}>
-                                        <Picker
-                                            selectedValue={formData.colonia}
-                                            onValueChange={(itemValue: string) => handleChange('colonia', itemValue)}
-                                        >
-                                            <Picker.Item label="Selecciona una colonia" value="" />
-                                            {coloniasDisponibles.map((colonia, index) => (
-                                                <Picker.Item key={index} label={colonia} value={colonia} />
-                                            ))}
-                                        </Picker>
-                                    </View>
+                                {codigoPostalValido == false && formData.codigoPostal.length > 0 && (
+                                    <Text style={styles.errorText}>No se encontraron datos para este código postal o no existe</Text>
                                 )}
+                            </View>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Colonia *</Text>
+                                <View style={[
+                                    styles.input,
+                                    formData.codigoPostal.length === 0
+                                        ? null
+                                        : codigoPostalValido
+                                            ? styles.inputValido
+                                            : styles.inputInvalido,
+
+                                ]}>
+                                    <Picker
+                                        selectedValue={formData.colonia}
+                                        onValueChange={(itemValue: string) => handleChange('colonia', itemValue)}
+                                    >
+                                        {formData.colonia === '' && (
+                                            <Picker.Item label="Selecciona una colonia" value="" />
+                                        )}
+                                        {!coloniasDisponibles.includes(formData.colonia) &&
+                                            formData.colonia !== '' && (
+                                                <Picker.Item label={formData.colonia} value={formData.colonia} />
+                                            )}
+                                        {coloniasDisponibles.map((colonia, index) => (
+                                            <Picker.Item key={index} label={colonia} value={colonia} />
+                                        ))}
+                                    </Picker>
+                                </View>
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Municipio</Text>
                                 <TextInput
-                                    placeholder="Municipio"
-                                    style={styles.input}
+                                    style={[
+                                        styles.input,
+                                        formData.codigoPostal.length === 0
+                                            ? null
+                                            : codigoPostalValido
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+
+                                    ]}
                                     value={formData.municipio}
                                     editable={false}
                                 />
+                            </View>
 
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.label}>Estado</Text>
                                 <TextInput
-                                    placeholder="Estado"
-                                    style={styles.input}
+                                    style={[
+                                        styles.input,
+                                        formData.codigoPostal.length === 0
+                                            ? null
+                                            : codigoPostalValido
+                                                ? styles.inputValido
+                                                : styles.inputInvalido,
+
+                                    ]}
                                     value={formData.estado}
                                     editable={false}
                                 />
-
-                                <TouchableOpacity style={styles.button} onPress={guardarDatos}>
-                                    <Text style={styles.buttonText}>
-                                        {editIndex !== null ? 'Guardar cambios' : 'Guardar datos'}
-                                    </Text>
-                                </TouchableOpacity>
                             </View>
-                        </TouchableWithoutFeedback>
-                    </ScrollView>
-                </KeyboardAvoidingView>
+
+                            <TouchableOpacity style={styles.button} onPress={guardarDatos}>
+                                <Text style={styles.buttonText}>
+                                    {editIndex !== null ? 'Guardar cambios' : 'Guardar datos'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </ScrollView>
+
             </SafeAreaView>
         );
     }
@@ -463,9 +635,12 @@ export default function AgregarDomicilio({ navigation }: { navigation: any }) {
             onEditar={editarDireccion}
             onEliminar={eliminarDireccion}
             navigation={navigation}
+            direccionSeleccionada={direccionSeleccionada}
+            setDireccionSeleccionada={setDireccionSeleccionada}
+            modoSeleccion={modoSeleccion}
         />
     );
-}
+};
 
 
 const styles = StyleSheet.create({
@@ -568,4 +743,32 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    inputContainer: {
+        marginBottom: 8,
+    },
+    label: {
+        marginBottom: 1,
+        fontWeight: 'normal',
+        color: '#333',
+    },
+    pickerWrapper: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 6,
+        overflow: 'hidden',
+    },
+    inputValido: {
+        borderColor: 'green',
+        borderWidth: 1,
+    },
+    inputInvalido: {
+        borderColor: 'red',
+        borderWidth: 1,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: 4,
+    },
+
 });

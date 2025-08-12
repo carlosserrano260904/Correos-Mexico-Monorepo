@@ -59,7 +59,13 @@ const CarritoScreen = () => {
       const response = await fetch(`${API_BASE_URL}/carrito/${userId}`);
       
       if (!response.ok) {
-        throw new Error('Error al cargar carrito');
+        if (response.status === 404) {
+          setCart([]);
+        } else {
+          console.warn(`Error HTTP: ${response.status}`);
+          Alert.alert('Error', 'No se pudo cargar el carrito');
+        }
+        return;
       }
       
       const data = await response.json();
@@ -114,6 +120,7 @@ const CarritoScreen = () => {
   const removeFromCart = async (id: string) => {
     try {
       setLoading(true);
+      setCart(prevCart => prevCart.filter(item => item.id !== id));
       const response = await fetch(`${API_BASE_URL}/carrito/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },

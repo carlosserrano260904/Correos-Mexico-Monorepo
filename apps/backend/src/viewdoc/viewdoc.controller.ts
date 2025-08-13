@@ -53,4 +53,34 @@ export class ViewdocController {
       );
     }
   }
+  @Get('aviso-web-html')
+  async avisoWebHtml(@Res() res: Response) {
+    const key = 'docs/AVISO DE PRIVACIDAD CORREOS.docx';
+    try {
+      const html = await this.docsService.getHtmlFromDocx(key);
+      res.type('text/html');
+      return res.send(html);
+    } catch (error) {
+      this.logger.error('Error al convertir Aviso WEB DOCX a HTML', error.stack || error);
+      throw new HttpException(
+        error?.message || 'Error interno al convertir el aviso WEB',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  @Get('arco-web-html')
+  async arcoWebHtml(@Res() res: Response) {
+    const key = 'docs/Propuesta_Derechos-ARCO.docx';
+    try {
+      const html = await this.docsService.getHtmlFromDocx(key);
+      res.type('text/html');
+      return res.send(html);
+    } catch (error) {
+      this.logger.error('Error al convertir ARCO WEB DOCX a HTML', error.stack || error);
+      throw new HttpException(
+        error?.message || 'Error interno al convertir el ARCO WEB',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

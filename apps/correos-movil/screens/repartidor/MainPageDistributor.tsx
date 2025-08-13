@@ -1,9 +1,10 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { QrCode } from 'lucide-react-native';
+import { QrCode, LogOut } from 'lucide-react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMyAuth } from '../../context/AuthContext';
 
 const screenWidth = Dimensions.get('screen').width
 const screenHeight = Dimensions.get('screen').height
@@ -11,6 +12,7 @@ const screenHeight = Dimensions.get('screen').height
 
 export default function MainPageDistributor() {
     const navigation = useNavigation();
+    const { logout } = useMyAuth();
     React.useEffect(() => {
         const checkTurnoActivo = async () => {
             const activo = await AsyncStorage.getItem('turno_activo');
@@ -33,8 +35,21 @@ export default function MainPageDistributor() {
         checkTurnoActivo();
     }, []);
 
+    const handleSignOut = async () => {
+        try {
+        await logout();
+        } catch (err) {
+        console.error('Logout error:', JSON.stringify(err, null, 2));
+        }
+    };
+
   return (
     <View style={styles.container}>
+        <View style={styles.userButtonContainer}>
+            <TouchableOpacity style={styles.userButton} onPress={handleSignOut}>
+                <LogOut color="white" size={moderateScale(20)} />
+            </TouchableOpacity>
+        </View>
         <View style={styles.titleContainer}>
             <View style={{marginBottom: moderateScale(8)}}>
                 <QrCode color={"white"} size={moderateScale(100)}/>
@@ -63,13 +78,13 @@ const styles = StyleSheet.create({
         flexDirection: "column",
     },
     titleContainer: {
-        height: "40%",
+        height: screenHeight * 0.3,
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-end",
     },
     buttonContainer: {
-        height: "60%",
+        height: screenHeight * 0.6,
         justifyContent: "flex-end",
         alignItems: "center",
         marginHorizontal: moderateScale(12)
@@ -101,5 +116,16 @@ const styles = StyleSheet.create({
         fontWeight: 700,
         fontSize: moderateScale(18),
         color: "#DE1484"
+    },
+    userButton: {
+        padding: moderateScale(6),
+        borderRadius: moderateScale(100),
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    userButtonContainer: {
+        height: screenHeight * 0.1,
+        justifyContent: "flex-end",
+        alignItems: "flex-end",
+        marginHorizontal: moderateScale(12)
     }
 })

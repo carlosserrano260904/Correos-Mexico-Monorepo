@@ -14,7 +14,8 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
-  Button
+  Button,
+  Animated
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
@@ -47,28 +48,29 @@ const TarificadorMexpost = () => {
   const costo = cotizacionData?.costoTotal || 0;
   const email = 'cliente@example.com';
   const [profileId, setProfileId] = useState(null);
+  const [modalAnim] = useState(new Animated.Value(0)); // Estado para animación
 
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
   //obtener profielid
-useEffect(() => {
-  const fetchProfileId = async () => {
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) throw new Error('No se encontró el ID del usuario.');
-      if (!API_URL) throw new Error('La URL de la API no está configurada.');
+  useEffect(() => {
+    const fetchProfileId = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) throw new Error('No se encontró el ID del usuario.');
+        if (!API_URL) throw new Error('La URL de la API no está configurada.');
 
-      const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
-      const profileId = profileRes.data?.id;
-      setProfileId(profileId); // ✅ Guardamos solo el profileId
-    } catch (err) {
-      console.error('Error al cargar el profileId:', err);
-    }
-  };
+        const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
+        const profileId = profileRes.data?.id;
+        setProfileId(profileId); // ✅ Guardamos solo el profileId
+      } catch (err) {
+        console.error('Error al cargar el profileId:', err);
+      }
+    };
 
-  fetchProfileId();
-}, []);
+    fetchProfileId();
+  }, []);
 
 
 
@@ -258,10 +260,49 @@ useEffect(() => {
   }
 
   const renderCountryItem = ({ item }) => (
-    <TouchableOpacity style={styles.countryItem} onPress={() => setPaisDestino(item)}>
-      <Text style={styles.countryText}>{item.name}</Text>
-    </TouchableOpacity>
+    <TouchableOpacity
+    style={[
+      styles.countryItem,
+      paisDestino?.id === item.id && styles.countryItemSelected
+    ]}
+    onPress={() => setPaisDestino(item)}
+  >
+    <Text
+      style={[
+        styles.countryText,
+        paisDestino?.id === item.id && styles.countryTextSelected
+      ]}
+    >
+      {item.name}
+    </Text>
+    {paisDestino?.id === item.id && (
+      <Ionicons name="checkmark" size={20} color="#e91e63" style={{ marginLeft: 8 }} />
+    )}
+  </TouchableOpacity>
   )
+
+  // Animación al abrir/cerrar el modal
+  useEffect(() => {
+    if (showCountryModal) {
+      Animated.timing(modalAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(modalAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showCountryModal]);
+
+  // Calcula la posición vertical del modal
+  const modalTranslateY = modalAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [400, 0], // Desliza desde 400px abajo hasta su posición
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -544,41 +585,61 @@ useEffect(() => {
         )}
       </ScrollView>
       {/* Modal para selección de países */}
-      <Modal
-        visible={showCountryModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCountryModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Seleccionar país de destino</Text>
-              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCountryModal(false)}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-            {/* Botón Buscar arriba de la lista */}
-            <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
-              <Button
-                title="Buscar"
-                onPress={handleSearchInternacional}
-                disabled={!paisDestino}
-              />
-            </View>
-            <FlatList
-              data={paises}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderCountryItem}
-              ListEmptyComponent={() => (
-                <Text style={{ padding: 20, textAlign: 'center' }}>
-                  No hay países disponibles
-                </Text>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
+<Modal
+  visible={showCountryModal}
+  transparent={true}
+  animationType="none"
+  onRequestClose={() => setShowCountryModal(false)}
+>
+  <View style={[styles.modalOverlay, { backgroundColor: "transparent" }]}>
+    <Animated.View
+      style={[
+        styles.modalContainer,
+        { transform: [{ translateY: modalTranslateY }] },
+        { shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 10, elevation: 10 }
+      ]}
+    >
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Seleccionar país de destino</Text>
+        <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCountryModal(false)}>
+          <Ionicons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Lista de países */}
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={paises}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderCountryItem}
+          ListEmptyComponent={() => (
+            <Text style={{ padding: 20, textAlign: 'center' }}>
+              No hay países disponibles
+            </Text>
+          )}
+          contentContainerStyle={{ paddingBottom: 70 }} // espacio para que no tape el botón
+        />
+      </View>
+
+      {/* Botón fijo abajo */}
+      <View style={styles.floatingButtonContainer}>
+        <TouchableOpacity
+          style={[
+            styles.floatingButton,
+            !paisDestino && styles.floatingButtonDisabled
+          ]}
+          onPress={handleSearchInternacional}
+          disabled={!paisDestino}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.floatingButtonText}>Buscar país</Text>
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  </View>
+</Modal>
+
+
     </SafeAreaView>
   )
 }
@@ -814,14 +875,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "transparent", // Fondo transparente
     justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "80%",
+  backgroundColor: '#fff',
+  borderRadius: 10,
+  paddingBottom: 20,
+  width: '100%',
+  height: '78%', 
+  overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: "row",
@@ -847,12 +910,54 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  countryItemSelected: {
+    backgroundColor: "#fde7f3", // Fondo rosa claro para seleccionado
+    borderLeftWidth: 4,
+    borderLeftColor: "#e91e63",
   },
   countryText: {
     fontSize: 16,
     color: "#000",
+    flex: 1,
+  },
+  countryTextSelected: {
+    fontWeight: "bold",
+    color: "#e91e63", // Texto rosa para seleccionado
+  },
+  floatingButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 20,
+    backgroundColor: "#fff",
+  },
+  floatingButton: {
+    backgroundColor: "#e91e63",
+    borderRadius: 30,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    elevation: 5,
+    shadowColor: "#e91e63",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    borderWidth: 2,
+    borderColor: "#e91e63",
+  },
+  floatingButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    
+  },
+  floatingButtonDisabled: {
+    backgroundColor: "#e91e63",
+    borderColor: "#e91e63",
+    opacity: 0.5,
   },
 })
-
 
 export default TarificadorMexpost

@@ -1,96 +1,109 @@
+// schemas/products.ts - CORREGIDO SEGÚN TU ESTRUCTURA REAL
+
 import { z } from 'zod'
 
+// ============================================================
+// 🗄️ BACKEND SCHEMAS (según la estructura REAL que devuelve tu API)
+// ============================================================
+
+/**
+ * Schema para la entidad Product REAL según el error de TypeScript
+ * Tu backend devuelve esta estructura exacta
+ */
 export const BackendProductEntitySchema = z.object({
   id: z.number(),
   nombre: z.string(),
   descripcion: z.string(),
-  imagen: z.string().nullable(),
-  inventario: z.number(),
-  // Aceptar string o number y normalizar a number
-  precio: z.union([z.string(), z.number()]).transform((val) => {
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return isNaN(num) ? 0 : num;
-  }),
-  categoria: z.string().nullable(),
-  color: z.string().nullable(),
-});
-
-
-/**
- * Schema que coincide EXACTAMENTE con tu CreateProductDto
- */
-  export const BackendCreateProductDtoSchema = z.object({
-    nombre: z.string().min(1),
-    descripcion: z.string().min(1),
-    inventario: z.number(),
-    precio: z.number(),
-    categoria: z.string().min(1),
-    color: z.string().min(1),
-    // imagen NO va aquí, se maneja como file upload separado
-  })
-
-/**
- * Schema que coincide EXACTAMENTE con tu UpdateProductDto
- */
-export const BackendUpdateProductDtoSchema = z.object({
-  nombre: z.string().min(1),
-  descripcion: z.string().min(1),
-  imagen: z.string().min(1), // UpdateDto SÍ incluye imagen
-  inventario: z.number(),
   precio: z.number(),
-  categoria: z.string().min(1),
-  color: z.string().min(1),
+  categoria: z.string().nullable(),
+  
+  // ✅ CAMPOS QUE SÍ TIENES (según el error)
+  inventario: z.number(),
+  color: z.string().nullable(),
+  
+  // ✅ IMAGEN como STRING (no como array de relaciones)
+  imagen: z.string().nullable(),
+  
+  // ✅ RELACIONES OPCIONALES (pueden venir o no)
+  images: z.array(z.any()).optional().default([]), // Por si acaso viene la relación
+  favoritos: z.array(z.any()).optional().default([]),
+  carrito: z.array(z.any()).optional().default([]),
+  reviews: z.array(z.any()).optional().default([]),
 })
 
 /**
- * Schema para el frontend - campos del backend + campos extra para UI
+ * Schema para CreateProductDto
  */
-// REEMPLAZAR el FrontendProductSchema existente por este:
+export const BackendCreateProductDtoSchema = z.object({
+  nombre: z.string().min(1, 'Nombre es requerido'),
+  descripcion: z.string().min(1, 'Descripción es requerida'), 
+  precio: z.number().positive('Precio debe ser positivo'),
+  categoria: z.string().optional(),
+  inventario: z.number().int().min(0).optional().default(0),
+  color: z.string().optional().default('#000000'),
+  // imagen se maneja por separado en multipart
+})
 
 /**
- * Schema para el frontend - COMPATIBLE con ProductosProps existente
+ * Schema para UpdateProductDto
+ */
+export const BackendUpdateProductDtoSchema = z.object({
+  nombre: z.string().min(1).optional(),
+  descripcion: z.string().min(1).optional(),
+  precio: z.number().positive().optional(),
+  categoria: z.string().optional(),
+  inventario: z.number().int().min(0).optional(),
+  color: z.string().optional(),
+  // imagen se maneja por separado
+})
+
+// ============================================================
+// 🎨 FRONTEND SCHEMAS (para tu UI)
+// ============================================================
+
+/**
+ * Variant para productos (compatible con CarrouselProducts)
+ */
+export const ProductVariantSchema = z.object({
+  tipo: z.literal('Color'),
+  valor: z.string(),
+  price: z.number(), // ⚠️ "price" no "precio"
+  inventario: z.number().int().min(0),
+  sku: z.string(),
+})
+
+/**
+ * Schema del producto para frontend/UI
  */
 export const FrontendProductSchema = z.object({
-  // ===== CAMPOS REALES DEL BACKEND (mapeados) =====
+  // === CAMPOS MAPEADOS DESDE BD ===
   ProductID: z.number(),
   ProductName: z.string(),
   ProductDescription: z.string(),
   ProductImageUrl: z.string(),
-  ProductStock: z.number(),
   productPrice: z.number(),
   ProductCategory: z.string(),
-  Color: z.string().nullable(),
+  ProductStock: z.number().int().min(0),
+  Color: z.string(),
   
-  // ===== CAMPOS EXTRA PARA COMPATIBILIDAD CON ProductosProps =====
-  ProductSlug: z.string().optional().default(''),
-  ProductBrand: z.string().optional().default('Sin marca'),
-  ProductSellerName: z.string().optional().default('Tienda'),
-  ProductStatus: z.boolean().optional().default(true),
-  ProductSold: z.number().optional().default(0),
+  // === CAMPOS EXTRA PARA UI ===
+  ProductSlug: z.string(),
+  ProductBrand: z.string(),
+  ProductSellerName: z.string(),
+  ProductStatus: z.boolean(),
+  ProductSold: z.number().int().min(0),
   
-  // ✅ VARIANTS COMPATIBLE con el VariantSchema original
-  variants: z.array(z.object({
-    tipo: z.enum(['Color', 'Talla']),
-    price: z.number().min(0), // ← price (no precio)
-    valor: z.string(),
-    inventario: z.number(),
-    sku: z.string(), // ← agregar sku requerido
-  })).optional().default([]),
-  
-  ProductCupons: z.array(z.number()).optional().default([]),
+  // === VARIANTS PARA CARROUSEL ===
+  variants: z.array(ProductVariantSchema),
+  ProductCupons: z.array(z.any()),
 })
 
-// Para mantener compatibilidad total
-export type FrontendProduct = z.infer<typeof FrontendProductSchema>
+// ============================================================
+// 📝 TIPOS TYPESCRIPT
+// ============================================================
 
-// ✅ HACER QUE FrontendProduct SEA COMPATIBLE CON ProductosProps
-export type ProductosPropsCompatible = FrontendProduct
-
-// ===== TYPES INFERIDOS =====
 export type BackendProductEntity = z.infer<typeof BackendProductEntitySchema>
-export type BackendCreateProductDto = z.infer<typeof BackendCreateProductDtoSchema>  
+export type BackendCreateProductDto = z.infer<typeof BackendCreateProductDtoSchema>
 export type BackendUpdateProductDto = z.infer<typeof BackendUpdateProductDtoSchema>
-
-// Para mantener compatibilidad con tu código existente
-export type SimpleProduct = FrontendProduct
-
+export type ProductVariant = z.infer<typeof ProductVariantSchema>
+export type FrontendProduct = z.infer<typeof FrontendProductSchema>

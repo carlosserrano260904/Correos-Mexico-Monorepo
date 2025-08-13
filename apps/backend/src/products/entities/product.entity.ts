@@ -41,3 +41,34 @@ export class Product {
   @OneToMany(() => Review, review => review.product)
   reviews: Review[];
 }
+
+/*
+📝 CAMPOS FALTANTES EN LA BASE DE DATOS:
+
+🔴 CAMPOS OBLIGATORIOS:
+- inventario: number (stock/cantidad disponible)
+- color: string | null (color del producto)
+- imagen: string | null (URL de imagen principal)
+
+🟡 CAMPOS OPCIONALES PARA FRONTEND:
+- slug: string (URL amigable para SEO)
+- marca: string (brand/marca del producto)
+- vendedor: string (seller name)
+- estado: boolean (activo/inactivo)
+- vendidos: number (cantidad vendida)
+- sku: string (código único del producto)
+
+💡 MIGRATION SUGERIDA:
+ALTER TABLE productos ADD COLUMN inventario INT DEFAULT 0;
+ALTER TABLE productos ADD COLUMN color VARCHAR(7) DEFAULT NULL;
+ALTER TABLE productos ADD COLUMN imagen TEXT DEFAULT NULL;
+ALTER TABLE productos ADD COLUMN slug VARCHAR(100) DEFAULT NULL;
+ALTER TABLE productos ADD COLUMN marca VARCHAR(50) DEFAULT NULL;
+ALTER TABLE productos ADD COLUMN vendedor VARCHAR(60) DEFAULT NULL;
+ALTER TABLE productos ADD COLUMN estado BOOLEAN DEFAULT TRUE;
+ALTER TABLE productos ADD COLUMN vendidos INT DEFAULT 0;
+ALTER TABLE productos ADD COLUMN sku VARCHAR(20) DEFAULT NULL;
+
+🎯 PRIORIDAD: Los campos inventario, color e imagen son los MÁS URGENTES
+   porque ya están siendo usados en el frontend según tu schema de Zod.
+*/

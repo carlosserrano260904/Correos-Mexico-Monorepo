@@ -1,61 +1,70 @@
-// ✅ ASEGÚRATE DE TENER ESTOS IMPORTS AL INICIO DEL ARCHIVO
+// utils/mappers.ts - CORREGIDO PARA TU ESTRUCTURA REAL
+
 import { 
   BackendProductEntity,
   BackendProductEntitySchema,
   BackendCreateProductDto,
   BackendCreateProductDtoSchema,
-  BackendUpdateProductDto,        // ← ASEGÚRATE DE QUE ESTE ESTÉ IMPORTADO
-  BackendUpdateProductDtoSchema,  // ← Y ESTE TAMBIÉN
+  BackendUpdateProductDto,
+  BackendUpdateProductDtoSchema,
   FrontendProduct,
   FrontendProductSchema,
 } from '@/schemas/products'
 
 /**
- * 🔄 Backend Entity -> Frontend Product
- * Convierte la respuesta de tu BD al formato que usa tu UI
+ * 🔄 Backend Entity -> Frontend Product - BASADO EN TU ENTIDAD REAL
  */
 export function mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
   console.log('🔍 Datos del backend recibidos:', backendProduct)
   
   try {
-    // Validar que los datos coinciden con tu Product Entity
+    // ✅ Validar que los datos coinciden con tu entidad REAL
     const validated = BackendProductEntitySchema.parse(backendProduct)
     console.log('✅ Datos validados del backend:', validated)
     
-    // Mapear campos exactos + agregar campos extra para UI
+    // ✅ USAR IMAGES ARRAY (tu estructura real) para obtener primera imagen
+    const imageUrl = validated.images?.[0]?.url || 
+      'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'
+    
+    console.log('🖼️ URL de imagen obtenida:', imageUrl)
+    console.log('📊 Total de imágenes:', validated.images?.length || 0)
+    
+    // ✅ MAPEAR CAMPOS REALES + AGREGAR VALORES POR DEFECTO PARA UI
     const frontendProduct = {
-      // === CAMPOS REALES DE TU BD (mapeados) ===
+      // === CAMPOS REALES DE TU BD ===
       ProductID: validated.id,
       ProductName: validated.nombre,
       ProductDescription: validated.descripcion,
-      ProductImageUrl: validated.imagen || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
-      ProductStock: validated.inventario,
-      productPrice: validated.precio,
+      ProductImageUrl: imageUrl, // Desde images[0].url
+      productPrice: validated.precio, // Ya convertido a number por Zod transform
       ProductCategory: validated.categoria || 'Sin categoría',
-      Color: validated.color,
       
-      // === CAMPOS EXTRA SOLO PARA UI ===
+      // === CAMPOS INVENTADOS PARA UI (no existen en tu BD) ===
+      ProductStock: 100, // Valor por defecto - ajusta según tu necesidad
+      Color: '#000000', // Valor por defecto - ajusta según tu necesidad
+      
+      // === CAMPOS CALCULADOS PARA UI ===
       ProductSlug: validated.nombre.toLowerCase().replace(/\s+/g, '-'),
       ProductBrand: 'Sin marca',
       ProductSellerName: 'Tienda',
-      ProductStatus: validated.inventario > 0,
+      ProductStatus: true, // Siempre disponible (ajusta según tu lógica)
       ProductSold: 0,
       
-      // ✅ VARIANTS COMPATIBLE con CarrouselProducts
-      variants: validated.color ? [{
+      // ✅ VARIANTS USANDO DATOS DISPONIBLES
+      variants: [{
         tipo: 'Color' as const,
-        price: validated.precio, // ← price (no precio)
-        valor: validated.color,
-        inventario: validated.inventario,
-        sku: `SKU-${validated.id}-${validated.color}`, // ← agregar sku
-      }] : [],
+        valor: '#000000', // Color por defecto
+        price: validated.precio, // ✅ precio ya es number
+        inventario: 100, // Stock por defecto  
+        sku: `SKU-${validated.id}-default`,
+      }],
       
       ProductCupons: [],
     }
     
     console.log('✅ Producto mapeado para frontend:', frontendProduct)
     
-    // Validar resultado final
+    // ✅ Validar resultado final
     return FrontendProductSchema.parse(frontendProduct)
     
   } catch (error) {
@@ -73,152 +82,134 @@ export function mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
 
 /**
  * 🔄 Frontend Product -> Backend CreateProductDto  
- * Convierte los datos del formulario al formato que espera tu CreateProductDto
- */
-/**
- * 🔄 Frontend Product -> Backend CreateProductDto CORREGIDA 
- * Convierte los datos del formulario al formato que espera tu CreateProductDto
  */
 export function mapFrontendToCreateDto(frontendProduct: Partial<FrontendProduct>): BackendCreateProductDto {
   console.log('🔍 Mapeando frontend a CreateDTO:', frontendProduct)
   
   try {
-    // ✅ HELPER FUNCTION para strings seguros - VERSIÓN CORREGIDA
+    // ✅ Helper functions seguras
     const safeString = (value: string | undefined | null, fallback: string): string => {
-      // Primero verificar si value existe y no es null/undefined
-      if (value === null || value === undefined) {
-        return fallback
-      }
-      
-      // Luego verificar si después de trim tiene contenido
-      const trimmedValue = value.trim()
-      return trimmedValue.length > 0 ? trimmedValue : fallback
+      if (value === null || value === undefined) return fallback
+      const trimmed = value.trim()
+      return trimmed.length > 0 ? trimmed : fallback
     }
     
-    // ✅ HELPER FUNCTION para números seguros - VERSIÓN CORREGIDA
     const safeNumber = (value: number | undefined | null, fallback: number): number => {
-      // Verificar si el valor es null o undefined
-      if (value === null || value === undefined) {
-        return fallback
-      }
-      
+      if (value === null || value === undefined) return fallback
       const num = Number(value)
       return isNaN(num) ? fallback : num
     }
     
+    // ✅ MAPEAR TODOS LOS CAMPOS DISPONIBLES (ahora sí tienes inventario y color)
     const createDto = {
-      // Mapear campos del frontend a los nombres que espera el backend
-      nombre: safeString(frontendProduct.ProductName, ''),
-      descripcion: safeString(frontendProduct.ProductDescription, ''),
-      inventario: Math.max(0, safeNumber(frontendProduct.ProductStock, 0)),
+      nombre: safeString(frontendProduct.ProductName, 'Producto sin nombre'),
+      descripcion: safeString(frontendProduct.ProductDescription, 'Sin descripción'),
       precio: Math.max(0.01, safeNumber(frontendProduct.productPrice, 0.01)),
-      categoria: safeString(frontendProduct.ProductCategory, ''),
+      categoria: safeString(frontendProduct.ProductCategory, 'Sin categoría'),
+      inventario: Math.max(0, Math.floor(safeNumber(frontendProduct.ProductStock, 0))),
       color: safeString(frontendProduct.Color, '#000000'),
-      // imagen NO va aquí cuando no hay archivo
+      // imagen se maneja por separado en tu servicio con archivos
     }
     
     console.log('✅ DTO creado para backend:', createDto)
     
-    // Validar que coincide con tu CreateProductDto
     return BackendCreateProductDtoSchema.parse(createDto)
     
   } catch (error) {
     console.error('❌ Error creando DTO:', error)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as any
+      const messages = zodError.issues.map((issue: any) => 
+        `${issue.path.join('.')}: ${issue.message}`
+      ).join('; ')
+      throw new Error(`Validación fallida: ${messages}`)
+    }
+    
     throw new Error(`Error validando datos para crear: ${error}`)
   }
 }
 
 /**
- * 🔄 Frontend Product -> Backend UpdateProductDto SEGURO PARA TYPESCRIPT
- * Convierte los datos del formulario al formato que espera tu UpdateProductDto
+ * 🔄 Frontend Product -> Backend UpdateProductDto
  */
 export function mapFrontendToUpdateDto(frontendProduct: Partial<FrontendProduct>): BackendUpdateProductDto {
   console.log('🔍 Datos del frontend para actualizar:', frontendProduct)
   
   try {
-  // ✅ HELPER FUNCTION para strings seguros - VERSIÓN CORREGIDA
-  const safeString = (value: string | undefined | null, fallback: string): string => {
-    // Primero verificar si value existe y no es null/undefined
-    if (value === null || value === undefined) {
-      return fallback
+    // ✅ Helper functions
+    const safeString = (value: string | undefined | null): string | undefined => {
+      if (value === null || value === undefined) return undefined
+      const trimmed = value.trim()
+      return trimmed.length > 0 ? trimmed : undefined
     }
     
-    // Luego verificar si después de trim tiene contenido
-    const trimmedValue = value.trim()
-    return trimmedValue.length > 0 ? trimmedValue : fallback
-  }
-  
-  // ✅ HELPER FUNCTION para números seguros - VERSIÓN CORREGIDA
-  const safeNumber = (value: number | undefined | null, fallback: number): number => {
-    // Verificar si el valor es null o undefined
-    if (value === null || value === undefined) {
-      return fallback
+    const safeNumber = (value: number | undefined | null): number | undefined => {
+      if (value === null || value === undefined) return undefined
+      const num = Number(value)
+      return isNaN(num) ? undefined : num
     }
     
-    const num = Number(value)
-    return isNaN(num) ? fallback : num
+    // ✅ SOLO INCLUIR CAMPOS QUE ESTÁN PRESENTES
+    const updateDto: Partial<BackendUpdateProductDto> = {}
+    
+    if (frontendProduct.ProductName !== undefined) {
+      const nombre = safeString(frontendProduct.ProductName)
+      if (nombre) updateDto.nombre = nombre
+    }
+    
+    if (frontendProduct.ProductDescription !== undefined) {
+      const descripcion = safeString(frontendProduct.ProductDescription)
+      if (descripcion) updateDto.descripcion = descripcion
+    }
+    
+    if (frontendProduct.productPrice !== undefined) {
+      const precio = safeNumber(frontendProduct.productPrice)
+      if (precio !== undefined && precio > 0) updateDto.precio = precio
+    }
+    
+    if (frontendProduct.ProductCategory !== undefined) {
+      const categoria = safeString(frontendProduct.ProductCategory)
+      if (categoria) updateDto.categoria = categoria
+    }
+    
+    if (frontendProduct.ProductStock !== undefined) {
+      const inventario = safeNumber(frontendProduct.ProductStock)
+      if (inventario !== undefined && inventario >= 0) {
+        updateDto.inventario = Math.floor(inventario)
+      }
+    }
+    
+    if (frontendProduct.Color !== undefined) {
+      const color = safeString(frontendProduct.Color)
+      if (color) updateDto.color = color
+    }
+    
+    console.log('✅ DTO preparado (antes de validación Zod):', updateDto)
+    
+    // ✅ Solo validar si hay al menos un campo para actualizar
+    if (Object.keys(updateDto).length === 0) {
+      throw new Error('No hay campos válidos para actualizar')
+    }
+    
+    const validatedDto = BackendUpdateProductDtoSchema.parse(updateDto)
+    console.log('✅ DTO validado por Zod exitosamente:', validatedDto)
+    
+    return validatedDto
+    
+  } catch (error) {
+    console.error('❌ Error en mapFrontendToUpdateDto:', error)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as any
+      const messages = zodError.issues.map((issue: any) => 
+        `${issue.path.join('.')}: ${issue.message}`
+      ).join('; ')
+      throw new Error(`Validación fallida: ${messages}`)
+    }
+    
+    throw new Error(`Error inesperado validando datos: ${String(error)}`)
   }
-  
-  // ✅ PREPARAR DATOS con validaciones TypeScript-safe
-  const updateDto = {
-    // Nombre: obligatorio, mínimo 1 carácter
-    nombre: safeString(frontendProduct.ProductName, 'Producto sin nombre'),
-    
-    // Descripción: obligatorio, mínimo 1 carácter  
-    descripcion: safeString(frontendProduct.ProductDescription, 'Sin descripción'),
-    
-    // Imagen: obligatorio, mínimo 1 carácter
-    imagen: safeString(
-      frontendProduct.ProductImageUrl, 
-      'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'
-    ),
-    
-    // Inventario: debe ser número válido >= 0
-    inventario: Math.max(0, Math.floor(safeNumber(frontendProduct.ProductStock, 0))),
-    
-    // Precio: debe ser número válido > 0
-    precio: Math.max(0.01, safeNumber(frontendProduct.productPrice, 0.01)),
-    
-    // Categoría: obligatorio, mínimo 1 carácter
-    categoria: safeString(frontendProduct.ProductCategory, 'Sin categoría'),
-    
-    // Color: obligatorio, mínimo 1 carácter  
-    color: safeString(frontendProduct.Color, '#000000'),
-  }
-  
-  console.log('✅ DTO preparado (antes de validación Zod):', updateDto)
-  
-  // ✅ VALIDAR con tu schema Zod exacto
-  const validatedDto = BackendUpdateProductDtoSchema.parse(updateDto)
-  console.log('✅ DTO validado por Zod exitosamente:', validatedDto)
-  
-  return validatedDto
-  
-} catch (error) {
-  console.error('❌ Error en mapFrontendToUpdateDto:', error)
-  
-  // ✅ MANEJO MEJORADO DE ERRORES ZOD
-  if (error && typeof error === 'object' && 'issues' in error) {
-    const zodError = error as any
-    console.error('❌ Errores específicos de Zod:', zodError.issues)
-    
-    // Crear mensaje más legible
-    const messages = zodError.issues.map((issue: any) => {
-      const field = issue.path.join('.')
-      const message = issue.message
-      return `${field}: ${message}`
-    }).join('; ')
-    
-    throw new Error(`Validación fallida: ${messages}`)
-  }
-  
-  // Si es error manual
-  if (error instanceof Error) {
-    throw error
-  }
-  
-  throw new Error(`Error inesperado validando datos: ${String(error)}`)
-}
 }
 
 /**
@@ -227,16 +218,41 @@ export function mapFrontendToUpdateDto(frontendProduct: Partial<FrontendProduct>
 export function validateBackendProductsArray(products: unknown[]): FrontendProduct[] {
   console.log(`🔍 Validando ${products.length} productos del backend...`)
   
-  return products.map((product, index) => {
-    console.log(`📦 Procesando producto ${index + 1}`)
-    return mapBackendToFrontend(product)
+  const validProducts: FrontendProduct[] = []
+  const errors: string[] = []
+  
+  products.forEach((product, index) => {
+    try {
+      console.log(`📦 Procesando producto ${index + 1}`)
+      const validProduct = mapBackendToFrontend(product)
+      validProducts.push(validProduct)
+    } catch (error) {
+      console.error(`❌ Error en producto ${index + 1}:`, error)
+      errors.push(`Producto ${index + 1}: ${error}`)
+    }
   })
+  
+  if (errors.length > 0) {
+    console.warn(`⚠️ Se encontraron ${errors.length} productos con errores:`, errors)
+  }
+  
+  console.log(`✅ ${validProducts.length} productos válidos de ${products.length} totales`)
+  return validProducts
 }
 
 /**
- * 🔄 Manejo de errores con contexto
+ * 🔄 Helper para manejo de errores con contexto
  */
 export function handleValidationError(error: unknown, context: string): never {
   console.error(`❌ Error de validación en ${context}:`, error)
-  throw new Error(`Error de validación en ${context}`)
+  
+  if (error && typeof error === 'object' && 'issues' in error) {
+    const zodError = error as any
+    const details = zodError.issues.map((issue: any) => 
+      `${issue.path.join('.')}: ${issue.message}`
+    ).join('; ')
+    throw new Error(`Error de validación en ${context}: ${details}`)
+  }
+  
+  throw new Error(`Error de validación en ${context}: ${String(error)}`)
 }

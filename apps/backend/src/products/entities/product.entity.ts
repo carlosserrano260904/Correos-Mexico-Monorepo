@@ -1,9 +1,10 @@
+// src/products/entities/product.entity.ts
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { Favorito } from "../../favoritos/entities/favorito.entity";
 import { Carrito } from "../../carrito/entities/carrito.entity";
 import { ProductImage } from "./product-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { Review } from "src/review/entities/review.entity";
+import { Review } from "src/review/entities/review.entity"; // <- usa SIEMPRE esta misma ruta
 
 @Entity("productos")
 export class Product {
@@ -19,88 +20,78 @@ export class Product {
   @Column({ type: "varchar", length: 120 })
   descripcion: string;
 
-  @ApiProperty({ example: 1299.9 })
-  @Column({ type: "decimal", precision: 10, scale: 2 })
+  @ApiProperty({ example: 1299.9, type: Number })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   precio: number;
 
   @ApiProperty({ example: "Calzado", nullable: true })
   @Column({ type: "varchar", nullable: true })
   categoria: string | null;
 
-  @ApiProperty({ example: 25, description: "Unidades disponibles en inventario" })
+  @ApiProperty({ example: 25 })
   @Column({ type: "int", default: 0 })
-  inventario:number
+  inventario: number;
 
-  @ApiProperty({ example: "Negro", description: "Color principal del producto" })
+  @ApiProperty({ example: "Negro" })
   @Column({ type: "varchar", length: 40 })
-  color:string
+  color: string;
 
   @ApiProperty({ example: "Nike" })
   @Column({ type: "varchar", length: 60 })
-  marca:string
+  marca: string;
 
-  @ApiProperty({ example: "tenis-runner-negro", description: "Identificador legible en URL, único" })
+  @ApiProperty({ example: "tenis-runner-negro" })
   @Column({ type: "varchar", length: 120 })
-  slug:string
+  slug: string;
 
-  @ApiProperty({ example: "SportCenter MX", description: "Nombre del vendedor" })
+  @ApiProperty({ example: "SportCenter MX" })
   @Column({ type: "varchar", length: 80 })
-  vendedor:string
+  vendedor: string;
 
-  @ApiProperty({ example: true, description: "Si el producto está activo/publicado" })
+  @ApiProperty({ example: true })
   @Column({ type: "boolean", default: true })
-  estado:boolean
+  estado: boolean;
 
-  @ApiProperty({ example: 132, description: "Unidades vendidas acumuladas" })
+  @ApiProperty({ example: 132 })
   @Column({ type: "int", default: 0 })
-  vendidos:number
+  vendidos: number;
 
-  @ApiProperty({ example: "SKU-ABC-001", description: "Código de inventario único" })
+  @ApiProperty({ example: "SKU-ABC-001" })
   @Column({ type: "varchar", length: 60 })
-  sku:string
+  sku: string;
 
   @ApiProperty({ type: () => [ProductImage] })
   @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })
   images: ProductImage[];
 
-  // Estas dos propiedades son las que necesitan tus otras entidades
   @OneToMany(() => Favorito, (favorito) => favorito.producto)
   favoritos: Favorito[];
 
   @OneToMany(() => Carrito, (carrito) => carrito.producto)
   carrito: Carrito[];
 
-  @OneToMany(() => Review, review => review.product)
+  @ApiProperty({
+    type: () => [Review],
+    example: [
+      {
+        id: 1,
+        rating: 5,
+        comment: "Excelente calidad",
+        createdAt: "2025-08-09T12:00:00.000Z",
+        updatedAt: "2025-08-09T12:00:00.000Z",
+        productId: 1,
+        profileId: 3,
+        images: [
+          { id: 10, url: "https://res.cloudinary.com/.../rev1.jpg", orden: 0, reviewId: 1 }
+        ]
+      }
+    ]
+  })
+  @OneToMany(() => Review, (review) => review.product, { cascade: true })
   reviews: Review[];
 }
-
-/*
-📝 CAMPOS FALTANTES EN LA BASE DE DATOS:
-
-🔴 CAMPOS OBLIGATORIOS:
-- inventario: number (stock/cantidad disponible)
-- color: string | null (color del producto)
-- imagen: string | null (URL de imagen principal)
-
-🟡 CAMPOS OPCIONALES PARA FRONTEND:
-- slug: string (URL amigable para SEO)
-- marca: string (brand/marca del producto)
-- vendedor: string (seller name)
-- estado: boolean (activo/inactivo)
-- vendidos: number (cantidad vendida)
-- sku: string (código único del producto)
-
-💡 MIGRATION SUGERIDA:
-ALTER TABLE productos ADD COLUMN inventario INT DEFAULT 0;
-ALTER TABLE productos ADD COLUMN color VARCHAR(7) DEFAULT NULL;
-ALTER TABLE productos ADD COLUMN imagen TEXT DEFAULT NULL;
-ALTER TABLE productos ADD COLUMN slug VARCHAR(100) DEFAULT NULL;
-ALTER TABLE productos ADD COLUMN marca VARCHAR(50) DEFAULT NULL;
-ALTER TABLE productos ADD COLUMN vendedor VARCHAR(60) DEFAULT NULL;
-ALTER TABLE productos ADD COLUMN estado BOOLEAN DEFAULT TRUE;
-ALTER TABLE productos ADD COLUMN vendidos INT DEFAULT 0;
-ALTER TABLE productos ADD COLUMN sku VARCHAR(20) DEFAULT NULL;
-
-🎯 PRIORIDAD: Los campos inventario, color e imagen son los MÁS URGENTES
-   porque ya están siendo usados en el frontend según tu schema de Zod.
-*/

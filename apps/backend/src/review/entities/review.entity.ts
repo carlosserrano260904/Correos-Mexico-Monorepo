@@ -1,11 +1,14 @@
 // src/reviews/entities/review.entity.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Column, Entity, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn,
+  UpdateDateColumn, OneToMany, JoinColumn
+} from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { Profile } from '../../profile/entities/profile.entity';
 import { ReviewImage } from './review-image.entity';
 
-@Entity()
+@Entity('reviews')
 export class Review {
   @ApiProperty({ example: 1 })
   @PrimaryGeneratedColumn()
@@ -19,25 +22,37 @@ export class Review {
   @Column({ type: 'text' })
   comment: string;
 
-  @ApiProperty({ example: '2025-08-09T12:00:00Z' })
+  @ApiProperty()
   @CreateDateColumn()
   createdAt: Date;
 
-  @ApiProperty({ example: '2025-08-09T12:00:00Z' })
+  @ApiProperty()
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Product, product => product.reviews, { onDelete: 'CASCADE' })
+  // --- PRODUCT
+  @ManyToOne(() => Product, (product) => product.reviews, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'productId' }) // <- enlaza FK
   product: Product;
 
+  @ApiProperty({ example: 1 })
   @Column()
   productId: number;
 
-  @ManyToOne(() => Profile, profile => profile.reviews, { onDelete: 'CASCADE' })
+  // --- PROFILE
+  @ApiProperty({
+    type: () => Profile,
+    example: { id: 7, nombre: 'Ana', apellido: 'López', imagen: 'https://...' },
+  })
+  @ManyToOne(() => Profile, (profile) => profile.reviews, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'profileId' }) // <- enlaza FK
   profile: Profile;
 
+  @ApiProperty({ example: 7 })
   @Column()
   profileId: number;
+
+  @ApiProperty({ type: () => [ReviewImage] })
   @OneToMany(() => ReviewImage, (img) => img.review, { cascade: true })
   images: ReviewImage[];
 }

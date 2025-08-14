@@ -9,7 +9,7 @@ export class ReviewImage {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ example: 'https://bucket.s3.region.amazonaws.com/reviews/uuid.jpg' })
+  @ApiProperty({ example: 'https://res.cloudinary.com/.../default.jpg' })
   @Column({ type: 'text' })
   url: string;
 

@@ -14,6 +14,6 @@ export const typeOrmConfig = (
   autoLoadEntities: true,
   ssl: true,
   logging: false,
-  synchronize: false,
+  synchronize: true,
   entities: [join(__dirname + '../../**/*entity.{js,ts}')],
 });

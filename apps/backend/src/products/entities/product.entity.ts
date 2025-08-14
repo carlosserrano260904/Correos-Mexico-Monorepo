@@ -27,6 +27,38 @@ export class Product {
   @Column({ type: "varchar", nullable: true })
   categoria: string | null;
 
+  @ApiProperty({ example: 25, description: "Unidades disponibles en inventario" })
+  @Column({ type: "int", default: 0 })
+  inventario:number
+
+  @ApiProperty({ example: "Negro", description: "Color principal del producto" })
+  @Column({ type: "varchar", length: 40 })
+  color:string
+
+  @ApiProperty({ example: "Nike" })
+  @Column({ type: "varchar", length: 60 })
+  marca:string
+
+  @ApiProperty({ example: "tenis-runner-negro", description: "Identificador legible en URL, único" })
+  @Column({ type: "varchar", length: 120 })
+  slug:string
+
+  @ApiProperty({ example: "SportCenter MX", description: "Nombre del vendedor" })
+  @Column({ type: "varchar", length: 80 })
+  vendedor:string
+
+  @ApiProperty({ example: true, description: "Si el producto está activo/publicado" })
+  @Column({ type: "boolean", default: true })
+  estado:boolean
+
+  @ApiProperty({ example: 132, description: "Unidades vendidas acumuladas" })
+  @Column({ type: "int", default: 0 })
+  vendidos:number
+
+  @ApiProperty({ example: "SKU-ABC-001", description: "Código de inventario único" })
+  @Column({ type: "varchar", length: 60 })
+  sku:string
+
   @ApiProperty({ type: () => [ProductImage] })
   @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })
   images: ProductImage[];

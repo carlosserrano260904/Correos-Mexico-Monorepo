@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   View,
   Text,
@@ -9,13 +9,13 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ScrollView,
   Alert,
   ActivityIndicator,
   Modal,
   FlatList,
-  Button,
-  Animated
+  Animated,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
@@ -52,7 +52,6 @@ const TarificadorMexpost = () => {
 
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-
   //obtener profielid
   useEffect(() => {
     const fetchProfileId = async () => {
@@ -71,8 +70,6 @@ const TarificadorMexpost = () => {
 
     fetchProfileId();
   }, []);
-
-
 
   useEffect(() => {
     if (!showCountryModal) return
@@ -117,8 +114,6 @@ const TarificadorMexpost = () => {
       setLoading(false);
     }
   };
-
-
 
   // Cambia handleSearchInternacional para que solo busque y muestre zona/desc. después de cerrar el modal
   const handleSearchInternacional = async () => {
@@ -259,27 +254,30 @@ const TarificadorMexpost = () => {
     }
   }
 
-  const renderCountryItem = ({ item }) => (
-    <TouchableOpacity
-    style={[
-      styles.countryItem,
-      paisDestino?.id === item.id && styles.countryItemSelected
-    ]}
-    onPress={() => setPaisDestino(item)}
-  >
-    <Text
-      style={[
-        styles.countryText,
-        paisDestino?.id === item.id && styles.countryTextSelected
-      ]}
-    >
-      {item.name}
-    </Text>
-    {paisDestino?.id === item.id && (
-      <Ionicons name="checkmark" size={20} color="#e91e63" style={{ marginLeft: 8 }} />
-    )}
-  </TouchableOpacity>
-  )
+  const renderCountryItem = ({ item }) => {
+    const isSelected = paisDestino?.id === item.id;
+    return (
+      <TouchableOpacity
+        style={[
+          styles.countryItem,
+          isSelected && styles.countryItemSelected
+        ]}
+        onPress={() => setPaisDestino(isSelected ? null : item)}
+      >
+        <Text
+          style={[
+            styles.countryText,
+            isSelected && styles.countryTextSelected
+          ]}
+        >
+          {item.name}
+        </Text>
+        {isSelected && (
+          <Ionicons name="checkmark" size={20} color="#e91e63" style={{ marginLeft: 8 }} />
+        )}
+      </TouchableOpacity>
+    );
+  }
 
   // Animación al abrir/cerrar el modal
   useEffect(() => {
@@ -304,10 +302,26 @@ const TarificadorMexpost = () => {
     outputRange: [400, 0], // Desliza desde 400px abajo hasta su posición
   });
 
+  // Referencias para los campos
+  const pesoRef = useRef(null);
+  const altoRef = useRef(null);
+  const anchoRef = useRef(null);
+  const largoRef = useRef(null);
+
+  // Función para cambiar de campo automáticamente
+  const focusNextField = (nextRef) => {
+    if (nextRef && nextRef.current) {
+      nextRef.current.focus();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -407,8 +421,6 @@ const TarificadorMexpost = () => {
                   <Text style={styles.infoLabel}>Zona:</Text>
                   <Text style={styles.infoValue}>
                     {datosEnvio.zona?.nombre}
-                    {/* ({datosEnvio.zona?.minKm} km - {datosEnvio.zona?.maxKm} km) */}
-                    {/* Se eliminra la distancia KM */}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
@@ -435,36 +447,51 @@ const TarificadorMexpost = () => {
                   <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
                 </View>
                 <TextInput
+                  ref={pesoRef}
                   style={styles.input}
                   placeholder="Peso en kg"
                   placeholderTextColor="#999"
                   value={peso}
                   onChangeText={setPeso}
                   keyboardType="decimal-pad"
+                  returnKeyType="next"
+                  onSubmitEditing={() => focusNextField(altoRef)}
+                  blurOnSubmit={false}
                 />
                 <TextInput
+                  ref={altoRef}
                   style={styles.input}
                   placeholder="Alto en cm"
                   placeholderTextColor="#999"
                   value={alto}
                   onChangeText={setAlto}
                   keyboardType="decimal-pad"
+                  returnKeyType="next"
+                  onSubmitEditing={() => focusNextField(anchoRef)}
+                  blurOnSubmit={false}
                 />
                 <TextInput
+                  ref={anchoRef}
                   style={styles.input}
                   placeholder="Ancho en cm"
                   placeholderTextColor="#999"
                   value={ancho}
                   onChangeText={setAncho}
                   keyboardType="decimal-pad"
+                  returnKeyType="next"
+                  onSubmitEditing={() => focusNextField(largoRef)}
+                  blurOnSubmit={false}
                 />
                 <TextInput
+                  ref={largoRef}
                   style={styles.input}
                   placeholder="Largo en cm"
                   placeholderTextColor="#999"
                   value={largo}
                   onChangeText={setLargo}
                   keyboardType="decimal-pad"
+                  returnKeyType="done"
+                  onSubmitEditing={() => { /* Aquí puedes cerrar el teclado o hacer otra acción */ }}
                 />
                 <TouchableOpacity
                   style={[styles.searchButton, loadingQuote && styles.disabledButton]}
@@ -583,66 +610,60 @@ const TarificadorMexpost = () => {
             )}
           </View>
         )}
-      </ScrollView>
-      {/* Modal para selección de países */}
-<Modal
-  visible={showCountryModal}
-  transparent={true}
-  animationType="none"
-  onRequestClose={() => setShowCountryModal(false)}
->
-  <View style={[styles.modalOverlay, { backgroundColor: "transparent" }]}>
-    <Animated.View
-      style={[
-        styles.modalContainer,
-        { transform: [{ translateY: modalTranslateY }] },
-        { shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 10, elevation: 10 }
-      ]}
-    >
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Seleccionar país de destino</Text>
-        <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCountryModal(false)}>
-          <Ionicons name="close" size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Lista de países */}
-      <View style={{ flex: 1 }}>
-        <FlatList
-          data={paises}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderCountryItem}
-          ListEmptyComponent={() => (
-            <Text style={{ padding: 20, textAlign: 'center' }}>
-              No hay países disponibles
-            </Text>
-          )}
-          contentContainerStyle={{ paddingBottom: 70 }} // espacio para que no tape el botón
-        />
-      </View>
-
-      {/* Botón fijo abajo */}
-      <View style={styles.floatingButtonContainer}>
-        <TouchableOpacity
-          style={[
-            styles.floatingButton,
-            !paisDestino && styles.floatingButtonDisabled
-          ]}
-          onPress={handleSearchInternacional}
-          disabled={!paisDestino}
-          activeOpacity={0.7}
+        <Modal
+          visible={showCountryModal}
+          transparent={true}
+          animationType="none"
+          onRequestClose={() => setShowCountryModal(false)}
         >
-          <Text style={styles.floatingButtonText}>Buscar país</Text>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
-  </View>
-</Modal>
-
-
+          <View style={[styles.modalOverlay, { backgroundColor: "transparent" }]}>
+            <Animated.View
+              style={[
+                styles.modalContainer,
+                { transform: [{ translateY: modalTranslateY }] },
+                styles.modalShadow // Sombra para distinguir el modal
+              ]}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Seleccionar país de destino</Text>
+                <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCountryModal(false)}>
+                  <Ionicons name="close" size={24} color="#000" />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={paises}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderCountryItem}
+                ListEmptyComponent={() => (
+                  <Text style={{ padding: 20, textAlign: 'center' }}>
+                    No hay países disponibles
+                  </Text>
+                )}
+                contentContainerStyle={{ paddingBottom: 90 }}
+                style={{ flex: 1 }}
+                keyboardShouldPersistTaps="handled"
+              />
+              <View style={styles.floatingButtonContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.floatingButton,
+                    !paisDestino && styles.floatingButtonDisabled
+                  ]}
+                  onPress={handleSearchInternacional}
+                  disabled={!paisDestino}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.floatingButtonText}>Buscar país</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
+
 
 const styles = StyleSheet.create({
   infoLabel: {
@@ -883,7 +904,7 @@ const styles = StyleSheet.create({
   borderRadius: 10,
   paddingBottom: 20,
   width: '100%',
-  height: '78%', 
+  height: '95%', 
   overflow: 'hidden',
   },
   modalHeader: {
@@ -898,6 +919,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
+  },
+  modalShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 16,
   },
   modalCloseButton: {
     padding: 5,

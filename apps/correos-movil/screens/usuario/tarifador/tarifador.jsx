@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckoutButton from '../../../components/Boton-pago-tariffador/CheckoutButton';
+import { ScrollView } from "react-native"
 
 const TarificadorMexpost = () => {
   const navigation = useNavigation();
@@ -48,9 +49,14 @@ const TarificadorMexpost = () => {
   const costo = cotizacionData?.costoTotal || 0;
   const email = 'cliente@example.com';
   const [profileId, setProfileId] = useState(null);
-  const [modalAnim] = useState(new Animated.Value(0)); // Estado para animación
-
+  const [modalAnim] = useState(new Animated.Value(0));
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  // Definimos las dimensiones máximas
+  const max_peso  = 50;
+  const max_alto  = 300;
+  const max_ancho = 300;
+  const max_largo = 300;
 
   //obtener profielid
   useEffect(() => {
@@ -182,7 +188,7 @@ const TarificadorMexpost = () => {
 
   const handleCotizarInternacional = async () => {
     if (!peso || !alto || !ancho || !largo) {
-      Alert.alert("Error", "Por favor completa todas las dimensiones y peso")
+      Alert.alert("Campos vacios", "Es necesario completar todas las dimensiones y peso.")
       return
     }
     if (!paisDestino || !paisDestino.name) {
@@ -322,294 +328,349 @@ const TarificadorMexpost = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.title}>
-            Tarificador de envíos{"\n"}
-            <Text style={styles.subtitle}>MEXPOST</Text>
-          </Text>
-        </View>
-        {/* Tabs */}
-        <View style={[styles.tabContainer, showQuote && styles.tabContainerWithBorder]}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "Nacional" && styles.activeTab]}
-            onPress={() => handleTabChange("Nacional")}
-            disabled={showResults}
-          >
-            <Text style={[styles.tabText, activeTab === "Nacional" && styles.activeTabText]}>Nacional</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "Internacional" && styles.activeTab]}
-            onPress={() => handleTabChange("Internacional")}
-            disabled={showResults}
-          >
-            <Text style={[styles.tabText, activeTab === "Internacional" && styles.activeTabText]}>Internacional</Text>
-          </TouchableOpacity>
-        </View>
-        {/* Form */}
-        <View style={[styles.formContainer, showQuote && styles.formContainerWithBorder]}>
-          {activeTab === "Nacional" ? (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Código postal de origen"
-                placeholderTextColor="#999"
-                value={codigoOrigen}
-                onChangeText={setCodigoOrigen}
-                keyboardType="numeric"
-                maxLength={5}
-                editable={!showQuote && !loading}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Código postal de destino"
-                placeholderTextColor="#999"
-                value={codigoDestino}
-                onChangeText={setCodigoDestino}
-                keyboardType="numeric"
-                maxLength={5}
-                editable={!showQuote && !loading}
-              />
-            </>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowCountryModal(true)}
-                disabled={showQuote || loading}
-              >
-                <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
-                  {paisDestino?.name || "Selecciona un país"}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
-              </TouchableOpacity>
-            </>
-          )}
-          {activeTab === "Nacional" && !showResults && (
-            <TouchableOpacity
-              style={[styles.searchButton, loading && styles.disabledButton]}
-              onPress={handleSearch}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color="#DE1484" /> : <Text style={styles.searchButtonText}>Buscar</Text>}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start' }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <Ionicons name="arrow-back" size={24} color="#000" />
             </TouchableOpacity>
-          )}
-        </View>
-        {/* Results Section */}
-        {showResults && (
-          <View style={styles.resultsContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Datos de envío</Text>
-              <TouchableOpacity onPress={handleLimpiar}>
-                <Text style={styles.limpiarButton}>Limpiar</Text>
-              </TouchableOpacity>
-            </View>
-            {activeTab === "Nacional" && datosEnvio && (
+            <Text style={styles.title}>
+              Tarificador de envíos{"\n"}
+              <Text style={styles.subtitle}>MEXPOST</Text>
+            </Text>
+          </View>
+          {/* Tabs */}
+          <View style={[styles.tabContainer, showQuote && styles.tabContainerWithBorder]}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === "Nacional" && styles.activeTab]}
+              onPress={() => handleTabChange("Nacional")}
+              disabled={showResults}
+            >
+              <Text style={[styles.tabText, activeTab === "Nacional" && styles.activeTabText]}>Nacional</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === "Internacional" && styles.activeTab]}
+              onPress={() => handleTabChange("Internacional")}
+              disabled={showResults}
+            >
+              <Text style={[styles.tabText, activeTab === "Internacional" && styles.activeTabText]}>Internacional</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Form */}
+          <View style={[styles.formContainer, showQuote && styles.formContainerWithBorder]}>
+            {activeTab === "Nacional" ? (
               <>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Origen:</Text>
-                  <Text style={styles.infoValue}>{datosEnvio.ciudadOrigen}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Destino:</Text>
-                  <Text style={styles.infoValue}>{datosEnvio.ciudadDestino}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Zona:</Text>
-                  <Text style={styles.infoValue}>
-                    {datosEnvio.zona?.nombre}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Servicio:</Text>
-                  <Text style={styles.infoValue}>{datosEnvio.servicio || "Estándar"}</Text>
-                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Código postal de origen"
+                  placeholderTextColor="#999"
+                  value={codigoOrigen}
+                  onChangeText={setCodigoOrigen}
+                  keyboardType="numeric"
+                  maxLength={5}
+                  editable={!showQuote && !loading}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Código postal de destino"
+                  placeholderTextColor="#999"
+                  value={codigoDestino}
+                  onChangeText={setCodigoDestino}
+                  keyboardType="numeric"
+                  maxLength={5}
+                  editable={!showQuote && !loading}
+                />
               </>
-            )}
-            {activeTab === "Internacional" && infoPais && (
+            ) : (
               <>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Zona:</Text>
-                  <Text style={styles.infoValue}>{infoPais.zona}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Descripción de zona:</Text>
-                  <Text style={styles.infoValue}>{infoPais.descripcionZona}</Text>
-                </View>
-              </>
-            )}
-            {!showQuote && (
-              <>
-                <View style={styles.infoRow}>
-                  <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
-                </View>
-                <TextInput
-                  ref={pesoRef}
-                  style={styles.input}
-                  placeholder="Peso en kg"
-                  placeholderTextColor="#999"
-                  value={peso}
-                  onChangeText={setPeso}
-                  keyboardType="decimal-pad"
-                  returnKeyType="next"
-                  onSubmitEditing={() => focusNextField(altoRef)}
-                  blurOnSubmit={false}
-                />
-                <TextInput
-                  ref={altoRef}
-                  style={styles.input}
-                  placeholder="Alto en cm"
-                  placeholderTextColor="#999"
-                  value={alto}
-                  onChangeText={setAlto}
-                  keyboardType="decimal-pad"
-                  returnKeyType="next"
-                  onSubmitEditing={() => focusNextField(anchoRef)}
-                  blurOnSubmit={false}
-                />
-                <TextInput
-                  ref={anchoRef}
-                  style={styles.input}
-                  placeholder="Ancho en cm"
-                  placeholderTextColor="#999"
-                  value={ancho}
-                  onChangeText={setAncho}
-                  keyboardType="decimal-pad"
-                  returnKeyType="next"
-                  onSubmitEditing={() => focusNextField(largoRef)}
-                  blurOnSubmit={false}
-                />
-                <TextInput
-                  ref={largoRef}
-                  style={styles.input}
-                  placeholder="Largo en cm"
-                  placeholderTextColor="#999"
-                  value={largo}
-                  onChangeText={setLargo}
-                  keyboardType="decimal-pad"
-                  returnKeyType="done"
-                  onSubmitEditing={() => { /* Aquí puedes cerrar el teclado o hacer otra acción */ }}
-                />
                 <TouchableOpacity
-                  style={[styles.searchButton, loadingQuote && styles.disabledButton]}
-                  onPress={activeTab === "Internacional" ? handleCotizarInternacional : handleCotizarNacional}
-                  disabled={loadingQuote}
+                  style={styles.input}
+                  onPress={() => setShowCountryModal(true)}
+                  disabled={showQuote || loading}
                 >
-                  {loadingQuote ? (
-                    <ActivityIndicator color="#e91e63" />
-                  ) : (
-                    <Text style={styles.searchButtonText}>Cotizar</Text>
-                  )}
+                  <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
+                    {paisDestino?.name || "Selecciona un país"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
                 </TouchableOpacity>
               </>
             )}
-            {showQuote && cotizacionData && (
-              <>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Detalles del servicio</Text>
-                  <TouchableOpacity onPress={handleNuevaConsulta}>
-                    <Text style={styles.limpiarButton}>Nueva consulta</Text>
+            {activeTab === "Nacional" && !showResults && (
+              <TouchableOpacity
+                style={[styles.searchButton, loading && styles.disabledButton]}
+                onPress={handleSearch}
+                disabled={loading}
+              >
+                {loading ? <ActivityIndicator color="#DE1484" /> : <Text style={styles.searchButtonText}>Buscar</Text>}
+              </TouchableOpacity>
+            )}
+          </View>
+          {/* Results Section */}
+          {showResults && (
+            <View style={styles.resultsContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Datos de envío</Text>
+                <TouchableOpacity onPress={handleLimpiar}>
+                  <Text style={styles.limpiarButton}>Limpiar</Text>
+                </TouchableOpacity>
+              </View>
+              {activeTab === "Nacional" && datosEnvio && (
+                <>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Origen:</Text>
+                    <Text style={styles.infoValue}>{datosEnvio.ciudadOrigen}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Destino:</Text>
+                    <Text style={styles.infoValue}>{datosEnvio.ciudadDestino}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Zona:</Text>
+                    <Text style={styles.infoValue}>
+                      {datosEnvio.zona?.nombre}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Servicio:</Text>
+                    <Text style={styles.infoValue}>{datosEnvio.servicio || "Estándar"}</Text>
+                  </View>
+                </>
+              )}
+              {activeTab === "Internacional" && infoPais && (
+                <>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Zona:</Text>
+                    <Text style={styles.infoValue}>{infoPais.zona}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Descripción de zona:</Text>
+                    <Text style={styles.infoValue}>{infoPais.descripcionZona}</Text>
+                  </View>
+                </>
+              )}
+              {!showQuote && (
+                <>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
+                  </View>
+
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      ref={pesoRef}
+                      style={styles.input}
+                      placeholder="Peso en kg"
+                      placeholderTextColor="#999"
+                      value={peso}
+                      onChangeText={val => {
+                        if (parseFloat(val) > max_peso) {
+                          Alert.alert("Límite excedido", `El peso máximo permitido es ${max_peso} kg. Pruebe con un valor menor.`);
+                          return;
+                        }
+                        setPeso(val.replace(/[^0-9.]/g, ""));
+                      }}
+                      keyboardType="decimal-pad"
+                      returnKeyType="next"
+                      onSubmitEditing={() => focusNextField(altoRef)}
+                      blurOnSubmit={false}
+                    />
+                    {peso !== "" && (
+                      <Text style={styles.unitLabel}>kg</Text>)}
+                  </View>
+
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      ref={altoRef}
+                      style={styles.input}
+                      placeholder="Alto en cm"
+                      placeholderTextColor="#999"
+                      value={alto}
+                      onChangeText={val => {
+                        if (parseFloat(val) > max_alto) {
+                          Alert.alert("Límite excedido", `El alto máximo permitido es ${max_alto} cm. Pruebe con un valor menor.`);
+                          return;
+                        }
+                        setAlto(val.replace(/[^0-9.]/g, ""));
+                      }}
+                      keyboardType="decimal-pad"
+                      returnKeyType="next"
+                      onSubmitEditing={() => focusNextField(anchoRef)}
+                      blurOnSubmit={false}
+                    />
+                    {alto !== "" && (
+                      <Text style={styles.unitLabel}>cm</Text>
+                    )}
+                  </View>
+
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      ref={anchoRef}
+                      style={styles.input}
+                      placeholder="Ancho en cm"
+                      placeholderTextColor="#999"
+                      value={ancho}
+                      onChangeText={val => {
+                        if (parseFloat(val) > max_ancho) {
+                          Alert.alert("Límite excedido", `El alto máximo permitido es ${max_ancho} cm. Pruebe con un valor menor.`);
+                          return;
+                        }
+                        setAncho(val.replace(/[^0-9.]/g, ""));
+                      }}
+                      keyboardType="decimal-pad"
+                      returnKeyType="next"
+                      onSubmitEditing={() => focusNextField(largoRef)}
+                      blurOnSubmit={false}
+                    />
+                    {ancho !== "" && (
+                      <Text style={styles.unitLabel}>cm</Text>
+                    )}
+                  </View>
+
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      ref={largoRef}
+                      style={styles.input}
+                      placeholder="Largo en cm"
+                      placeholderTextColor="#999"
+                      value={largo}
+                      onChangeText={val => {
+                        if (parseFloat(val) > max_largo) {
+                          Alert.alert("Límite excedido", `El alto máximo permitido es ${max_largo} cm. Pruebe con un valor menor.`);
+                          return;
+                        }
+                        setLargo(val.replace(/[^0-9.]/g, ""));
+                      }}
+                      keyboardType="decimal-pad"
+                      returnKeyType="done"
+                      onSubmitEditing={() => { /* Aquí puedes cerrar el teclado o hacer otra acción */ }}
+                    />
+                    {largo !== "" && (
+                      <Text style={styles.unitLabel}>cm</Text>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.searchButton, loadingQuote && styles.disabledButton]}
+                    onPress={activeTab === "Internacional" ? handleCotizarInternacional : handleCotizarNacional}
+                    disabled={loadingQuote}
+                  >
+                    {loadingQuote ? (
+                      <ActivityIndicator color="#e91e63" />
+                    ) : (
+                      <Text style={styles.searchButtonText}>Cotizar</Text>
+                    )}
                   </TouchableOpacity>
-                </View>
-
-                <View style={styles.detallesContainer}>
-                  <View style={styles.detalleRow}>
-                    <Text style={styles.detalleLabel}>Tipo de envío:</Text>
-                    <Text style={styles.detalleValue}>{activeTab}</Text>
+                </>
+              )}
+              {showQuote && cotizacionData && (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Detalles del servicio</Text>
+                    <TouchableOpacity onPress={handleNuevaConsulta}>
+                      <Text style={styles.limpiarButton}>Nueva consulta</Text>
+                    </TouchableOpacity>
                   </View>
 
-                  <View style={styles.detalleRow}>
-                    <Text style={styles.detalleLabel}>Peso físico:</Text>
-                    <Text style={styles.detalleValue}>
-                      {cotizacionData.pesoFisico} kg
-                    </Text>
-                  </View>
+                  <View style={styles.detallesContainer}>
+                    <View style={styles.detalleRow}>
+                      <Text style={styles.detalleLabel}>Tipo de envío:</Text>
+                      <Text style={styles.detalleValue}>{activeTab}</Text>
+                    </View>
 
-                  <View style={styles.detalleRow}>
-                    <Text style={styles.detalleLabel}>Peso volumétrico:</Text>
-                    <Text style={styles.detalleValue}>
-                      {cotizacionData.pesoVolumetrico} kg
-                    </Text>
-                  </View>
-
-                  {activeTab === "Nacional" ? (
-                    <>
-                      {/* Nacional muestra tarifaSinIVA, iva y costoTotal */}
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>Tarifa sin IVA:</Text>
-                        <Text style={styles.detalleValue}>
-                          MXN {cotizacionData.tarifaSinIVA || "N/A"}
-                        </Text>
-                      </View>
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>IVA:</Text>
-                        <Text style={styles.detalleValue}>
-                          MXN {cotizacionData.iva || "N/A"}
-                        </Text>
-                      </View>
-                    </>
-                  ) : (
-                    <>
-                      {/* Internacional muestra precioBase, iva, total */}
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>Precio base:</Text>
-                        <Text style={styles.detalleValue}>
-                          USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
-                        </Text>
-                      </View>
-                      <View style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>IVA:</Text>
-                        <Text style={styles.detalleValue}>
-                          USD {cotizacionData.iva?.toFixed(2) || "N/A"}
-                        </Text>
-                      </View>
-                    </>
-                  )}
-                </View>
-                {/* Solo mostrar el resumen de costo total en Nacional */}
-                {activeTab === "Nacional" && (
-                  <View>
-                    <View style={styles.costoTotalContainer}>
-                      <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                      <Text style={styles.costoTotalValue}>
-                        MXN {costo || 'N/A'}
+                    <View style={styles.detalleRow}>
+                      <Text style={styles.detalleLabel}>Peso físico:</Text>
+                      <Text style={styles.detalleValue}>
+                        {cotizacionData.pesoFisico} kg
                       </Text>
                     </View>
 
-                    {/* Boton de pago simplificado */}
-                    <CheckoutButton
-                      amount={costo}
-                      email={email}
-                      profileId={115}
-                      onPaymentSuccess={(paymentResult) => {
-                        console.log('Pago exitoso:', paymentResult);
-                        // Aquí puedes hacer lo que necesites después del pago
-                        // Por ejemplo, redirigir, limpiar formulario, etc.
-                        Alert.alert('Éxito', 'El pago se procesó correctamente');
-                      }}
-                      onPaymentError={(error) => {
-                        console.error('Error en pago:', error);
-                        // Manejar errores si es necesario
-                      }}
-                    />
-                  </View>
-                )}
+                    <View style={styles.detalleRow}>
+                      <Text style={styles.detalleLabel}>Peso volumétrico:</Text>
+                      <Text style={styles.detalleValue}>
+                        {cotizacionData.pesoVolumetrico} kg
+                      </Text>
+                    </View>
 
-                {activeTab === "Internacional" && (
-                  <View style={styles.costoTotalContainer}>
-                    <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                    <Text style={styles.costoTotalValue}>
-                      USD {cotizacionData.total || "N/A"}
-                    </Text>
+                    {activeTab === "Nacional" ? (
+                      <>
+                        {/* Nacional muestra tarifaSinIVA, iva y costoTotal */}
+                        <View style={styles.detalleRow}>
+                          <Text style={styles.detalleLabel}>Tarifa sin IVA:</Text>
+                          <Text style={styles.detalleValue}>
+                            MXN {cotizacionData.tarifaSinIVA || "N/A"}
+                          </Text>
+                        </View>
+                        <View style={styles.detalleRow}>
+                          <Text style={styles.detalleLabel}>IVA:</Text>
+                          <Text style={styles.detalleValue}>
+                            MXN {cotizacionData.iva || "N/A"}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        {/* Internacional muestra precioBase, iva, total */}
+                        <View style={styles.detalleRow}>
+                          <Text style={styles.detalleLabel}>Precio base:</Text>
+                          <Text style={styles.detalleValue}>
+                            USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
+                          </Text>
+                        </View>
+                        <View style={styles.detalleRow}>
+                          <Text style={styles.detalleLabel}>IVA:</Text>
+                          <Text style={styles.detalleValue}>
+                            USD {cotizacionData.iva?.toFixed(2) || "N/A"}
+                          </Text>
+                        </View>
+                      </>
+                    )}
                   </View>
-                )}
-              </>
-            )}
-          </View>
-        )}
+                  {/* Solo mostrar el resumen de costo total en Nacional */}
+                  {activeTab === "Nacional" && (
+                    <View>
+                      <View style={styles.costoTotalContainer}>
+                        <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                        <Text style={styles.costoTotalValue}>
+                          MXN {costo || 'N/A'}
+                        </Text>
+                      </View>
+
+                      {/* Boton de pago simplificado */}
+                      <CheckoutButton
+                        amount={costo}
+                        email={email}
+                        profileId={115}
+                        onPaymentSuccess={(paymentResult) => {
+                          console.log('Pago exitoso:', paymentResult);
+                          // Aquí puedes hacer lo que necesites después del pago
+                          // Por ejemplo, redirigir, limpiar formulario, etc.
+                          Alert.alert('Éxito', 'El pago se procesó correctamente');
+                        }}
+                        onPaymentError={(error) => {
+                          console.error('Error en pago:', error);
+                          // Manejar errores si es necesario
+                        }}
+                      />
+                    </View>
+                  )}
+
+                  {activeTab === "Internacional" && (
+                    <View style={styles.costoTotalContainer}>
+                      <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                      <Text style={styles.costoTotalValue}>
+                        USD {cotizacionData.total || "N/A"}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          )}
+        </ScrollView>
+
         <Modal
           visible={showCountryModal}
           transparent={true}
@@ -636,7 +697,7 @@ const TarificadorMexpost = () => {
                 renderItem={renderCountryItem}
                 ListEmptyComponent={() => (
                   <Text style={{ padding: 20, textAlign: 'center' }}>
-                    No hay países disponibles
+                    Cargando países...
                   </Text>
                 )}
                 contentContainerStyle={{ paddingBottom: 90 }}
@@ -900,12 +961,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
-  backgroundColor: '#fff',
-  borderRadius: 10,
-  paddingBottom: 20,
-  width: '100%',
-  height: '95%', 
-  overflow: 'hidden',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingBottom: 20,
+    width: '100%',
+    height: '95%',
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: "row",
@@ -933,6 +994,15 @@ const styles = StyleSheet.create({
   countryList: {
     flex: 1,
   },
+  unitLabel: {
+  position: "absolute",
+  right: 25,
+  top: "40%",
+  transform: [{ translateY: -10 }],
+  color: "#e91e63",
+  fontWeight: "bold",
+  fontSize: 16,
+},
   countryItem: {
     paddingHorizontal: 20,
     paddingVertical: 15,
@@ -979,7 +1049,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "600",
-    
+
   },
   floatingButtonDisabled: {
     backgroundColor: "#e91e63",

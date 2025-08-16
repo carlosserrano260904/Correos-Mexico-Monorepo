@@ -682,7 +682,7 @@ const TarificadorMexpost = () => {
               style={[
                 styles.modalContainer,
                 { transform: [{ translateY: modalTranslateY }] },
-                styles.modalShadow // Sombra para distinguir el modal
+                styles.modalShadow
               ]}
             >
               <View style={styles.modalHeader}>

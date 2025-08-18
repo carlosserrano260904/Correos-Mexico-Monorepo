@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/clerk-expo';
 import AuthNavigator from './navigation/authNavigator';
 import AppNavigator from './navigation/appNavigatior';
 import VendedorNavigator from './navigation/vendedorNavigator';
+import DistributorNavigator from './navigation/distributorNavigator';
 import { AuthProvider, useMyAuth } from './context/AuthContext';
 import { StripeProvider } from '@stripe/stripe-react-native';
 
@@ -25,9 +26,12 @@ function RootNavigation() {
         <VendedorNavigator />
       ) : userRol === 'usuario' ? (
         <AppNavigator />
+      ) : userRol === 'repartidor' ? (
+        <DistributorNavigator />
       ) : (
         <AuthNavigator />
-      )}
+      )
+      }
     </NavigationContainer>
   );
 }

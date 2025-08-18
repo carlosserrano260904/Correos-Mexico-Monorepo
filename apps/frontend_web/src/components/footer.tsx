@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link"
 
 const Footer: React.FC = () => {
   return (
@@ -52,9 +53,7 @@ const Footer: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 mt-10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 border-t pt-4">
         <p>©2025 Correos Clic. Todos los derechos reservados</p>
         <div className="flex space-x-4 mt-2 md:mt-0">
-          <a href="#">Política de privacidad</a>
-          <a href="#">Términos y condiciones</a>
-          <a href="#">Legal</a>
+          <Link href="/terminos-condiciones">Términos y condiciones</Link>
           <a href="#">Mapa del sitio</a>
         </div>
       </div>

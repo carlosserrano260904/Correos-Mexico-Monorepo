@@ -1,36 +1,97 @@
+// src/products/entities/product.entity.ts
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { Favorito } from '../../favoritos/entities/favorito.entity';
-import { Carrito } from '../../carrito/entities/carrito.entity';
+import { Favorito } from "../../favoritos/entities/favorito.entity";
+import { Carrito } from "../../carrito/entities/carrito.entity";
+import { ProductImage } from "./product-image.entity";
+import { ApiProperty } from "@nestjs/swagger";
+import { Review } from "src/review/entities/review.entity"; // <- usa SIEMPRE esta misma ruta
 
-@Entity()
+@Entity("productos")
 export class Product {
-    @PrimaryGeneratedColumn()
-    id: number
+  @ApiProperty({ example: 12 })
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ type: 'varchar', length: 60 })
-    nombre: string
+  @ApiProperty({ example: "Tenis Runner" })
+  @Column({ type: "varchar", length: 60 })
+  nombre: string;
 
-    @Column({ type: 'varchar', length: 120 })
-    descripcion: string
+  @ApiProperty({ example: "Tenis deportivos para correr" })
+  @Column({ type: "varchar", length: 120 })
+  descripcion: string;
 
-    @Column("text", { array: true, nullable: true })
-    imagen: string[];
+  @ApiProperty({ example: 1299.9, type: Number })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
+  precio: number;
 
-    @Column({ type: 'int' })
-    inventario: number
+  @ApiProperty({ example: "Calzado", nullable: true })
+  @Column({ type: "varchar", nullable: true })
+  categoria: string | null;
 
-    @Column({ type: 'decimal' })
-    precio: number
+  @ApiProperty({ example: 25 })
+  @Column({ type: "int", default: 0 })
+  inventario: number;
 
-    @Column({ type: 'varchar', nullable: true })
-    categoria: string
+  @ApiProperty({ example: "Negro" })
+  @Column({ type: "varchar", length: 40 })
+  color: string;
 
-    @Column("text", { array: true, nullable: true })
-    color: string[];
+  @ApiProperty({ example: "Nike" })
+  @Column({ type: "varchar", length: 60 })
+  marca: string;
 
-    @OneToMany(() => Favorito, favorito => favorito.producto)
-    favoritos: Favorito[];
+  @ApiProperty({ example: "tenis-runner-negro" })
+  @Column({ type: "varchar", length: 120 })
+  slug: string;
 
-    @OneToMany(() => Carrito, carrito => carrito.producto)
-    carrito: Carrito[];
+  @ApiProperty({ example: "SportCenter MX" })
+  @Column({ type: "varchar", length: 80 })
+  vendedor: string;
+
+  @ApiProperty({ example: true })
+  @Column({ type: "boolean", default: true })
+  estado: boolean;
+
+  @ApiProperty({ example: 132 })
+  @Column({ type: "int", default: 0 })
+  vendidos: number;
+
+  @ApiProperty({ example: "SKU-ABC-001" })
+  @Column({ type: "varchar", length: 60 })
+  sku: string;
+
+  @ApiProperty({ type: () => [ProductImage] })
+  @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })
+  images: ProductImage[];
+
+  @OneToMany(() => Favorito, (favorito) => favorito.producto)
+  favoritos: Favorito[];
+
+  @OneToMany(() => Carrito, (carrito) => carrito.producto)
+  carrito: Carrito[];
+
+  @ApiProperty({
+    type: () => [Review],
+    example: [
+      {
+        id: 1,
+        rating: 5,
+        comment: "Excelente calidad",
+        createdAt: "2025-08-09T12:00:00.000Z",
+        updatedAt: "2025-08-09T12:00:00.000Z",
+        productId: 1,
+        profileId: 3,
+        images: [
+          { id: 10, url: "https://res.cloudinary.com/.../rev1.jpg", orden: 0, reviewId: 1 }
+        ]
+      }
+    ]
+  })
+  @OneToMany(() => Review, (review) => review.product, { cascade: true })
+  reviews: Review[];
 }

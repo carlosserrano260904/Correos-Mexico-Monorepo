@@ -1,116 +1,174 @@
 import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import { ProductosProps } from '../types/interface'
+import { devtools } from 'zustand/middleware'
+import { FrontendProduct, BackendCreateProductDto } from '@/schemas/products' // ← Cambiar import
+import { productsApiService } from '../services/productsApi'
+import { mapFrontendToCreateDto } from '../utils/mappers'
 
 interface ProductState {
-  getProductsByCategory(arg0: string): ProductosProps[];
-  products: ProductosProps[];
-  nextId: number;
+  products: FrontendProduct[] // ← Cambiar tipo
+  selectedProduct: FrontendProduct | null // ← Cambiar tipo
+  loading: boolean
+  error: string | null
+  isConnected: boolean
+
+  // Actions
+  loadProducts: () => Promise<void>
+  loadProduct: (id: number) => Promise<void>
+  selectProduct: (productId: number) => void
+  addProduct: (newProduct: Omit<FrontendProduct, 'ProductID'>, file?: File) => Promise<void> // ← Cambiar tipo
+  updateProduct: (id: number, updates: Partial<FrontendProduct>) => Promise<void> // ← Cambiar tipo
+  deleteProduct: (id: number) => Promise<void>
   
-  // Nueva propiedad para el producto seleccionado
-  selectedProduct: ProductosProps | null;
-
-  //insert
-  addProducts: (newProducts: Omit<ProductosProps, 'ProductID'>[]) => void
-  addProduct: (newProduct: Omit<ProductosProps, 'ProductID'>) => void;
-
-  //update
-  updateProduct: (id:number, updates: Partial<ProductosProps>) => void
-
-  //delete
-  deleteProduct: (id:number) => void;
-
-  //read
-  getProducts: () => ProductosProps[]
-  getProduct: (id:number) => ProductosProps | undefined
-  
-  // Nuevas funciones para manejar la selección
-  selectProduct: (id: number) => void;
-  getSelectedProduct: () => ProductosProps | null;
-  clearSelectedProduct: () => void;
-  
-  // Función para obtener categorías
-  getCategories: () => string[];
+  // Read operations
+  getProducts: () => FrontendProduct[] // ← Cambiar tipo
+  getProduct: (id: number) => FrontendProduct | undefined // ← Cambiar tipo
+  hasSelectedProduct: () => boolean
+  clearError: () => void
+  checkConnection: () => Promise<void>
 }
 
 export const useProductsStore = create<ProductState>()(
   devtools(
-    persist(
-      (set, get) => ({
-        products: [],
-        nextId: 1,
-        selectedProduct: null, // Inicializamos como null
+    (set, get) => ({
+      products: [],
+      selectedProduct: null,
+      loading: false,
+      error: null,
+      isConnected: false,
 
-       addProduct: (newProduct) => set((state) => {
-          const productWithId = {
-            ...newProduct,
-            ProductID: state.nextId
-          };
-          return {
-            products: [...state.products, productWithId],
-            nextId: state.nextId + 1
-          };
-        }, false, 'addProduct'),
-
-        addProducts: (newProducts) => set((state) => {
-          const productsWithIds = newProducts.map((product, index) => ({
-            ...product,
-            ProductID: state.nextId + index
-          }));
-          return {
-            products: [...state.products, ...productsWithIds],
-            nextId: state.nextId + newProducts.length
-          };
-        }, false, 'addProducts'),
-
-        updateProduct: (id, updates) => set((state)=>({
-          products: state.products.map(product=>
-            product.ProductID === id ? {...product, ...updates} : product
-          )
-        }), false, 'updateProduct'),
-
-        deleteProduct: (id) => set((state)=>({
-          products: state.products.filter(product=> product.ProductID !== id)
-        }), false, 'deleteProduct'),
-
-        getProducts: () => get().products,
-
-        getProduct: (id) => get().products.find(product=> product.ProductID === id),
-
-        getProductsByCategory: (category: string) => 
-          get().products.filter(product => product.ProductCategory === category),
-
-        // Función para seleccionar un producto específico
-        selectProduct: (id) => set((state) => {
-          const product = state.products.find(p => p.ProductID === id);
-          return {
-            selectedProduct: product || null
-          };
-        }, false, 'selectProduct'),
-
-        // Función para obtener el producto seleccionado
-        getSelectedProduct: () => get().selectedProduct,
-
-        // Función para limpiar la selección (útil cuando sales de la vista de detalle)
-        clearSelectedProduct: () => set(() => ({
-          selectedProduct: null
-        }), false, 'clearSelectedProduct'),
-
-        // Obtener todas las categorías únicas
-        getCategories: () => {
-          const categories = get().products.map(product => product.ProductCategory);
-          return [...new Set(categories)].filter(Boolean); // Elimina duplicados y valores falsy
+      // Cargar todos los productos desde la API con validación Zod
+      loadProducts: async () => {
+        set({ loading: true, error: null })
+        
+        try {
+          // Directamente intentar cargar productos - el error de conexión se manejará en el catch
+          const products = await productsApiService.getAllProducts()
+          set({ 
+            products, 
+            loading: false, 
+            error: null,
+            isConnected: true // Actualizar estado de conexión exitosa
+          })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al cargar productos'
+          set({ 
+            error: errorMessage,
+            loading: false,
+            products: [], // Limpiar productos en caso de error
+            isConnected: false // Actualizar estado de conexión fallida
+          })
+          console.error('Error loading products:', error)
         }
-      }),
-      {
-        name: 'product-storage',
-        partialize: (state)=> ({
-          products: state.products,
-          nextId: state.nextId
-          // Nota: No persistimos selectedProduct porque debe resetearse al recargar
-        })
+},
+
+      // Cargar un producto específico desde la API
+      loadProduct: async (id: number) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const product = await productsApiService.getProductById(id)
+          set({ selectedProduct: product, loading: false })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al cargar producto'
+          set({ 
+            error: errorMessage,
+            loading: false 
+          })
+          console.error('Error loading product:', error)
+        }
+      },
+
+      // Seleccionar un producto del estado local
+      selectProduct: (productId: number) => {
+        const product = get().products.find(p => p.ProductID === productId)
+        if (product) {
+          set({ selectedProduct: product })
+        } else {
+          set({ error: `Producto con ID ${productId} no encontrado` })
+        }
+      },
+
+      // Agregar nuevo producto con validación Zod
+      addProduct: async (newProduct, file) => {
+        set({ loading: true, error: null })
+        
+        try {
+          // Mapear y validar los datos del producto
+          const createDto = mapFrontendToCreateDto(newProduct)
+          
+          const createdProduct = await productsApiService.createProduct(createDto)
+          
+          set(state => ({
+            products: [...state.products, createdProduct],
+            loading: false
+          }))
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear producto'
+          set({ 
+            error: errorMessage,
+            loading: false 
+          })
+          console.error('Error adding product:', error)
+        }
+      },
+
+      // Actualizar producto con validación Zod
+      updateProduct: async (id: number, updates: Partial<FrontendProduct>) => {
+        set({ loading: true, error: null })
+        
+        try {
+          await productsApiService.updateProduct(id, updates)
+          
+          // Recargar productos para obtener los datos actualizados
+          await get().loadProducts()
+          
+          set({ loading: false })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al actualizar producto'
+          set({ 
+            error: errorMessage,
+            loading: false 
+          })
+          console.error('Error updating product:', error)
+        }
+      },
+
+      // Eliminar producto
+      deleteProduct: async (id: number) => {
+        set({ loading: true, error: null })
+        
+        try {
+          await productsApiService.deleteProduct(id)
+          
+          set(state => ({
+            products: state.products.filter(product => product.ProductID !== id),
+            selectedProduct: state.selectedProduct?.ProductID === id ? null : state.selectedProduct,
+            loading: false
+          }))
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al eliminar producto'
+          set({ 
+            error: errorMessage,
+            loading: false 
+          })
+          console.error('Error deleting product:', error)
+        }
+      },
+
+      // Operaciones de lectura (mantenemos compatibilidad)
+      getProducts: () => get().products,
+      getProduct: (id: number) => get().products.find(product => product.ProductID === id),
+      hasSelectedProduct: () => get().selectedProduct !== null,
+      clearError: () => set({ error: null })
+    }),
+    { 
+      name: 'ProductsStore',
+      // Opciones adicionales para debugging
+      serialize: {
+        options: {
+          map: true,
+        }
       }
-    ),
-    {name:'ProductsStore'}
+    }
   )
 )

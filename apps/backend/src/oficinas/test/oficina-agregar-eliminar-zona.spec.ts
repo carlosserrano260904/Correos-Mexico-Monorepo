@@ -2,7 +2,7 @@ import { validate } from 'class-validator';
 import { AgregarClaveZonaDto } from '../dto/agregar-clave-zona.dto';
 import { EliminarClaveZonaDto } from '../dto/eliminar-clave-zona.dto';
 
-describe('Validaciones DTOs', () => {
+describe('Validaciones', () => {
   describe('AgregarClaveZonaDto', () => {
     it('Error si claveZona no tiene 5 caracteres', async () => {
       const dto = new AgregarClaveZonaDto();

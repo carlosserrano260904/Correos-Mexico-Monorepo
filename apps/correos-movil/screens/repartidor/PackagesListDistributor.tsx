@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, Dimensions, useWindowDimensions, FlatList, Alert, BackHandler } from 'react-native'
-import { User, MapPin } from 'lucide-react-native'
+import { User, MapPin, LogOut } from 'lucide-react-native'
 import { ProgressBar } from 'react-native-paper'
 import { moderateScale } from 'react-native-size-matters'
 import * as Location from 'expo-location';
@@ -661,7 +661,7 @@ export default function PackagesListDistributor({ navigation }: PackagesListDist
             {paquetesRestantes} paquetes restantes
           </Text>
           <TouchableOpacity style={styles.userButton} onPress={handleTerminarTurno}>
-            <User color="white" size={moderateScale(20)} />
+            <LogOut color="white" size={moderateScale(20)} />
           </TouchableOpacity>
         </View>
 

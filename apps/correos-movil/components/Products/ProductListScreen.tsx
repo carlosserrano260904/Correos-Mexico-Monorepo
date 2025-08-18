@@ -10,24 +10,27 @@ import {
 } from 'react-native';
 import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import Constants from 'expo-constants';
 import { useMyAuth } from '../../context/AuthContext';
 
 const IP = process.env.EXPO_PUBLIC_API_URL;
+const DEFAULT_IMAGE =
+  'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
 
 export type Articulo = {
   id: string;
   nombre: string;
   precio: string;
-  imagen: string[];
-  color: string[];
-  categoria: string;
+  imagen?: string | string[];
+  image?: string;
+  images?: string[];
+  color?: string[];
+  categoria?: string;
 };
 
 export type ProductListScreenProps = {
   productos: Articulo[];
   search?: string;
-  likeTrigger?: number; // Añadir likeTrigger como prop opcional
+  likeTrigger?: number;
 };
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -61,27 +64,33 @@ const ProductoCard: React.FC<{
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
   const isLiked = favoritos && favoritos.hasOwnProperty(idNum);
+
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
     colorArray = articulo.color.split(',');
   } else if (Array.isArray(articulo.color)) {
     colorArray = articulo.color;
-  } else {
-    colorArray = [];
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
+
+  // 🔹 Fallback chain para la imagen
+  const imageUri =
+    (Array.isArray(articulo.imagen) && articulo.imagen[0]) ||
+    articulo.images?.[0] ||
+    articulo.image ||
+    (typeof articulo.imagen === 'string' ? articulo.imagen : null) ||
+    DEFAULT_IMAGE;
 
   return (
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={{
-            uri:
-              Array.isArray(articulo.imagen) && articulo.imagen[0]
-                ? articulo.imagen[0]
-                : 'https://via.placeholder.com/150',
-          }}
+          source={{ uri: imageUri.trim() }}
           style={styles.imagenProductoCard}
+          resizeMode="cover"
+          onError={(e) =>
+            console.log('ERROR IMG CARD =>', imageUri, e.nativeEvent.error)
+          }
         />
       </TouchableOpacity>
 
@@ -114,47 +123,42 @@ const ProductoCard: React.FC<{
 export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '', likeTrigger }) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
-  const [favoritos, setFavoritos] = useState<Record<number, number>>({} as Record<number, number>);
+  const [favoritos, setFavoritos] = useState<Record<number, number>>({});
   const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
 
+  // Cargar favoritos
   const fetchFavorites = async () => {
     if (!userId) return;
-
     try {
       const response = await fetch(`${IP}/api/favoritos/${userId}`);
       const data = await response.json();
       if (Array.isArray(data)) {
         const favoritosMap = data.reduce(
           (acc, fav) => {
-            if (fav && fav.producto && fav.producto.id) {
+            if (fav?.producto?.id) {
               acc[fav.producto.id] = fav.id;
             }
             return acc;
           },
-          {} as Record<number, number>,
+          {} as Record<number, number>
         );
         setFavoritos(favoritosMap);
       }
     } catch (err) {
       console.error('Error al obtener favoritos:', err);
-      if (response.status === 404) {
-        setFavoritos({});
-      }
     }
   };
 
   useEffect(() => {
     fetchFavorites();
-  }, [userId, likeTrigger]); // Añadir likeTrigger como dependencia
+  }, [userId, likeTrigger]);
 
+  // Cargar carrito
   useEffect(() => {
     if (!userId) return;
-
     fetch(`${IP}/api/carrito/${userId}`)
       .then(r => {
-        if (r.status === 404) {
-          return [];
-        }
+        if (r.status === 404) return [];
         if (!r.ok) throw new Error('Error al obtener el carrito');
         return r.json();
       })
@@ -162,12 +166,12 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         if (Array.isArray(data)) {
           const cartMap = data.reduce(
             (acc, item) => {
-              if (item && item.producto && item.producto.id) {
+              if (item?.producto?.id) {
                 acc[item.producto.id] = true;
               }
               return acc;
             },
-            {} as Record<number, boolean>,
+            {} as Record<number, boolean>
           );
           setCartItems(cartMap);
         }
@@ -175,6 +179,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       .catch(err => console.error('Error al obtener el carrito:', err));
   }, [userId]);
 
+  // Filtrar productos
   useEffect(() => {
     const searchText = search.toLowerCase().trim();
     const nuevos = productos.filter(p =>
@@ -183,6 +188,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     setFiltered(nuevos);
   }, [productos, search]);
 
+  // Toggle favoritos
   const toggleFavorito = async (productoId: number) => {
     if (!userId) {
       console.log('Usuario no loggeado, no se puede marcar como favorito.');
@@ -195,15 +201,14 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     if (esFavorito) {
       const favoritoId = favoritos[productoId];
       setFavoritos(prev => {
-        const newState = { ...prev };
-        delete newState[productoId];
-        return newState;
+        const next = { ...prev };
+        delete next[productoId];
+        return next;
       });
 
       try {
-        const url = `${IP}/api/favoritos/${favoritoId}`;
-        const response = await fetch(url, { method: 'DELETE' });
-        if (!response.ok) {
+        const r = await fetch(`${IP}/api/favoritos/${favoritoId}`, { method: 'DELETE' });
+        if (!r.ok) {
           console.error('Error al eliminar el favorito, revirtiendo estado.');
           setFavoritos(originalFavoritos);
         }
@@ -213,26 +218,26 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       }
     } else {
       try {
-        const url = `${IP}/api/favoritos`;
-        const response = await fetch(url, {
+        const r = await fetch(`${IP}/api/favoritos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ profileId: userId, productId: productoId }),
         });
 
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`Error al agregar favorito - Status: ${response.status}, Body: ${errorBody}`);
+        if (!r.ok) {
+          const body = await r.text();
+          throw new Error(`Error al agregar favorito - ${r.status}: ${body}`);
         }
 
-        const nuevoFavorito = await response.json();
-        setFavoritos(prev => ({ ...prev, [productoId]: nuevoFavorito.id }));
+        const nuevo = await r.json();
+        setFavoritos(prev => ({ ...prev, [productoId]: nuevo.id }));
       } catch (error) {
         console.error('No se pudo agregar el favorito:', error);
       }
     }
   };
 
+  // Número de columnas responsive
   const cols = Dimensions.get('window').width;
   const numCols = cols > 1024 ? 4 : cols > 768 ? 3 : 2;
 
@@ -268,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3,
-    maxWidth: '48%'
+    maxWidth: '48%',
   },
   imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
   estadoProducto: {

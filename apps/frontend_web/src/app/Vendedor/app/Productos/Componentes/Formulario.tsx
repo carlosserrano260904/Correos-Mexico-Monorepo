@@ -1,48 +1,88 @@
-"use client";
+// src/app/Vendedor/app/Productos/Components/Formulario.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { IoIosAdd } from "react-icons/io";
-import { FiUpload, FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { useProducts } from '@/hooks/useProduct'; // Ajusta la ruta según tu proyecto
+import { IoIosAdd } from 'react-icons/io';
+import { FiUpload, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { useProducts } from '@/hooks/useProduct';
 import { BtnLink } from '@/app/Vendedor/components/primitivos';
-import { FormProductProps } from '@/types/interface';
+import { FrontendProduct } from '@/types';
+import { uploadApiService } from '@/services/uploadapi';
+
+interface FormularioData {
+  ProductName: string;
+  ProductDescription: string;
+  productPrice: number;
+  ProductSlug: string;
+  ProductBrand: string;
+  ProductCategory: string;
+  variants: Array<{
+    tipo: 'Color' | 'Talla';
+    price: number;
+    valor: string;
+    inventario: number;
+    sku: string;
+  }>;
+}
 
 export const Formulario: React.FC = () => {
   const { addProduct } = useProducts();
-  
-  const [formData, setFormData] = useState<FormProductProps>({
+  const router = useRouter();
+
+  const [formData, setFormData] = useState<FormularioData>({
     ProductName: '',
     ProductDescription: '',
-    productPrice:0,
+    productPrice: 0,
     ProductSlug: '',
     ProductBrand: '',
-    ProductCategory: 'Categoria',
+    ProductCategory: 'Electrónica',
     variants: [
       {
-        tipo: 'Tipo',
-        price:0,
+        tipo: 'Color',
+        price: 0,
         valor: '',
         inventario: 0,
-        sku: ''
-      }
-    ]
+        sku: '',
+      },
+    ],
   });
 
   const [numVariantes, setNumVariantes] = useState(1);
-  const [variantesVisibles, setVariantesVisibles] = useState<Record<number, boolean>>({ 1: true });
+  const [variantesVisibles, setVariantesVisibles] = useState<Record<number, boolean>>({
+    1: true,
+  });
 
-  const DEFAULT_SLUG_BASE_URL = "https://www.correosclic.gob.mx/";
+  // Estado para el archivo de imagen seleccionado
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleBasicFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const DEFAULT_SLUG_BASE_URL = 'https://www.correosclic.gob.mx/';
+
+  const handleBasicFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+    setFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        [name]: name === 'productPrice' ? parseFloat(value) || 0 : value,
+      };
+
+      if (name === 'ProductName') {
+        updatedData.variants = prev.variants.map((variant, index) => ({
+          ...variant,
+          sku: variant.valor ? generateSKU(value, variant.valor, index) : '',
+        }));
+      }
+
+      return updatedData;
+    });
   };
 
   const generateSlug = () => {
     if (formData.ProductName.trim() === '') {
-      setFormData(prev => ({ ...prev, ProductSlug: '' }));
+      setFormData((prev) => ({ ...prev, ProductSlug: '' }));
       return;
     }
 
@@ -53,95 +93,159 @@ export const Formulario: React.FC = () => {
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ProductSlug: `${DEFAULT_SLUG_BASE_URL}${generated}`
+      ProductSlug: `${DEFAULT_SLUG_BASE_URL}${generated}`,
     }));
   };
 
-  const handleVariantChange = (variantIndex: number, field: keyof FormProductProps['variants'][0], value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      variants: prev.variants.map((variant, index) => 
-        index === variantIndex 
-          ? { ...variant, [field]: value }
-          : variant
-      )
-    }));
+  const generateSKU = (productName: string, variantValue: string, index: number): string => {
+    const namePrefix = productName.substring(0, 3).toUpperCase() || 'PRD';
+    const variantPrefix = variantValue.substring(0, 3).toUpperCase() || 'VAR';
+    return `${namePrefix}-${variantPrefix}-${index + 1}`;
+  };
+
+  const handleVariantChange = (
+    variantIndex: number,
+    field: keyof FormularioData['variants'][0],
+    value: string | number
+  ) => {
+    setFormData((prev) => {
+      const updatedVariants = prev.variants.map((variant, index) => {
+        if (index === variantIndex) {
+          const updatedVariant = { ...variant, [field]: value };
+
+          if (field === 'valor' && typeof value === 'string' && value.trim() !== '') {
+            updatedVariant.sku = generateSKU(prev.ProductName, value, index);
+          }
+
+          return updatedVariant;
+        }
+        return variant;
+      });
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
   const handleAddVariante = () => {
     const newVariantNumber = numVariantes + 1;
     setNumVariantes(newVariantNumber);
-    setVariantesVisibles(prev => ({ ...prev, [newVariantNumber]: true }));
-    
-    // Agregar nueva variante al formData
-    setFormData(prev => ({
+    setVariantesVisibles((prev) => ({ ...prev, [newVariantNumber]: true }));
+
+    setFormData((prev) => ({
       ...prev,
       variants: [
         ...prev.variants,
         {
-          tipo: 'Tipo',
-          price:0,
+          tipo: 'Color',
+          price: 0,
           valor: '',
           inventario: 0,
-          sku: ''
-        }
-      ]
+          sku: '',
+        },
+      ],
     }));
   };
 
   const toggleVariantVisibility = (numero: number) => {
-    setVariantesVisibles(prev => ({
+    setVariantesVisibles((prev) => ({
       ...prev,
-      [numero]: !prev[numero]
+      [numero]: !prev[numero],
     }));
   };
 
-  const handleCrearProducto = () => {
-    const totalStock = formData.variants.reduce((sum, variant) => sum + variant.inventario, 0);
-    
-    // Crear el producto completo con valores por defecto para campos faltantes
-    const newProduct = {
-      ProductImageUrl: 'https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=1500', // Default vacío (puedes cambiarlo)
-      productPrice: formData.productPrice,
-      ProductName: formData.ProductName,
-      ProductDescription: formData.ProductDescription,
-      ProductSlug: formData.ProductSlug,
-      ProductBrand: formData.ProductBrand,
-      ProductStatus: true, // Default activo
-      ProductStock: totalStock, // Calculado de variantes
-      ProductCategory: formData.ProductCategory,
-      ProductSellerName: 'Admin', // Default (puedes obtenerlo del usuario actual)
-      ProductSold: 0, // Default 0
-      variants: formData.variants.filter(v => v.tipo !== 'Tipo' && v.valor.trim() !== ''), // Filtrar variantes válidas
-      ProductCupons: [] // Default vacío
-    };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+    console.log('📷 Archivo seleccionado:', file);
+  };
 
-    addProduct(newProduct);
+  const handleCrearProducto = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault(); // si usas preventNavigation en el link
+    try {
+      console.log('selectedFile antes de subir:', selectedFile);
+      console.log('🔍 Creando producto…');
+      console.log('🔍 Archivo seleccionado:', selectedFile);
+
+      const totalStock = formData.variants.reduce(
+        (sum, variant) => sum + variant.inventario,
+        0
+      );
+      const firstColorVariant = formData.variants.find(
+        (v) => v.tipo === 'Color' && v.valor.trim() !== ''
+      );
+      const productColor = firstColorVariant?.valor || '#000000';
+
+      const newProduct: Omit<FrontendProduct, 'ProductID'> = {
+        ProductName: formData.ProductName,
+        ProductDescription: formData.ProductDescription,
+        productPrice: formData.productPrice,
+        ProductCategory: formData.ProductCategory as 'Electrónica' | 'Ropa' | 'Hogar',
+        ProductBrand: formData.ProductBrand,
+        ProductSlug: formData.ProductSlug,
+        ProductStock: totalStock,
+        Color: productColor,
+        ProductImageUrl: '', // se asignará más adelante
+        ProductStatus: true,
+        ProductSellerName: 'Admin',
+        ProductSold: 0,
+        ProductCupons: [],
+        variants: formData.variants.filter(
+          (v) => v.valor.trim() !== '' && v.inventario > 0
+        ),
+      };
+
+      // Subir la imagen (si hay) y asignar el key
+      if (selectedFile) {
+        console.log('Subiendo imagen…');
+        const key = await uploadApiService.uploadImage(selectedFile);
+        newProduct.ProductImageUrl = key;
+      } else {
+        newProduct.ProductImageUrl = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';;
+      }
+      await addProduct(newProduct);
+      router.push('/Vendedor/app/Productos');
+
+      console.log('✅ Datos del producto listos para enviar:', newProduct);
+
+      await addProduct(newProduct);
+      console.log('🎉 Producto creado exitosamente');
+      resetForm();
+      router.push('/Vendedor/app/Productos');
+    } catch (error) {
+      console.error('❌ Error creando producto:', error);
+      alert('Error al crear producto. Revisa la consola.');
+    }
+
+
+
+
     
-    // Opcional: Resetear formulario después de crear
-    resetForm();
   };
 
   const resetForm = () => {
     setFormData({
       ProductName: '',
       ProductDescription: '',
-      productPrice:1,
+      productPrice: 1,
       ProductSlug: '',
       ProductBrand: '',
-      ProductCategory: 'Categoria',
+      ProductCategory: 'Electronica',
       variants: [
         {
-          tipo: 'Tipo',
+          tipo: 'Color',
           price: 0,
           valor: '',
           inventario: 1,
-          sku: ''
-        }
-      ]
+          sku: '',
+        },
+      ],
     });
+    setSelectedFile(null);
     setNumVariantes(1);
     setVariantesVisibles({ 1: true });
   };
@@ -168,38 +272,50 @@ export const Formulario: React.FC = () => {
           onClick={() => toggleVariantVisibility(numero)}
         >
           <h3 className="text-base font-semibold text-gray-900">Variante {numero}</h3>
-          {isVisible ? <FiChevronUp className="w-5 h-5 text-gray-600" /> : <FiChevronDown className="w-5 h-5 text-gray-600" />}
+          {isVisible ? (
+            <FiChevronUp className="w-5 h-5 text-gray-600" />
+          ) : (
+            <FiChevronDown className="w-5 h-5 text-gray-600" />
+          )}
         </div>
 
         {isVisible && (
           <div className="p-4 pt-0 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor={`variante${numero}_tipo`} className="block text-base font-medium text-gray-700 mb-1">Tipo</label>
+                <label
+                  htmlFor={`variante${numero}_tipo`}
+                  className="block text-base font-medium text-gray-700 mb-1"
+                >
+                  Tipo
+                </label>
                 <select
                   id={`variante${numero}_tipo`}
                   name={`variante${numero}_tipo`}
-                  value={formData.variants[variantIndex]?.tipo || 'Tipo'}
+                  value={formData.variants[variantIndex]?.tipo || 'Color'}
                   onChange={(e) => {
-                    handleVariantChange(variantIndex, 'tipo', e.target.value);
-                    // Limpiar el valor cuando se cambia el tipo
+                    const newTipo = e.target.value as 'Color' | 'Talla';
+                    handleVariantChange(variantIndex, 'tipo', newTipo);
                     handleVariantChange(variantIndex, 'valor', '');
                   }}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
-                  <option disabled>Tipo</option>
                   <option value="Color">Color</option>
                   <option value="Talla">Talla</option>
                 </select>
               </div>
-              
+
               <div>
-                <label htmlFor={`variante${numero}_valor`} className="block text-base font-medium text-gray-700 mb-1">
-                  {formData.variants[variantIndex]?.tipo === 'Color' ? 'Color' : 
-                  formData.variants[variantIndex]?.tipo === 'Talla' ? 'Talla' : 'Valor'}
+                <label
+                  htmlFor={`variante${numero}_valor`}
+                  className="block text-base font-medium text-gray-700 mb-1"
+                >
+                  {formData.variants[variantIndex]?.tipo === 'Color'
+                    ? 'Color'
+                    : formData.variants[variantIndex]?.tipo === 'Talla'
+                      ? 'Talla'
+                      : 'Valor'}
                 </label>
-                
-                {/* Renderizado condicional según el tipo */}
                 {formData.variants[variantIndex]?.tipo === 'Color' ? (
                   <div className="flex gap-2">
                     <input
@@ -207,7 +323,9 @@ export const Formulario: React.FC = () => {
                       id={`variante${numero}_color`}
                       name={`variante${numero}_color`}
                       value={formData.variants[variantIndex]?.valor || '#000000'}
-                      onChange={(e) => handleVariantChange(variantIndex, 'valor', e.target.value)}
+                      onChange={(e) =>
+                        handleVariantChange(variantIndex, 'valor', e.target.value)
+                      }
                       className="w-16 h-10 border border-gray-300 rounded-md cursor-pointer"
                     />
                     <input
@@ -215,7 +333,9 @@ export const Formulario: React.FC = () => {
                       id={`variante${numero}_valor`}
                       name={`variante${numero}_valor`}
                       value={formData.variants[variantIndex]?.valor || ''}
-                      onChange={(e) => handleVariantChange(variantIndex, 'valor', e.target.value)}
+                      onChange={(e) =>
+                        handleVariantChange(variantIndex, 'valor', e.target.value)
+                      }
                       placeholder="#000000"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
@@ -225,7 +345,9 @@ export const Formulario: React.FC = () => {
                     id={`variante${numero}_valor`}
                     name={`variante${numero}_valor`}
                     value={formData.variants[variantIndex]?.valor || ''}
-                    onChange={(e) => handleVariantChange(variantIndex, 'valor', e.target.value)}
+                    onChange={(e) =>
+                      handleVariantChange(variantIndex, 'valor', e.target.value)
+                    }
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="">Selecciona una talla</option>
@@ -242,30 +364,46 @@ export const Formulario: React.FC = () => {
                     id={`variante${numero}_valor`}
                     name={`variante${numero}_valor`}
                     value={formData.variants[variantIndex]?.valor || ''}
-                    onChange={(e) => handleVariantChange(variantIndex, 'valor', e.target.value)}
+                    onChange={(e) =>
+                      handleVariantChange(variantIndex, 'valor', e.target.value)
+                    }
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     placeholder="Ingresa el valor"
                   />
                 )}
               </div>
-              
             </div>
 
             <div>
-              <label htmlFor={`variante${numero}_inventario`} className="block text-base font-medium text-gray-700 mb-1">Inventario</label>
-              <p className="text-xs text-gray-500 mb-2">Unidades disponibles en existencia.</p>
+              <label
+                htmlFor={`variante${numero}_inventario`}
+                className="block text-base font-medium text-gray-700 mb-1"
+              >
+                Inventario
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Unidades disponibles en existencia.
+              </p>
               <input
                 type="number"
                 id={`variante${numero}_inventario`}
                 name={`variante${numero}_inventario`}
                 min={1}
-                onChange={(e) => handleVariantChange(variantIndex, 'inventario', parseInt(e.target.value) || 0 )}
+                onChange={(e) =>
+                  handleVariantChange(
+                    variantIndex,
+                    'inventario',
+                    parseInt(e.target.value) || 0
+                  )
+                }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-base font-medium text-gray-700 mb-1">Imágenes</label>
+              <label className="block text-base font-medium text-gray-700 mb-1">
+                Imágenes
+              </label>
               <label
                 htmlFor={`file-upload-${numero}`}
                 className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
@@ -275,7 +413,9 @@ export const Formulario: React.FC = () => {
                 <div className="space-y-1 text-center">
                   <FiUpload className="mx-auto h-6 w-6 text-black" />
                   <div className="flex text-sm text-gray-600">
-                    <span>Arrastra y suelta o haz clic para seleccionar un archivo</span>
+                    <span>
+                      Arrastra y suelta o haz clic para seleccionar un archivo
+                    </span>
                     <input
                       id={`file-upload-${numero}`}
                       name={`file-upload-${numero}`}
@@ -283,6 +423,7 @@ export const Formulario: React.FC = () => {
                       className="sr-only"
                       multiple
                       accept="image/*"
+                      onChange={handleFileChange}
                     />
                   </div>
                 </div>
@@ -290,13 +431,17 @@ export const Formulario: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor={`variante${numero}_sku`} className="block text-base font-medium text-gray-400 mb-1">SKU</label>
+              <label
+                htmlFor={`variante${numero}_sku`}
+                className="block text-base font-medium text-gray-400 mb-1"
+              >
+                SKU
+              </label>
               <input
                 type="text"
                 id={`variante${numero}_sku`}
                 name={`variante${numero}_sku`}
                 value={formData.variants[variantIndex]?.sku || ''}
-                onChange={(e) => handleVariantChange(variantIndex, 'sku', e.target.value)}
                 readOnly
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 sm:text-sm cursor-not-allowed"
               />
@@ -311,10 +456,17 @@ export const Formulario: React.FC = () => {
     <div className="space-y-8 p-4">
       {/* Detalles del Producto */}
       <section className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Detalles del Producto</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
+          Detalles del Producto
+        </h2>
         <form className="space-y-6">
           <div>
-            <label htmlFor="nombre" className="block text-base font-medium text-gray-700 mb-1">Nombre</label>
+            <label
+              htmlFor="nombre"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Nombre
+            </label>
             <input
               type="text"
               id="nombre"
@@ -326,8 +478,15 @@ export const Formulario: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="slug" className="block text-base font-medium text-gray-700 mb-1">Slug</label>
-            <p className="text-xs text-gray-500 mb-2">Identificador único del producto en la URL del sitio.</p>
+            <label
+              htmlFor="slug"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Slug
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Identificador único del producto en la URL del sitio.
+            </p>
             <div className="flex items-center space-x-2">
               <input
                 type="text"
@@ -348,7 +507,12 @@ export const Formulario: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="descripcion" className="block text-base font-medium text-gray-700 mb-1">Descripción</label>
+            <label
+              htmlFor="descripcion"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Descripción
+            </label>
             <textarea
               id="descripcion"
               name="ProductDescription"
@@ -360,7 +524,12 @@ export const Formulario: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="categoria" className="block text-base font-medium text-gray-700 mb-1">Categoría</label>
+            <label
+              htmlFor="categoria"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Categoría
+            </label>
             <select
               id="categoria"
               name="ProductCategory"
@@ -368,12 +537,16 @@ export const Formulario: React.FC = () => {
               onChange={handleBasicFieldChange}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
-              <option value="Categoria" disabled>Categoria</option>
+              <option value="Categoria" disabled>
+                Categoria
+              </option>
               <option value="Joyeria y Bisuteria">Joyeria y Bisuteria</option>
               <option value="Ropa">Ropa</option>
               <option value="Hogar">Hogar</option>
               <option value="Alimentos y bebidas">Alimentos y bebidas</option>
-              <option value="Belleza y cuidado personal">Belleza y cuidado personal</option>
+              <option value="Belleza y cuidado personal">
+                Belleza y cuidado personal
+              </option>
               <option value="Cocina">Cocina</option>
               <option value="Electronica">Electronica</option>
               <option value="Herramienta">Herramienta</option>
@@ -382,7 +555,12 @@ export const Formulario: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="marca" className="block text-base font-medium text-gray-700 mb-1">Marca</label>
+            <label
+              htmlFor="marca"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Marca
+            </label>
             <input
               type="text"
               id="marca"
@@ -393,7 +571,12 @@ export const Formulario: React.FC = () => {
             />
           </div>
           <div>
-            <label htmlFor="Precio" className="block text-base font-medium text-gray-700 mb-1">Precio</label>
+            <label
+              htmlFor="Precio"
+              className="block text-base font-medium text-gray-700 mb-1"
+            >
+              Precio
+            </label>
             <input
               type="number"
               id="Precio"
@@ -408,9 +591,13 @@ export const Formulario: React.FC = () => {
 
       {/* Variantes del Producto */}
       <section className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Variantes del Producto</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
+          Variantes del Producto
+        </h2>
         <div className="space-y-6">
-          {Array.from({ length: numVariantes }).map((_, index) => renderSingleVariantForm(index + 1))}
+          {Array.from({ length: numVariantes }).map((_, index) =>
+            renderSingleVariantForm(index + 1)
+          )}
           <AddVariantButton onClick={handleAddVariante} />
         </div>
       </section>
@@ -418,12 +605,12 @@ export const Formulario: React.FC = () => {
       {/* Botón Final */}
       <section className="flex justify-end">
         <BtnLink
-          onClick={handleCrearProducto}
-          link='/Vendedor/app/Productos'
-          className="w-full mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
-        >
-          Crear producto
-        </BtnLink>
+        link="/Vendedor/app/Productos"
+        preventNavigation
+        onClick={handleCrearProducto}
+      >
+        Crear   
+      </BtnLink>
       </section>
     </div>
   );

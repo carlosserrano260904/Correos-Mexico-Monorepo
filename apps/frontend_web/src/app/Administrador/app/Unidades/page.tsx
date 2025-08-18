@@ -133,7 +133,9 @@ export default function UnidadesPage() {
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Tipo de vehículo</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Número de placa</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Asignación de conductor</TableHead>
+                  <TableHead className="font-medium text-gray-600 text-sm border-0">Zona Asignada</TableHead>
                   <TableHead className="font-medium text-gray-600 text-sm border-0">Tarjeta de circulación</TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -142,10 +144,9 @@ export default function UnidadesPage() {
                     <TableCell className="font-medium text-gray-900 text-sm border-0">{unidad.claveOficina}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.tipoVehiculo}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{unidad.placas}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{unidad.conductor && unidad.curpConductor?.trim() !== "" ? 
-                    unidad.conductor 
-                    : "S/C"}
+                    <TableCell className="text-gray-700 text-sm border-0">{unidad.conductor && unidad.conductor !== "S/C" ? unidad.conductor : "S/C"}
                     </TableCell>
+                    <TableCell> {unidad.zonaAsignada}</TableCell>
                    {/* <TableCell className="border-0">
                       <Badge 
                         variant={unidad.conductor && unidad.conductor !== "S/C" ? "default" : "destructive"}

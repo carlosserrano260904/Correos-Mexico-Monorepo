@@ -16,7 +16,6 @@ import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 
-
 export default function UbicacionScreen() {
   const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const [sucursales, setSucursales] = useState([]);
@@ -25,7 +24,6 @@ export default function UbicacionScreen() {
   const [cargando, setCargando] = useState(true);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
-  const [error, setError] = useState(null);
   const [textoBusqueda, setTextoBusqueda] = useState('');
   const [ubicacionUsuario, setUbicacionUsuario] = useState(null);
   const mapRef = useRef(null);
@@ -39,11 +37,9 @@ export default function UbicacionScreen() {
   // Cuando ya se tenga la ubicación, cargar sucursales
   useEffect(() => {
     if (ubicacionUsuario) {
-      obtenerSucursales(); // Ahora ya tenemos coordenadas reales
+      obtenerSucursales();
     }
   }, [ubicacionUsuario]);
-
-
 
   const solicitarPermisoUbicacion = async () => {
     try {
@@ -82,7 +78,6 @@ export default function UbicacionScreen() {
 
       setUbicacionUsuario(coordenadas);
 
-      // Ordenar sucursales por distancia si hay ubicación
       if (sucursalesOriginales.length > 0) {
         const sucursalesOrdenadas = ordenarPorDistancia(sucursalesOriginales, coordenadas);
         setSucursales(sucursalesOrdenadas);
@@ -103,7 +98,7 @@ export default function UbicacionScreen() {
   };
 
   const calcularDistancia = (coord1, coord2) => {
-    const R = 6371; // Radio de la Tierra en km
+    const R = 6371;
     const dLat = (coord2.latitude - coord1.latitude) * Math.PI / 180;
     const dLon = (coord2.longitude - coord1.longitude) * Math.PI / 180;
     const a =
@@ -121,20 +116,37 @@ export default function UbicacionScreen() {
     })).sort((a, b) => a.distancia - b.distancia);
   };
 
+  // 🚀 MÉTODO OPTIMIZADO - Una sola URL para todas las búsquedas
   const obtenerSucursales = async (query = '') => {
     try {
       setCargandoBusqueda(query !== '');
+
       const url = query
-        ? `http://${IP}:3000/api/oficinas?search=${encodeURIComponent(query)}`
+        ? `http://${IP}:3000/api/oficinas/buscar/${encodeURIComponent(query)}`
         : `http://${IP}:3000/api/oficinas`;
 
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Error al cargar oficinas');
+
+      if (!response.ok) {
+        throw new Error('Error al cargar oficinas');
+      }
 
       const data = await response.json();
 
-      // Transforma latitud y longitud en coordenadas
-      const dataTransformada = data.map((item) => ({
+      // DEDUPLICACIÓN ADICIONAL en frontend (por si acaso)
+      const dataDeduplicada = [];
+      const domiciliosVistos = new Set();
+
+      data.forEach((item) => {
+        const domicilioNormalizado = item.domicilio?.toLowerCase().replace(/\s+/g, ' ').trim();
+        if (domicilioNormalizado && !domiciliosVistos.has(domicilioNormalizado)) {
+          domiciliosVistos.add(domicilioNormalizado);
+          dataDeduplicada.push(item);
+        }
+      });
+
+      // Transformar datos
+      const dataTransformada = dataDeduplicada.map((item) => ({
         ...item,
         coordenadas: {
           latitude: parseFloat(item.latitud),
@@ -158,29 +170,28 @@ export default function UbicacionScreen() {
       // Seleccionar la primera sucursal si existe
       if (sucursalesOrdenadas.length > 0) {
         setSucursalSeleccionada(sucursalesOrdenadas[0]);
-      } else if (query !== '') {
+      } else {
         setSucursalSeleccionada(null);
       }
 
     } catch (error) {
       console.error('Error:', error);
-      setError('Error al cargar oficinas');
+      setSucursales([]);
+      setSucursalSeleccionada(null);
     } finally {
       setCargando(false);
       setCargandoBusqueda(false);
     }
   };
 
+  // 🚀 BÚSQUEDA SIMPLIFICADA - Con una sola alerta cuando no encuentra resultados
   const buscarSucursales = async (query) => {
     const texto = query.trim();
 
-    // Si el campo está vacío, restaurar sucursales originales
     if (texto === '') {
       setSucursales(sucursalesOriginales);
-      setError(null); // Limpiar cualquier error previo
       if (sucursalesOriginales.length > 0) {
         setSucursalSeleccionada(sucursalesOriginales[0]);
-        // Centrar en la primera sucursal original
         centrarEnSucursal(sucursalesOriginales[0]);
       }
       return;
@@ -188,75 +199,29 @@ export default function UbicacionScreen() {
 
     try {
       setCargandoBusqueda(true);
-      setError(null); // Limpiar errores previos
 
-      // Determinar si es búsqueda por código postal o por nombre de entidad
-      let url = '';
-      if (/^\d{5}$/.test(texto)) {
-        // Si el texto es un código postal, se hace la búsqueda por código postal
-        url = `http://${IP}:3000/api/oficinas/buscar/cp/${encodeURIComponent(texto)}`;
-      } else if (/^[a-zA-Z\s]+$/.test(texto)) {
-         // De lo contrario, busca por nombre de entidad
-        url = `http://${IP}:3000/api/oficinas/buscar/nombre/${encodeURIComponent(texto)}`;
-      } // else {
-      //   // De lo contrario, busca por nombre de entidad
-      //   // Si el texto parece ser un nombre de municipio (solo letras y espacios), se busca por municipio
-      //   url = `http://${IP}:3000/api/oficinas/buscar/municipio/${encodeURIComponent(texto)}`;
-      // }
-
+      const url = `http://${IP}:3000/api/oficinas/buscar/${encodeURIComponent(texto)}`;
       const response = await fetch(url);
 
-      // Si la respuesta no es exitosa (404, 500, etc.)
       if (!response.ok) {
-        let errorMessage = `No se encontraron oficinas para "${texto}"`;
-
-        // Intentar obtener el mensaje del servidor si existe
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          }
-        } catch (parseError) {
-        }
-
-        console.warn("Error del servidor:", errorMessage);
-
-        // Mostrar mensaje en el estado (no crashear la app)
-        setError(errorMessage);
-        setSucursales([]); // Limpiar resultados
-        setSucursalSeleccionada(null);
-
-        // Mostrar alert
-        Alert.alert(
-          'Sin resultados',
-          errorMessage,
-          [{ text: 'OK', style: 'default' }]
-        );
-
-        return; // Salir sin lanzar excepción
+        throw new Error('Error de conexión');
       }
 
-      // Si la respuesta es exitosa, procesar los datos
       const data = await response.json();
 
-      // Verificar si hay datos (doble verificación)
-      if (!data || data.length === 0) {
-        const mensaje = `No se encontraron oficinas para "${texto}"`;
-        console.warn(mensaje);
-        setError(mensaje);
-        setSucursales([]);
-        setSucursalSeleccionada(null);
+      // DEDUPLICACIÓN
+      const dataDeduplicada = [];
+      const domiciliosVistos = new Set();
 
-        Alert.alert(
-          'Sin resultados',
-          mensaje,
-          [{ text: 'OK', style: 'default' }]
-        );
-        return;
-      }
+      data.forEach((item) => {
+        const domicilioNormalizado = item.domicilio?.toLowerCase().replace(/\s+/g, ' ').trim();
+        if (domicilioNormalizado && !domiciliosVistos.has(domicilioNormalizado)) {
+          domiciliosVistos.add(domicilioNormalizado);
+          dataDeduplicada.push(item);
+        }
+      });
 
-      // Transformar los datos
-      const dataTransformada = data.map((item) => ({
+      const dataTransformada = dataDeduplicada.map((item) => ({
         ...item,
         coordenadas: {
           latitude: parseFloat(item.latitud),
@@ -264,86 +229,133 @@ export default function UbicacionScreen() {
         },
       }));
 
-      // Ordenar por distancia si es necesario
       let sucursalesOrdenadas = dataTransformada;
       if (ubicacionUsuario) {
         sucursalesOrdenadas = ordenarPorDistancia(dataTransformada, ubicacionUsuario);
       }
 
-      // Establecer los resultados
-      setSucursales(sucursalesOrdenadas);
-      setError(null); // Limpiar cualquier error previo
-
       if (sucursalesOrdenadas.length > 0) {
+        setSucursales(sucursalesOrdenadas);
         setSucursalSeleccionada(sucursalesOrdenadas[0]);
 
-        // ⭐ AQUÍ ESTÁ LA MAGIA: Centrar automáticamente el mapa en el primer resultado
         setTimeout(() => {
           centrarEnSucursal(sucursalesOrdenadas[0]);
-        }, 300); // Pequeño delay para asegurar que el estado se actualice
+        }, 300);
 
-        // Si hay múltiples resultados, ajustar el zoom para mostrar todos
         if (sucursalesOrdenadas.length > 1) {
           setTimeout(() => {
             ajustarVistaParaTodosLosResultados(sucursalesOrdenadas);
           }, 500);
         }
+      } else {
+        // Mostrar alerta pero mantener sucursales originales
+        Alert.alert(
+          'Sin resultados',
+          `No se encontraron sucursales para "${texto}"`,
+          [{ text: 'OK', style: 'default' }]
+        );
+
+        setSucursales(sucursalesOriginales);
+        if (sucursalesOriginales.length > 0) {
+          setSucursalSeleccionada(sucursalesOriginales[0]);
+          centrarEnSucursal(sucursalesOriginales[0]);
+        }
       }
 
     } catch (error) {
-      console.error('=== ERROR EN BÚSQUEDA ===');
-      console.error('Error completo:', error);
-      console.error('Mensaje:', error.message);
+      console.error('Error en búsqueda:', error);
 
-      // Mensaje de error más amigable
-      const mensajeError = error.message.includes('fetch')
-        ? 'Error de conexión. Verifica tu conexión a internet.'
-        : `Error al buscar: ${error.message}`;
+      // Restaurar sucursales originales en caso de error
+      setSucursales(sucursalesOriginales);
+      if (sucursalesOriginales.length > 0) {
+        setSucursalSeleccionada(sucursalesOriginales[0]);
+        centrarEnSucursal(sucursalesOriginales[0]);
+      }
 
-      setError(mensajeError);
-
-      // Mostrar alert de error
       Alert.alert(
-        'Error de búsqueda',
-        mensajeError,
+        'Error',
+        'Error de conexión. Verifica tu internet.',
         [{ text: 'OK', style: 'default' }]
       );
-
-      setSucursales([]);
-      setSucursalSeleccionada(null);
-
     } finally {
       setCargandoBusqueda(false);
     }
   };
 
 
-
-
-
   const limpiarBusqueda = () => {
     setTextoBusqueda('');
-    setError(null); // Limpiar cualquier error
     setSucursales(sucursalesOriginales);
-    if (sucursalesOriginales.length > 0) {
-      setSucursalSeleccionada(sucursalesOriginales[0]);
+    // No seleccionamos ninguna sucursal ni centramos el mapa
+  };
+
+
+
+
+  // 🎯 BOTÓN DE UBICACIÓN CORREGIDO - No interfiere con selección de sucursal
+  const buscarCercanas = async () => {
+    try {
+      setCargandoUbicacion(true);
+
+      // Solicitar permisos si no están concedidos
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos requeridos',
+          'Necesitamos acceso a tu ubicación para encontrar sucursales cercanas.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Obtener ubicación actual (precisa y con timeout)
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeout: 15000,
+      });
+
+      const nuevaUbicacion = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+
+      // Guardar ubicación del usuario en el estado
+      setUbicacionUsuario(nuevaUbicacion);
+
+      // Limpiar búsqueda previa
+      setTextoBusqueda('');
+
+      // Ordenar sucursales por cercanía (opcional)
+      if (sucursalesOriginales.length > 0) {
+        const sucursalesOrdenadas = ordenarPorDistancia(sucursalesOriginales, nuevaUbicacion);
+        setSucursales(sucursalesOrdenadas);
+
+        if (sucursalesOrdenadas.length > 0) {
+          setSucursalSeleccionada(sucursalesOrdenadas[0]);
+        }
+      }
+
+      // ✅ CENTRAR EN LA UBICACIÓN DEL USUARIO
+      setTimeout(() => {
+        centrarEnSucursal(nuevaUbicacion); // Usamos la misma función que centraría en una sucursal
+      }, 500);
+
+    } catch (error) {
+      console.error('Error al obtener ubicación:', error);
+      Alert.alert(
+        'Error de ubicación',
+        'No se pudo obtener tu ubicación. Verifica que el GPS esté activado.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setCargandoUbicacion(false);
     }
   };
 
-  const buscarCercanas = () => {
-    if (ubicacionUsuario) {
-      // Si ya tenemos ubicación, re-ordenar
-      const sucursalesOrdenadas = ordenarPorDistancia(sucursalesOriginales, ubicacionUsuario);
-      setSucursales(sucursalesOrdenadas);
-      if (sucursalesOrdenadas.length > 0) {
-        setSucursalSeleccionada(sucursalesOrdenadas[0]);
-        centrarEnSucursal(sucursalesOrdenadas[0]);
-      }
-    } else {
-      // Si no tenemos ubicación, solicitarla
-      obtenerUbicacionActual();
-    }
-  };
+
+
+
 
   if (cargando) {
     return (
@@ -353,30 +365,35 @@ export default function UbicacionScreen() {
     );
   }
 
-  const centrarEnSucursal = (sucursal) => {
-    if (!sucursal?.coordenadas) return;
+  const centrarEnSucursal = (obj) => {
+    // Si el objeto tiene coordenadas, extraerlas, si no, asumir que el objeto tiene lat y lon directamente
+    const coords = obj.coordenadas ? obj.coordenadas : obj;
 
-    setSucursalSeleccionada(sucursal);
+    if (!coords.latitude || !coords.longitude) return;
+
+    if (obj.coordenadas) {
+      setSucursalSeleccionada(obj);
+    } else {
+      // Si no es sucursal (por ejemplo, es la ubicación del usuario), no cambiar selección
+    }
 
     if (mapRef.current) {
       mapRef.current.animateToRegion(
         {
-          latitude: sucursal.coordenadas.latitude,
-          longitude: sucursal.coordenadas.longitude,
-          latitudeDelta: 0.005, // Zoom más cercano para búsquedas específicas
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          latitudeDelta: 0.005,
           longitudeDelta: 0.005,
         },
-        800 // Animación más suave
+        800
       );
     }
   };
 
-  // Agrega esta nueva función después de la función centrarEnSucursal
 
   const ajustarVistaParaTodosLosResultados = (sucursales) => {
     if (!mapRef.current || sucursales.length === 0) return;
 
-    // Calcular los límites de todas las sucursales encontradas
     let minLat = sucursales[0].coordenadas.latitude;
     let maxLat = sucursales[0].coordenadas.latitude;
     let minLng = sucursales[0].coordenadas.longitude;
@@ -390,13 +407,11 @@ export default function UbicacionScreen() {
       maxLng = Math.max(maxLng, longitude);
     });
 
-    // Calcular el centro y los deltas
     const centerLat = (minLat + maxLat) / 2;
     const centerLng = (minLng + maxLng) / 2;
-    const deltaLat = Math.max(maxLat - minLat, 0.01) * 1.2; // Agregar padding del 20%
+    const deltaLat = Math.max(maxLat - minLat, 0.01) * 1.2;
     const deltaLng = Math.max(maxLng - minLng, 0.01) * 1.2;
 
-    // Animar a la nueva región
     mapRef.current.animateToRegion(
       {
         latitude: centerLat,
@@ -404,7 +419,7 @@ export default function UbicacionScreen() {
         latitudeDelta: deltaLat,
         longitudeDelta: deltaLng,
       },
-      1000 // Duración de la animación en ms
+      1000
     );
   };
 
@@ -419,44 +434,31 @@ export default function UbicacionScreen() {
   const manejarSubmitEditing = () => {
     const texto = textoBusqueda.trim();
     if (texto === '') {
-      // Si está vacío, restaurar todas
       setSucursales(sucursalesOriginales);
-      setError(null);
       if (sucursalesOriginales.length > 0) {
         setSucursalSeleccionada(sucursalesOriginales[0]);
         centrarEnSucursal(sucursalesOriginales[0]);
       }
     } else {
-      // Ejecutar búsqueda
       buscarSucursales(texto);
     }
   };
 
-  // if (error) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <Text style={{ color: 'red' }}>{error}</Text>
-  //     </View>
-  //   );
-  // }
-
-  // Reemplaza la parte del return en tu componente principal:
-
   return (
     <View style={styles.container}>
-      {/* Barra de búsqueda con padding para notch */}
+      {/* Barra de búsqueda */}
       <View style={[styles.searchContainer, { paddingTop: Constants.statusBarHeight + 10 }]}>
         <View style={styles.searchInputContainer}>
           <Feather name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar por nombre o código postal... (presiona Enter)"
+            placeholder="Buscar por nombre o código postal..."
             value={textoBusqueda}
             onChangeText={setTextoBusqueda}
             placeholderTextColor="#999"
-            returnKeyType="search" // ✅ Mostrar "Buscar" en el teclado
-            onSubmitEditing={manejarSubmitEditing} // ✅ Ejecutar al presionar Enter
-            blurOnSubmit={true} // ✅ Cerrar teclado después de buscar
+            returnKeyType="search"
+            onSubmitEditing={manejarSubmitEditing}
+            blurOnSubmit={true}
           />
           {cargandoBusqueda && (
             <ActivityIndicator size="small" color="#DE1484" style={styles.searchLoader} />
@@ -466,10 +468,8 @@ export default function UbicacionScreen() {
               <MaterialIcons name="clear" size={20} color="#666" />
             </TouchableOpacity>
           )}
-          {/* ❌ QUITAR EL BOTÓN DE BÚSQUEDA MANUAL */}
         </View>
 
-        {/* Botón de ubicación */}
         <TouchableOpacity
           style={styles.locationButton}
           onPress={buscarCercanas}
@@ -484,20 +484,8 @@ export default function UbicacionScreen() {
       </View>
 
 
-      {/* Mensaje si no hay resultados O hay error */}
-      {(sucursales.length === 0 && textoBusqueda.length > 0 && !cargandoBusqueda) && (
-        <View style={styles.noResultsContainer}>
-          <MaterialIcons name="search-off" size={48} color="#ccc" />
-          <Text style={styles.noResultsText}>
-            {error || `No se encontraron sucursales que coincidan con "${textoBusqueda}"`}
-          </Text>
-          <TouchableOpacity onPress={limpiarBusqueda} style={styles.showAllButton}>
-            <Text style={styles.showAllButtonText}>Mostrar todas las sucursales</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
-      {/* Mapa y información solo si hay sucursales */}
+      {/* Mapa y información */}
       {sucursales.length > 0 && sucursalSeleccionada && (
         <>
           <MapView
@@ -532,7 +520,6 @@ export default function UbicacionScreen() {
                 <Text style={styles.direccion}>{sucursalSeleccionada.domicilio}</Text>
                 <Text style={styles.codigoPostal}>CP: {sucursalSeleccionada.codigo_postal}</Text>
 
-                {/* Mostrar distancia si está disponible */}
                 {sucursalSeleccionada.distancia && (
                   <Text style={styles.distancia}>
                     📍 {sucursalSeleccionada.distancia.toFixed(1)} km de distancia

@@ -2,12 +2,13 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useProducts } from '../../../hooks/useProduct'
 import { useCupons } from '../../../hooks/useCupons'
-import { ProductosProps, CuponProps } from '../../../types/interface'
+import { CuponProps } from '../../../types/interface'
+import { ProductosProps } from '@/types'
 import { IoSearchOutline } from "react-icons/io5";
 
 interface FiltrosProps {
-  onFilteredProducts?: (filteredProducts: ProductosProps[]) => void;
-  onFilteredCupons?: (filteredCupons: CuponProps[]) => void;
+  onFilteredProducts?: (filteredProducts: any[]) => void;  // ← SOLUCIÓN TEMPORAL
+  onFilteredCupons?: (filteredCupons: any[]) => void;
   type?: 'productos' | 'cupones';
 }
 
@@ -66,7 +67,7 @@ export const Filtros = ({ onFilteredProducts, onFilteredCupons, type }: FiltrosP
   // Comunicar productos/cupones filtrados al componente padre
   useEffect(() => {
     if (filterType === 'productos' && onFilteredProducts) {
-      onFilteredProducts(filteredProducts)
+      onFilteredProducts(filteredProducts as ProductosProps[])
     } else if (filterType === 'cupones' && onFilteredCupons) {
       onFilteredCupons(filteredCupons)
     }

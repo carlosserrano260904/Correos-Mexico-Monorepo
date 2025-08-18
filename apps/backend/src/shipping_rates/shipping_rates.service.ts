@@ -1,30 +1,24 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { firstValueFrom } from 'rxjs';
+import { Injectable, NotFoundException, BadRequestException} from '@nestjs/common'; // Importa decoradores y excepciones de NestJS
+import { InjectRepository } from '@nestjs/typeorm'; // Permite inyectar repositorios TypeORM
+import { HttpService } from '@nestjs/axios'; // Permite hacer peticiones HTTP externas
+import { ConfigService } from '@nestjs/config'; // Permite acceder a variables de configuración
+import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm'; // Utilidades para consultas en la base de datos
+import { firstValueFrom } from 'rxjs'; // Convierte un Observable en una Promesa
 
-import { ShippingRate } from './entities/shipping_rate.entity';
-import { Zone } from './entities/zone.entity';
-import { InternationalCountry } from './entities/international-country.entity';
-import { InternationalTariff } from './entities/international-tariff.entity';
-
-
-
+import { ShippingRate } from './entities/shipping_rate.entity'; // Entidad de tarifas de envío
+import { Zone } from './entities/zone.entity'; // Entidad de zonas de envío
+import { InternationalCountry } from './entities/international-country.entity'; // Entidad de países internacionales
+import { InternationalTariff } from './entities/international-tariff.entity'; // Entidad de tarifas internacionales
 
 import {
   CreateShippingRateDto,
   UpdateShippingRateDto,
   ShippingRateResponseDto,
-} from './dto/create-shipping_rate.dto';
+} from './dto/create-shipping_rate.dto'; // Importa los DTOs usados para validar y tipar datos
 
 @Injectable()
 export class ShippingRateService {
+  // Constructor: inyecta los repositorios y servicios necesarios
   constructor(
     @InjectRepository(ShippingRate)
     private shippingRateRepository: Repository<ShippingRate>,
@@ -39,12 +33,13 @@ export class ShippingRateService {
     private countryRepository: Repository<InternationalCountry>,
 
     @InjectRepository(InternationalCountry)
-    private internationalCountryRepository: Repository<InternationalCountry>, // ← ESTA LÍNEA
+    private internationalCountryRepository: Repository<InternationalCountry>, // Repositorio para países internacionales
 
     @InjectRepository(InternationalTariff)
     private readonly tariffRepository: Repository<InternationalTariff>,
   ) { }
 
+  // Obtiene la tarifa internacional según país y peso
   async getInternationalTariff(paisDestino: string, peso: number) {
     const country = await this.internationalCountryRepository.findOne({
       where: { name: paisDestino },
@@ -84,18 +79,21 @@ export class ShippingRateService {
     };
   }
 
+  // Crea una nueva tarifa de envío
   async create(createShippingRateDto: CreateShippingRateDto): Promise<ShippingRateResponseDto> {
     const shippingRate = this.shippingRateRepository.create(createShippingRateDto);
     const savedRate = await this.shippingRateRepository.save(shippingRate);
     return this.mapToResponseDto(savedRate);
   }
 
+  // Crea varias tarifas de envío en lote
   async createMany(createShippingRateDtos: CreateShippingRateDto[]): Promise<ShippingRateResponseDto[]> {
     const shippingRates = this.shippingRateRepository.create(createShippingRateDtos);
     const savedRates = await this.shippingRateRepository.save(shippingRates);
     return savedRates.map((rate) => this.mapToResponseDto(rate));
   }
 
+  // Obtiene todas las tarifas de envío
   async findAll(): Promise<ShippingRateResponseDto[]> {
     const rates = await this.shippingRateRepository.find({
       relations: ['zone', 'service'],
@@ -104,6 +102,7 @@ export class ShippingRateService {
     return rates.map((rate) => this.mapToResponseDto(rate));
   }
 
+  // Obtiene una tarifa de envío por ID
   async findOne(id: number): Promise<ShippingRateResponseDto> {
     const rate = await this.shippingRateRepository.findOne({
       where: { id },
@@ -117,6 +116,7 @@ export class ShippingRateService {
     return this.mapToResponseDto(rate);
   }
 
+  // Actualiza una tarifa de envío por ID
   async update(id: number, updateShippingRateDto: UpdateShippingRateDto): Promise<ShippingRateResponseDto> {
     const rate = await this.shippingRateRepository.findOne({ where: { id } });
 
@@ -129,6 +129,7 @@ export class ShippingRateService {
     return this.mapToResponseDto(updatedRate);
   }
 
+  // Elimina una tarifa de envío por ID
   async remove(id: number): Promise<void> {
     const result = await this.shippingRateRepository.delete(id);
 
@@ -137,6 +138,7 @@ export class ShippingRateService {
     }
   }
 
+  // Busca la zona correspondiente según la distancia en kilómetros
   async findZoneByDistance(distanceKm: number): Promise<Zone | null> {
     return this.zoneRepository.findOne({
       where: {
@@ -146,6 +148,7 @@ export class ShippingRateService {
     });
   }
 
+  // Busca la tarifa de envío según zona, peso y servicio
   async findShippingRateByZoneAndWeight(
     zoneId: number,
     weight: number,
@@ -170,6 +173,7 @@ export class ShippingRateService {
     return rate;
   }
 
+  // Busca la tarifa usando query builder (más flexible)
   async findTarifa(zonaId: number, servicioId: number, peso: number): Promise<ShippingRate | null> {
     return await this.shippingRateRepository
       .createQueryBuilder('rate')
@@ -179,6 +183,7 @@ export class ShippingRateService {
       .getOne();
   }
 
+  // Obtiene datos de zona y distancia entre dos códigos postales usando Google Maps
   async getDatosZonaYDistancia(codigoOrigen: string, codigoDestino: string): Promise<{
     distanciaKm: number;
     zona: Zone;
@@ -221,6 +226,7 @@ export class ShippingRateService {
     };
   }
 
+  // Mapea la entidad ShippingRate a un DTO de respuesta
   private mapToResponseDto(rate: ShippingRate): ShippingRateResponseDto {
     return {
       id: rate.id,
@@ -239,6 +245,8 @@ export class ShippingRateService {
       },
     };
   }
+
+  // Obtiene todos los países internacionales ordenados por nombre
   async getAllInternationalCountries() {
     return await this.countryRepository.find({
       order: {
@@ -247,6 +255,7 @@ export class ShippingRateService {
     });
   }
 
+  // Obtiene la tarifa internacional usando peso volumétrico
   async getInternationalTariffByVolumetric(payload: {
     paisDestino: string;
     peso: number;
@@ -265,15 +274,16 @@ export class ShippingRateService {
       throw new NotFoundException('País o zona no encontrada');
     }
 
+    // Calcula el peso volumétrico y el peso facturable
     const pesoVol = +(largo * alto * ancho / 5000).toFixed(2);
     const pesoFacturable = Math.max(peso, pesoVol);
 
     const tarifa = await this.tariffRepository.findOne({
       where: {
         zone: { id: country.zone.id },
-        max_kg: MoreThanOrEqual(pesoFacturable), // corregido
+        max_kg: MoreThanOrEqual(pesoFacturable),
       },
-      order: { max_kg: 'ASC' }, // corregido
+      order: { max_kg: 'ASC' },
     });
 
     if (!tarifa) {
@@ -281,8 +291,8 @@ export class ShippingRateService {
     }
 
     const adicional = 0;
-    const subtotal = tarifa.base_price + adicional; // corregido
-    const iva = +(subtotal * (tarifa.iva_percent / 100)).toFixed(2); // corregido
+    const subtotal = tarifa.base_price + adicional;
+    const iva = +(subtotal * (tarifa.iva_percent / 100)).toFixed(2);
     const total = +(subtotal + iva).toFixed(2);
 
     return {
@@ -297,9 +307,7 @@ export class ShippingRateService {
     };
   }
 
-
-
-  // servicio de paises
+  // Obtiene información de un país internacional
   async findCountryInfo(paisDestino: string) {
     const country = await this.countryRepository.findOne({
       where: { name: paisDestino },

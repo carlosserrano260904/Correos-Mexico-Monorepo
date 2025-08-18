@@ -1,38 +1,34 @@
+// update-product.dto.ts
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateProductDto } from './create-product.dto';
-import { IsNotEmpty, IsNumber, IsString } from "class-validator"
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
-        @ApiProperty({ example: 'Television', description: 'Producto' })
-        @IsNotEmpty({ message: 'El nombre del producto es obligatorio' })
-        @IsString({ message: 'Nombre no valido' })
-        nombre: string
-        @ApiProperty({ example: 'Television con excelente calidad', description: 'Descripcion del producto' })
-        @IsNotEmpty({ message: 'La descripcion del producto es obligatorio' })
-        @IsString({ message: 'Descripcion no valida' })
-        descripcion: string
+  // OJO: Como es PartialType, usa ApiPropertyOptional para no contradecir
+  @ApiPropertyOptional({ example: 'Television', description: 'Nombre del producto' })
+  @IsOptional()
+  @IsString()
+  nombre?: string;
 
-        @IsNotEmpty({ message: 'La imagen del producto es obligatoria' })
-        imagen: string[]
+  @ApiPropertyOptional({ example: 'Televisión con excelente calidad', description: 'Descripción del producto' })
+  @IsOptional()
+  @IsString()
+  descripcion?: string;
 
-        @ApiProperty({ example: '10', description: 'La cantidad del producto en stock' })
-        @IsNotEmpty({ message: 'La cantidad del producto es obligatoria' })
-        @IsNumber({ maxDecimalPlaces: 0 }, { message: 'Cantidad no valida' })
-        inventario: number
+  // Si sigues usando inventario aquí, documéntalo (y añade la columna en la entidad si aplica)
+  @ApiPropertyOptional({ example: 10, description: 'Cantidad en stock' })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 0 })
+  inventario?: number;
 
-        @ApiProperty({ example: '1200', description: 'Precio costo del producto' })
-        @IsNotEmpty({ message: 'El precion del producto es obligatorio' })
-        @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Precio no valido' })
-        precio: number
+  @ApiPropertyOptional({ example: 1200, description: 'Precio' })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  precio?: number;
 
-        @ApiProperty({ example: 'Blancos', description: 'El tipo de producto que es' })
-        @IsNotEmpty({ message: 'La categoria del producto es necesaria' })
-        @IsString({ message: 'Categoria no valida' })
-        categoria: string
-
-        @ApiProperty({ example: '#000', description: 'El color es' })
-        @IsNotEmpty({ message: 'El color del producto es necesaria' })
-        @IsString({ message: 'Color no valido' })
-        color: string[]
+  @ApiPropertyOptional({ example: 'Electrónica', description: 'Categoría' })
+  @IsOptional()
+  @IsString()
+  categoria?: string;
 }

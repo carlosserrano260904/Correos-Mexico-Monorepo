@@ -12,24 +12,29 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); 
 
   const handleSwitchChange = () => setIsChecked(!isChecked);
 
   const handleSubmit = () => {
     if (!email || !password) {
       setError("Por favor, completa todos los campos.");
+      setSuccessMessage(""); 
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Por favor, ingresa un correo válido.");
+      setSuccessMessage(""); // Reseteamos el mensaje de éxito
       return;
     }
 
-    // se limpian los errores si todo esta bien
-    setError("");
+    
+    setError(""); 
+    setSuccessMessage("¡Campos validados correctamente!"); // confirmacio  de que todo este bien.
 
+    // Simulamos que los datos están correctos y los imprimimos en consola
     console.log("Datos enviados:", { email, password, remember: isChecked });
   };
 
@@ -86,6 +91,11 @@ const Login = () => {
             <p className="text-red-500 text-sm text-center mb-4">{error}</p>
           )}
 
+          {/* Success message */}
+          {successMessage && (
+            <p className="text-green-500 text-sm text-center mb-4">{successMessage}</p>
+          )}
+
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <label className="flex items-center space-x-3">
               <Switch
@@ -116,14 +126,14 @@ const Login = () => {
             Iniciar sesión
           </button>
 
-          {/* Divisor más compacto */}
+          {/* diSvisor más compacto */}
           <div className="w-full flex items-center my-2 sm:my-3">
             <hr className="flex-grow border-gray-300" />
             <span className="px-2 text-gray-400 text-xs">o</span>
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          {/* Botones sociales más compactos */}
+          {/* botttones sociales más compactos */}
           <div className="space-y-2 mb-3">
             <button
               onClick={handleFacebookLogin}

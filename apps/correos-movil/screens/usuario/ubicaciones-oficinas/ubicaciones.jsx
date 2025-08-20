@@ -15,6 +15,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
 
 export default function UbicacionScreen() {
   const IP = Constants.expoConfig?.extra?.IP_LOCAL;
@@ -27,7 +28,10 @@ export default function UbicacionScreen() {
   const [textoBusqueda, setTextoBusqueda] = useState('');
   const [ubicacionUsuario, setUbicacionUsuario] = useState(null);
   const mapRef = useRef(null);
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef(null); 
+  const navigation = useNavigation();
+
+
 
   // Obtener ubicación del usuario al montar el componente
   useEffect(() => {
@@ -336,7 +340,7 @@ export default function UbicacionScreen() {
         }
       }
 
-      // ✅ CENTRAR EN LA UBICACIÓN DEL USUARIO
+      // CENTRAR EN LA UBICACIÓN DEL USUARIO
       setTimeout(() => {
         centrarEnSucursal(nuevaUbicacion); // Usamos la misma función que centraría en una sucursal
       }, 500);
@@ -446,8 +450,13 @@ export default function UbicacionScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Barra de búsqueda */}
       <View style={[styles.searchContainer, { paddingTop: Constants.statusBarHeight + 10 }]}>
+        {/* Flecha de regresar */}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+
+        {/* Input de búsqueda */}
         <View style={styles.searchInputContainer}>
           <Feather name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
@@ -470,6 +479,7 @@ export default function UbicacionScreen() {
           )}
         </View>
 
+        {/* Botón ubicación */}
         <TouchableOpacity
           style={styles.locationButton}
           onPress={buscarCercanas}
@@ -482,6 +492,7 @@ export default function UbicacionScreen() {
           )}
         </TouchableOpacity>
       </View>
+
 
 
 
@@ -783,4 +794,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+
+  backButton: {
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
 });

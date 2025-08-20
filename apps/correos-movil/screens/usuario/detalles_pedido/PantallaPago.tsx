@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
@@ -25,9 +26,16 @@ const Colors = {
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+interface Card {
+  stripeCardId: string;
+  brand: string;
+  last4: string;
+}
+
 const PantallaPago = () => {
   const navigation = useNavigation();
-  const [tarjeta, setTarjeta] = useState<{ brand: string; last4: string } | null>(null);
+  const [tarjetas, setTarjetas] = useState<Card[]>([]);
+  const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<Card | null>(null);
 
   const handleBack = useCallback(() => {
     navigation.navigate('Carrito');
@@ -37,7 +45,7 @@ const PantallaPago = () => {
     navigation.navigate('AgregarTarjetaScreen' as never);
   };
 
-  const cargarTarjetaDesdeServidor = async () => {
+  const cargarTarjetas = async () => {
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('No se encontró el ID de usuario');
@@ -48,23 +56,27 @@ const PantallaPago = () => {
       if (!profileId) throw new Error('No se encontró el profileId');
 
       const tarjetasRes = await axios.get(`${API_URL}/api/cards/${profileId}`);
-      const tarjetas = tarjetasRes.data;
+      const lista = tarjetasRes.data;
 
-      if (!tarjetas || tarjetas.length === 0) {
-        setTarjeta(null);
+      if (!lista || lista.length === 0) {
+        setTarjetas([]);
       } else {
-        const ultima = tarjetas[tarjetas.length - 1];
-        setTarjeta({ brand: ultima.brand, last4: ultima.last4 });
+        setTarjetas(lista);
       }
     } catch (error) {
-      console.error('Error al cargar tarjeta:', error);
-      Alert.alert('Error', 'No se pudo obtener la tarjeta.');
+      console.error('Error al cargar tarjetas:', error);
+      Alert.alert('Error', 'No se pudieron obtener las tarjetas.');
     }
+  };
+
+  const seleccionarTarjeta = async (card: Card) => {
+    setTarjetaSeleccionada(card);
+    await AsyncStorage.setItem('tarjetaSeleccionada', JSON.stringify(card));
   };
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      cargarTarjetaDesdeServidor();
+      cargarTarjetas();
     });
     return unsubscribe;
   }, [navigation]);
@@ -76,12 +88,24 @@ const PantallaPago = () => {
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Selecciona una tarjeta</Text>
 
-        {tarjeta ? (
-          <View style={styles.cardDisplay}>
-            <Text style={styles.cardText}>
-              {tarjeta.brand.toUpperCase()} •••• {tarjeta.last4}
-            </Text>
-          </View>
+        {tarjetas.length > 0 ? (
+          <FlatList
+            data={tarjetas}
+            keyExtractor={(item) => item.stripeCardId}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.cardDisplay,
+                  tarjetaSeleccionada?.stripeCardId === item.stripeCardId && styles.cardSelected,
+                ]}
+                onPress={() => seleccionarTarjeta(item)}
+              >
+                <Text style={styles.cardText}>
+                  {item.brand.toUpperCase()} •••• {item.last4}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
         ) : (
           <Text style={styles.noCardText}>No hay ninguna tarjeta registrada.</Text>
         )}
@@ -108,7 +132,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     elevation: 2,
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  cardSelected: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   cardText: {
     fontSize: 16,
@@ -124,6 +152,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 20,
   },
   addButtonText: {
     color: Colors.white,

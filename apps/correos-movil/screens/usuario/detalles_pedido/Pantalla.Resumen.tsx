@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -16,7 +18,6 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { Ionicons } from '@expo/vector-icons';
 import { obtenerDirecciones } from '../../../api/direcciones';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -63,6 +64,12 @@ interface PuntoRecogida {
   horario?: string;
 }
 
+interface Card {
+  stripeCardId: string;
+  brand: string;
+  last4: string;
+}
+
 const PantallaResumen = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +77,7 @@ const PantallaResumen = () => {
   const [direccion, setDireccion] = useState<Direccion | null>(null);
   const [puntoRecogida, setPuntoRecogida] = useState<PuntoRecogida | null>(null);
   const [modoEnvio, setModoEnvio] = useState<'domicilio' | 'puntoRecogida' | null>(null);
-  const [tarjeta, setTarjeta] = useState<{ stripeCardId: string; last4: string; brand: string } | null>(null);
+  const [tarjeta, setTarjeta] = useState<Card | null>(null);
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -102,7 +109,6 @@ const PantallaResumen = () => {
     }
   };
 
-  // 🔧 Cambiado: ahora lee `direccionSeleccionadaId` y busca en la lista del backend.
   const loadShippingInfo = async () => {
     try {
       const modo = await AsyncStorage.getItem('modoEnvio');
@@ -123,7 +129,6 @@ const PantallaResumen = () => {
 
       const direcciones = await obtenerDirecciones(Number(userId));
 
-      // si hay una dirección seleccionada por ID, úsala
       const seleccionadaId = await AsyncStorage.getItem('direccionSeleccionadaId');
       if (seleccionadaId) {
         const idNum = Number(seleccionadaId);
@@ -134,7 +139,6 @@ const PantallaResumen = () => {
         }
       }
 
-      // fallback: primera dirección
       if (direcciones && direcciones.length > 0) {
         setDireccion(direcciones[0]);
       }
@@ -143,24 +147,14 @@ const PantallaResumen = () => {
     }
   };
 
-  const loadUltimaTarjeta = async () => {
+  const loadTarjetaSeleccionada = async () => {
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) return;
-
-      const perfilRes = await axios.get(`${BASE_URL}/api/profile/${userId}`);
-      const profileId = perfilRes.data?.id;
-      if (!profileId) return;
-
-      const tarjetasRes = await axios.get(`${BASE_URL}/api/cards/${profileId}`);
-      const tarjetas = tarjetasRes.data;
-
-      if (tarjetas && tarjetas.length > 0) {
-        const ultima = tarjetas[tarjetas.length - 1];
-        setTarjeta({ stripeCardId: ultima.stripeCardId, brand: ultima.brand, last4: ultima.last4 });
+      const seleccionada = await AsyncStorage.getItem('tarjetaSeleccionada');
+      if (seleccionada) {
+        setTarjeta(JSON.parse(seleccionada));
       }
     } catch (error) {
-      console.error('Error al cargar tarjeta:', error);
+      console.error('Error al cargar tarjeta seleccionada:', error);
     }
   };
 
@@ -192,7 +186,7 @@ const PantallaResumen = () => {
           total,
           stripeCardId: tarjeta.stripeCardId,
         }
-      );
+      );  
 
       if (res.data?.status === 'success') {
         navigation.navigate('PagoExitosoScreen' as never);
@@ -208,7 +202,7 @@ const PantallaResumen = () => {
   useEffect(() => {
     if (isFocused) {
       const loadData = async () => {
-        await Promise.all([loadCart(), loadShippingInfo(), loadUltimaTarjeta()]);
+        await Promise.all([loadCart(), loadShippingInfo(), loadTarjetaSeleccionada()]);
       };
       loadData();
     }

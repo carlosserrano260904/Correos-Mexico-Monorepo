@@ -1,3 +1,4 @@
+// apps/correos-movil/screens/usuario/carrito/CarritoScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -55,31 +56,31 @@ const CarritoScreen = () => {
         setLoading(false);
         return;
       }
-      
+
       const response = await fetch(`${API_BASE_URL}/carrito/${userId}`);
-      
       if (!response.ok) {
         if (response.status === 404) {
           setCart([]);
         } else {
           console.warn(`Error HTTP: ${response.status}`);
-          Alert.alert('Error', 'No se pudo cargar el carrito');
         }
         return;
       }
-      
+
       const data = await response.json();
-      
+
       const formattedCart = data.map((item: any) => ({
         id: item.id?.toString() || '',
         productId: item.producto?.id?.toString() || '',
         name: item.producto?.nombre || 'Sin nombre',
         price: Number(item.precio_unitario || item.producto?.precio || 0),
         quantity: Number(item.cantidad || 1),
-        image: item.producto?.imagen || 'https://via.placeholder.com/70x70?text=Sin+Imagen',
+        image:
+          item.producto?.imagen ||
+          'https://via.placeholder.com/70x70?text=Sin+Imagen',
         color: item.producto?.color || 'No especificado',
       }));
-      
+
       setCart(formattedCart);
     } catch (error: any) {
       Alert.alert('Error', 'No se pudo cargar el carrito');
@@ -99,7 +100,7 @@ const CarritoScreen = () => {
       removeFromCart(id);
       return;
     }
-    
+
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/carrito/${id}`, {
@@ -107,7 +108,7 @@ const CarritoScreen = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cantidad: newQuantity }),
       });
-      
+
       if (!response.ok) throw new Error('Error al actualizar cantidad');
       loadCart();
     } catch (error) {
@@ -120,12 +121,12 @@ const CarritoScreen = () => {
   const removeFromCart = async (id: string) => {
     try {
       setLoading(true);
-      setCart(prevCart => prevCart.filter(item => item.id !== id));
+      setCart(prevCart => prevCart.filter(item => item.id !== id)); // optimista
       const response = await fetch(`${API_BASE_URL}/carrito/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       if (!response.ok) throw new Error('Error al eliminar del carrito');
       loadCart();
     } catch (error) {
@@ -152,12 +153,8 @@ const CarritoScreen = () => {
       if (!response.ok) throw new Error('Error al procesar el carrito');
 
       const data = await response.json();
-
       await AsyncStorage.setItem('resumen_carrito', JSON.stringify(data));
-
-      // Aquí rediriges a las pestañas del checkout
       navigation.navigate('Checkout' as never);
-
     } catch (error) {
       Alert.alert('Error', 'No se pudo proceder al pago');
     } finally {
@@ -165,23 +162,32 @@ const CarritoScreen = () => {
     }
   };
 
-
-
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemCard}>
+      {/* Botón fijo de eliminar */}
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => removeFromCart(item.id)}
+        disabled={loading}
+        hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
+        accessibilityLabel="Eliminar del carrito"
+      >
+        <Ionicons name="trash-outline" size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+
       <Image source={{ uri: item.image }} style={styles.itemImage} />
+
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={styles.itemTitle}>{item.name}</Text>
-          <TouchableOpacity 
-            onPress={() => removeFromCart(item.id)} 
-            disabled={loading}
-          >
-            <Text style={{ fontSize: 18, color: 'red' }}>🗑</Text>
-          </TouchableOpacity>
-        </View>
+        <Text
+          style={styles.itemTitle}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {item.name}
+        </Text>
         <Text style={styles.itemDesc}>Color: {item.color}</Text>
         <Text style={styles.itemPrice}>MXN {item.price.toFixed(2)}</Text>
+
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <TouchableOpacity
             style={styles.qtyButton}
@@ -198,6 +204,7 @@ const CarritoScreen = () => {
           >
             <Text style={styles.qtyButtonText}>+</Text>
           </TouchableOpacity>
+
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
             <Text style={{ color: '#888', fontSize: 13 }}>Subtotal</Text>
             <Text style={{ fontWeight: 'bold' }}>
@@ -212,21 +219,19 @@ const CarritoScreen = () => {
   const CustomHeader = () => (
     <View style={headerStyles.header}>
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-    <TouchableOpacity
-      style={headerStyles.backButton}
-      onPress={() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Tabs' }],
-        });
-      }}
-      accessibilityLabel="Regresar"
-      accessibilityHint="Regresa a la pantalla principal"
-    >
-      <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-    </TouchableOpacity>
-
-
+        <TouchableOpacity
+          style={headerStyles.backButton}
+          onPress={() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Tabs' }],
+            });
+          }}
+          accessibilityLabel="Regresar"
+          accessibilityHint="Regresa a la pantalla principal"
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
+        </TouchableOpacity>
         <Text style={headerStyles.headerTitle}>Carrito</Text>
       </View>
     </View>
@@ -270,14 +275,16 @@ const CarritoScreen = () => {
             <Text style={{ color: '#666' }}>Envío:</Text>
             <Text style={{ fontWeight: 'bold' }}>Gratis</Text>
           </View>
-          <View style={{ 
-            borderTopWidth: 1, 
-            borderColor: '#E5E7EB', 
-            paddingTop: 6, 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
-          }}>
+          <View
+            style={{
+              borderTopWidth: 1,
+              borderColor: '#E5E7EB',
+              paddingTop: 6,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Total:</Text>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.primary }}>
               MXN {calculateTotal().toFixed(2)}
@@ -326,78 +333,91 @@ const headerStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   itemCard: {
+    position: 'relative',                 // ← para posicionar el botón fijo
     backgroundColor: 'white',
     borderRadius: 10,
     flexDirection: 'row',
     padding: 12,
+    paddingRight: 40,                     // ← deja espacio para el icono fijo
     marginVertical: 7,
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 }
+    shadowOffset: { width: 0, height: 1 },
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',          // minimalista y consistente
   },
   itemImage: {
     width: 70,
     height: 70,
     borderRadius: 8,
-    backgroundColor: '#eee'
+    backgroundColor: '#eee',
   },
   itemTitle: {
     fontWeight: '600',
     fontSize: 16,
-    color: '#222'
+    color: '#222',
   },
   itemDesc: {
     color: '#666',
     fontSize: 13,
-    marginBottom: 1
+    marginBottom: 1,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#e11d48',
-    marginBottom: 3
+    marginBottom: 3,
   },
   qtyButton: {
-    width: 30, 
-    height: 30, 
-    borderRadius: 15, 
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#F3F4F6',
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginHorizontal: 2
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 2,
   },
-  qtyButtonText: { 
-    fontSize: 18, 
-    color: '#222', 
-    fontWeight: 'bold' 
+  qtyButtonText: {
+    fontSize: 18,
+    color: '#222',
+    fontWeight: 'bold',
   },
-  qtyText: { 
-    fontWeight: '500', 
-    width: 24, 
-    textAlign: 'center', 
-    fontSize: 16 
+  qtyText: {
+    fontWeight: '500',
+    width: 24,
+    textAlign: 'center',
+    fontSize: 16,
   },
   checkoutBox: {
-    position: 'absolute', 
-    left: 0, 
-    right: 0, 
+    position: 'absolute',
+    left: 0,
+    right: 0,
     bottom: 0,
-    backgroundColor: 'white', 
-    borderTopWidth: 1, 
+    backgroundColor: 'white',
+    borderTopWidth: 1,
     borderColor: '#E5E7EB',
-    padding: 16, 
-    shadowColor: '#000', 
-    shadowOpacity: 0.1, 
-    shadowRadius: 6, 
-    elevation: 4
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   checkoutBtn: {
-    marginTop: 10, 
-    backgroundColor: '#e11d48', 
+    marginTop: 10,
+    backgroundColor: '#e11d48',
     paddingVertical: 13,
-    borderRadius: 8, 
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     height: 50,

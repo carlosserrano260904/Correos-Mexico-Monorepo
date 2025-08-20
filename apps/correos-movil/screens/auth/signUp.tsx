@@ -36,7 +36,7 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = useState(false)
   const [code, setCode] = useState('')
   const [nombre, setNombre] = useState('')
-  const [apellido, setApellido] = useState('')
+  // const [apellido, setApellido] = useState('')
   const [loading, setLoading] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -137,7 +137,7 @@ export default function SignUpScreen() {
   }
 
   const onSignUpPress = async () => {
-    if (!nombre || !apellido || !emailAddress || !password || !confirmPassword) {
+  if (!nombre || !emailAddress || !password || !confirmPassword) {
       Alert.alert('Error', 'Completa todos los campos')
       return
     }
@@ -162,7 +162,7 @@ export default function SignUpScreen() {
           correo: emailAddress,
           contrasena: password,
           nombre: nombre,
-          apellido: apellido,
+          // apellido: apellido, // eliminado porque ya no se pide
         }),
       })
       if (!res.ok) {
@@ -368,18 +368,7 @@ export default function SignUpScreen() {
             />
           </View>
 
-          {/* Apellido */}
-          <View style={styles.inputContainer}>
-            <Icon name="account-outline" size={22} color="#aaa" style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Apellido"
-              placeholderTextColor="#747688"
-              value={apellido}
-              onChangeText={setApellido}
-              editable={!loading}
-            />
-          </View>
+          {/* Apellido removido */}
 
           {/* Correo electrónico */}
           <View style={styles.inputContainer}>

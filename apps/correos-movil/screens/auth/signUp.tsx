@@ -95,26 +95,10 @@ export default function SignUpScreen() {
 
   // Función para continuar con el registro después de aceptar términos
   const continueSignUp = async () => {
-    try {
-      const res2 = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/email-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          correo: emailAddress,
-        }),
-      })
-      if (!res2.ok) {
-        const errorText = await res2.text()
-        throw new Error(`Email OTP backend error: ${res2.status} - ${errorText}`)
-      }
-
-      setLoading(false)
-      setPendingVerification(true)
-    } catch (error) {
-      setLoading(false)
-      console.error('Email OTP error:', JSON.stringify(error, null, 2))
-      Alert.alert('Error', 'No se pudo enviar el código de verificación')
-    }
+  // Aquí solo se debe mandar el OTP una vez, la función ya lo hace correctamente al ser llamada desde acceptTermsAndConditions
+  // No es necesario reenviar el OTP aquí, solo activar la verificación
+  setLoading(false)
+  setPendingVerification(true)
   }
 
   // Función para continuar con OAuth después de aceptar términos

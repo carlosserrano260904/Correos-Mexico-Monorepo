@@ -79,6 +79,7 @@ const RegistroVendedor: React.FC = () => {
                 name="curp"
                 value={formData.curp}
                 onChange={handleChange}
+                maxLength={18}
                 className="mt-1 w-full border rounded-md px-3 py-2 uppercase focus:outline-pink-500"
                 required
               />
@@ -91,7 +92,8 @@ const RegistroVendedor: React.FC = () => {
                 name="rfc"
                 value={formData.rfc}
                 onChange={handleChange}
-                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
+                maxLength={13}
+                className="mt-1 w-full border rounded-md px-3 py-2 uppercase focus:outline-pink-500"
                 required
               />
             </div>
@@ -116,7 +118,8 @@ const RegistroVendedor: React.FC = () => {
                 value={formData.codigoPostal}
                 onChange={handleChange}
                 inputMode="numeric"
-                pattern="[0-9]*"
+                pattern="[0-9]{5}"
+                maxLength={5}
                 className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
                 required
               />

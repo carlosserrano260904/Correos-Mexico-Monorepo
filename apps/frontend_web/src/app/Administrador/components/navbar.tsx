@@ -9,7 +9,7 @@ export const Navbar = () => {
   const pathName = usePathname()
 
   const navItems = [
-    {href: '/Administrador', label: 'Resumen'},
+    {href: '/Administrador/app/Resumen', label: 'Resumen'},
     {href: '/Administrador/app/Conductores', label: 'Conductores'},
     {href: '/Administrador/app/Sucursales', label: 'Sucursales'},
     {href: '/Administrador/app/Unidades', label: 'Unidades'},

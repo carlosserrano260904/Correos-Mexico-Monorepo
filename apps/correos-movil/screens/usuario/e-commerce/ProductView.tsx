@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as ImagePicker from 'expo-image-picker';
-import { TextInput } from 'react-native';
+import type { ImagePickerAsset } from 'expo-image-picker';
 import {
   View, Text, StyleSheet, Dimensions, Image, TouchableOpacity,
-  ScrollView, ActivityIndicator, Modal
+  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform,TextInput
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
@@ -35,7 +35,7 @@ type BackendProduct = {
   id: number;
   nombre: string;
   descripcion: string;
-  precio: string;
+  precio: string | number;
   categoria: string | null;
   images?: BackendImage[];
   imagen?: string | string[];
@@ -146,7 +146,7 @@ function ProductView() {
           name: data.nombre,
           description: data.descripcion,
           images: finalImages,
-          price: Number.parseFloat(data.precio),
+          price: Number.parseFloat(String(data.precio)),
           category: data.categoria ?? null,
           color: data.color,
           reviews,
@@ -164,7 +164,7 @@ function ProductView() {
     else { setLoading(false); setError('ID del producto no proporcionado.'); }
   }, [id]);
 
-  // ---- Favoritos / Carrito (igual que antes, omitido por brevedad) ----
+  // ---- Favoritos / Carrito ----
   React.useEffect(() => {
     const verificar = async () => {
       const uid = await getUserId();
@@ -189,36 +189,41 @@ function ProductView() {
     if (product && isMounted.current) verificar();
   }, [product, getUserId, id]);
 
-  // ---- Recomendados (igual que tenías) ----
+  // ---- Recomendados: usar GET /api/products (lista completa) ----
   React.useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
       try {
-        if (!product?.category) return;
-        const r = await fetch(`${IP}/api/products/random/${product.category}`, { signal: controller.signal });
+        const r = await fetch(`${IP}/api/products`, { signal: controller.signal });
         if (!r.ok) return;
         const data: BackendProduct[] = await r.json();
-        const mapped = Array.isArray(data) ? data.map(d => {
-          const urls = Array.isArray(d.images) ? d.images.map(x => x?.url).filter(Boolean) as string[] : [];
-          const imagen =
-            urls.length ? urls :
-            (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
-             typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
-          return {
-            id: String(d.id),
-            nombre: d.nombre,
-            precio: String(d.precio),
-            imagen,
-            images: imagen,
-            categoria: d.categoria ?? '',
-          };
-        }) : [];
+
+        const mapped = (Array.isArray(data) ? data : [])
+          .filter(d => d?.id !== Number(id)) // opcional: ocultar el mismo producto
+          .map(d => {
+            const urls = Array.isArray(d.images) ? d.images.map(x => x?.url).filter(Boolean) as string[] : [];
+            const imagen =
+              urls.length ? urls :
+              (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
+               typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
+            return {
+              id: String(d.id),
+              nombre: d.nombre,
+              precio: Number.parseFloat(String(d.precio)),
+              imagen,
+              images: imagen,
+              categoria: d.categoria ?? '',
+            };
+          });
+
         if (isMounted.current) setRecommended(mapped);
-      } catch { if (isMounted.current) setRecommended([]); }
+      } catch {
+        if (isMounted.current) setRecommended([]);
+      }
     };
-    if (product?.category) load();
+    load();
     return () => controller.abort();
-  }, [product?.category]);
+  }, [id]);
 
   const toggleFavorito = async () => {
     const uid = await getUserId(); if (!uid) return;
@@ -276,6 +281,13 @@ function ProductView() {
     <Text style={{ color: '#DE1484', fontWeight: '700' }}>{'★'.repeat(n)}{'☆'.repeat(5 - n)}</Text>
   );
 
+  // ---- Ver más/menos opiniones ----
+  const [reviewsVisible, setReviewsVisible] = React.useState(3);
+
+  // ---- Keyboard handling ----
+  const scrollRef = React.useRef<ScrollView>(null);
+  const handleInputFocus = () => scrollRef.current?.scrollToEnd({ animated: true });
+
   if (loading) {
     return (
       <View style={styles.centeredContainer}>
@@ -303,145 +315,172 @@ function ProductView() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.carouselContainer}>
-        <Carousel
-          ref={ref}
-          {...baseOptions}
-          loop
-          onProgressChange={progress}
-          style={styles.carousel}
-          data={carouselImageData}
-          renderItem={renderItem}
-        />
-        <Pagination.Basic<{ image: any }>
-          progress={progress}
-          data={carouselImageData}
-          size={scale(8)}
-          dotStyle={styles.dotStyle}
-          activeDotStyle={styles.activeDotStyle}
-          containerStyle={styles.paginationContainer}
-          horizontal
-          onPress={onPressPagination}
-        />
-        <TouchableOpacity style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
-          <FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleFavorito} style={styles.heartContainer}>
-          <FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleCarrito} style={[styles.heartContainer, styles.cartContainer]}>
-          <FontAwesomeIcon icon={faCartShopping} color={inCart ? "#DE1484" : "#000"} size={moderateScale(24)} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.contentContainer}>
-        <View style={styles.productNameContainer}>
-          <Text style={styles.productName} numberOfLines={3} ellipsizeMode="tail">
-            {product.name}
-          </Text>
-          <Text style={styles.productPrice}>{formatPrice(product.price || 0)}</Text>
-        </View>
-
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Categoría:</Text>
-            <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
-          </View>
-
-        <View style={styles.descriptionContainer}>
-            <Text style={styles.infoLabel}>Descripción:</Text>
-            <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
-          </View>
-        </View>
-<TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
-          <Text style={styles.addButtonText}>{inCart ? 'Quitar del carrito' : 'Añadir al carrito'}</Text>
-        </TouchableOpacity>
-        {/* ====== Reseñas con imágenes ====== */}
-        {!!product.reviews.length && (
-          <View style={{ marginBottom: moderateScale(24) }}>
-            <Text style={styles.recommendedTitle}>Opiniones</Text>
-
-            {product.reviews.map((r) => (
-              <View key={r.id} style={styles.reviewCard}>
-                <Image source={{ uri: r.author.avatar || DEFAULT_IMAGE }} style={styles.reviewAvatar} />
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.reviewAuthor}>{r.author.name}</Text>
-                    {renderStars(Math.max(0, Math.min(5, r.rating)))}
-                  </View>
-                  <Text style={styles.reviewDate}>
-                    {new Date(r.createdAt).toLocaleDateString('es-MX')}
-                  </Text>
-                  <Text style={styles.reviewComment}>{r.comment}</Text>
-
-                  {/* miniaturas */}
-                  {!!r.images.length && (
-                    <View style={styles.reviewThumbRow}>
-                      {r.images.map((u, idx) => (
-                        <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => openLightbox(r.images, idx)}>
-                          <Image source={{ uri: u }} style={styles.reviewThumb} />
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {product && (
-  <ReviewForm
-    productId={product.id}
-    profileId={userId ? Number(userId) : null}
-    onCreated={(newReview) => {
-      // prepend a la lista existente
-      setProduct(prev => prev
-        ? { ...prev, reviews: [newReview, ...prev.reviews] }
-        : prev
-      );
-    }}
-  />
-)}
-
-
-
-
-        <View style={styles.recommendedContainer}>
-          <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
-          <ProductListScreen productos={recommended} likeTrigger={likeTrigger} />
-        </View>
-      </View>
-
-      {/* ====== LIGHTBOX ====== */}
-      <Modal visible={lightboxVisible} transparent animationType="fade" onRequestClose={closeLightbox}>
-        <View style={styles.lightboxBackdrop}>
-          <Image
-            source={{ uri: lightboxImages[lightboxIndex] || DEFAULT_IMAGE }}
-            style={styles.lightboxImage}
-            resizeMode="contain"
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? moderateScale(60) : 0}
+    >
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: moderateScale(40) }}
+      >
+        <View style={styles.carouselContainer}>
+          <Carousel
+            ref={ref}
+            {...baseOptions}
+            loop
+            onProgressChange={progress}
+            style={styles.carousel}
+            data={carouselImageData}
+            renderItem={renderItem}
           />
-          <TouchableOpacity style={styles.lightboxClose} onPress={closeLightbox}>
-            <FontAwesomeIcon icon={faXmark} size={22} />
+          <Pagination.Basic<{ image: any }>
+            progress={progress}
+            data={carouselImageData}
+            size={scale(8)}
+            dotStyle={styles.dotStyle}
+            activeDotStyle={styles.activeDotStyle}
+            containerStyle={styles.paginationContainer}
+            horizontal
+            onPress={onPressPagination}
+          />
+          <TouchableOpacity style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleFavorito} style={styles.heartContainer}>
+            <FontAwesomeIcon icon={liked ? solidHeart : regularHeart} color={liked ? "#DE1484" : "#000"} size={moderateScale(24)} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleCarrito} style={[styles.heartContainer, styles.cartContainer]}>
+            <FontAwesomeIcon icon={faCartShopping} color={inCart ? "#DE1484" : "#000"} size={moderateScale(24)} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.contentContainer}>
+          <View style={styles.productNameContainer}>
+            <Text style={styles.productName} numberOfLines={3} ellipsizeMode="tail">
+              {product.name}
+            </Text>
+            <Text style={styles.productPrice}>{formatPrice(product.price || 0)}</Text>
+          </View>
+
+          <View style={styles.infoContainer}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Categoría:</Text>
+              <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
+            </View>
+
+            <View style={styles.descriptionContainer}>
+              <Text style={styles.infoLabel}>Descripción:</Text>
+              <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
+            <Text style={styles.addButtonText}>{inCart ? 'Quitar del carrito' : 'Añadir al carrito'}</Text>
           </TouchableOpacity>
 
-          {lightboxImages.length > 1 && (
-            <>
-              <TouchableOpacity style={[styles.navBtn, { left: 10 }]} onPress={prevLightbox}>
-                <FontAwesomeIcon icon={faChevronLeft} size={20} />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.navBtn, { right: 10 }]} onPress={nextLightbox}>
-                <FontAwesomeIcon icon={faChevronRight} size={20} />
-              </TouchableOpacity>
-              <Text style={styles.lightboxIndex}>
-                {lightboxIndex + 1}/{lightboxImages.length}
-              </Text>
-            </>
+          {/* ====== Reseñas con imágenes ====== */}
+          {!!product.reviews.length && (
+            <View style={{ marginBottom: moderateScale(24) }}>
+              <Text style={styles.recommendedTitle}>Opiniones</Text>
+
+              {product.reviews.slice(0, reviewsVisible).map((r) => (
+                <View key={r.id} style={styles.reviewCard}>
+                  <Image source={{ uri: r.author.avatar || DEFAULT_IMAGE }} style={styles.reviewAvatar} />
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={styles.reviewAuthor}>{r.author.name}</Text>
+                      {renderStars(Math.max(0, Math.min(5, r.rating)))}
+                    </View>
+                    <Text style={styles.reviewDate}>
+                      {new Date(r.createdAt).toLocaleDateString('es-MX')}
+                    </Text>
+                    <Text style={styles.reviewComment}>{r.comment}</Text>
+
+                    {!!r.images.length && (
+                      <View style={styles.reviewThumbRow}>
+                        {r.images.map((u, idx) => (
+                          <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => openLightbox(r.images, idx)}>
+                            <Image source={{ uri: u }} style={styles.reviewThumb} />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+
+              {product.reviews.length > reviewsVisible && (
+                <TouchableOpacity
+                  style={styles.seeMoreBtn}
+                  onPress={() => setReviewsVisible(n => n + 3)}
+                >
+                  <Text style={styles.seeMoreText}>Ver más</Text>
+                </TouchableOpacity>
+              )}
+              {product.reviews.length > 3 && reviewsVisible >= product.reviews.length && (
+                <TouchableOpacity
+                  style={styles.seeMoreBtn}
+                  onPress={() => setReviewsVisible(3)}
+                >
+                  <Text style={styles.seeMoreText}>Ver menos</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
+
+          {product && (
+            <ReviewForm
+              productId={product.id}
+              profileId={userId ? Number(userId) : null}
+              onCreated={(newReview) => {
+                setProduct(prev => prev
+                  ? { ...prev, reviews: [newReview, ...prev.reviews] }
+                  : prev
+                );
+                setReviewsVisible(v => Math.max(3, v)); // mantener al menos 3 visibles
+              }}
+              onInputFocus={handleInputFocus}
+            />
+          )}
+
+          <View style={styles.recommendedContainer}>
+            <Text style={styles.recommendedTitle}>Recomendados para ti</Text>
+            <ProductListScreen productos={recommended} likeTrigger={likeTrigger} />
+          </View>
         </View>
-      </Modal>
-    </ScrollView>
+
+        {/* ====== LIGHTBOX ====== */}
+        <Modal visible={lightboxVisible} transparent animationType="fade" onRequestClose={closeLightbox}>
+          <View style={styles.lightboxBackdrop}>
+            <Image
+              source={{ uri: lightboxImages[lightboxIndex] || DEFAULT_IMAGE }}
+              style={styles.lightboxImage}
+              resizeMode="contain"
+            />
+            <TouchableOpacity style={styles.lightboxClose} onPress={closeLightbox}>
+              <FontAwesomeIcon icon={faXmark} size={22} />
+            </TouchableOpacity>
+
+            {lightboxImages.length > 1 && (
+              <>
+                <TouchableOpacity style={[styles.navBtn, { left: 10 }]} onPress={prevLightbox}>
+                  <FontAwesomeIcon icon={faChevronLeft} size={20} />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.navBtn, { right: 10 }]} onPress={nextLightbox}>
+                  <FontAwesomeIcon icon={faChevronRight} size={20} />
+                </TouchableOpacity>
+                <Text style={styles.lightboxIndex}>
+                  {lightboxIndex + 1}/{lightboxImages.length}
+                </Text>
+              </>
+            )}
+          </View>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -506,9 +545,21 @@ const styles = StyleSheet.create({
   recommendedContainer: { marginBottom: moderateScale(32) },
   recommendedTitle: { fontWeight: '700', fontSize: moderateScale(20), color: '#333', marginBottom: moderateScale(12) },
 
+  // ver más
+  seeMoreBtn: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#ddd',
+    marginTop: 8,
+  },
+  seeMoreText: { color: '#DE1484', fontWeight: '600' },
+
   // lightbox
   lightboxBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', alignItems: 'center', justifyContent: 'center' },
-  lightboxImage: { width: '100%', height: '80%' },
+  lightboxImage: { width: '100%', height: '100%' }, // pantalla completa
   lightboxClose: {
     position: 'absolute', top: 30, right: 16,
     backgroundColor: 'white', width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'
@@ -519,10 +570,12 @@ const styles = StyleSheet.create({
   },
   lightboxIndex: { position: 'absolute', bottom: 24, color: 'white', fontWeight: '600' },
 });
+
 function ReviewForm({
   productId,
   profileId,
   onCreated,
+  onInputFocus,
 }: {
   productId: number;
   profileId: number | null;
@@ -530,10 +583,11 @@ function ReviewForm({
     id: number; rating: number; comment: string; createdAt: string;
     author: { name: string; avatar: string }; images: string[];
   }) => void;
+  onInputFocus?: () => void;
 }) {
   const [rating, setRating] = React.useState(5);
   const [comment, setComment] = React.useState('');
-  const [images, setImages] = React.useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [images, setImages] = React.useState<ImagePickerAsset[]>([]);
   const [sending, setSending] = React.useState(false);
 
   const pickImages = async () => {
@@ -559,7 +613,6 @@ function ReviewForm({
       fd.append('profileId', String(profileId));
 
       images.forEach((a, i) => {
-        // RN requiere name & type:
         fd.append('files', {
           uri: a.uri,
           name: `review_${Date.now()}_${i}.jpg`,
@@ -569,7 +622,7 @@ function ReviewForm({
 
       const resp = await fetch(`${IP}/api/reviews/with-images`, {
         method: 'POST',
-        headers: { 'Accept': 'application/json' }, // NO pongas Content-Type, RN lo pone con boundary
+        headers: { 'Accept': 'application/json' }, // RN define Content-Type con boundary
         body: fd,
       });
       if (!resp.ok) {
@@ -577,7 +630,6 @@ function ReviewForm({
         throw new Error(`Error ${resp.status}: ${t}`);
       }
       const created = await resp.json();
-      // normaliza a la forma que usa ProductView
       onCreated({
         id: created.id,
         rating: created.rating,
@@ -614,11 +666,17 @@ function ReviewForm({
         ))}
       </View>
 
+      <Text
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={{ height: 0, width: 0 }}
+      />
       <TextInput
         placeholder="¿Qué te pareció el producto?"
         multiline
         value={comment}
         onChangeText={setComment}
+        onFocus={onInputFocus}
         style={reviewStyles.input}
       />
 
@@ -666,6 +724,5 @@ const reviewStyles = StyleSheet.create({
   },
   btn: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 },
 });
-
 
 export default ProductView;

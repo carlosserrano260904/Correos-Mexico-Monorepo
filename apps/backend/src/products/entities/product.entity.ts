@@ -20,6 +20,22 @@ export class Product {
   @Column({ type: "varchar", length: 120 })
   descripcion: string;
 
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "varchar", length: 40, nullable: true})
+  altura: string | null;
+
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "varchar", length: 40, nullable: true})
+  largo: string | null;
+
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "varchar", length: 40, nullable: true})
+  ancho: string | null;
+
+  @ApiProperty({example: "2kg"})
+  @Column({type: "varchar", length: 40, nullable: true})
+  peso: string | null;
+
   @ApiProperty({ example: 1299.9, type: Number })
   @Column({
     type: "decimal",
@@ -64,6 +80,10 @@ export class Product {
   @ApiProperty({ example: "SKU-ABC-001" })
   @Column({ type: "varchar", length: 60 })
   sku: string;
+
+  @ApiProperty({ example: 1})
+  @Column({ type: "int", nullable: true })
+  idPerfil: number | null;
 
   @ApiProperty({ type: () => [ProductImage] })
   @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })

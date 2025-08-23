@@ -58,7 +58,7 @@ const TarificadorMexpost = () => {
   const max_ancho = 300;
   const max_largo = 300;
 
-  //obtener profielid
+  //obtener profileId
   useEffect(() => {
     const fetchProfileId = async () => {
       try {
@@ -188,7 +188,7 @@ const TarificadorMexpost = () => {
 
   const handleCotizarInternacional = async () => {
     if (!peso || !alto || !ancho || !largo) {
-      Alert.alert("Campos vacios", "Es necesario completar todas las dimensiones y peso.")
+      Alert.alert("Campos vacíos", "Es necesario completar todas las dimensiones y peso.")
       return
     }
     if (!paisDestino || !paisDestino.name) {
@@ -343,6 +343,7 @@ const TarificadorMexpost = () => {
               <Text style={styles.subtitle}>MEXPOST</Text>
             </Text>
           </View>
+
           {/* Tabs */}
           <View style={[styles.tabContainer, showQuote && styles.tabContainerWithBorder]}>
             <TouchableOpacity
@@ -360,6 +361,7 @@ const TarificadorMexpost = () => {
               <Text style={[styles.tabText, activeTab === "Internacional" && styles.activeTabText]}>Internacional</Text>
             </TouchableOpacity>
           </View>
+
           {/* Form */}
           <View style={[styles.formContainer, showQuote && styles.formContainerWithBorder]}>
             {activeTab === "Nacional" ? (
@@ -386,19 +388,18 @@ const TarificadorMexpost = () => {
                 />
               </>
             ) : (
-              <>
-                <TouchableOpacity
-                  style={styles.input}
-                  onPress={() => setShowCountryModal(true)}
-                  disabled={showQuote || loading}
-                >
-                  <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
-                    {paisDestino?.name || "Selecciona un país"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
-                </TouchableOpacity>
-              </>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => setShowCountryModal(true)}
+                disabled={showQuote || loading}
+              >
+                <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
+                  {paisDestino?.name || "Selecciona un país"}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
+              </TouchableOpacity>
             )}
+
             {activeTab === "Nacional" && !showResults && (
               <TouchableOpacity
                 style={[styles.searchButton, loading && styles.disabledButton]}
@@ -409,15 +410,17 @@ const TarificadorMexpost = () => {
               </TouchableOpacity>
             )}
           </View>
+
           {/* Results Section */}
           {showResults && (
             <View style={styles.resultsContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Datos de envío</Text>
                 <TouchableOpacity onPress={handleLimpiar}>
-                  <Text style={styles.limpiarButton}>Limpiar</Text>
+                  <Text style={styles.limpiarButton}>Nueva consulta</Text>
                 </TouchableOpacity>
               </View>
+
               {activeTab === "Nacional" && datosEnvio && (
                 <>
                   <View style={styles.infoRow}>
@@ -440,6 +443,7 @@ const TarificadorMexpost = () => {
                   </View>
                 </>
               )}
+
               {activeTab === "Internacional" && infoPais && (
                 <>
                   <View style={styles.infoRow}>
@@ -452,6 +456,7 @@ const TarificadorMexpost = () => {
                   </View>
                 </>
               )}
+
               {!showQuote && (
                 <>
                   <View style={styles.infoRow}>
@@ -478,7 +483,8 @@ const TarificadorMexpost = () => {
                       blurOnSubmit={false}
                     />
                     {peso !== "" && (
-                      <Text style={styles.unitLabel}>kg</Text>)}
+                      <Text style={styles.unitLabel}>kg</Text>
+                    )}
                   </View>
 
                   <View style={{ position: 'relative' }}>
@@ -514,7 +520,7 @@ const TarificadorMexpost = () => {
                       value={ancho}
                       onChangeText={val => {
                         if (parseFloat(val) > max_ancho) {
-                          Alert.alert("Límite excedido", `El alto máximo permitido es ${max_ancho} cm. Pruebe con un valor menor.`);
+                          Alert.alert("Límite excedido", `El ancho máximo permitido es ${max_ancho} cm. Pruebe con un valor menor.`);
                           return;
                         }
                         setAncho(val.replace(/[^0-9.]/g, ""));
@@ -538,7 +544,7 @@ const TarificadorMexpost = () => {
                       value={largo}
                       onChangeText={val => {
                         if (parseFloat(val) > max_largo) {
-                          Alert.alert("Límite excedido", `El alto máximo permitido es ${max_largo} cm. Pruebe con un valor menor.`);
+                          Alert.alert("Límite excedido", `El largo máximo permitido es ${max_largo} cm. Pruebe con un valor menor.`);
                           return;
                         }
                         setLargo(val.replace(/[^0-9.]/g, ""));
@@ -565,6 +571,7 @@ const TarificadorMexpost = () => {
                   </TouchableOpacity>
                 </>
               )}
+
               {showQuote && cotizacionData && (
                 <>
                   <View style={styles.sectionHeader}>
@@ -596,7 +603,6 @@ const TarificadorMexpost = () => {
 
                     {activeTab === "Nacional" ? (
                       <>
-                        {/* Nacional muestra tarifaSinIVA, iva y costoTotal */}
                         <View style={styles.detalleRow}>
                           <Text style={styles.detalleLabel}>Tarifa sin IVA:</Text>
                           <Text style={styles.detalleValue}>
@@ -612,7 +618,6 @@ const TarificadorMexpost = () => {
                       </>
                     ) : (
                       <>
-                        {/* Internacional muestra precioBase, iva, total */}
                         <View style={styles.detalleRow}>
                           <Text style={styles.detalleLabel}>Precio base:</Text>
                           <Text style={styles.detalleValue}>
@@ -628,49 +633,49 @@ const TarificadorMexpost = () => {
                       </>
                     )}
                   </View>
-                  {/* Solo mostrar el resumen de costo total en Nacional */}
-                  {activeTab === "Nacional" && (
-                    <View>
-                      <View style={styles.costoTotalContainer}>
-                        <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                        <Text style={styles.costoTotalValue}>
-                          MXN {costo || 'N/A'}
-                        </Text>
-                      </View>
 
-                      {/* Boton de pago simplificado */}
-                      <CheckoutButton
-                        amount={costo}
-                        email={email}
-                        profileId={115}
-                        onPaymentSuccess={(paymentResult) => {
-                          console.log('Pago exitoso:', paymentResult);
-                          // Aquí puedes hacer lo que necesites después del pago
-                          // Por ejemplo, redirigir, limpiar formulario, etc.
-                          Alert.alert('Éxito', 'El pago se procesó correctamente');
-                        }}
-                        onPaymentError={(error) => {
-                          console.error('Error en pago:', error);
-                          // Manejar errores si es necesario
-                        }}
-                      />
-                    </View>
-                  )}
+                  {/* Costo total y botón de pago */}
+                  <View style={styles.costoTotalContainer}>
+                    <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                    <Text style={styles.costoTotalValue}>
+                      {activeTab === "Nacional" 
+                        ? `MXN ${costo || 'N/A'}` 
+                        : `USD ${cotizacionData.total || "N/A"}`
+                      }
+                    </Text>
+                  </View>
 
-                  {activeTab === "Internacional" && (
-                    <View style={styles.costoTotalContainer}>
-                      <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                      <Text style={styles.costoTotalValue}>
-                        USD {cotizacionData.total || "N/A"}
-                      </Text>
-                    </View>
-                  )}
+                  <CheckoutButton
+                    amount={activeTab === "Nacional" ? costo : cotizacionData.total}
+                    email={email}
+                    profileId={profileId || 115}
+                    onPaymentSuccess={(paymentResult) => {
+                      console.log('Pago exitoso:', paymentResult);
+                      navigation.navigate('GuiaFormulario', {
+                        datosTarifador: {
+                          codigoOrigen,
+                          codigoDestino,
+                          peso,
+                          alto,
+                          ancho,
+                          largo,
+                          costo: activeTab === "Nacional" ? costo : cotizacionData.total,
+                          tipoEnvio: activeTab,
+                        }
+                      });
+                    }}
+                    onPaymentError={(error) => {
+                      console.error('Error en pago:', error);
+                      Alert.alert('Error', 'Hubo un problema con el pago');
+                    }}
+                  />
                 </>
               )}
             </View>
           )}
         </ScrollView>
 
+        {/* Modal de países */}
         <Modal
           visible={showCountryModal}
           transparent={true}
@@ -724,7 +729,6 @@ const TarificadorMexpost = () => {
     </SafeAreaView>
   )
 }
-
 
 const styles = StyleSheet.create({
   infoLabel: {

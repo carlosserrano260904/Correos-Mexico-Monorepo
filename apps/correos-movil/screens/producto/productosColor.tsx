@@ -163,7 +163,7 @@ export default function ProductsScreen() {
         )}
       </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
         <Headset color="#fff" size={moderateScale(24)} />
       </TouchableOpacity>
     </SafeAreaView>

@@ -21,6 +21,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { moderateScale } from 'react-native-size-matters';
+import AppHeader from '../../../components/common/AppHeader';
+import Loader from '../../../components/common/Loader';
 
 const PINK = '#E6007E';
 
@@ -121,12 +123,8 @@ export default function MisCompras() {
   }, []);
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={PINK} />
-      </View>
-    );
-  }
+  return <Loader message="Cargando tus compras..." />;
+}
 
   if (error) {
     return (
@@ -138,22 +136,7 @@ export default function MisCompras() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={PINK} />
-      <SafeAreaView style={{ backgroundColor: PINK }}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            accessibilityRole="button"
-            accessible={true}
-            accessibilityLabel="Regresar"
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mis Compras</Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </SafeAreaView>
+      <AppHeader title="Mis Compras" onBack={() => navigation.goBack()} />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
@@ -290,31 +273,6 @@ export default function MisCompras() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
-    height: Platform.OS === 'ios' ? 70 : 60,
-    justifyContent: 'space-between',
-    backgroundColor: PINK,
-  },
-  backButton: {
-    width: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 20,
-    textAlign: 'center',
-    flex: 1,
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: PINK,
-  },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: {
     color: PINK,

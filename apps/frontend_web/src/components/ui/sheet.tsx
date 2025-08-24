@@ -5,6 +5,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 
 import { cn } from "../../app/lib/utils"
+import { useHydration } from "../../hooks/useHydratyon"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -118,6 +119,20 @@ function SheetDescription({
   className,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Description>) {
+  const isHydrated = useHydration()
+
+  // During SSR and before hydration, render a safe div to prevent nesting issues
+  if (!isHydrated) {
+    return (
+      <div
+        data-slot="sheet-description"
+        className={cn("text-muted-foreground text-sm", className)}
+        {...props}
+      />
+    )
+  }
+
+  // After hydration, render the full Radix component
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"

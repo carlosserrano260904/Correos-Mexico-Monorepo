@@ -42,8 +42,8 @@ export class ProfileService {
   async update(id: number, dto: UpdateProfileDto) {
     const perfil = await this.findOne(id);
     Object.assign(perfil, dto);
-    await this.profileRepository.save(perfil);
-    return { ok: true, message: 'Perfil actualizado correctamente' };
+    const perfilActualizado = await this.profileRepository.save(perfil);
+    return perfilActualizado;
   }
 
   async remove(id: number) {

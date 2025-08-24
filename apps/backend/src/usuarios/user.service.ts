@@ -49,6 +49,13 @@ export class UserService {
     });
   }
 
+  findByProfileId(profileId: number) {
+    return this.repo.findOne({
+      where: { profile: { id: profileId } },
+      relations: ['profile']
+    });
+  }
+
   async update(email: string, password: string) {
     const result = await this.repo.update(
       {

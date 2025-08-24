@@ -21,16 +21,23 @@ export class CarritoService {
   ) {}
   
   async obtenerCarrito(profileId: number) {
-    const productos = await this.carritoRepo.find({
-      where: { usuario: { id: profileId }, activo: true },
-      relations: ['producto'],
-    });
-
-    if (!productos.length) {
-      throw new NotFoundException('El usuario no tiene productos en el carrito');
+    // Verify profile exists
+    const profile = await this.profileRepo.findOneBy({ id: profileId });
+    if (!profile) {
+      throw new NotFoundException('Perfil no encontrado');
     }
 
-    return productos;
+    const productos = await this.carritoRepo.find({
+      where: { usuario: { id: profileId }, activo: true },
+      relations: ['producto', 'producto.images'],
+    });
+
+    // Return empty array if no products, don't throw error
+    return {
+      items: productos,
+      subtotal: productos.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0),
+      total: productos.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0),
+    };
   }
 
   async agregarProducto(profileId: number, productId: number, cantidad: number) {
@@ -101,7 +108,7 @@ export class CarritoService {
 
   async procederAlPago(profileId: number) {
     const productos = await this.obtenerCarrito(profileId);
-    if (!productos.length) throw new NotFoundException('El carrito está vacío');
+    if (!productos.items.length) throw new NotFoundException('El carrito está vacío');
 
     return {
       message: 'Redirigiendo a detalles de compra...',

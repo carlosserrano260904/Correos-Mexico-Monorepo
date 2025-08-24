@@ -1,4 +1,3 @@
-<<<<<<< HEAD
   'use client'
   import Link from 'next/link';
   import React, { useState } from 'react'
@@ -20,22 +19,6 @@
   import { Textarea } from '@/components/ui/textarea'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import { FaEdit } from "react-icons/fa"
-=======
-'use client'
-import Link from 'next/link';
-import React from 'react'
-import { TableCell, TableRow } from '../../../components/ui/table';
-import { CuponesPropsFront, DescuentosPropsFront, OrdenesProps, ProductosPropsFront } from '@/types/interface'
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../../../components/ui/sheet';
-import { FaInfo } from 'react-icons/fa6';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { FaTrash, FaCaretUp } from "react-icons/fa6";
-import { useProducts } from '@/hooks/useProduct';
-import { useCupons } from '@/hooks/useCupons';
-import { useDescuentos } from '@/hooks/useDescuentos';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
->>>>>>> fddc691a74543ca3dccd31a2c064cac05de4dbb0
 
 
   export const Title = ({ children, size = "xl", className }: { children: React.ReactNode, size?: string, className?: string }) => {
@@ -265,10 +248,10 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
       case 'full':
         return (
           <TableRow key={ProductID}>
-            <TableCell className="flex">
+            <TableCell className="flex min-w-sm">
               <img src={ProductImageUrl} className="h-16 w-16 m-2" ></img>
               <div className="content-center pl-2">
-                <h3 className="text-lg">{ProductName}</h3>
+                <h3 className="text-lg text-balance">{ProductName}</h3>
                 <p className="text-sm font-light text-gray-600">{ProductBrand}</p>
               </div>
             </TableCell>
@@ -307,7 +290,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
         <FaEdit color='white' size={14} />
       </Button>
     </SheetTrigger>
-    <SheetContent className='rounded-lg m-3 h-fit w-[800px] overflow-y-auto'>
+    <SheetContent className='rounded-lg m-3 w-[800px] flex flex-col h-[90hv]'>
       <SheetHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -320,10 +303,10 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
         </div>
       </SheetHeader>
 
-      <div className="mx-5 text-sm">
-        <div className="space-y-4 mt-4">
+      <div className="flex-1 overflow-y-auto mx-5 text-sm">
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="edit-name">Nombre del producto</Label>
+            <Label htmlFor="edit-name" className='mb-2'>Nombre del producto</Label>
             <Input
               id="edit-name"
               value={formData.ProductName}
@@ -333,7 +316,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="edit-description">Descripción</Label>
+            <Label htmlFor="edit-description" className='mb-2'>Descripción</Label>
             <Textarea
               id="edit-description"
               value={formData.ProductDescription}
@@ -345,7 +328,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edit-price">Precio</Label>
+              <Label htmlFor="edit-price" className='mb-2'>Precio</Label>
               <Input
                 id="edit-price"
                 type="number"
@@ -357,7 +340,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="edit-stock">Inventario</Label>
+              <Label htmlFor="edit-stock" className='mb-2'>Inventario</Label>
               <Input
                 id="edit-stock"
                 type="number"
@@ -371,7 +354,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edit-category">Categoría</Label>
+              <Label htmlFor="edit-category" className='mb-2'>Categoría</Label>
               <Select 
                 value={formData.ProductCategory} 
                 onValueChange={(value) => handleInputChange('ProductCategory', value)}
@@ -387,7 +370,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
               </Select>
             </div>
             <div>
-              <Label htmlFor="edit-color">Color</Label>
+              <Label htmlFor="edit-color" className='mb-2'>Color</Label>
               <Input
                 id="edit-color"
                 value={formData.Color}
@@ -398,7 +381,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="edit-image">URL de la imagen</Label>
+            <Label htmlFor="edit-image" className='mb-2'>URL de la imagen</Label>
             <Input
               id="edit-image"
               value={formData.ProductImageUrl}
@@ -421,7 +404,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
         </div>
       </div>
 
-      <SheetFooter className="mt-6">
+      <SheetFooter className="h-[12hv]">
         <div className="flex gap-2 w-full">
           <SheetClose asChild>
             <Button
@@ -655,417 +638,9 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
     <p className="text-3xl font-bold text-gray-900">{valor}</p>
   );
 
-<<<<<<< HEAD
   export const Card_cambio = ({ cambio }: { cambio: number }) => (
     <p className={`text-sm ${cambio >= 0 ? 'text-green-600' : 'text-red-600'}`}>
       {cambio >= 0 ? `+${cambio.toFixed(2)}%` : `${cambio.toFixed(2)}%`}
     </p>
   );
-=======
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button className='bg-blue-700 rounded-2xl ml-2 w-[38px] h-[38px] p-0'>
-                  <FaCaretUp color='white' size={14} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className='rounded-lg m-3 h-fit w-[800px]'>
-                <SheetHeader>
-                  <SheetTitle>{CuponCode}</SheetTitle>
-                  <SheetDescription>
-                    Detalles del cupon
-                    <Separator className='mt-2' />
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mx-5 mb-5 text-sm">
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Veces usado</div>
-                    <div className='w-full'>{TimesUsed}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Estatus</div>
-                    <div className='w-full'>
-                      {getStatusBadge(CuponStatus)}
-                    </div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Fecha de expiracion</div>
-                    <div className='w-full'>{EndDate}</div>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </TableCell>
-        </TableRow>
-      )
-
-    case 'compact':
-      return (
-        <div className='flex justify-between mb-1.5'>
-          <div className='w-fit px-2 py-1 rounded-3xl bg-[#F3F4F6] font-medium'>{CuponCode}</div>
-          <div className='w-full flex place-content-end me-3 font-medium'>{TimesUsed}</div>
-        </div>
-      )
-
-    default:
-      return null;
-  }
-}
-
-export const Descuento = ({ DescuentoID, DescuentoName, TimesUsed, DescuentoStatus, EndDate, variant = 'full' }: DescuentosPropsFront) => {
-  const { deleteDescuento } = useDescuentos()
-  
-  const getStatusBadge = (status: number) => (
-    <span className={`w-max rounded-lg px-[6px] ${
-      status === 1 ? 'text-green-400 bg-green-100' :
-      status === 2 ? 'text-orange-400 bg-orange-100' :
-      status === 3 ? 'text-red-400 bg-red-100' : ''
-    }`}>
-      {
-        status === 1 ? 'Activo' :
-        status === 2 ? 'Borrado' :
-        status === 3 ? 'Caducado' : ''
-      }
-    </span>
-  );
-
-  switch (variant) {
-    case 'full':
-      return (
-        <TableRow key={DescuentoID}>
-          <TableCell>{DescuentoName}</TableCell>
-          <TableCell>{TimesUsed}</TableCell>
-          <TableCell>
-            {getStatusBadge(DescuentoStatus)}
-          </TableCell>
-          <TableCell>{EndDate}</TableCell>
-          <TableCell>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className='bg-red-700 rounded-2xl w-[38px] h-[38px] p-0'>
-                  <FaTrash color='white' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Seguro que quieres eliminar {DescuentoName}?</AlertDialogTitle>
-                  <AlertDialogDescription>Esto hará que el descuento no se pueda volver a usar</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction className='bg-red-700' onClick={() => deleteDescuento(DescuentoID)}>Borrar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button className='bg-blue-700 rounded-2xl ml-2 w-[38px] h-[38px] p-0'>
-                  <FaCaretUp color='white' size={14} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className='rounded-lg m-3 h-fit w-[800px]'>
-                <SheetHeader>
-                  <SheetTitle>{DescuentoName}</SheetTitle>
-                  <SheetDescription>
-                    Detalles del descuento
-                    <Separator className='mt-2' />
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mx-5 mb-5 text-sm">
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Veces usado</div>
-                    <div className='w-full'>{TimesUsed}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Estatus</div>
-                    <div className='w-full'>
-                      {getStatusBadge(DescuentoStatus)}
-                    </div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Fecha de expiración</div>
-                    <div className='w-full'>{EndDate}</div>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </TableCell>
-        </TableRow>
-      )
-
-    case 'compact':
-      return (
-        <div className='flex justify-between mb-1.5'>
-          <div className='w-fit px-2 py-1 rounded-3xl bg-[#F3F4F6] font-medium'>{DescuentoName}</div>
-          <div className='w-full flex place-content-end me-3 font-medium'>{TimesUsed}</div>
-        </div>
-      )
-
-    default:
-      return null;
-  }
-}
-
-export const Producto = ({ ProductID, productPrice, ProductDescription, ProductImageUrl, ProductName, ProductBrand, ProductStatus, ProductStock, ProductCategory, ProductSellerName, variant = 'full', ProductSold, ProductSlug }: ProductosPropsFront) => {
-  const { deleteProduct } = useProducts()
-
-  switch (variant) {
-    case 'full':
-      return (
-        <TableRow key={ProductID}>
-          <TableCell className="flex">
-            <img src={ProductImageUrl} className="h-16 w-16 m-2" ></img>
-            <div className="content-center pl-2">
-              <h3 className="text-lg">{ProductName}</h3>
-              <p className="text-sm font-light text-gray-600">{ProductBrand}</p>
-            </div>
-          </TableCell>
-          <TableCell>
-            <p className={`w-max px-[10px] rounded-lg ${ProductStatus ? "text-green-500 bg-[#34D39933]" : "text-blue-950 bg-gray-200"}`}>
-              {ProductStatus ? "Activo" : "Archivado"}
-            </p>
-          </TableCell>
-          <TableCell>{ProductStock} en existencia</TableCell>
-          <TableCell>{ProductCategory}</TableCell>
-          <TableCell>{ProductSellerName}</TableCell>
-          <TableCell>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className='bg-red-700 rounded-2xl w-[38px] h-[38px] p-0'>
-                  <FaTrash color='white' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Seguro que quieres eliminar {ProductName}?</AlertDialogTitle>
-                  <AlertDialogDescription>Esto eliminara todas las publicaciones del producto y cualquier cosa relacionada con este producto</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction className='bg-red-700' onClick={() => deleteProduct(ProductID)}>Borrar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button className='bg-blue-700 rounded-2xl ml-2 w-[38px] h-[38px] p-0'>
-                  <FaCaretUp color='white' size={14} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className='rounded-lg m-3 h-fit w-[800px]'>
-                <SheetHeader>
-                  <SheetTitle>{ProductName}</SheetTitle>
-                  <SheetDescription>
-                    Detalles del producto
-                    <Separator className='mt-2' />
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mx-5 text-sm">
-                  <div className='flex'>
-                    <div className='w-full'>Slug</div>
-                    <div className='w-full text-right'>{ProductSlug}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Descripcion</div>
-                    <div className='w-full text-right'>{ProductDescription}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Categoria</div>
-                    <div className='w-full text-right'>{ProductCategory}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Marca</div>
-                    <div className='w-full text-right'>{ProductBrand}</div>
-                  </div>
-                  <Separator className='mt-2' />
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Precio</div>
-                    <div className='w-full text-right'>{productPrice}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Inventario</div>
-                    <div className='w-full text-right'>{ProductStock}</div>
-                  </div>
-                  <div className='flex mt-3.5'>
-                    <div className='w-full'>Imagenes</div>
-                    <div className='w-full text-right'><img src={ProductImageUrl} className="" ></img></div>
-                  </div>
-
-
-                </div>
-                <SheetFooter>
-                  <SheetClose asChild>
-                  </SheetClose>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
-          </TableCell>
-        </TableRow>
-      )
-      break;
-
-    case 'compact':
-      return (
-        <div className='flex'>
-          <div className='flex'>
-            <img src={ProductImageUrl} className="h-16 w-16 m-2" ></img>
-            <div className="content-center pl-2">
-              <h3 className="text-lg">{ProductName}</h3>
-              <p className="text-sm font-light text-gray-600">{ProductBrand}</p>
-            </div>
-          </div>
-          <div className='ms-auto my-auto me-6'>
-            <p className='text-end font-medium'>
-              {ProductSold}
-            </p>
-            {ProductSold ? <p className='font-medium'>
-              vendidos
-            </p> : <></>}
-          </div>
-        </div>
-      );
-      break;
-  }
-
-
-}
-
-export const Orden = ({ OrderID, OrderInfo, NoProducts, OrderStatus, OrderTotal, OrderDate, PaymentMethod, ClientName, Email, PhoneNumber, PackageStatus }: OrdenesProps) => {
-
-  return (
-    <TableRow key={OrderID}>
-      <TableCell className="flex">#{OrderID}</TableCell>
-      <TableCell className="max-w-32 break-words whitespace-normal">{OrderInfo.map((item) => (item.ProductName))}</TableCell>
-      <TableCell>{NoProducts}</TableCell>
-      <TableCell>
-        <p className={`w-max rounded-lg px-[6px] ${OrderStatus === 1 ? 'text-green-400 bg-green-100' : OrderStatus === 2 ? 'text-orange-400 bg-orange-100' : OrderStatus === 3 ? 'text-red-400 bg-red-100' : ''}`}>
-          {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : ''}
-        </p>
-      </TableCell>
-      <TableCell>${OrderTotal}</TableCell>
-      <TableCell>{OrderDate}</TableCell>
-      <TableCell>
-        <Sheet>
-          <SheetTrigger><FaInfo /></SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>#{OrderID}</SheetTitle>
-              <SheetDescription>
-                Detalles de la Orden
-              </SheetDescription>
-            </SheetHeader>
-            <div className=' max-h-[160px] overflow-y-auto'>
-              {OrderInfo.map((item) => (
-                <div className='flex m-2' key={item.ProductID}>
-                  <div className='flex basis-2/4'>
-                    <img src={item.ProductImageUrl} className="h-10 w-10 " />
-                    <div className="content-center pl-2">
-                      <h3 className="text-sm">{item.ProductName}</h3>
-                      <p className="text-xs font-light text-gray-600">{item.ProductBrand}</p>
-                    </div>
-                  </div>
-                  <div className='basis-1/4 flex items-center  text-sm'>
-                    <p>{item.ProductQuantity} pz</p>
-                  </div>
-                  <div className='basis-1/4 flex items-center justify-center text-sm'>
-                    <p>{item.productPrice}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className='m-4'>
-              <div className='flex flex-row text-sm'>
-                <div className='basis-1/2'>
-                  <p>Ordenado el: </p>
-                  <p className='my-2'>Metodo de pago: </p>
-                  <p>Status: </p>
-                </div>
-                <div className='basis-1/2'>
-                  <p>{OrderDate}</p>
-                  <p className='my-2'>{PaymentMethod}</p>
-                  <p className={`w-max rounded-lg px-[6px]
-                        ${OrderStatus === 1 ? 'text-green-400 bg-green-100' : OrderStatus === 2 ? 'text-orange-400 bg-orange-100' : OrderStatus === 3 ? 'text-red-400 bg-red-100' : ''}`}>
-                    {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : ''}
-                  </p>
-                </div>
-              </div>
-              <div className='flex flex-row text-sm'>
-                <div className='basis-1/2'>
-                  <p>Nombre del Cliente: </p>
-                  <p className='my-2'>Correo Electronico: </p>
-                  <p>Telefono: </p>
-                </div>
-                <div>
-                  <p>{ClientName}</p>
-                  <p className='my-2'>{Email}</p>
-                  <p>{PhoneNumber}</p>
-                </div>
-              </div>
-              <>
-                {/* poner aqui el componente dela imagen */}
-                <div className="m-4">
-                  <h3 className="text-sm font-medium mb-4">Status del paquete</h3>
-                  <div className="space-y-2">
-                    {['Orden procesada', 'Pago confirmado', 'Paquete enviado', 'Paquete en camino', 'Paquete entregado'].map((status) => (
-                      <div key={status} className="flex items-start">
-                        <div className={`h-4 w-4 rounded-full mt-1 mr-3 flex-shrink-0 ${status === PackageStatus ? 'bg-blue-500' : 'bg-gray-200'
-                          }`} />
-                        <div>
-                          <p className={`text-sm ${status === PackageStatus ? 'font-medium text-gray-900' : 'text-gray-500'
-                            }`}>
-                            {status}
-                          </p>
-                          {status === 'Orden procesada' && (
-                            <p className="text-xs text-gray-500">el pedido se está tramitando (los productos se están empacando)</p>
-                          )}
-                          {status === 'Pago confirmado' && (
-                            <p className="text-xs text-gray-500">El pago ha sido validado y confirmado</p>
-                          )}
-                          {status === 'Paquete enviado' && (
-                            <p className="text-xs text-gray-500">El paquete ha sido entregado a la paquetería</p>
-                          )}
-                          {status === 'Paquete en camino' && (
-                            <p className="text-xs text-gray-500">El paquete está camino al destino</p>
-                          )}
-                          {status === 'Paquete entregado' && (
-                            <p className="text-xs text-gray-500">El paquete ha sido entregado en el domicilio</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-              <div className=' flex flex-row'>
-                <div className='basis-1/2 justify-items-end'>
-                  <p>total:</p>
-                </div>
-                <div className='basis-1/2 justify-items-end'>
-                  <p>{OrderTotal}</p>
-                </div>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </TableCell>
-    </TableRow>
-  )
-}
-export const Card_titulo = ({ titulo }: { titulo: string }) => (
-  <h3 className="text-lg font-semibold leading-none tracking-tight">
-    {titulo}
-  </h3>
-);
-
-export const Card_valor = ({ valor }: { valor: string | number }) => (
-  <p className="text-3xl font-bold text-gray-900">{valor}</p>
-);
-
-export const Card_cambio = ({ cambio }: { cambio: number }) => (
-  <p className={`text-sm ${cambio >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-    {cambio >= 0 ? `+${cambio.toFixed(2)}%` : `${cambio.toFixed(2)}%`}
-  </p>
-);
->>>>>>> fddc691a74543ca3dccd31a2c064cac05de4dbb0
 

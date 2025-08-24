@@ -1,54 +1,195 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
 import { FiEdit2 } from "react-icons/fi";
+import { useAuth, useRequireAuth } from "@/hooks/useAuth";
+import { Profile, profileApiService } from "@/services/profileApi";
+import { mapBackendProfileToFrontend } from "@/utils/mappers";
 
 export default function perfil(){
-    const [nombre, setNombre] = useState("Mayela");
-    const [apellidos, setApellidos] = useState("Díaz");
-    const [correo, setCorreo] = useState("Mayela@gmail.com")
-    const [celular, setCelular] = useState("6183316693");
-
-    const [editando, setEditando] = useState(false);
-    const [nuevoNombre, setTempNombre]= useState(nombre);
-    const [nuevoApellidos, setTempApellidos]= useState(apellidos);
-    const [nuevoCorreo, setTempCorreo]= useState(correo);
-    const [nuevoCelular, setTempCelular]= useState(celular);
-
-    // Foto de perfil
-    const [foto, setFoto] = useState("https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png");
-    const [nuevaFoto, setNuevaFoto] = useState<string | null>(null);
-
+    // Protect route - require authentication
+    const auth = useRequireAuth();
     const router = useRouter();
 
+    // Profile state
+    const [profile, setProfile] = useState<Profile | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    
+    // Editing state
+    const [editando, setEditando] = useState(false);
+    const [tempProfile, setTempProfile] = useState<Partial<Profile>>({});
+    
+    // Photo handling
+    const [nuevaFoto, setNuevaFoto] = useState<string | null>(null);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+    // Load profile data on mount
+    useEffect(() => {
+        const loadProfile = async () => {
+            console.log('🔍 Auth user data:', auth.user);
+            console.log('🔍 Auth profile data:', auth.profile);
+
+            // First, try to use the profile from auth context
+            if (auth.profile) {
+                try {
+                    console.log('✅ Using profile from auth context');
+                    // Map the auth.profile to our frontend format
+                    const mappedProfile = mapBackendProfileToFrontend(auth.profile);
+                    setProfile(mappedProfile);
+                    setTempProfile(mappedProfile);
+                    setLoading(false);
+                    return;
+                } catch (err) {
+                    console.log('❌ Failed to map auth.profile, trying API call');
+                    console.error('Mapping error:', err);
+                }
+            }
+
+            // Fallback: try to load profile via API
+            if (!auth.user?.id) {
+                console.log('❌ No user ID available');
+                setError('Usuario no encontrado');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError(null);
+                
+                console.log('🔍 Loading profile via API for user:', auth.user.id);
+                const profileData = await profileApiService.getProfile(auth.user.id);
+                
+                setProfile(profileData);
+                setTempProfile(profileData); // Initialize temp with current data
+                console.log('✅ Profile loaded via API:', profileData);
+                
+            } catch (err) {
+                console.error('❌ Error loading profile:', err);
+                
+                // If profile doesn't exist, create a temporary one for editing
+                if (err instanceof Error && err.message.includes('no encontrado')) {
+                    console.log('🆕 Creating temporary profile for new user');
+                    const tempProfile: Profile = {
+                        id: auth.user.id,
+                        nombre: auth.user.nombre || '',
+                        apellido: auth.user.apellido || '',
+                        telefono: '',
+                        estado: '',
+                        ciudad: '',
+                        fraccionamiento: '',
+                        calle: '',
+                        codigoPostal: '',
+                        avatar: 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
+                        direccionCompleta: '',
+                        nombreCompleto: `${auth.user.nombre || ''} ${auth.user.apellido || ''}`.trim(),
+                    };
+                    setProfile(tempProfile);
+                    setTempProfile(tempProfile);
+                } else {
+                    setError(err instanceof Error ? err.message : 'Error al cargar el perfil');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (auth.user) {
+            loadProfile();
+        }
+    }, [auth.user, auth.profile]);
+
     const handleLogout = () => {
+        auth.logout();
         router.push("/");
     };
 
     const handleEditar = () => {
-        setTempNombre(nombre)
-        setTempApellidos(apellidos);
-        setTempCorreo(correo);
-        setTempCelular(celular);
-        setNuevaFoto(null); // Limpiar selección previa
+        if (!profile) return;
+        setTempProfile({ ...profile }); // Reset temp data to current profile
+        setNuevaFoto(null);
         setEditando(true);
     };
 
     const handleCancelar = () => {
-        setEditando(false);
-        setNuevaFoto(null); // Descartar cambio de foto
-    }
-
-    const handleGuardar = () => {
-        setNombre(nuevoNombre);
-        setApellidos(nuevoApellidos);
-        setCorreo(nuevoCorreo);
-        setCelular(nuevoCelular);
-        if (nuevaFoto) setFoto(nuevaFoto); // Guardar nueva foto si hay
+        if (!profile) return;
+        setTempProfile({ ...profile }); // Reset temp data
         setNuevaFoto(null);
         setEditando(false);
+    };
+
+    const handleGuardar = async () => {
+        if (!profile || !auth.user?.id) return;
+
+        try {
+            setLoading(true);
+            
+            // Check if profile exists or if we need to create it
+            let updatedProfile: Profile;
+            
+            try {
+                // Try to update existing profile
+                updatedProfile = await profileApiService.updateProfile(auth.user.id, tempProfile);
+                console.log('✅ Profile updated:', updatedProfile);
+            } catch (updateError) {
+                // If profile doesn't exist, try to create it
+                if (updateError instanceof Error && updateError.message.includes('no encontrado')) {
+                    console.log('🆕 Profile not found, creating new one');
+                    updatedProfile = await profileApiService.createProfile({
+                        nombre: tempProfile.nombre || '',
+                        apellido: tempProfile.apellido || '', 
+                        numero: tempProfile.telefono || '',
+                        estado: tempProfile.estado || '',
+                        ciudad: tempProfile.ciudad || '',
+                        fraccionamiento: tempProfile.fraccionamiento || '',
+                        calle: tempProfile.calle || '',
+                        codigoPostal: tempProfile.codigoPostal || '',
+                    });
+                    console.log('✅ Profile created:', updatedProfile);
+                } else {
+                    throw updateError; // Re-throw if it's a different error
+                }
+            }
+            
+            setProfile(updatedProfile);
+            
+            // Upload new photo if selected
+            if (nuevaFoto && nuevaFoto.startsWith('data:')) {
+                setUploadingPhoto(true);
+                try {
+                    // Convert base64 to file
+                    const response = await fetch(nuevaFoto);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+                    
+                    // Upload avatar
+                    const uploadResult = await profileApiService.uploadAvatar(auth.user.id, file);
+                    
+                    // Update profile with new avatar URL
+                    const finalProfile = { ...updatedProfile, avatar: uploadResult.url };
+                    setProfile(finalProfile);
+                    
+                } catch (uploadError) {
+                    console.error('❌ Error uploading avatar:', uploadError);
+                    // Don't fail the whole save, just log the error
+                } finally {
+                    setUploadingPhoto(false);
+                }
+            }
+            
+            setNuevaFoto(null);
+            setEditando(false);
+            console.log('✅ Profile updated successfully');
+            
+        } catch (err) {
+            console.error('❌ Error saving profile:', err);
+            setError(err instanceof Error ? err.message : 'Error al guardar el perfil');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Foto de perfil: input y drag&drop solo en modo edición
@@ -63,6 +204,14 @@ export default function perfil(){
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    // Helper function to update temp profile fields
+    const updateTempProfileField = (field: keyof Profile, value: string) => {
+        setTempProfile(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const [dragActive, setDragActive] = useState(false);
@@ -96,9 +245,57 @@ export default function perfil(){
         }
     };
 
+    // Show loading state
+    if (loading && !profile) {
+        return (
+            <Plantilla>
+                <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Cargando perfil...</p>
+                        </div>
+                    </div>
+                </div>
+            </Plantilla>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <Plantilla>
+                <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
+                    <div className="text-center py-12">
+                        <p className="text-red-500 mb-4">{error}</p>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700"
+                        >
+                            Recargar
+                        </button>
+                    </div>
+                </div>
+            </Plantilla>
+        );
+    }
+
+    // Show message if no profile found
+    if (!profile) {
+        return (
+            <Plantilla>
+                <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
+                    <div className="text-center py-12">
+                        <p className="text-gray-600">No se encontró información del perfil.</p>
+                    </div>
+                </div>
+            </Plantilla>
+        );
+    }
+
     return (
         <Plantilla>
-            <div className="max-w-4xxl min-w-full mx-auto p-8 px-8 py-8">
+            <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
                 <div className="flex items-center mb-8">
                     <div className={`relative ${dragActive ? "ring-4 ring-blue-400" : ""}`}
                         onDragOver={handleDragOver}
@@ -106,9 +303,9 @@ export default function perfil(){
                         onDragLeave={handleDragLeave}
                     >
                         <img
-                            src={nuevaFoto || foto}
+                            src={nuevaFoto || profile.avatar || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'}
                             alt="Foto de perfil"
-                            className="w-20 h-20 rounded-full mr-4"
+                            className="w-20 h-20 rounded-full mr-4 object-cover"
                         />
                         {editando && (
                             <input
@@ -127,8 +324,8 @@ export default function perfil(){
                     </div>
                     <div className="flex-1 flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-medium">{nombre} {apellidos}</h2> 
-                            <p className="text-gray-600">Victoria Durango</p>
+                            <h2 className="text-xl font-medium">{profile.nombreCompleto || `${profile.nombre} ${profile.apellido}`}</h2> 
+                            <p className="text-gray-600">{profile.ciudad}, {profile.estado}</p>
                         </div>
                     </div>
                 </div>
@@ -139,22 +336,32 @@ export default function perfil(){
                         {editando ? (
                             <div className="flex items-center gap-2">
                                 <button
-                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition"
+                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition disabled:opacity-50"
                                     onClick={handleCancelar}
+                                    disabled={loading}
                                 >
                                     Cancelar
                                 </button>
                                 <button
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                                     onClick={handleGuardar}
+                                    disabled={loading}
                                 >
-                                    Guardar
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            {uploadingPhoto ? 'Subiendo foto...' : 'Guardando...'}
+                                        </>
+                                    ) : (
+                                        'Guardar'
+                                    )}
                                 </button>
                             </div>
                         ) : (
                             <button
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-1 py-1 rounded-lg border border-gray-300 transition text-md font-inter flex items-center gap-2"
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-1 py-1 rounded-lg border border-gray-300 transition text-md font-inter flex items-center gap-2 disabled:opacity-50"
                                 onClick={handleEditar}
+                                disabled={loading}
                             >
                                 Editar
                                 <FiEdit2 className="w-5 h-5" />
@@ -166,40 +373,97 @@ export default function perfil(){
                             <label className="text-sm text-gray-600">Nombre</label>
                             <input
                                 type="text"
-                                value={editando ? nuevoNombre : nombre}
-                                onChange={(e) => setTempNombre(e.target.value)}
+                                value={editando ? (tempProfile.nombre || '') : (profile.nombre || '')}
+                                onChange={(e) => updateTempProfileField('nombre', e.target.value)}
                                 readOnly={!editando}
-                                className="w-full border rounded p-2"
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
                             />
                         </div>
                         <div>
-                            <label className="text-sm text-gray-600">Apellidos</label>
+                            <label className="text-sm text-gray-600">Apellido</label>
                             <input
                                 type="text"
-                                value={editando ? nuevoApellidos : apellidos}
-                                onChange={(e) => setTempApellidos(e.target.value)}
-                                readOnly = {!editando}
-                                className="w-full border rounded p-2"
+                                value={editando ? (tempProfile.apellido || '') : (profile.apellido || '')}
+                                onChange={(e) => updateTempProfileField('apellido', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
                             />
                         </div>
                         <div>
                             <label className="text-sm text-gray-600">Correo Electrónico</label>
                             <input
                                 type="email"
-                                value={editando ? nuevoCorreo : correo}
-                                onChange={(e) => setTempCorreo(e.target.value)}
-                                readOnly = {!editando}
-                                className="w-full border rounded p-2"
+                                value={auth.user?.correo || ''}
+                                readOnly={true}
+                                className="w-full border rounded p-2 bg-gray-50 text-gray-500"
+                                title="El correo no se puede modificar"
                             />
                         </div>
                         <div>
-                            <label className="text-sm text-gray-600">Celular</label>
+                            <label className="text-sm text-gray-600">Teléfono</label>
                             <input
                                 type="text"
-                                value={editando ? nuevoCelular : celular}
-                                onChange={(e) => setTempCelular(e.target.value)}
-                                readOnly = {!editando}
-                                className="w-full border rounded p-2"
+                                value={editando ? (tempProfile.telefono || '') : (profile.telefono || '')}
+                                onChange={(e) => updateTempProfileField('telefono', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: 6183316693"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600">Estado</label>
+                            <input
+                                type="text"
+                                value={editando ? (tempProfile.estado || '') : (profile.estado || '')}
+                                onChange={(e) => updateTempProfileField('estado', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: Durango"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600">Ciudad</label>
+                            <input
+                                type="text"
+                                value={editando ? (tempProfile.ciudad || '') : (profile.ciudad || '')}
+                                onChange={(e) => updateTempProfileField('ciudad', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: Victoria de Durango"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600">Fraccionamiento/Colonia</label>
+                            <input
+                                type="text"
+                                value={editando ? (tempProfile.fraccionamiento || '') : (profile.fraccionamiento || '')}
+                                onChange={(e) => updateTempProfileField('fraccionamiento', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: Centro"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600">Calle</label>
+                            <input
+                                type="text"
+                                value={editando ? (tempProfile.calle || '') : (profile.calle || '')}
+                                onChange={(e) => updateTempProfileField('calle', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: Av. Principal 123"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600">Código Postal</label>
+                            <input
+                                type="text"
+                                value={editando ? (tempProfile.codigoPostal || '') : (profile.codigoPostal || '')}
+                                onChange={(e) => updateTempProfileField('codigoPostal', e.target.value)}
+                                readOnly={!editando}
+                                className={`w-full border rounded p-2 ${!editando ? 'bg-gray-50' : ''}`}
+                                placeholder="Ejemplo: 34000"
+                                maxLength={5}
                             />
                         </div>
                     </div>

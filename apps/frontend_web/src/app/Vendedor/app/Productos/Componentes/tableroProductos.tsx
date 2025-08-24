@@ -66,11 +66,12 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Producto</TableHead>
+                <TableHead className=''>Producto</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Inventario</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Vendedor</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

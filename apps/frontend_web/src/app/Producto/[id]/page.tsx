@@ -4,11 +4,12 @@ import { useCart } from "@/hooks/useCart";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useLists } from "@/hooks/useLists";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Plantilla } from "@/components/plantilla";
 import { CarrouselProducts } from "@/components/CarouselProducts";
 import { CommentsSection } from "@/components/CommentsSection";
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
+import type { FrontendProduct } from "@/schemas/products";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -21,11 +22,14 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function ProductDetailPage() {
-  const { selectedProduct, hasSelectedProduct, Products } = useProducts();
+  const { Products, loadProduct, loading } = useProducts();
   const { addToCart } = useCart();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { Lists, createList, addProductToList } = useLists();
   const router = useRouter();
+  const params = useParams();
+  
+  const [product, setProduct] = useState<FrontendProduct | null>(null);
   
   // Estados para la selección
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -37,15 +41,36 @@ export default function ProductDetailPage() {
   const [newListName, setNewListName] = useState("");
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Si no hay producto seleccionado, redirigir al inicio
-    if (!hasSelectedProduct()) {
-      router.push('/');
-    }
-  }, [hasSelectedProduct, router]);
+  const productId = params.id as string;
 
-  // Si no hay producto seleccionado, mostrar loading
-  if (!selectedProduct) {
+  useEffect(() => {
+    if (!productId) {
+      router.push('/');
+      return;
+    }
+
+    const numericId = parseInt(productId);
+    
+    // First try to find product in existing products
+    const existingProduct = Products.find(p => p.ProductID === numericId);
+    
+    if (existingProduct) {
+      setProduct(existingProduct);
+    } else if (!loading) {
+      // Load product from backend if not found locally
+      loadProduct(numericId).then((loadedProduct) => {
+        if (loadedProduct) {
+          setProduct(loadedProduct);
+        } else {
+          // Product not found, redirect to home
+          router.push('/');
+        }
+      });
+    }
+  }, [productId, Products, loadProduct, loading, router]);
+
+  // Loading state
+  if (loading || !product) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div>Cargando producto...</div>
@@ -53,15 +78,15 @@ export default function ProductDetailPage() {
     );
   }
 
-  const isProductFavorite = isFavorite(selectedProduct.ProductID);
+  const isProductFavorite = isFavorite(product.ProductID);
 
   const formattedPrice = new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: 'MXN',
-  }).format(selectedProduct.productPrice);
+  }).format(product.productPrice);
 
   // Get color from the product (single color)
-  const Colors: string[] = selectedProduct.Color ? [selectedProduct.Color] : []
+  const Colors: string[] = product.Color ? [product.Color] : []
   const ColorsHex: string[] = Colors.filter(function(color){
     return color.includes('#')
   })
@@ -71,7 +96,7 @@ export default function ProductDetailPage() {
 
   // Función para agregar al carrito
   const handleAddToCart = () => {
-    if (!selectedProduct) return;
+    if (!product) return;
     
     // Validaciones opcionales
     if (ColorsHex.length > 0 && !selectedColor) {
@@ -83,34 +108,34 @@ export default function ProductDetailPage() {
     }
 
     // Agregar al carrito
-    addToCart(selectedProduct, cantidad);
+    addToCart(product, cantidad);
   };
 
   // Función para manejar favoritos
   const handleToggleFavorite = () => {
-    if (!selectedProduct) return;
+    if (!product) return;
     
     if (isProductFavorite) {
-      removeFromFavorites(selectedProduct.ProductID);
+      removeFromFavorites(product.ProductID);
     } else {
-      addToFavorites(selectedProduct);
+      addToFavorites(product);
     }
   };
 
   // Función para agregar a lista
   const handleAddToList = () => {
-    if (!selectedProduct) return;
+    if (!product) return;
 
     if (selectedListId) {
       // Agregar a lista existente
-      addProductToList(selectedListId, selectedProduct as any);
+      addProductToList(selectedListId, product);
     } else if (newListName.trim()) {
       // Crear nueva lista y agregar producto
       createList(newListName.trim());
       // Obtener la lista recién creada (será la última)
       const newListId = Lists.length > 0 ? Math.max(...Lists.map(l => l.ListaID)) + 1 : 1;
       setTimeout(() => {
-        addProductToList(newListId, selectedProduct as any);
+        addProductToList(newListId, product);
       }, 100);
     }
     
@@ -124,10 +149,10 @@ export default function ProductDetailPage() {
       <div className="">
         <div className="flex">
           <div className=" rounded-2xl p-8 basis-2/3">
-            <img src={selectedProduct.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className="max-w-96" />
+            <img src={product.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className="max-w-96" />
           </div>
           <div className="basis-1/3">
-            <p className="text-xl  mb-2">{selectedProduct.ProductName}</p>
+            <p className="text-xl  mb-2">{product.ProductName}</p>
             <p className="my-6 text-3xl font-bold">{formattedPrice}</p>
             
             {/* Selección de colores */}
@@ -226,7 +251,7 @@ export default function ProductDetailPage() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Agregar "{selectedProduct.ProductName}" a lista</AlertDialogTitle>
+                    <AlertDialogTitle>Agregar "{product.ProductName}" a lista</AlertDialogTitle>
                   </AlertDialogHeader>
                   <div className="space-y-4">
                     {Lists.length > 0 && (
@@ -295,16 +320,16 @@ export default function ProductDetailPage() {
         <div className="border p-8 mt-8 flex rounded-xl">
           <div className="basis-1/2">
             <p className="mb-4 font-bold text-2xl ">Descubre mas...</p>
-            {selectedProduct.ProductDescription}
+            {product.ProductDescription}
           </div>
           <div className="basis-1/2 justify-center flex ">
-            <img src={selectedProduct.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className=" max-h-80" />
+            <img src={product.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className=" max-h-80" />
           </div>
         </div>
 
         {/* Sección de comentarios */}
         <div className="mt-12">
-          <CommentsSection productId={selectedProduct.ProductID.toString()} />
+          <CommentsSection productId={product.ProductID.toString()} />
         </div>
       </div>
       <CarrouselProducts entradas={Products} title="Mas Productos"></CarrouselProducts>

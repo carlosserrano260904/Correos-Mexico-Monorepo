@@ -133,18 +133,39 @@ class ProductsApiService {
   }
 
   /**
-   * Crea un producto. Solo envía JSON; la imagen se sube aparte.
+   * Crea un producto usando multipart/form-data para compatibilidad con el backend
    */
-  async createProduct(productData: BackendCreateProductDto): Promise<FrontendProduct> {
+  async createProduct(productData: BackendCreateProductDto, files?: File[]): Promise<FrontendProduct> {
     try {
       console.log('🚀 === CREANDO PRODUCTO ===');
       console.log('📤 Datos a enviar:', JSON.stringify(productData, null, 2));
+      console.log('📁 Archivos a subir:', files?.length || 0);
+      
+      // Crear FormData para multipart/form-data
+      const formData = new FormData();
+      
+      // Agregar campos del producto
+      formData.append('nombre', productData.nombre);
+      formData.append('descripcion', productData.descripcion);
+      formData.append('precio', productData.precio.toString());
+      if (productData.categoria) {
+        formData.append('categoria', productData.categoria);
+      }
+      
+      // Agregar archivos si existen
+      if (files && files.length > 0) {
+        files.forEach((file, index) => {
+          formData.append('images', file);
+        });
+      }
       
       const response = await api.post<BackendProductEntity>(
         this.baseUrl,
-        productData,
+        formData,
         {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+          },
         }
       );
       

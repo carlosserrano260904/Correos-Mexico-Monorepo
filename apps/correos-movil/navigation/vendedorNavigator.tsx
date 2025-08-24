@@ -36,6 +36,7 @@ import Correomex from '../screens/usuario/correos-mex-page/correos-principal';
 import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor';
 import FailedDeliveryScreen from '../screens/repartidor/FailedDeliveryScreen';
 import ProductUploadScreen from '../screens/vendedor/ProductUploadScreen';
+import PedidosAsignados from '../screens/vendedor/PedidosAsignados';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -80,6 +81,7 @@ export default function VendedorNavigator() {
             <Stack.Screen name="Mapa-ubicaciones" component={ubi_oficnas} options={{ headerShown: false }} />
             <Stack.Screen name="Correo-mex" component={Correomex} options={{ headerShown: false }} />
             <Stack.Screen name="ProductUploadScreen" component={ProductUploadScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="PedidosAsignados" component={PedidosAsignados} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

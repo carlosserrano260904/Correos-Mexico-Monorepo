@@ -14,15 +14,15 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { AddImagesDto } from './dto/add-images.dto';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
-import { Review } from 'src/review/entities/review.entity';        
-import { ReviewImage } from 'src/review/entities/review-image.entity'; 
+import { Review } from 'src/review/entities/review.entity';
+import { ReviewImage } from 'src/review/entities/review-image.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
 @ApiTags('products')
 @ApiExtraModels(Product, ProductImage, Review, ReviewImage, Profile)
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10))
@@ -88,6 +88,11 @@ export class ProductsController {
   ) {
     const ordenes = (_dto as any)?.ordenes;
     return this.productsService.addImages(id, files, ordenes);
+  }
+
+  @Get('/findSome')
+  findSome() {
+    return this.productsService.findSome();
   }
 
   @Get()

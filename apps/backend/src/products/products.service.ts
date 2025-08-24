@@ -255,4 +255,20 @@ export class ProductsService {
     productsUnordered.forEach((p) => map.set(p.id, p));
     return ids.map((id) => map.get(id)).filter(Boolean) as Product[];
   }
+
+  async findSome(): Promise<any[]> {
+    const products = await this.productRepository.find({
+      relations: { images: true },
+    });
+
+    // Retornamos solo la primera imagen de cada producto
+    return products.map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      precio: p.precio,
+      categoria: p.categoria,
+      estado: p.estado,
+      image: p.images?.length ? p.images[0] : null,
+    }));
+  }
 }

@@ -64,20 +64,16 @@ export type RootStackParamList = {
   PackagesListDistributor: undefined;
   PackageScreen: { package: any };
   DetalleProducto: {
-    contenido: {
-      id: number;
-      precio: string;
-      cantidad: number;
-      producto: {
-        id: number;
-        precio: number;
-        nombre: string;
-        descripcion: string;
-        imagen: string;
-        categoria: string | null;
-        inventario: number;
-      };
+    pedidoId: string;
+    fecha: string;
+    totalPedido: number;
+    producto: {
+      nombre: string; descripcion?: string; categoria?: string;
+      imagen?: string; precio: number;
     };
+    cantidad: number;
+    direccion?: { /* opcional */ };
+    pago?: { brand?: string; last4?: string };
   };
   RecibirPaquete: { package: any };
   TomarEvidencia: { package: any };

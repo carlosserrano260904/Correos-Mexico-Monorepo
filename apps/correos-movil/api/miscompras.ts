@@ -25,6 +25,7 @@ import Constants from 'expo-constants';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
+// src/api/miscompras.ts (o donde tengas PedidoBackend)
 export type PedidoBackend = {
   id: number;
   fecha: string;
@@ -37,8 +38,9 @@ export type PedidoBackend = {
       nombre: string;
       descripcion?: string;
       categoria?: string;
-      imagen?: string;
       precio: number | string;
+      imagen?: string; // por si existía este campo
+      images?: { id: number; url: string; orden: number }[];
     };
   }>;
 };

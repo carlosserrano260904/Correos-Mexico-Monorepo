@@ -16,3 +16,43 @@ export async function obtenerMisCompras(id: number): Promise<MisComprasType[]> {
   const miscompras = MisComprasSchemaDB.parse(json);
   return miscompras;
 }
+
+
+
+// src/api/pedidos.ts
+import axios from 'axios';
+import Constants from 'expo-constants';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
+export type PedidoBackend = {
+  id: number;
+  fecha: string;
+  total: number | string;
+  productos: Array<{
+    id: number;
+    cantidad: number;
+    producto: {
+      id: number;
+      nombre: string;
+      descripcion?: string;
+      categoria?: string;
+      imagen?: string;
+      precio: number | string;
+    };
+  }>;
+};
+
+// src/api/pedidos.ts
+const API_ROOT = Constants.expoConfig?.extra?.IP_LOCAL
+  ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
+  : `${(BASE_URL || '').replace(/\/$/, '')}/api`;
+
+// 👇 añade el 'api/' extra del controlador
+const PEDIDOS_PREFIX = 'api/pedido';
+
+export async function obtenerPedidosPorUsuario(profileId: number) {
+  const { data } = await axios.get(`${API_ROOT}/${PEDIDOS_PREFIX}/user/${profileId}`);
+  return data;
+}
+

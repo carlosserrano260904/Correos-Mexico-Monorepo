@@ -9,20 +9,19 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
-  Platform,
-  StatusBar,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { idUser } from '../../../api/profile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { obtenerMisCompras } from '../../../api/miscompras';
-import { MisComprasType } from '../../../schemas/schemas';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../schemas/schemas';
+
+import { MisComprasType, RootStackParamList } from '../../../schemas/schemas';
 import { moderateScale } from 'react-native-size-matters';
 import AppHeader from '../../../components/common/AppHeader';
 import Loader from '../../../components/common/Loader';
+
+// ⬇️ NUEVO: usa la API de pedidos
+import { obtenerPedidosPorUsuario, PedidoBackend } from '../../../api/miscompras';
 
 const PINK = '#E6007E';
 
@@ -65,17 +64,18 @@ export default function MisCompras() {
           .toLowerCase();
         const matchDate = dateStr.includes(term);
         const matchProduct = tx.contenidos.some(item =>
-          item.producto.nombre.toLowerCase().includes(term)
+          (item.producto.nombre || '').toLowerCase().includes(term)
         );
         return matchDate || matchProduct;
       });
-      
+
+      // Reordenar contenidos: primero los que matchean
       result = result.map(tx => {
         const productosCoincidentes = tx.contenidos.filter(item =>
-          item.producto.nombre.toLowerCase().includes(term)
+          (item.producto.nombre || '').toLowerCase().includes(term)
         );
         const productosNoCoincidentes = tx.contenidos.filter(
-          item => !item.producto.nombre.toLowerCase().includes(term)
+          item => !(item.producto.nombre || '').toLowerCase().includes(term)
         );
         return {
           ...tx,
@@ -104,17 +104,39 @@ export default function MisCompras() {
     return result;
   }, [misCompras, searchTerm, selectedCategory, sortOrder]);
 
+  // ⬇️ Mapeo PedidoBackend -> MisComprasType
+  const mapPedidosToMisCompras = (pedidos: PedidoBackend[]): MisComprasType[] => {
+    return pedidos.map(p => ({
+      id: String(p.id),
+      diaTransaccion: p.fecha, // tu UI ya lo formatea
+      contenidos: (p.productos || []).map(pp => ({
+        id: String(pp.id),
+        cantidad: Number(pp.cantidad),
+        producto: {
+          id: String(pp.producto?.id ?? ''),
+          nombre: pp.producto?.nombre ?? '',
+          descripcion: pp.producto?.descripcion ?? '',
+          categoria: pp.producto?.categoria ?? '',
+          imagen: pp.producto?.imagen ?? '',
+          // precio puede venir como string (decimal) desde TypeORM
+          precio: Number(pp.producto?.precio ?? 0),
+        },
+      })),
+    }));
+  };
+
   useEffect(() => {
     (async () => {
       try {
         const storedId = await AsyncStorage.getItem('userId');
-        if(storedId){
-          const data = await obtenerMisCompras(+storedId);
-          setMisCompras(data);
+        if (storedId) {
+          const pedidos = await obtenerPedidosPorUsuario(+storedId);
+          const mapped = mapPedidosToMisCompras(pedidos);
+          setMisCompras(mapped);
           setError(null);
         }
       } catch (err) {
-        console.error('No se ha podido cargar mis compras', err);
+        console.error('No se ha podido cargar mis pedidos', err);
         setError('No se pudo cargar la información. Intenta más tarde.');
       } finally {
         setLoading(false);
@@ -123,8 +145,8 @@ export default function MisCompras() {
   }, []);
 
   if (loading) {
-  return <Loader message="Cargando tus compras..." />;
-}
+    return <Loader message="Cargando tus compras..." />;
+  }
 
   if (error) {
     return (
@@ -222,8 +244,10 @@ export default function MisCompras() {
                 year: 'numeric',
               })}
             </Text>
+
             <Text style={styles.texto}>
-              Subtotal: {new Intl.NumberFormat('es-MX', {
+              Subtotal:{' '}
+              {new Intl.NumberFormat('es-MX', {
                 style: 'currency',
                 currency: 'MXN',
                 minimumFractionDigits: 2,
@@ -251,7 +275,8 @@ export default function MisCompras() {
                   <Text style={styles.descripcion}>{item.producto.descripcion}</Text>
                   <Text style={styles.texto}>Cantidad: {item.cantidad}</Text>
                   <Text style={styles.texto}>
-                    Precio: {new Intl.NumberFormat('es-MX', {
+                    Precio:{' '}
+                    {new Intl.NumberFormat('es-MX', {
                       style: 'currency',
                       currency: 'MXN',
                       minimumFractionDigits: 2,

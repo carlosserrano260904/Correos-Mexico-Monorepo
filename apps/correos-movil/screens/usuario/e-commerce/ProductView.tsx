@@ -44,7 +44,7 @@ type BackendProduct = {
 };
 
 function ProductView() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute();
   const { id } = route.params as { id: string };
 
@@ -402,7 +402,10 @@ function ProductView() {
                     {!!r.images.length && (
                       <View style={styles.reviewThumbRow}>
                         {r.images.map((u, idx) => (
-                          <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => openLightbox(r.images, idx)}>
+                          <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => navigation.navigate('ReviewDetail', {
+      review: r,        // enviamos TODA la opinión
+      startIndex: idx,  // imagen tocada
+    })}>
                             <Image source={{ uri: u }} style={styles.reviewThumb} />
                           </TouchableOpacity>
                         ))}

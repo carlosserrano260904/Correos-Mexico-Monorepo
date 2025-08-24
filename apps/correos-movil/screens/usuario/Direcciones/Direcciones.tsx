@@ -12,6 +12,7 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     View,
+    BackHandler,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { actualizarDireccionAPI, agregarDireccionAPI, eliminarDireccionAPI, obtenerDirecciones } from '../../../api/direcciones';
@@ -174,9 +175,15 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                 )}
 
                 {modoSeleccion && (
+                    <View>
+                    <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
+                    <Text style={styles.buttonText}>Agregar nueva dirección</Text>
+                     </TouchableOpacity>
+                   
                     <TouchableOpacity style={styles.button} onPress={confirmarSeleccion}>
                         <Text style={styles.buttonText}>Usar esta dirección</Text>
                     </TouchableOpacity>
+                    </View>
                 )}
 
             </ScrollView>
@@ -198,7 +205,21 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
     const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const backAction = () => {
+            if (mostrarFormulario) {
+                // 👉 si está en el formulario, volver a la lista
+                setMostrarFormulario(false);
+                setEditIndex(null);
+                return true; // 🔴 evita que cierre la pantalla
+            }
+            return false; // 🔴 permite el comportamiento normal (salir de la pantalla)
+        };
 
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+        return () => backHandler.remove();
+    }, [mostrarFormulario]);
 
     const [formData, setFormData] = useState<Omit<Direccion, 'numerointerior' | 'numeroexterior'> & {
         numerointerior: string;

@@ -1,60 +1,106 @@
-// create-product.dto.ts
-import {
-  IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  Min,
+} from 'class-validator';
+
+/**
+ * Transforma un valor de entrada (como 'true', 'false', true, false) a un booleano estricto.
+ * Esencial para manejar datos de formularios multipart/form-data.
+ */
+const transformToBoolean = ({ value }): boolean | any => {
+  if (value === 'true' || value === true) return true;
+  if (value === 'false' || value === false) return false;
+  return value; // Deja que el validador @IsBoolean se encargue si no es un booleano válido
+};
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Tenis Runner', maxLength: 60 })
-  @IsString() @IsNotEmpty() @MaxLength(60)
+  @ApiProperty({ example: 'Producto de Ejemplo', description: 'Nombre del producto' })
+  @IsString()
+  @IsNotEmpty()
   nombre: string;
 
-  @ApiProperty({ example: 'Tenis deportivos para correr', maxLength: 120 })
-  @IsString() @IsNotEmpty() @MaxLength(120)
+  @ApiProperty({ example: 'Una descripción detallada del producto.', description: 'Descripción del producto' })
+  @IsString()
+  @IsNotEmpty()
   descripcion: string;
 
-  @ApiProperty({ example: 1299.90, type: Number, minimum: 0 })
-  @Type(() => Number) @IsNumber() @Min(0)
+  @ApiPropertyOptional({ example: 30, description: 'Altura del producto en cm' })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  altura?: number;
+
+  @ApiPropertyOptional({ example: 25, description: 'Largo del producto en cm' })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  largo?: number;
+
+  @ApiPropertyOptional({ example: 15, description: 'Ancho del producto en cm' })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  ancho?: number;
+
+  @ApiPropertyOptional({ example: 2.5, description: 'Peso del producto en kg' })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  peso?: number;
+
+  @ApiProperty({ example: 1299.9, description: 'Precio del producto', minimum: 0 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
   precio: number;
 
-  @ApiPropertyOptional({ example: 'Calzado' })
-  @IsOptional() @IsString()
-  categoria?: string;
+  @ApiProperty({ example: 25, description: 'Cantidad en inventario', minimum: 0 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  inventario: number;
 
-  // REQUIRED por tu entity (no-nullable):
-  @ApiProperty({ example: 'Negro', maxLength: 40 })
-  @IsString() @IsNotEmpty() @MaxLength(40)
+  @ApiProperty({ example: 'Electrónicos', description: 'Categoría del producto' })
+  @IsString()
+  categoria: string;
+
+  @ApiProperty({ example: 'Negro', description: 'Color del producto' })
+  @IsString()
   color: string;
 
-  @ApiProperty({ example: 'Nike', maxLength: 60 })
-  @IsString() @IsNotEmpty() @MaxLength(60)
+  @ApiProperty({ example: 'MarcaGenial', description: 'Marca del producto' })
+  @IsString()
   marca: string;
 
-  @ApiProperty({ example: 'tenis-runner-negro', maxLength: 120 })
-  @IsString() @IsNotEmpty() @MaxLength(120)
+  @ApiProperty({ example: 'producto-de-ejemplo', description: 'URL amigable del producto' })
+  @IsString()
   slug: string;
 
-  @ApiProperty({ example: 'SportCenter MX', maxLength: 80 })
-  @IsString() @IsNotEmpty() @MaxLength(80)
-  vendedor: string;
+  @ApiProperty({ example: true, description: 'Estado del producto (activo/inactivo)' })
+  @Transform(transformToBoolean)
+  @IsBoolean()
+  estado: boolean;
 
-  @ApiProperty({ example: 'SKU-ABC-001', maxLength: 60 })
-  @IsString() @IsNotEmpty() @MaxLength(60)
+  @ApiProperty({ example: 'SKU-ABC-001', description: 'SKU del producto' })
+  @IsString()
   sku: string;
 
-  // Campos con default en la entity → opcionales aquí:
-  @ApiPropertyOptional({ example: true })
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true) // para multipart
-  @IsBoolean()
-  estado?: boolean;
+  @ApiProperty({ example: 1, description: 'Numero de productos vendidos' })
+  @IsString()
+  vendidos: number;
 
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
-  inventario?: number;
+  @ApiProperty({ example: 'Comercializadora S.A. de C.V.', description: 'Nombre de la empresa vendedora' })
+  @IsString()
+  vendedor: string;
 
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
-  vendidos?: number;
+  @ApiProperty({ example: 1, description: 'ID del perfil del vendedor' })
+  @Type(() => Number)
+  @IsNumber()
+  idPerfil: number;
 }

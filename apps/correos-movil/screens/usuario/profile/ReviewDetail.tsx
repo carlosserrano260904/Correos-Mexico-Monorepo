@@ -124,23 +124,28 @@ export default function ReviewDetail() {
 
       {/* Panel inferior BLANCO (sin “Es útil” ni menú) */}
       <ScrollView style={styles.bottomPanel} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View style={{ marginBottom: 8 }}>
-          {renderStars(Math.max(0, Math.min(5, review.rating)))}
-        </View>
-
-        <Text style={styles.commentText}>
-          {review.comment}{' '}
-          <Text style={styles.dateText}>
-            {new Date(review.createdAt).toLocaleDateString('es-MX', {
-              day: '2-digit', month: 'short', year: 'numeric'
-            }).replace('.', '')}
-          </Text>
-        </Text>
+        
 
         <View style={styles.authorRow}>
           <Image source={{ uri: review.author.avatar || DEFAULT_AVATAR }} style={styles.avatar} />
           <Text style={styles.authorName}>{review.author.name || 'Usuario'}</Text>
         </View>
+        <View style={{ marginBottom: 8 }}>
+          {renderStars(Math.max(0, Math.min(5, review.rating)))}
+        </View>
+        <Text style={styles.dateText}>
+            {new Date(review.createdAt).toLocaleDateString('es-MX', {
+              day: '2-digit', month: 'short', year: 'numeric'
+            }).replace('.', '')}
+        </Text>
+        
+
+        
+        <Text style={styles.commentText}>
+          {review.comment}
+        </Text>
+
+        
       </ScrollView>
     </View>
   );

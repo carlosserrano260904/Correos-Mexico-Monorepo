@@ -592,17 +592,33 @@ function ReviewForm({
   const [comment, setComment] = React.useState('');
   const [images, setImages] = React.useState<ImagePickerAsset[]>([]);
   const [sending, setSending] = React.useState(false);
-
+const MAX_IMAGES = 6;
   const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return;
-    const res = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') { alert('Se requiere permiso a la galería'); return; }
+
+  const res = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.8,
+    allowsMultipleSelection: true,
+    // si el SO no soporta multi, con varios toques se irán acumulando
+    selectionLimit: Math.max(1, MAX_IMAGES - images.length), // algunos dispositivos lo soportan
+    orderedSelection: true,
+  });
+
+  if (!res.canceled) {
+    setImages(prev => {
+      // acumula
+      const merged = [...prev, ...res.assets];
+      // de-dup por uri
+      const map = new Map<string, ImagePickerAsset>();
+      merged.forEach(a => map.set(a.uri, a));
+      // respeta el máximo
+      return Array.from(map.values()).slice(0, MAX_IMAGES);
     });
-    if (!res.canceled) setImages(res.assets);
-  };
+  }
+};
+
 
   const submit = async () => {
     if (!profileId) { alert('Inicia sesión para comentar.'); return; }
@@ -684,12 +700,24 @@ function ReviewForm({
       />
 
       {!!images.length && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          {images.map((img, i) => (
-            <Image key={i} source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
-          ))}
-        </View>
-      )}
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+    {images.map((img, i) => (
+      <View key={img.uri} style={{ position: 'relative' }}>
+        <Image source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
+        <TouchableOpacity
+          onPress={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+          style={{
+            position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+            borderRadius: 11, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: '700' }}>×</Text>
+        </TouchableOpacity>
+      </View>
+    ))}
+  </View>
+)}
+
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity style={[reviewStyles.btn, { backgroundColor: '#eee' }]} onPress={pickImages}>

@@ -40,6 +40,33 @@ export class Pedido {
 
   @Column( { nullable: true })
   direccionId: number;
+
+  @Column({ nullable: true })
+  estatus_pago: string; // estado del pago (ej. pagado, pendiente, fallido)
+
+  @Column({ nullable: true })
+  calle: string;
+
+  @Column({ nullable: true })
+  numero_int: string;
+
+  @Column({ nullable: true })
+  numero_exterior: string;
+
+  @Column({ nullable: true })
+  cp: string;
+
+  @Column({ nullable: true })
+  ciudad: string;
+
+  @Column({ nullable: true })
+  nombre: string; // nombre del titular
+
+  @Column({ nullable: true })
+  last4: string; // últimos 4 dígitos de la tarjeta
+
+  @Column({ nullable: true })
+  brand: string; // marca de la tarjeta (VISA, MasterCard, etc.)
 }
 
 @Entity()
@@ -63,4 +90,7 @@ export class PedidoProducto {
 
   @Column()
   pedidoId: number;
+  
+  @Column({ nullable: true })
+  n_guia: string;
 }

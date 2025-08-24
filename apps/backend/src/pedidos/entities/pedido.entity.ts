@@ -50,7 +50,7 @@ export class PedidoProducto {
   @Column('int')
   cantidad: number;
 
-  @ManyToOne(() => Product, (product) => product.id, { eager: true, cascade: true })
+  @ManyToOne(() => Product, (productos) => productos.id, { eager: true, cascade: true })
   @JoinColumn({ name: 'productoId' })
   producto: Product;
 

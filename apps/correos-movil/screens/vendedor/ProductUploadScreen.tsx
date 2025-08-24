@@ -204,10 +204,6 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el nombre del producto.');
       return;
     }
-    if (!formData.descripcion) {
-      Alert.alert('Error', 'Por favor ingresa una descripcion del producto.');
-      return;
-    }
     if (!formData.precio) {
       Alert.alert('Error', 'Por favor ingresa el precio del producto.');
       return;
@@ -217,12 +213,24 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'El precio debe ser un número mayor que 0');
       return;
     }
+    if (!formData.descripcion) {
+      Alert.alert('Error', 'Por favor ingresa una descripcion del producto.');
+      return;
+    }
+    if (!formData.categoria) {
+      Alert.alert('Error', 'Por favor ingresa la categoria del producto.');
+      return;
+    }
     if (!formData.inventario) {
       Alert.alert('Error', 'Por favor ingresa la cantidad de productos disponibles.');
       return;
     }
     if (!formData.marca) {
       Alert.alert('Error', 'Por favor ingresa la marca del producto.');
+      return;
+    }
+    if (!formData.color) {
+      Alert.alert('Error', 'Por favor selecciona el color del producto.');
       return;
     }
     if (!formData.peso) {
@@ -261,10 +269,7 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el vendedor del producto.');
       return;
     }
-    if (!formData.categoria) {
-      Alert.alert('Error', 'Por favor ingresa la categoria del producto.');
-      return;
-    }
+    
     if (imageItems.length === 0) {
       Alert.alert('Error', 'Por favor, sube al menos una imagen del producto.');
       return;
@@ -534,7 +539,7 @@ const ProductUploadScreen: React.FC = () => {
 
         {/* Input para vendedor */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Vendedor *</Text>
+          <Text style={styles.label}>Nombre de la tienda del Vendedor *</Text>
           <TextInput
             style={styles.textInput}
             value={formData.vendedor}

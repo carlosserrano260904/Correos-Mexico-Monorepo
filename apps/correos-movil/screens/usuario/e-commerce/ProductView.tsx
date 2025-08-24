@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import type { ImagePickerAsset } from 'expo-image-picker';
 import {
   View, Text, StyleSheet, Dimensions, Image, TouchableOpacity,
-  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform,TextInput
+  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform, TextInput
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
@@ -37,6 +37,9 @@ type BackendProduct = {
   descripcion: string;
   precio: string | number;
   categoria: string | null;
+  marca?: string;
+  slug?: string;
+  vendedor?: string;
   images?: BackendImage[];
   imagen?: string | string[];
   color?: string[] | string;
@@ -56,6 +59,9 @@ function ProductView() {
     price: number;
     category: string | null;
     color?: string[] | string;
+    marca?: string;
+    slug?: string;
+    vendedor?: string;
     reviews: {
       id: number;
       rating: number;
@@ -129,16 +135,16 @@ function ProductView() {
 
         const reviews = Array.isArray(data.reviews)
           ? data.reviews.map(r => ({
-              id: r.id,
-              rating: Number(r.rating) || 0,
-              comment: r.comment || '',
-              createdAt: r.createdAt,
-              author: {
-                name: [r.profile?.nombre, r.profile?.apellido].filter(Boolean).join(' ') || 'Usuario',
-                avatar: r.profile?.imagen || DEFAULT_IMAGE,
-              },
-              images: (r.images || []).map(img => img.url).filter(Boolean),
-            }))
+            id: r.id,
+            rating: Number(r.rating) || 0,
+            comment: r.comment || '',
+            createdAt: r.createdAt,
+            author: {
+              name: [r.profile?.nombre, r.profile?.apellido].filter(Boolean).join(' ') || 'Usuario',
+              avatar: r.profile?.imagen || DEFAULT_IMAGE,
+            },
+            images: (r.images || []).map(img => img.url).filter(Boolean),
+          }))
           : [];
 
         const transformed = {
@@ -149,6 +155,10 @@ function ProductView() {
           price: Number.parseFloat(String(data.precio)),
           category: data.categoria ?? null,
           color: data.color,
+          marca: data.marca,
+          slug: data.slug,
+          vendedor: data.vendedor,
+
           reviews,
         };
 
@@ -176,7 +186,7 @@ function ProductView() {
           const f = Array.isArray(favs) ? favs.find((x: any) => x?.producto?.id === Number(id)) : null;
           if (f) { setLiked(true); setFavoritoId(f.id); }
         }
-      } catch {}
+      } catch { }
       try {
         const rc = await fetch(`${IP}/api/carrito/${uid}`);
         if (rc.ok) {
@@ -184,7 +194,7 @@ function ProductView() {
           const item = Array.isArray(cart) ? cart.find((x: any) => x?.producto?.id === Number(id)) : null;
           if (item) { setInCart(true); setCarritoId(item.id); }
         }
-      } catch {}
+      } catch { }
     };
     if (product && isMounted.current) verificar();
   }, [product, getUserId, id]);
@@ -204,8 +214,8 @@ function ProductView() {
             const urls = Array.isArray(d.images) ? d.images.map(x => x?.url).filter(Boolean) as string[] : [];
             const imagen =
               urls.length ? urls :
-              (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
-               typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
+                (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
+                  typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
             return {
               id: String(d.id),
               nombre: d.nombre,
@@ -240,7 +250,7 @@ function ProductView() {
         await fetch(`${IP}/api/favoritos/${favoritoId}`, { method: 'DELETE' });
         setFavoritoId(null); setLiked(false); setLikeTrigger(x => x + 1);
       }
-    } catch {}
+    } catch { }
   };
 
   const toggleCarrito = async () => {
@@ -258,7 +268,7 @@ function ProductView() {
         await fetch(`${IP}/api/carrito/${carritoId}`, { method: 'DELETE' });
         setCarritoId(null); setInCart(false);
       }
-    } catch {}
+    } catch { }
   };
 
   const progress = useSharedValue<number>(0);
@@ -366,15 +376,29 @@ function ProductView() {
           </View>
 
           <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Categoría:</Text>
-              <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
-            </View>
 
             <View style={styles.descriptionContainer}>
               <Text style={styles.infoLabel}>Descripción:</Text>
               <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
             </View>
+
+            
+
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoLabel}>Marca:</Text>
+              <Text style={styles.infoValue}>{product.marca || 'Marca no disponible.'}</Text>
+            </View>
+
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoLabel}>Vendedor:</Text>
+              <Text style={styles.infoValue}>{product.vendedor || 'Vendedor no disponible.'}</Text>
+            </View>
+
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoLabel}>Categoría:</Text>
+              <Text style={styles.infoValue}>{product.category || 'Categora no disponible.'}</Text>
+            </View>
+          
           </View>
 
           <TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
@@ -403,9 +427,9 @@ function ProductView() {
                       <View style={styles.reviewThumbRow}>
                         {r.images.map((u, idx) => (
                           <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => navigation.navigate('ReviewDetail', {
-      review: r,        // enviamos TODA la opinión
-      startIndex: idx,  // imagen tocada
-    })}>
+                            review: r,        // enviamos TODA la opinión
+                            startIndex: idx,  // imagen tocada
+                          })}>
                             <Image source={{ uri: u }} style={styles.reviewThumb} />
                           </TouchableOpacity>
                         ))}
@@ -519,9 +543,9 @@ const styles = StyleSheet.create({
   productPrice: { fontWeight: '700', fontSize: moderateScale(18), color: '#DE1484' },
   infoContainer: { marginBottom: moderateScale(20) },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: moderateScale(12) },
-  infoLabel: { fontWeight: '600', fontSize: moderateScale(14), color: '#333', width: moderateScale(100) },
+  infoLabel: { fontWeight: '600', fontSize: moderateScale(14), color: '#333', width: moderateScale(80) },
   infoValue: { fontSize: moderateScale(14), color: '#555' },
-  descriptionContainer: { marginTop: moderateScale(12) },
+  descriptionContainer: { marginBottom: moderateScale(20) },
   description: { fontSize: moderateScale(14), color: '#555', lineHeight: moderateScale(20) },
 
   // reviews
@@ -592,32 +616,32 @@ function ReviewForm({
   const [comment, setComment] = React.useState('');
   const [images, setImages] = React.useState<ImagePickerAsset[]>([]);
   const [sending, setSending] = React.useState(false);
-const MAX_IMAGES = 6;
+  const MAX_IMAGES = 6;
   const pickImages = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== 'granted') { alert('Se requiere permiso a la galería'); return; }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') { alert('Se requiere permiso a la galería'); return; }
 
-  const res = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.8,
-    allowsMultipleSelection: true,
-    // si el SO no soporta multi, con varios toques se irán acumulando
-    selectionLimit: Math.max(1, MAX_IMAGES - images.length), // algunos dispositivos lo soportan
-    orderedSelection: true,
-  });
-
-  if (!res.canceled) {
-    setImages(prev => {
-      // acumula
-      const merged = [...prev, ...res.assets];
-      // de-dup por uri
-      const map = new Map<string, ImagePickerAsset>();
-      merged.forEach(a => map.set(a.uri, a));
-      // respeta el máximo
-      return Array.from(map.values()).slice(0, MAX_IMAGES);
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsMultipleSelection: true,
+      // si el SO no soporta multi, con varios toques se irán acumulando
+      selectionLimit: Math.max(1, MAX_IMAGES - images.length), // algunos dispositivos lo soportan
+      orderedSelection: true,
     });
-  }
-};
+
+    if (!res.canceled) {
+      setImages(prev => {
+        // acumula
+        const merged = [...prev, ...res.assets];
+        // de-dup por uri
+        const map = new Map<string, ImagePickerAsset>();
+        merged.forEach(a => map.set(a.uri, a));
+        // respeta el máximo
+        return Array.from(map.values()).slice(0, MAX_IMAGES);
+      });
+    }
+  };
 
 
   const submit = async () => {
@@ -676,7 +700,7 @@ const MAX_IMAGES = 6;
 
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         <Text style={{ marginRight: 8 }}>Calificación:</Text>
-        {[1,2,3,4,5].map(n => (
+        {[1, 2, 3, 4, 5].map(n => (
           <TouchableOpacity key={n} onPress={() => setRating(n)} style={{ marginRight: 4 }}>
             <Text style={{ fontSize: 18, color: n <= rating ? '#DE1484' : '#aaa' }}>
               {n <= rating ? '★' : '☆'}
@@ -700,23 +724,23 @@ const MAX_IMAGES = 6;
       />
 
       {!!images.length && (
-  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-    {images.map((img, i) => (
-      <View key={img.uri} style={{ position: 'relative' }}>
-        <Image source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
-        <TouchableOpacity
-          onPress={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
-          style={{
-            position: 'absolute', top: -6, right: -6, width: 22, height: 22,
-            borderRadius: 11, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center'
-          }}
-        >
-          <Text style={{ color: 'white', fontWeight: '700' }}>×</Text>
-        </TouchableOpacity>
-      </View>
-    ))}
-  </View>
-)}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+          {images.map((img, i) => (
+            <View key={img.uri} style={{ position: 'relative' }}>
+              <Image source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
+              <TouchableOpacity
+                onPress={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+                style={{
+                  position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+                  borderRadius: 11, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <Text style={{ color: 'white', fontWeight: '700' }}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
 
 
       <View style={{ flexDirection: 'row', gap: 10 }}>

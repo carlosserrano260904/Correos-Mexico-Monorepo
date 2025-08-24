@@ -20,12 +20,15 @@ const transformToBoolean = ({ value }): boolean | any => {
 };
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Producto de Ejemplo', description: 'Nombre del producto' })
+  @ApiProperty({ example: 'Tenis Runner Pro', description: 'Nombre del producto', maxLength: 60 })
   @IsString()
   @IsNotEmpty()
   nombre: string;
 
-  @ApiProperty({ example: 'Una descripción detallada del producto.', description: 'Descripción del producto' })
+  @ApiProperty({
+    example: 'Tenis deportivos de alto rendimiento con suela antideslizante y material transpirable, ideales para correr largas distancias.',
+    description: 'Descripción del producto',
+  })
   @IsString()
   @IsNotEmpty()
   descripcion: string;

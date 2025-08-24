@@ -1,5 +1,14 @@
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, ValidateNested } from 'class-validator';
+import { 
+  ArrayNotEmpty, 
+  IsArray, 
+  IsInt, 
+  IsNotEmpty, 
+  IsOptional, 
+  IsString, 
+  ValidateNested, 
+  IsNumber 
+} from 'class-validator';
 
 export class PedidoProductoDto {
   @IsNotEmpty()
@@ -14,18 +23,67 @@ export class PedidoProductoDto {
 export class CreatePedidoDto {
   @IsNotEmpty()
   @IsInt()
-  profileid: number;
+  profileId: number;
 
   @IsNotEmpty()
+  @IsString()
   status: string;
 
-  @IsNotEmpty()
-  @IsInt()
-  direccionId: number;
+  @IsOptional()
+  @IsString()
+  estatus_pago?: string;
 
+  @IsOptional()
+  @IsNumber()
+  total?: number;
+
+  // Dirección
+  @IsOptional()
+  @IsInt()
+  direccionId?: number;
+
+  @IsOptional()
+  @IsString()
+  calle?: string;
+
+  @IsOptional()
+  @IsString()
+  numero_int?: string;
+
+  @IsOptional()
+  @IsString()
+  numero_exterior?: string;
+
+  @IsOptional()
+  @IsString()
+  cp?: string;
+
+  @IsOptional()
+  @IsString()
+  ciudad?: string;
+
+  // Datos de pago
+  @IsOptional()
+  @IsString()
+  nombre?: string;
+
+  @IsOptional()
+  @IsString()
+  last4?: string;
+
+  @IsOptional()
+  @IsString()
+  brand?: string;
+
+  // Envío
+  @IsOptional()
+  @IsString()
+  n_guia?: string;
+
+  // Productos
   @IsArray()
   @ArrayNotEmpty()
-  @ValidateNested({ each: true }) // 👈 ES IMPORTANTE PONER `each: true`
-  @Type(() => PedidoProductoDto) // 👈 esto transforma los objetos del array
+  @ValidateNested({ each: true })
+  @Type(() => PedidoProductoDto)
   productos: PedidoProductoDto[];
 }

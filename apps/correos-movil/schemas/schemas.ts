@@ -16,8 +16,18 @@ export const ProfileUserSchema = z.object({
 export const ProfilesSchema = z.array(ProfileUserSchema);
 export type SchemaProfileUser = z.infer<typeof ProfileUserSchema>;
 
+export type Review = {
+  id: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  author: { name: string; avatar: string };
+  images: string[];
+};
+
 // Tipos de navegación (Stack Params)
 export type RootStackParamList = {
+   ReviewDetail: { review: Review; startIndex?: number };
   Carrito: undefined;
   Favorito : undefined;
   Politicas:undefined

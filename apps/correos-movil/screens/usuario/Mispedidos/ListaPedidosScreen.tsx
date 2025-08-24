@@ -23,7 +23,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const PINK = '#E6007E';
+const PINK = '#fff';
 
 interface Producto {
   id: number;
@@ -126,17 +126,26 @@ export default function ListaPedidosScreen() {
   };
 
   const renderItem = ({ item }: { item: Pedido }) => {
-    const previewImage = item.productos?.[0]?.producto?.imagen;
-
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('MisPedidosScreen', { pedido: item })}
       >
-        <Image
-          source={previewImage ? { uri: previewImage } : require('../../../assets/image.png')}
-          style={styles.previewImage}
-        />
+        <View style={{ flexDirection: 'column', alignItems: 'center', marginRight: 16 }}>
+          <FlatList
+            data={item.productos}
+            horizontal
+            keyExtractor={(p) => p.producto.id.toString()}
+            renderItem={({ item: prod }) => (
+              <Image
+                source={prod.producto.imagen ? { uri: prod.producto.imagen } : require('../../../assets/image.png')}
+                style={styles.previewImage}
+              />
+            )}
+            showsHorizontalScrollIndicator={false}
+            style={{ maxHeight: 60 }}
+          />
+        </View>
         <View style={styles.cardDetails}>
           <Text style={styles.title}>
             Pedido del{' '}
@@ -173,7 +182,7 @@ export default function ListaPedidosScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#E6007E" />
+        <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
@@ -198,9 +207,9 @@ export default function ListaPedidosScreen() {
             accessible={true}
             accessibilityLabel="Regresar"
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color="#000000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mis pedidos</Text>
+          <Text style={styles.headerTitle}>Mis Pedidos</Text>
           <View style={{ width: 24 }} />
         </View>
       </SafeAreaView>
@@ -295,18 +304,17 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
-    height: Platform.OS === 'ios' ? 70 : 60,
-    justifyContent: 'space-between',
-    backgroundColor: PINK,
+    marginTop: 60,
+    marginBottom: 16,
+    marginLeft:12,
   },
   headerTitle: {
-    color: '#fff',
+    color: '#000',
     fontWeight: 'bold',
     fontSize: 20,
-    textAlign: 'center',
+    textAlign: 'left',
     flex: 1,
+    marginLeft: 12,
   },
   card: {
     flexDirection: 'row',

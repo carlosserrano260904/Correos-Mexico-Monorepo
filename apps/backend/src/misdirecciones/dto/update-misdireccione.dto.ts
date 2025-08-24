@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/swagger';
 import { CreateMisdireccioneDto } from './create-misdireccione.dto';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 

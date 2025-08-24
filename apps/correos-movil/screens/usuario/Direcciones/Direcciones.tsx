@@ -4,8 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     Alert,
     SafeAreaView,
-    KeyboardAvoidingView,
-    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -14,13 +12,15 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     View,
-    StatusBar,
+    BackHandler,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { actualizarDireccionAPI, agregarDireccionAPI, eliminarDireccionAPI, obtenerDirecciones } from '../../../api/direcciones';
 import { DireccionesSchema } from '../../../schemas/schemas';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { useMyAuth } from '../../../context/AuthContext';
+import AppHeader from '../../../components/common/AppHeader';
+import Loader from '../../../components/common/Loader';
 
 const PINK = '#E6007E';
 
@@ -99,22 +99,7 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
 
     return (
         <>
-            <StatusBar barStyle="light-content" backgroundColor={PINK} />
-            <SafeAreaView style={{ backgroundColor: PINK }}>
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.backButton}
-                        accessibilityRole="button"
-                        accessible={true}
-                        accessibilityLabel="Regresar"
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Mis Direcciones</Text>
-                    <View style={{ width: 24 }} />
-                </View>
-            </SafeAreaView>
+            <AppHeader title="Mis Direcciones" onBack={() => navigation.goBack()} />
 
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 <Text style={styles.sectionTitle}>Direcciones guardadas</Text>
@@ -190,15 +175,22 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                 )}
 
                 {modoSeleccion && (
+                    <View>
+                    <TouchableOpacity style={styles.button} onPress={onAgregarNueva}>
+                    <Text style={styles.buttonText}>Agregar nueva dirección</Text>
+                     </TouchableOpacity>
+                   
                     <TouchableOpacity style={styles.button} onPress={confirmarSeleccion}>
                         <Text style={styles.buttonText}>Usar esta dirección</Text>
                     </TouchableOpacity>
+                    </View>
                 )}
 
             </ScrollView>
         </>
     );
 }
+
 
 export default function AgregarDomicilio({ navigation, route }: { navigation: any, route: any }) {
     const [direcciones, setDirecciones] = useState<Direccion[]>([]);
@@ -211,9 +203,23 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
     const modoSeleccion = route?.params?.modoSeleccion || false;
 
     const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const backAction = () => {
+            if (mostrarFormulario) {
+                // 👉 si está en el formulario, volver a la lista
+                setMostrarFormulario(false);
+                setEditIndex(null);
+                return true; // 🔴 evita que cierre la pantalla
+            }
+            return false; // 🔴 permite el comportamiento normal (salir de la pantalla)
+        };
 
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
 
+        return () => backHandler.remove();
+    }, [mostrarFormulario]);
 
     const [formData, setFormData] = useState<Omit<Direccion, 'numerointerior' | 'numeroexterior'> & {
         numerointerior: string;
@@ -268,10 +274,11 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
                 const resultado = await obtenerDirecciones(userId);
                 const adaptadas = resultado.map(adaptarDireccion);
                 setDirecciones(adaptadas);
-
             } catch (err) {
                 console.error('Error cargando direcciones:', err);
                 Alert.alert('Error', 'No se pudieron cargar las direcciones');
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -318,7 +325,9 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
         return !/^([a-zA-Z])\1+$/.test(letras);
     }
 
-
+    if (loading) {
+        return <Loader message="Cargando tus direcciones..." />;
+    }
     if (mostrarFormulario) {
         return (
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -719,27 +728,6 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 25,
         marginLeft: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
-        height: Platform.OS === 'ios' ? 70 : 60,
-        justifyContent: 'space-between',
-        backgroundColor: PINK,
-    },
-    headerTitle: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 20,
-        textAlign: 'center',
-        flex: 1,
-    },
-    backButton: {
-        width: 24,
         justifyContent: 'center',
         alignItems: 'center',
     },

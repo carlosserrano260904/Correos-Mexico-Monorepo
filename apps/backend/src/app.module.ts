@@ -42,6 +42,7 @@ import { ViewdocModule } from './viewdoc/viewdoc.module';
 import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ReviewModule } from './review/review.module';
+import {PDFGeneratorModule} from './guias_trazabilidad/infrastructure/pdf-generator/pdf-generator.module';
 
 
 @Module({
@@ -89,6 +90,7 @@ import { ReviewModule } from './review/review.module';
     EjemploUsarGuiasModule,
     CategoriesModule,
     ReviewModule,
+    PDFGeneratorModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

@@ -96,6 +96,13 @@ export class AuthService {
     let user;
 
     if (!proveedor) {
+      // Crear cliente en Stripe
+      const Stripe = require('stripe');
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' });
+      const customer = await stripe.customers.create({
+        name: dto.nombre || dto.correo.split('@')[0],
+      });
+
       const profile = this.profileRepository.create({
         nombre: dto.nombre || dto.correo.split('@')[0],
         apellido: '',
@@ -105,6 +112,7 @@ export class AuthService {
         fraccionamiento: '',
         calle: '',
         codigoPostal: '',
+        stripeCustomerId: customer.id,
       });
 
       user = await this.usuariosService.create({

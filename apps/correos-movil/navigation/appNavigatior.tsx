@@ -46,6 +46,7 @@ import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
 import NameOfReceivePerson from '../screens/repartidor/NameOfReceivePerson';
 import CheckoutTabs from '../screens/usuario/detalles_pedido/CheckoutTabs';
 import GuiaFormulario from '../screens/usuario/tarifador/GuiaFormulario';
+import ReviewDetail from '../screens/usuario/profile/ReviewDetail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -57,6 +58,7 @@ export default function AppNavigator() {
             <Stack.Screen name="HomeUser" component={HomeUser} options={{ headerShown: false }} />
             <Stack.Screen name="ProductView" component={ProductView} options={{ headerShown: false }} />
             <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="ReviewDetail" component={ReviewDetail} options={{ headerShown: false }} />
             <Stack.Screen name="RoutesView" component={RoutesView} options={{ headerShown: false }} />
             <Stack.Screen name="Package" component={PackageScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ProfileUser" component={ProfileUser} options={{ headerShown: false }} />

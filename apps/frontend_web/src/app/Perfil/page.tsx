@@ -97,10 +97,10 @@ export default function perfil(){
             }
         };
 
-        if (auth.user) {
+        if (auth.user && !profile && !loading) {
             loadProfile();
         }
-    }, [auth.user, auth.profile]);
+    }, [auth.user?.id, auth.profile?.id, profile, loading]);
 
     const handleLogout = () => {
         auth.logout();

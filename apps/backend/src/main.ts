@@ -25,10 +25,12 @@ async function bootstrap() {
         origin: [
           'http://localhost:4200', 
           'http://localhost:3000', 
-          'http://localhost:3001', 
+          'http://localhost:3001',  // ← Frontend Next.js
           'http://localhost:3002',
-          'http://localhost:3003',  // Add more ports for dev
-          'https://midominio.com'
+          'http://localhost:3003',
+          'https://midominio.com',
+          // Allow all localhost for development
+          /^http:\/\/localhost:\d+$/
         ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
         allowedHeaders: [

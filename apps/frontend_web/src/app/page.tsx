@@ -2,7 +2,7 @@
 import { CarrouselColection, CarrouselProducts } from '@/components/CarouselProducts'
 import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/components/anuncios'
 import { Boletin } from '@/components/boletin'
-
+import { CartTestComponent } from '@/components/CartTestComponent'
 
 import Link from 'next/link'
 import React from 'react'
@@ -71,6 +71,11 @@ export default function Home() {
 
   return (
     <Plantilla>
+      {/* 🧪 TESTING COMPONENT - Remove after testing */}
+      <div className="mb-8">
+        <CartTestComponent />
+      </div>
+      
       <div className=''>
         <Anuncios />
       </div>

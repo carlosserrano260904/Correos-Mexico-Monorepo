@@ -72,6 +72,7 @@ export type RootStackParamList = {
   RecibirPaquete: { package: any };
   TomarEvidencia: { package: any };
   FormularioVendedor: undefined;
+  HistorialFacturas: undefined;
 };
 
 // Producto y contenidos

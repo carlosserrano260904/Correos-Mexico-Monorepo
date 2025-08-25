@@ -133,20 +133,39 @@ export default function HomeUser() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  const categoriesData = [
+    { name: 'Ropa, moda y calzado', image: require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png") },
+    { name: 'Joyería y bisuteria', image: require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png") },
+    { name: 'Juegos y juguetes', image: require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png") },
+    { name: 'Hogar y decoración', image: require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png") },
+    { name: 'Belleza y cuidado personal', image: require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png") },
+    { name: 'Artesanías mexicanas', image: require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png") },
+    { name: 'FONART', image: require("../../../assets/icons_correos_mexico/Fonart-icon.png") },
+    { name: 'Original', image: require("../../../assets/icons_correos_mexico/Original-icon.png") },
+    { name: 'Jóvenes construyendo el futuro', image: require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png") },
+    { name: 'Hecho en Tamaulipas', image: require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png") },
+    { name: 'SEDECO Michoacán', image: require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png") },
+    { name: 'Filatelia mexicana', image: require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png") },
+    { name: 'Sabores artesanales', image: require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png") },
+  ];
+
   const navigation = useNavigation<NavigationProp>();
+
+  const handleNavigateToProducts = (categoria: string) => {
+    // Navega a la pantalla 'Productos' y pasa el parámetro 'categoria'
+    navigation.navigate('ProductsScreen', { categoria });
+  };
 
   React.useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/api/products/findSome`);
-        if (!response.ok) {
-          console.log(response);
+        if (!response.ok) {;
           throw new Error('Error al obtener los productos');
           
         }
         const data = await response.json();
-        console.log(data);
         setProducts(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
@@ -254,70 +273,17 @@ export default function HomeUser() {
         <View style={styles.categoriesContainer}>
           <Text style={styles.textCategories}>Categorias</Text>
           <ScrollView style={styles.modulesCategoriesContainer} horizontal={true} showsHorizontalScrollIndicator={false}>
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Ropa, moda y calzado</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Joyería y bisuteria</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Juegos y juguetes</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hogar y decoración</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Belleza y cuidado personal</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Artesanías mexicanas</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Fonart-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>FONART</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Original-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Original</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Jóvenes construyendo el futuro</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hecho en Tamaulipas</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>SEDECO Michoacán</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Filatelia mexicana</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Sabores artesanales</Text>
-            </View>
+            {categoriesData.map((category, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.modulesCategories}
+                onPress={() => handleNavigateToProducts(category.name)}
+                activeOpacity={0.7}
+              >
+                <Image style={styles.categoriesImage} source={category.image} />
+                <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
 
@@ -341,7 +307,7 @@ export default function HomeUser() {
         <View style={styles.vendedorFonartContainer}>
           <View style={styles.textVendedorFonartContainer}>
             <Text style={styles.textVendedorFonart}>Vendedor destacado FONART</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleNavigateToProducts('FONART')}>
               <Text style={styles.seeAll}>Ver todo</Text>
             </TouchableOpacity>
           </View>
@@ -403,7 +369,7 @@ export default function HomeUser() {
         <View style={styles.featuredProductContainer}>
           <View style={styles.textFeaturedProductContainer}>
             <Text style={styles.textFeaturedProduct}>Productos destacados</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleNavigateToProducts('Ropa, moda y calzado')}>
               <Text style={styles.seeAll}>Ver todo</Text>
             </TouchableOpacity>
           </View>

@@ -1,5 +1,5 @@
 // screens/productosColor.tsx
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -69,8 +69,12 @@ export const formatPrice = (price: number) => {
 };
 
 export default function ProductsScreen() {
-  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  // Asumo que el nombre de esta pantalla en tu navegador es 'Productos'
+  // y que has actualizado RootStackParamList para que acepte `{ categoria?: string }`
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Productos'>;
+  type ProductsRouteProp = RouteProp<RootStackParamList, 'Productos'>;
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<ProductsRouteProp>();
 
   const [productos, setProductos] = useState<Articulo[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Todos');
@@ -98,9 +102,23 @@ export default function ProductsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      const categoryFromParams = route.params?.categoria;
+
+      // Si se pasa una categoría por parámetros, la establecemos como seleccionada.
+      if (categoryFromParams) {
+        setCategoriaSeleccionada(categoryFromParams);
+      }
+
       setLoading(true);
-      fetchProductos().finally(() => setLoading(false));
-    }, [fetchProductos])
+      fetchProductos().finally(() => {
+        setLoading(false);
+        // Importante: Limpiamos el parámetro para que no se reutilice en el siguiente focus.
+        // Esto permite al usuario cambiar de filtro sin que se reinicie al volver.
+        if (categoryFromParams) {
+          navigation.setParams({ categoria: undefined });
+        }
+      });
+    }, [fetchProductos, navigation, route.params?.categoria])
   );
 
   const onRefresh = useCallback(async () => {

@@ -367,6 +367,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.nombre}
             onChangeText={(text) => handleInputChange('nombre', text)}
             maxLength={60}
+            placeholder="Ej: Camisa de algodón"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -378,6 +380,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.precio === null ? '' : String(formData.precio)}
             onChangeText={text => handleNumericFieldChange('precio', text)}
             keyboardType="decimal-pad"
+            placeholder="Ej: 299.99"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -390,6 +394,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={(text) => handleInputChange('descripcion', text)}
             multiline
             maxLength={120}
+            placeholder="Describe tu producto detalladamente"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -454,6 +460,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.inventario === null ? '' : String(formData.inventario)}
             onChangeText={text => handleNumericFieldChange('inventario', text)}
             keyboardType='decimal-pad'
+            placeholder="Ej: 50"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -465,6 +473,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.marca}
             onChangeText={(text) => handleInputChange('marca', text)}
             maxLength={60}
+            placeholder="Ej: Mi Marca"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -498,6 +508,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={text => handleNumericFieldChange('peso', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 0.5 (en kg)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -510,6 +522,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={text => handleNumericFieldChange('altura', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 10 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -522,6 +536,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={text => handleNumericFieldChange('ancho', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 20 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -534,6 +550,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={text => handleNumericFieldChange('largo', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 30 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -545,6 +563,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.vendedor}
             onChangeText={(text) => handleInputChange('vendedor', text)}
             maxLength={80}
+            placeholder="Ej: Mi Tienda Oficial"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 

@@ -14,8 +14,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { AddImagesDto } from './dto/add-images.dto';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
-import { Review } from 'src/review/entities/review.entity';            // <- singular
-import { ReviewImage } from 'src/review/entities/review-image.entity'; // <- singular
+import { Review } from 'src/review/entities/review.entity';        
+import { ReviewImage } from 'src/review/entities/review-image.entity'; 
 import { Profile } from 'src/profile/entities/profile.entity';
 
 @ApiTags('products')

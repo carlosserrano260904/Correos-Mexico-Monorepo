@@ -657,7 +657,6 @@ const TarificadorMexpost = () => {
                     </View>
                   )}
 
-
                   {activeTab === "Internacional" && (
                     <View style={styles.costoTotalContainer}>
                       <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
@@ -666,32 +665,6 @@ const TarificadorMexpost = () => {
                       </Text>
                     </View>
                   )}
-
-                  <CheckoutButton
-                    amount={activeTab === "Nacional" ? costo : cotizacionData.total}
-                    email={email}
-                    profileId={profileId}
-                    onPaymentSuccess={(paymentResult) => {
-                      console.log('Pago exitoso:', paymentResult);
-                      navigation.navigate('GuiaFormulario', {
-                        datosTarifador: {
-                          codigoOrigen,
-                          codigoDestino,
-                          peso,
-                          alto,
-                          ancho,
-                          largo,
-                          costo: activeTab === "Nacional" ? costo : cotizacionData.total,
-                          tipoEnvio: activeTab,
-                        }
-                      });
-                    }}
-                    onPaymentError={(error) => {
-                      console.error('Error en pago:', error);
-                      Alert.alert('Error', 'Hubo un problema con el pago');
-                    }}
-                  />
-
                 </>
               )}
             </View>

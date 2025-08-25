@@ -29,7 +29,19 @@ const Colors = {
   background: '#F5F5F5',
 };
 
-const API_BASE_URL = 'https://correos-mexico-monorepo.onrender.com/api';
+const API_BASE_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
+
+// --- Helper: obtiene la imagen con orden 0 (fallbacks seguros) ---
+const getImageOrden0 = (p: any): string => {
+  const imgs = p?.images;
+  if (Array.isArray(imgs) && imgs.length > 0) {
+    const img0 = imgs.find((x: any) => Number(x?.orden) === 0) || imgs[0];
+    const url = (img0?.url ?? p?.imagen ?? '').toString().trim();
+    return url || 'https://via.placeholder.com/120x120.png?text=Producto';
+  }
+  if (p?.imagen) return String(p.imagen).trim(); // soporte legacy
+  return 'https://via.placeholder.com/120x120.png?text=Producto';
+};
 
 interface CartItem {
   id: string;
@@ -69,16 +81,14 @@ const CarritoScreen = () => {
 
       const data = await response.json();
 
-      const formattedCart = data.map((item: any) => ({
-        id: item.id?.toString() || '',
-        productId: item.producto?.id?.toString() || '',
-        name: item.producto?.nombre || 'Sin nombre',
-        price: Number(item.precio_unitario || item.producto?.precio || 0),
-        quantity: Number(item.cantidad || 1),
-        image:
-          item.producto?.imagen ||
-          'https://via.placeholder.com/70x70?text=Sin+Imagen',
-        color: item.producto?.color || 'No especificado',
+      const formattedCart: CartItem[] = data.map((item: any) => ({
+        id: item?.id?.toString() || '',
+        productId: item?.producto?.id?.toString() || '',
+        name: item?.producto?.nombre || 'Sin nombre',
+        price: Number(item?.precio_unitario ?? item?.producto?.precio ?? 0),
+        quantity: Number(item?.cantidad ?? 1),
+        image: getImageOrden0(item?.producto), // << usa orden 0
+        color: item?.producto?.color || 'No especificado',
       }));
 
       setCart(formattedCart);
@@ -175,14 +185,14 @@ const CarritoScreen = () => {
         <Ionicons name="trash-outline" size={20} color="#9CA3AF" />
       </TouchableOpacity>
 
-      <Image source={{ uri: item.image }} style={styles.itemImage} />
+      <Image
+        source={{ uri: item.image }}
+        style={styles.itemImage}
+        onError={(e) => console.log('Image error:', item.image, e.nativeEvent)}
+      />
 
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text
-          style={styles.itemTitle}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
+        <Text style={styles.itemTitle} numberOfLines={2} ellipsizeMode="tail">
           {item.name}
         </Text>
         <Text style={styles.itemDesc}>Color: {item.color}</Text>
@@ -222,10 +232,7 @@ const CarritoScreen = () => {
         <TouchableOpacity
           style={headerStyles.backButton}
           onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Tabs' }],
-            });
+            navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
           }}
           accessibilityLabel="Regresar"
           accessibilityHint="Regresa a la pantalla principal"
@@ -290,11 +297,7 @@ const CarritoScreen = () => {
               MXN {calculateTotal().toFixed(2)}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.checkoutBtn}
-            onPress={proceedToPayment}
-            disabled={loading}
-          >
+          <TouchableOpacity style={styles.checkoutBtn} onPress={proceedToPayment} disabled={loading}>
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
@@ -333,12 +336,12 @@ const headerStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   itemCard: {
-    position: 'relative',                 // ← para posicionar el botón fijo
+    position: 'relative',
     backgroundColor: 'white',
     borderRadius: 10,
     flexDirection: 'row',
     padding: 12,
-    paddingRight: 40,                     // ← deja espacio para el icono fijo
+    paddingRight: 40,
     marginVertical: 7,
     elevation: 2,
     shadowColor: '#000',
@@ -355,7 +358,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F4F6',          // minimalista y consistente
+    backgroundColor: '#F3F4F6',
   },
   itemImage: {
     width: 70,

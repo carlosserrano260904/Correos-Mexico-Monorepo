@@ -122,7 +122,72 @@ const handleImageUpload = async () => {
       return;
     }
 
-    if (imageUris.length === 0) {
+    if (!formData.nombre) {
+      Alert.alert('Error', 'Por favor ingresa el nombre del producto.');
+      return;
+    }
+    if (!formData.descripcion) {
+      Alert.alert('Error', 'Por favor ingresa una descripcion del producto.');
+      return;
+    }
+    if (!formData.precio) {
+      Alert.alert('Error', 'Por favor ingresa el precio del producto.');
+      return;
+    }
+    const precioNum = parseFloat(String(formData.precio));
+    if (isNaN(precioNum) || precioNum <= 0) {
+      Alert.alert('Error', 'El precio debe ser un número mayor que 0');
+      return;
+    }
+    if (!formData.inventario) {
+      Alert.alert('Error', 'Por favor ingresa la cantidad de productos disponibles.');
+      return;
+    }
+    if (!formData.marca) {
+      Alert.alert('Error', 'Por favor ingresa la marca del producto.');
+      return;
+    }
+    if (!formData.peso) {
+      Alert.alert('Error', 'Por favor ingresa el peso del producto.');
+      return;
+    }
+    if (isNaN(formData.peso) || formData.peso <= 0) {
+      Alert.alert('Error', 'El peso debe ser un número mayor que 0');
+      return;
+    }
+    if (!formData.altura) {
+      Alert.alert('Error', 'Por favor ingresa la altura del producto.');
+      return;
+    }
+    if (isNaN(formData.altura) || formData.altura <= 0) {
+      Alert.alert('Error', 'La altura debe ser un número mayor que 0');
+      return;
+    }
+    if (!formData.ancho) {
+      Alert.alert('Error', 'Por favor ingresa el ancho del producto.');
+      return;
+    }
+    if (isNaN(formData.ancho) || formData.ancho <= 0) {
+      Alert.alert('Error', 'El ancho debe ser un número mayor que 0');
+      return;
+    }
+    if (!formData.largo) {
+      Alert.alert('Error', 'Por favor ingresa el largo del producto.');
+      return;
+    }
+    if (isNaN(formData.largo) || formData.largo <= 0) {
+      Alert.alert('Error', 'El largo debe ser un número mayor que 0');
+      return;
+    }
+    if (!formData.vendedor) {
+      Alert.alert('Error', 'Por favor ingresa el vendedor del producto.');
+      return;
+    }
+    if (!formData.categoria) {
+      Alert.alert('Error', 'Por favor ingresa la categoria del producto.');
+      return;
+    }
+    if (imageItems.length === 0) {
       Alert.alert('Error', 'Por favor, sube al menos una imagen del producto.');
       return;
     }
@@ -297,6 +362,66 @@ const handleImageUpload = async () => {
           </View>
         </View>
 
+        {/* Input para peso */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Peso *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.peso === null ? '' : String(formData.peso)}
+            onChangeText={text => handleNumericFieldChange('peso', text)}
+            maxLength={40}
+            keyboardType='decimal-pad'
+          />
+        </View>
+
+        {/* Input para altura */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Altura *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.altura === null ? '' : String(formData.altura)}
+            onChangeText={text => handleNumericFieldChange('altura', text)}
+            maxLength={40}
+            keyboardType='decimal-pad'
+          />
+        </View>
+
+        {/* Input para ancho */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Ancho *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.ancho === null ? '' : String(formData.ancho)}
+            onChangeText={text => handleNumericFieldChange('ancho', text)}
+            maxLength={40}
+            keyboardType='decimal-pad'
+          />
+        </View>
+
+        {/* Input para largo */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Largo *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.largo === null ? '' : String(formData.largo)}
+            onChangeText={text => handleNumericFieldChange('largo', text)}
+            maxLength={40}
+            keyboardType='decimal-pad'
+          />
+        </View>
+
+        {/* Input para vendedor */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Vendedor *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.vendedor}
+            onChangeText={(text) => handleInputChange('vendedor', text)}
+            maxLength={80}
+          />
+        </View>
+
+        {/* Sección para imágenes */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Imágenes del producto (máx. {MAX_IMAGES}) *</Text>
           <View style={styles.imageContainer}>

@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { TextInput } from 'react-native';
 import {
   View, Text, StyleSheet, Dimensions, Image, TouchableOpacity,
-  ScrollView, ActivityIndicator, Modal
+  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform,TextInput
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
@@ -198,21 +198,25 @@ function ProductView() {
         const r = await fetch(`${IP}/api/products/random/${product.category}`, { signal: controller.signal });
         if (!r.ok) return;
         const data: BackendProduct[] = await r.json();
-        const mapped = Array.isArray(data) ? data.map(d => {
-          const urls = Array.isArray(d.images) ? d.images.map(x => x?.url).filter(Boolean) as string[] : [];
-          const imagen =
-            urls.length ? urls :
-            (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
-             typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
-          return {
-            id: String(d.id),
-            nombre: d.nombre,
-            precio: String(d.precio),
-            imagen,
-            images: imagen,
-            categoria: d.categoria ?? '',
-          };
-        }) : [];
+
+        const mapped = (Array.isArray(data) ? data : [])
+          .filter(d => d?.id !== Number(id)) // opcional: ocultar el mismo producto
+          .map(d => {
+            const urls = Array.isArray(d.images) ? d.images.map(x => x?.url).filter(Boolean) as string[] : [];
+            const imagen =
+              urls.length ? urls :
+              (Array.isArray(d.imagen) ? (d.imagen as string[]).filter(Boolean) :
+               typeof d.imagen === 'string' && d.imagen ? [d.imagen] : []);
+            return {
+              id: String(d.id),
+              nombre: d.nombre,
+              precio: Number.parseFloat(String(d.precio)),
+              imagen,
+              images: imagen,
+              categoria: d.categoria ?? '',
+            };
+          });
+
         if (isMounted.current) setRecommended(mapped);
       } catch { if (isMounted.current) setRecommended([]); }
     };
@@ -349,9 +353,16 @@ function ProductView() {
             <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
           </View>
 
-        <View style={styles.descriptionContainer}>
-            <Text style={styles.infoLabel}>Descripción:</Text>
-            <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
+          <View style={styles.infoContainer}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Categoría:</Text>
+              <Text style={styles.infoValue}>{product.category || 'No disponible'}</Text>
+            </View>
+
+            <View style={styles.descriptionContainer}>
+              <Text style={styles.infoLabel}>Descripción:</Text>
+              <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
+            </View>
           </View>
         </View>
 <TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
@@ -362,13 +373,40 @@ function ProductView() {
           <View style={{ marginBottom: moderateScale(24) }}>
             <Text style={styles.recommendedTitle}>Opiniones</Text>
 
-            {product.reviews.map((r) => (
-              <View key={r.id} style={styles.reviewCard}>
-                <Image source={{ uri: r.author.avatar || DEFAULT_IMAGE }} style={styles.reviewAvatar} />
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.reviewAuthor}>{r.author.name}</Text>
-                    {renderStars(Math.max(0, Math.min(5, r.rating)))}
+          <TouchableOpacity style={styles.addButton} onPress={toggleCarrito}>
+            <Text style={styles.addButtonText}>{inCart ? 'Quitar del carrito' : 'Añadir al carrito'}</Text>
+          </TouchableOpacity>
+
+          {/* ====== Reseñas con imágenes ====== */}
+          {!!product.reviews.length && (
+            <View style={{ marginBottom: moderateScale(24) }}>
+              <Text style={styles.recommendedTitle}>Opiniones</Text>
+
+              {product.reviews.slice(0, reviewsVisible).map((r) => (
+                <View key={r.id} style={styles.reviewCard}>
+                  <Image source={{ uri: r.author.avatar || DEFAULT_IMAGE }} style={styles.reviewAvatar} />
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={styles.reviewAuthor}>{r.author.name}</Text>
+                      {renderStars(Math.max(0, Math.min(5, r.rating)))}
+                    </View>
+                    <Text style={styles.reviewDate}>
+                      {new Date(r.createdAt).toLocaleDateString('es-MX')}
+                    </Text>
+                    <Text style={styles.reviewComment}>{r.comment}</Text>
+
+                    {!!r.images.length && (
+                      <View style={styles.reviewThumbRow}>
+                        {r.images.map((u, idx) => (
+                          <TouchableOpacity key={`${r.id}-${idx}`} onPress={() => navigation.navigate('ReviewDetail', {
+      review: r,        // enviamos TODA la opinión
+      startIndex: idx,  // imagen tocada
+    })}>
+                            <Image source={{ uri: u }} style={styles.reviewThumb} />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
                   </View>
                   <Text style={styles.reviewDate}>
                     {new Date(r.createdAt).toLocaleDateString('es-MX')}
@@ -535,17 +573,32 @@ function ReviewForm({
   const [comment, setComment] = React.useState('');
   const [images, setImages] = React.useState<ImagePicker.ImagePickerAsset[]>([]);
   const [sending, setSending] = React.useState(false);
-
+const MAX_IMAGES = 6;
   const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return;
-    const res = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') { alert('Se requiere permiso a la galería'); return; }
+
+  const res = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.8,
+    allowsMultipleSelection: true,
+    // si el SO no soporta multi, con varios toques se irán acumulando
+    selectionLimit: Math.max(1, MAX_IMAGES - images.length), // algunos dispositivos lo soportan
+    orderedSelection: true,
+  });
+
+  if (!res.canceled) {
+    setImages(prev => {
+      // acumula
+      const merged = [...prev, ...res.assets];
+      // de-dup por uri
+      const map = new Map<string, ImagePickerAsset>();
+      merged.forEach(a => map.set(a.uri, a));
+      // respeta el máximo
+      return Array.from(map.values()).slice(0, MAX_IMAGES);
     });
-    if (!res.canceled) setImages(res.assets);
-  };
+  }
+};
 
   const submit = async () => {
     if (!profileId) { alert('Inicia sesión para comentar.'); return; }
@@ -623,12 +676,23 @@ function ReviewForm({
       />
 
       {!!images.length && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          {images.map((img, i) => (
-            <Image key={i} source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
-          ))}
-        </View>
-      )}
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+    {images.map((img, i) => (
+      <View key={img.uri} style={{ position: 'relative' }}>
+        <Image source={{ uri: img.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />
+        <TouchableOpacity
+          onPress={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+          style={{
+            position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+            borderRadius: 11, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: '700' }}>×</Text>
+        </TouchableOpacity>
+      </View>
+    ))}
+  </View>
+)}
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity style={[reviewStyles.btn, { backgroundColor: '#eee' }]} onPress={pickImages}>

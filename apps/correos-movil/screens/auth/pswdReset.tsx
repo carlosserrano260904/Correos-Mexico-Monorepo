@@ -113,6 +113,14 @@ export default function PswdResetScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Botón de regreso */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
       <Image
         source={require('../../assets/logo1.png')}
         style={styles.logo}
@@ -218,11 +226,20 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#fff',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 10,
     backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 6,
+    elevation: 2,
+  },
+  backButtonText: {
+    fontSize: 28,
+    color: '#DE1484',
+    fontWeight: 'bold',
   },
   logo: { width: 100, height: 100, marginBottom: 10 },
   title: {

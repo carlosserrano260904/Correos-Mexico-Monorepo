@@ -103,10 +103,16 @@ export default function ProductsScreen() {
   useFocusEffect(
     useCallback(() => {
       const categoryFromParams = route.params?.categoria;
+      const searchFromParams = route.params?.searchText;
 
       // Si se pasa una categoría por parámetros, la establecemos como seleccionada.
       if (categoryFromParams) {
         setCategoriaSeleccionada(categoryFromParams);
+      }
+
+      // Si se pasa un texto de búsqueda, lo establecemos en el estado.
+      if (searchFromParams) {
+        setSearchText(searchFromParams);
       }
 
       setLoading(true);
@@ -114,11 +120,11 @@ export default function ProductsScreen() {
         setLoading(false);
         // Importante: Limpiamos el parámetro para que no se reutilice en el siguiente focus.
         // Esto permite al usuario cambiar de filtro sin que se reinicie al volver.
-        if (categoryFromParams) {
-          navigation.setParams({ categoria: undefined });
+        if (categoryFromParams || searchFromParams) {
+          navigation.setParams({ categoria: undefined, searchText: undefined });
         }
       });
-    }, [fetchProductos, navigation, route.params?.categoria])
+    }, [fetchProductos, navigation, route.params?.categoria, route.params?.searchText])
   );
 
   const onRefresh = useCallback(async () => {
@@ -158,6 +164,7 @@ export default function ProductsScreen() {
             placeholder="Buscar un producto..."
             placeholderTextColor="#999"
             onChangeText={setSearchText}
+            value={searchText}
           />
         </View>
       </View>
@@ -174,8 +181,6 @@ export default function ProductsScreen() {
                 onPress={() => setCategoriaSeleccionada(categoria)}
               >
                 <Text
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
                   style={[styles.textoFiltro, categoria === categoriaSeleccionada && styles.textoFiltroActivo]}
                 >
                   {categoria}
@@ -218,8 +223,8 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 16, marginVertical: 8 },
   filtrosContainer: { paddingHorizontal: 15, paddingVertical: 4 },
   botonFiltro: {
-    marginRight: 6, backgroundColor: '#eee', paddingVertical: 4, paddingHorizontal: 8,
-    borderRadius: 16, alignItems: 'center', justifyContent: 'center', maxWidth: 100, height: 50,
+    marginRight: 6, backgroundColor: '#eee', paddingVertical: 10, paddingHorizontal: 16,
+    borderRadius: 16, alignItems: 'center', justifyContent: 'center',
   },
   botonFiltroActivo: { backgroundColor: '#DE1484' },
   textoFiltro: { fontSize: 13, color: '#333' },

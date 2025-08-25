@@ -1,11 +1,10 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, ActivityIndicator, TextInput } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { moderateScale } from 'react-native-size-matters';
-import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
-import { useNavigation } from '@react-navigation/native';
-import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { ShoppingBag, Headset, Heart, Search } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
@@ -132,6 +131,7 @@ export default function HomeUser() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [searchText, setSearchText] = React.useState('');
 
   const categoriesData = [
     { name: 'Ropa, moda y calzado', image: require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png") },
@@ -153,29 +153,40 @@ export default function HomeUser() {
 
   const handleNavigateToProducts = (categoria: string) => {
     // Navega a la pantalla 'Productos' y pasa el parámetro 'categoria'
-    navigation.navigate('ProductsScreen', { categoria });
+    navigation.navigate('ProductsScreen', { categoria, searchText: undefined });
   };
 
-  React.useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/api/products/findSome`);
-        if (!response.ok) {;
-          throw new Error('Error al obtener los productos');
-          
-        }
-        const data = await response.json();
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleSearchSubmit = () => {
+    const trimmedText = searchText.trim();
+    if (trimmedText) {
+      // Navega a la pantalla de productos pasando el texto de búsqueda
+      navigation.navigate('ProductsScreen', { searchText: trimmedText, categoria: undefined });
+      setSearchText(''); // Opcional: limpiar el buscador después de navegar
+    }
+  };
 
-    fetchProducts();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchProducts = async () => {
+        try {
+          setLoading(true);
+          setError(null); // Limpiar errores previos al reintentar
+          const response = await fetch(`${API_URL}/api/products/findSome`);
+          if (!response.ok) {
+            throw new Error('Error al obtener los productos');
+          }
+          const data = await response.json();
+          setProducts(data);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProducts();
+    }, [])
+  );
 
   const progress = useSharedValue<number>(0);
 
@@ -222,7 +233,18 @@ export default function HomeUser() {
         </View>
 
         <View style={styles.searchBarContainer}>
-          <SearchBarComponent />
+          <View style={styles.searchWrapper}>
+            <Search color="#888" size={moderateScale(20)} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar un producto..."
+              placeholderTextColor="#888"
+              value={searchText}
+              onChangeText={setSearchText}
+              onSubmitEditing={handleSearchSubmit}
+              returnKeyType="search"
+            />
+          </View>
         </View>
 
         <CorreosClicButton />
@@ -251,7 +273,7 @@ export default function HomeUser() {
 
           <Pagination.Basic<{ color: string }>
             progress={progress}
-            data={imageData.map((image) => ({ image }))}
+            data={imageData2.map((image) => ({ image }))}
             size={moderateScale(8)}
             dotStyle={{
               borderRadius: 100,
@@ -271,7 +293,7 @@ export default function HomeUser() {
         </View>
 
         <View style={styles.categoriesContainer}>
-          <Text style={styles.textCategories}>Categorias</Text>
+          <Text style={styles.textCategories}>Categorías</Text>
           <ScrollView style={styles.modulesCategoriesContainer} horizontal={true} showsHorizontalScrollIndicator={false}>
             {categoriesData.map((category, index) => (
               <TouchableOpacity
@@ -426,6 +448,25 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     marginTop: moderateScale(20),
     paddingHorizontal: moderateScale(12)
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: moderateScale(50),
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 30,
+    paddingHorizontal: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: moderateScale(16),
+    color: '#121212',
+    paddingVertical: 0,
   },
   correosClicButtonContainer: {
     marginVertical: moderateScale(20),

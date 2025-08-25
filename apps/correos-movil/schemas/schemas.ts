@@ -42,7 +42,7 @@ export type RootStackParamList = {
   Tabs:undefined
   HomeUser: undefined;
   Product: undefined;
-  ProductsScreen: { categoria?: string };
+  ProductsScreen: { categoria?: string, searchText?: string; };
   RoutesView: undefined;
   Package: undefined;
   ProfileUser: undefined;

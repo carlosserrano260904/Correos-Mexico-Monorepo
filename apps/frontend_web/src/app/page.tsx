@@ -78,8 +78,8 @@ export default function Home() {
       <div className='my-3'>
         <Anuncios2 />
       </div>
-      <CarrouselProducts entradas={Products} title='Mas vendido para ti en moda' className='pb-3' />
-      <CarrouselColection entradas={Products} title='Nuevas Colecciones' className='' />
+      <CarrouselProducts entradas={Products} title='Mas vendido para ti en moda' />
+      <CarrouselColection entradas={Products} title='Nuevas Colecciones' />
 
       <div className='my-3'>
         <Anuncios3 />

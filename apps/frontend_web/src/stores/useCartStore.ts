@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { FrontendProduct } from '@/schemas/products'
-import { cartApiService, type BackendCartItem } from '@/services/cartApi'
+import { ProductosProps } from '../types/interface'
 
-// Cart item interface usando el nuevo schema
+// Extendemos ItemCartProps para el carrito
 export interface CartItemProps {
   ProductID: number;
   ProductImageUrl: string;
@@ -11,26 +10,16 @@ export interface CartItemProps {
   productPrice: number;
   prodcutQuantity: number;
   isSelected: boolean;
-  cartItemId?: number; // ID del registro en la tabla carrito del backend
 }
 
 interface CartState {
   cartItems: CartItemProps[];
   appliedCupons: number[];
   shippingCost: number;
-  loading: boolean;
-  error: string | null;
-  currentProfileId: number | null;
   
-  // Backend sync methods
-  loadCart: (profileId: number) => Promise<void>;
-  syncAddToCart: (product: FrontendProduct, profileId: number, quantity?: number) => Promise<void>;
-  syncUpdateQuantity: (productId: number, quantity: number) => Promise<void>;
-  syncRemoveFromCart: (productId: number) => Promise<void>;
-  
-  // Local-only methods (for offline use)
-  addToCart: (product: FrontendProduct, quantity?: number) => void;
-  addMultipleToCart: (products: FrontendProduct[]) => void;
+  // Insert
+  addToCart: (product: ProductosProps, quantity?: number) => void;
+  addMultipleToCart: (products: ProductosProps[]) => void;
   
   // Update
   updateQuantity: (productId: number, quantity: number) => void;
@@ -55,9 +44,6 @@ interface CartState {
   
   // Shipping
   setShippingCost: (cost: number) => void;
-  
-  // Error handling
-  clearError: () => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -67,145 +53,6 @@ export const useCartStore = create<CartState>()(
         cartItems: [],
         appliedCupons: [],
         shippingCost: 0,
-        loading: false,
-        error: null,
-        currentProfileId: null,
-
-        // Helper function to map backend items to frontend format
-        mapBackendItemToFrontend: (backendItem: BackendCartItem): CartItemProps => ({
-          ProductID: backendItem.producto.id,
-          ProductImageUrl: backendItem.producto.images?.[0]?.url || '',
-          ProductName: backendItem.producto.nombre,
-          productPrice: backendItem.producto.precio,
-          prodcutQuantity: backendItem.cantidad,
-          isSelected: true,
-          cartItemId: backendItem.id,
-        }),
-
-        // Load cart from backend
-        loadCart: async (profileId: number) => {
-          set({ loading: true, error: null, currentProfileId: profileId });
-          
-          try {
-            console.log(`🛒 Loading cart for profile ${profileId}`);
-            const cartData = await cartApiService.getCart(profileId);
-            
-            const mappedItems = cartData.items.map((item) => 
-              get().mapBackendItemToFrontend(item)
-            );
-            
-            set({ 
-              cartItems: mappedItems,
-              loading: false,
-              error: null,
-            });
-            
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error loading cart';
-            set({ 
-              error: errorMessage,
-              loading: false,
-              cartItems: [], // Clear cart on error
-            });
-            console.error('Error loading cart:', error);
-          }
-        },
-
-        // Sync add to cart with backend
-        syncAddToCart: async (product: FrontendProduct, profileId: number, quantity = 1) => {
-          set({ loading: true, error: null });
-          
-          try {
-            console.log(`🛒 Adding product ${product.ProductID} to cart for profile ${profileId}`);
-            
-            await cartApiService.addToCart({
-              profileId,
-              productId: product.ProductID,
-              cantidad: quantity,
-            });
-            
-            // Reload cart to get updated data
-            await get().loadCart(profileId);
-            
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error adding to cart';
-            set({ 
-              error: errorMessage,
-              loading: false,
-            });
-            console.error('Error adding to cart:', error);
-          }
-        },
-
-        // Sync update quantity with backend
-        syncUpdateQuantity: async (productId: number, quantity: number) => {
-          const cartItem = get().cartItems.find(item => item.ProductID === productId);
-          
-          if (!cartItem?.cartItemId) {
-            set({ error: 'Cart item not found or missing backend ID' });
-            return;
-          }
-          
-          set({ loading: true, error: null });
-          
-          try {
-            console.log(`🛒 Updating quantity for item ${cartItem.cartItemId} to ${quantity}`);
-            
-            await cartApiService.updateQuantity(cartItem.cartItemId, { cantidad: quantity });
-            
-            // Update locally for immediate feedback
-            set(state => ({
-              cartItems: state.cartItems.map(item =>
-                item.ProductID === productId 
-                  ? { ...item, prodcutQuantity: Math.max(1, quantity) }
-                  : item
-              ),
-              loading: false,
-            }));
-            
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error updating quantity';
-            set({ 
-              error: errorMessage,
-              loading: false,
-            });
-            console.error('Error updating quantity:', error);
-          }
-        },
-
-        // Sync remove from cart with backend
-        syncRemoveFromCart: async (productId: number) => {
-          const cartItem = get().cartItems.find(item => item.ProductID === productId);
-          
-          if (!cartItem?.cartItemId) {
-            set({ error: 'Cart item not found or missing backend ID' });
-            return;
-          }
-          
-          set({ loading: true, error: null });
-          
-          try {
-            console.log(`🛒 Removing item ${cartItem.cartItemId} from cart`);
-            
-            await cartApiService.removeFromCart(cartItem.cartItemId);
-            
-            // Update locally for immediate feedback
-            set(state => ({
-              cartItems: state.cartItems.filter(item => item.ProductID !== productId),
-              loading: false,
-            }));
-            
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error removing from cart';
-            set({ 
-              error: errorMessage,
-              loading: false,
-            });
-            console.error('Error removing from cart:', error);
-          }
-        },
-
-        clearError: () => set({ error: null }),
         
         addToCart: (product, quantity = 1) => set((state) => {
           const existingItem = state.cartItems.find(item => item.ProductID === product.ProductID);
@@ -222,7 +69,7 @@ export const useCartStore = create<CartState>()(
           
           const newItem: CartItemProps = {
             ProductID: product.ProductID,
-            ProductImageUrl: product.ProductImageUrl || '',
+            ProductImageUrl: product.ProductImageUrl,
             ProductName: product.ProductName,
             productPrice: product.productPrice,
             prodcutQuantity: quantity,
@@ -237,7 +84,7 @@ export const useCartStore = create<CartState>()(
         addMultipleToCart: (products) => set((state) => {
           const newItems: CartItemProps[] = products.map(product => ({
             ProductID: product.ProductID,
-            ProductImageUrl: product.ProductImageUrl || '',
+            ProductImageUrl: product.ProductImageUrl,
             ProductName: product.ProductName,
             productPrice: product.productPrice,
             prodcutQuantity: 1,
@@ -316,8 +163,7 @@ export const useCartStore = create<CartState>()(
         partialize: (state) => ({
           cartItems: state.cartItems,
           appliedCupons: state.appliedCupons,
-          shippingCost: state.shippingCost,
-          currentProfileId: state.currentProfileId,
+          shippingCost: state.shippingCost
         })
       }
     ),

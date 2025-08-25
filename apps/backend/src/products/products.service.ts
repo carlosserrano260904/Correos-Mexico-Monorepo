@@ -23,29 +23,7 @@ export class ProductsService {
     createProductDto: CreateProductDto,
     files?: Express.Multer.File[]
   ): Promise<Product> {
-    // Generate default values for missing fields
-    const productData = {
-      ...createProductDto,
-      // Generate slug from name if not provided
-      slug: createProductDto.nombre
-        ? createProductDto.nombre
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-        : null,
-      // Generate SKU if not provided
-      sku: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      // Set default values for other fields
-      color: 'Sin especificar',
-      marca: 'Sin marca',
-      vendedor: 'Administrador',
-    };
-
-    console.log('🏗️ Creating product with data:', productData);
-    
-    const product = this.productRepository.create(productData);
+    const product = this.productRepository.create({ ...createProductDto });
     await this.productRepository.save(product);
 
     if (files?.length) {

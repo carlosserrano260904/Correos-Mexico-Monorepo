@@ -39,6 +39,7 @@ export interface ProductCardProps {
 }
 
 export interface ColetcionCardProps {
+  ProductID: number
   ProductImage: string
   ProductName: string
   onClick?: () => void

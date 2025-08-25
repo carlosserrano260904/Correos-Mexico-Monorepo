@@ -6,67 +6,36 @@ import Image from "next/image";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Switch } from "@radix-ui/react-switch";
 import CarruselLogin from "@/components/CarruselLogin";
-import { useAuth, useRedirectIfAuthenticated } from "@/hooks/useAuth";
 
 const Login = () => {
-  // Redirect if already authenticated
-  const auth = useRedirectIfAuthenticated('/');
-  
   const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [localError, setLocalError] = useState("");
+  const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState(""); 
 
   const handleSwitchChange = () => setIsChecked(!isChecked);
 
-  const handleSubmit = async () => {
-    // Clear previous messages
-    setLocalError("");
-    setSuccessMessage("");
-    auth.clearError();
-    
-    // Basic validation
+  const handleSubmit = () => {
     if (!email || !password) {
-      setLocalError("Por favor, completa todos los campos.");
+      setError("Por favor, completa todos los campos.");
+      setSuccessMessage(""); 
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setLocalError("Por favor, ingresa un correo válido.");
+      setError("Por favor, ingresa un correo válido.");
+      setSuccessMessage(""); // Reseteamos el mensaje de éxito
       return;
     }
 
-    // Attempt login
-    try {
-      setSuccessMessage("Iniciando sesión...");
-      
-      const result = await auth.login({
-        correo: email,
-        contrasena: password,
-      });
+    
+    setError(""); 
+    setSuccessMessage("¡Campos validados correctamente!"); // confirmacio  de que todo este bien.
 
-      if (result.success) {
-        setSuccessMessage("¡Inicio de sesión exitoso! Redirigiendo...");
-        
-        // Check for redirect parameter or default to home
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/';
-        
-        // Redirect after successful login
-        setTimeout(() => {
-          window.location.href = redirectTo;
-        }, 1500);
-      } else {
-        setLocalError(result.error || "Error al iniciar sesión");
-        setSuccessMessage("");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setLocalError("Error inesperado. Por favor intenta de nuevo.");
-      setSuccessMessage("");
-    }
+    // Simulamos que los datos están correctos y los imprimimos en consola
+    console.log("Datos enviados:", { email, password, remember: isChecked });
   };
 
   const handleGoogleLogin = () => {
@@ -118,10 +87,8 @@ const Login = () => {
           </div>
 
           {/* error */}
-          {(localError || auth.error) && (
-            <p className="text-red-500 text-sm text-center mb-4">
-              {localError || auth.error}
-            </p>
+          {error && (
+            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
           )}
 
           {/* Success message */}
@@ -154,10 +121,9 @@ const Login = () => {
 
           <button
             onClick={handleSubmit}
-            disabled={auth.loading}
-            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-4"
           >
-            {auth.loading ? "Iniciando sesión..." : "Iniciar sesión"}
+            Iniciar sesión
           </button>
 
           {/* diSvisor más compacto */}

@@ -1,7 +1,7 @@
 // Por alguna razon necesita el useClient
 'use client'
 import React from 'react'
-import { ColetcionCardProps, ProductCardProps } from '@/types'
+import { ColetcionCardProps, ProductCardProps } from '@/types/interface'
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
 import { IoBagOutline, IoHeartOutline, IoHeartSharp, IoBag } from "react-icons/io5";
@@ -69,10 +69,10 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   };
  
   return (
-    <Card className="max-w-1/4 mr-4 min-w-1/4 h-max-[300px] mb-1.5">
-      <Link href={`/Producto/${ProductID}`} onClick={onClick}>
+    <Card className="max-w-1/4 mr-4 min-w-1/4">
+      <Link href={`/Producto/`} onClick={onClick}> {/* href={`/Producto/${ProductID}`} */}
         <CardContent>
-          <div className='h-[250px] w-full flex justify-center items-center overflow-hidden'>
+          <div>
             <img src={ProductImage} />
           </div>
           <div className="flex gap-2 my-2 justify-between">
@@ -107,16 +107,14 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   )
 }
 
-export const ColectionCard = ({ ProductImage, ProductName, onClick}: ColetcionCardProps) => {
+export const ColectionCard = ({ ProductID, ProductImage, ProductName, onClick}: ColetcionCardProps) => {
   return (
-    <Card className="max-w-1/4 mr-4 min-w-1/4 h-max-[300px] mb-1.5">
+    <Card className="max-w-1/4 mr-4 min-w-1/4">
       <div>
         <CardContent>
-          <div className='text-pretty'>
+          <div>
             {ProductName}
-            <div className='h-[250px] w-full flex justify-center items-center overflow-hidden'>
-               <img src={ProductImage} />
-            </div>
+            <img src={ProductImage} />
           </div>
           <div className='flex text-sm'>
             <Link href={'/Producto/'} onClick={onClick} className='flex place-items-center w-full'>Descubre mas <FaAngleRight /></Link>

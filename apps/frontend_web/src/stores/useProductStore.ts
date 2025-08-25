@@ -13,7 +13,7 @@ interface ProductState {
 
   // Actions
   loadProducts: () => Promise<void>
-  loadProduct: (id: number) => Promise<FrontendProduct | null>
+  loadProduct: (id: number) => Promise<void>
   selectProduct: (productId: number) => void
   addProduct: (newProduct: Omit<FrontendProduct, 'ProductID'>, file?: File) => Promise<void> // ← Cambiar tipo
   updateProduct: (id: number, updates: Partial<FrontendProduct>) => Promise<void> // ← Cambiar tipo
@@ -62,13 +62,12 @@ export const useProductsStore = create<ProductState>()(
 },
 
       // Cargar un producto específico desde la API
-      loadProduct: async (id: number): Promise<FrontendProduct | null> => {
+      loadProduct: async (id: number) => {
         set({ loading: true, error: null })
         
         try {
           const product = await productsApiService.getProductById(id)
           set({ selectedProduct: product, loading: false })
-          return product
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido al cargar producto'
           set({ 
@@ -76,7 +75,6 @@ export const useProductsStore = create<ProductState>()(
             loading: false 
           })
           console.error('Error loading product:', error)
-          return null
         }
       },
 
@@ -98,13 +96,7 @@ export const useProductsStore = create<ProductState>()(
           // Mapear y validar los datos del producto
           const createDto = mapFrontendToCreateDto(newProduct)
           
-          // Preparar archivos para enviar
-          const files: File[] = []
-          if (file) {
-            files.push(file)
-          }
-          
-          const createdProduct = await productsApiService.createProduct(createDto, files)
+          const createdProduct = await productsApiService.createProduct(createDto)
           
           set(state => ({
             products: [...state.products, createdProduct],

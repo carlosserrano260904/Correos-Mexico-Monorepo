@@ -9,8 +9,7 @@ import {
     IoHeartSharp,
     IoBagOutline,
     IoPersonOutline,
-    IoTrashOutline,
-    IoLogOutOutline
+    IoTrashOutline
 } from "react-icons/io5";
 import Link from "next/link";
 import {
@@ -22,14 +21,12 @@ import {
 import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
-import { useAuth } from "@/hooks/useAuth";
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
-    const auth = useAuth();
     const [isMounted, setIsMounted] = useState(false);
 
     // Marcar como montado solo en el cliente
@@ -325,107 +322,53 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Usuario - Mostrar según estado de autenticación */}
-                {auth.loading ? (
-                    <div className="p-2 flex items-center justify-center rounded-full text-gray-400 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
-                        <div className="animate-spin">
-                            <IoPersonOutline className="w-5 h-5" />
-                        </div>
-                    </div>
-                ) : auth.isAuthenticated ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
-                            {auth.getAvatarUrl() ? (
-                                <img 
-                                    src={auth.getAvatarUrl()!} 
-                                    alt="Avatar" 
-                                    className="w-6 h-6 rounded-full object-cover"
-                                />
-                            ) : (
-                                <IoPersonOutline className="w-5 h-5" />
-                            )}
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[280px] p-4">
-                            <div className="flex-col">
-                                {/* Header con info del usuario */}
-                                <div className="flex items-center mb-4">
-                                    <div className="w-12 h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-3">
-                                        {auth.getAvatarUrl() ? (
-                                            <img 
-                                                src={auth.getAvatarUrl()!} 
-                                                alt="Avatar" 
-                                                className="w-full h-full rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <span className="text-lg">
-                                                {auth.getUserName()?.charAt(0)?.toUpperCase() || 'U'}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex-col">
-                                        <div className="font-semibold text-base">
-                                            {auth.getFullName() || 'Usuario'}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {auth.getUserEmail()}
-                                        </div>
-                                    </div>
+                {/* Usuario */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
+                        <IoPersonOutline className="w-5 h-5" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[280px] p-4">
+                        <div className="flex-col">
+                            {/* Header con info del usuario */}
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-medium mr-3">
+                                    JD
                                 </div>
-
-                                <Separator className="mb-4" />
-
-                                {/* Opciones del menú */}
-                                <div className="flex flex-col space-y-3">
-                                    <Link href="/Perfil" className="text-gray-700 hover:text-gray-900 font-medium">
-                                        Mi Perfil
-                                    </Link>
-                                    <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium">
-                                        Historial de Pedidos
-                                    </Link>
-                                    <Link href="/favoritos" className="text-gray-700 hover:text-gray-900 font-medium">
-                                        Mis Favoritos
-                                    </Link>
-                                    <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium">
-                                        Solicitar Cuenta de Vendedor
-                                    </Link>
-                                    <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium">
-                                        Panel de Vendedor
-                                    </Link>
+                                <div className="flex-col">
+                                    <div className="font-semibold text-base">Mayela Díaz</div>
+                                    <div className="text-sm text-gray-500">Mayela@gmail.com</div>
                                 </div>
-
-                                <Separator className="my-4" />
-
-                                {/* Botón cerrar sesión */}
-                                <button 
-                                    onClick={() => {
-                                        auth.logout();
-                                        window.location.href = '/';
-                                    }}
-                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <IoLogOutOutline className="w-4 h-4" />
-                                    Cerrar Sesión
-                                </button>
                             </div>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ) : (
-                    /* Auth buttons for non-authenticated users */
-                    <div className="flex items-center gap-2">
-                        <Link 
-                            href="/login" 
-                            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors min-h-[45px] flex items-center justify-center"
-                        >
-                            Iniciar Sesión
-                        </Link>
-                        <Link 
-                            href="/registro" 
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#DE1484] hover:bg-pink-600 rounded-full transition-colors min-h-[45px] flex items-center justify-center"
-                        >
-                            Registrarse
-                        </Link>
-                    </div>
-                )}
+
+                            <Separator className="mb-4" />
+
+                            {/* Opciones del menú */}
+                            <div className="flex flex-col space-y-3">
+                                <Link href="/Perfil" className="text-gray-700 hover:text-gray-900 font-medium">
+                                    Mi Perfil
+                                </Link>
+                                <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium">
+                                    Historial
+                                </Link>
+                                <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium">
+                                    Solicitar Cuenta de Vendedor
+                                </Link>
+                                <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium">
+                                    Vendedor
+                                </Link>
+                            </div>
+
+                            <Separator className="my-4" />
+
+                            {/* Botón cerrar sesión */}
+                            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                                <Link href={"/"}>
+                                    Cerrar sesión
+                                </Link>
+                            </button>
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Selector de idioma */}
                 <DropdownMenu>

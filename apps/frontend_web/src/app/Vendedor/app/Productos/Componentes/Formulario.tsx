@@ -184,46 +184,41 @@ export const Formulario: React.FC = () => {
         ProductName: formData.ProductName,
         ProductDescription: formData.ProductDescription,
         productPrice: formData.productPrice,
-        ProductCategory: formData.ProductCategory,
+        ProductCategory: formData.ProductCategory as 'Electrónica' | 'Ropa' | 'Hogar',
         ProductBrand: formData.ProductBrand,
         ProductSlug: formData.ProductSlug,
         ProductStock: totalStock,
         Color: productColor,
         ProductImageUrl: '', // se asignará más adelante
-        ProductImages: [], // Empty array for now
         ProductStatus: true,
         ProductSellerName: 'Admin',
         ProductSold: 0,
-        ProductSKU: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Generate unique SKU
         ProductCupons: [],
+        variants: formData.variants.filter(
+          (v) => v.valor.trim() !== '' && v.inventario > 0
+        ),
       };
 
-      // The image will be handled by the backend along with the product creation
-      console.log('🔍 Image will be processed by backend:', selectedFile ? 'Yes' : 'No');
-      newProduct.ProductImageUrl = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'; // Default, will be updated by backend
+      // Subir la imagen (si hay) y asignar el key
+      if (selectedFile) {
+        console.log('Subiendo imagen…');
+        const key = await uploadApiService.uploadImage(selectedFile);
+        newProduct.ProductImageUrl = key;
+      } else {
+        newProduct.ProductImageUrl = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';;
+      }
+      await addProduct(newProduct);
+      router.push('/Vendedor/app/Productos');
 
-      console.log('✅ Product data ready to send:', newProduct);
-      console.log('📊 Product structure:', JSON.stringify(newProduct, null, 2));
+      console.log('✅ Datos del producto listos para enviar:', newProduct);
 
-      // Step 2: Create the product
-      console.log('🚀 Creating product...');
-      await addProduct(newProduct, selectedFile || undefined);
-      console.log('🎉 Product created successfully!');
-      
-      // Clean up and navigate
+      await addProduct(newProduct);
+      console.log('🎉 Producto creado exitosamente');
       resetForm();
       router.push('/Vendedor/app/Productos');
-      
     } catch (error) {
       console.error('❌ Error creando producto:', error);
-      
-      // Show user-friendly error message
-      let errorMessage = 'Error desconocido al crear producto';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      alert(`Error al crear producto: ${errorMessage}`);
+      alert('Error al crear producto. Revisa la consola.');
     }
 
 

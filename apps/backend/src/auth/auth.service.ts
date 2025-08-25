@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UserService } from '../usuarios/user.service';
@@ -31,7 +31,7 @@ export class AuthService {
     const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
     
     if (userExists) {
-      throw new ConflictException('El correo ya está en uso');
+      throw new UnauthorizedException('El correo ya está en uso');
     }
 
     // Creación de cliente en Stripe
@@ -154,20 +154,12 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const access_token = await this.jwtService.signAsync({
+    const token = await this.jwtService.signAsync({
       profileId: user.profile.id,
       rol: user.rol || 'usuario'
     });
 
-    return { 
-      access_token, 
-      user: {
-        id: user.profile.id,
-        correo: user.correo,
-        nombre: user.profile.nombre,
-        apellido: user.profile.apellido
-      }
-    };
+    return { token, userId: user.profile.id };
   }
 
   async updatePassword(dto: UpdatePasswordDto) {
@@ -230,42 +222,10 @@ export class AuthService {
         tokenCreatedAt: null,
         confirmado: true
       });
-
-      // Return auth response with token after successful verification
-      const access_token = await this.jwtService.signAsync({
-        profileId: user.profile.id,
-        rol: user.rol || 'usuario'
-      });
-
-      return { 
-        isOtpVerified: true,
-        access_token,
-        user: {
-          id: user.profile.id,
-          correo: user.correo,
-          nombre: user.profile.nombre,
-          apellido: user.profile.apellido
-        }
-      };
+      return { isOtpVerified: true };
     }
     
     return { isOtpVerified: false };
-  }
-
-  async getUserProfile(profileId: number) {
-    const user = await this.usuariosService.findByProfileId(profileId);
-    if (!user) {
-      throw new UnauthorizedException('Usuario no encontrado');
-    }
-
-    return {
-      id: user.profile.id,
-      correo: user.correo,
-      nombre: user.profile.nombre,
-      apellido: user.profile.apellido,
-      rol: user.rol,
-      profile: user.profile
-    };
   }
 
   private async cleanSingleExpiredToken(email: string) {

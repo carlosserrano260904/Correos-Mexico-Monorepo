@@ -3,23 +3,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from "react-icons/fa";
 import { Switch } from "@radix-ui/react-switch";
 import CarruselLogin from "@/components/CarruselLogin";
-import { useAuth, useRedirectIfAuthenticated } from "@/hooks/useAuth";
 
 const Registro = () => {
-  // Redirect if already authenticated
-  const auth = useRedirectIfAuthenticated('/');
-  const router = useRouter();
-  
   const [isChecked, setIsChecked] = useState(false);
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [confirmarContrasena, setConfirmarContrasena] = useState("");
-  const [localError, setLocalError] = useState("");
+  const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState(""); 
 
   const handleSwitchChange = () => setIsChecked(!isChecked);
@@ -34,79 +28,32 @@ const Registro = () => {
 
   const validarFormulario = () => {
     if (!nombre || !correo || !contrasena || !confirmarContrasena) {
-      setLocalError("Todos los campos son obligatorios.");
+      setError("Todos los campos son obligatorios.");
+      setSuccessMessage(""); 
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(correo)) {
-      setLocalError("El correo electrónico no es válido.");
-      return false;
+      setError("El correo electrónico no es válido.");
+      setSuccessMessage(""); 
     }
 
     if (contrasena !== confirmarContrasena) {
-      setLocalError("Las contraseñas no coinciden.");
+      setError("Las contraseñas no coinciden.");
+      setSuccessMessage(""); 
       return false;
     }
 
-    if (contrasena.length < 6) {
-      setLocalError("La contraseña debe tener al menos 6 caracteres.");
-      return false;
-    }
-
+    setError(""); 
     return true;
   };
 
-  const handleRegistro = async () => {
-    // Clear previous messages
-    setLocalError("");
-    setSuccessMessage("");
-    auth.clearError();
-    
-    if (!validarFormulario()) {
-      return;
-    }
+  const handleRegistro = () => {
+    if (validarFormulario()) {
+      console.log("Cuenta creada exitosamente:", { nombre, correo, contrasena });
 
-    try {
-      setSuccessMessage("Creando cuenta...");
-      
-      const result = await auth.register({
-        correo,
-        contrasena,
-        nombre,
-      });
-
-      console.log('🔍 Registration result:', result);
-
-      if (result.success) {
-        setSuccessMessage("¡Cuenta creada exitosamente! Revisa tu correo para el código de verificación.");
-        
-        // Redirect to OTP verification page with email parameter
-        setTimeout(() => {
-          router.push(`/verificacion?email=${encodeURIComponent(correo)}`);
-        }, 1500);
-      } else {
-        // Check if error is about existing email (409 Conflict)
-        if (result.error && result.error.includes("El correo ya está en uso")) {
-          console.log('🔄 Email ya existe, redirigiendo a verificación...');
-          setSuccessMessage("Este correo ya tiene una cuenta. Redirigiendo a verificación...");
-          setLocalError("");
-          
-          // Redirect to verification page for existing email using Next.js router
-          setTimeout(() => {
-            router.push(`/verificacion?email=${encodeURIComponent(correo)}&existing=true`);
-          }, 1500);
-        } else {
-          // Show other errors normally
-          console.error('❌ Registration failed:', result.error);
-          setLocalError(result.error || "Error al crear la cuenta");
-          setSuccessMessage("");
-        }
-      }
-    } catch (error) {
-      console.error("❌ Registration error:", error);
-      setLocalError("Error inesperado. Por favor intenta de nuevo.");
-      setSuccessMessage("");
+      setSuccessMessage("¡Cuenta creada exitosamente!"); 
     }
   };
 
@@ -184,11 +131,7 @@ const Registro = () => {
           </div>
 
           {/* Mensaje de error */}
-          {(localError || auth.error) && (
-            <p className="text-red-500 text-sm mb-2 text-center">
-              {localError || auth.error}
-            </p>
-          )}
+          {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
 
           {/* Mensaje de éxito */}
           {successMessage && <p className="text-green-500 text-sm mb-2 text-center">{successMessage}</p>}
@@ -216,10 +159,9 @@ const Registro = () => {
           {/* boton de registro */}
           <button
             onClick={handleRegistro}
-            disabled={auth.loading}
-            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-4"
           >
-            {auth.loading ? "Creando cuenta..." : "Crear cuenta"}
+            Crear cuenta
           </button>
 
           {/* divisor */}

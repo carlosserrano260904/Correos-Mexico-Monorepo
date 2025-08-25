@@ -60,21 +60,21 @@ export default function ProductDetailPage() {
     currency: 'MXN',
   }).format(selectedProduct.productPrice);
 
-  // Get color from the product (single color)
-  const Colors: string[] = selectedProduct.Color ? [selectedProduct.Color] : []
-  const ColorsHex: string[] = Colors.filter(function(color){
+  const Variants: string[] = selectedProduct.variants.map(variant => variant.valor)
+  const Colors: string[] = Variants.filter(function(color){
     return color.includes('#')
   })
 
-  // For now, no size variants from backend - can be added later
-  const tallas: string[] = [];
+  const tallas = Variants.filter(function(talla) {
+    return talla.includes("G") || talla.includes("M") || talla.includes("CH");
+  });
 
   // Función para agregar al carrito
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     
     // Validaciones opcionales
-    if (ColorsHex.length > 0 && !selectedColor) {
+    if (Colors.length > 0 && !selectedColor) {
       return;
     }
     
@@ -103,14 +103,14 @@ export default function ProductDetailPage() {
 
     if (selectedListId) {
       // Agregar a lista existente
-      addProductToList(selectedListId, selectedProduct as any);
+      addProductToList(selectedListId, selectedProduct);
     } else if (newListName.trim()) {
       // Crear nueva lista y agregar producto
       createList(newListName.trim());
       // Obtener la lista recién creada (será la última)
       const newListId = Lists.length > 0 ? Math.max(...Lists.map(l => l.ListaID)) + 1 : 1;
       setTimeout(() => {
-        addProductToList(newListId, selectedProduct as any);
+        addProductToList(newListId, selectedProduct);
       }, 100);
     }
     
@@ -124,18 +124,18 @@ export default function ProductDetailPage() {
       <div className="">
         <div className="flex">
           <div className=" rounded-2xl p-8 basis-2/3">
-            <img src={selectedProduct.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className="max-w-96" />
+            <img src={selectedProduct.ProductImageUrl} className="max-w-96" />
           </div>
           <div className="basis-1/3">
             <p className="text-xl  mb-2">{selectedProduct.ProductName}</p>
             <p className="my-6 text-3xl font-bold">{formattedPrice}</p>
             
             {/* Selección de colores */}
-            {ColorsHex.length > 0 && (
+            {Colors.length > 0 && (
               <div className="mb-6">
                 <p className="mb-2 font-thin text-[#FF6FBF]">Selecciona un color:</p>
                 <div className="flex">
-                  {ColorsHex.map(color => (
+                  {Colors.map(color => (
                     <div 
                       key={color} 
                       className={`h-8 w-8 rounded-full mr-2 cursor-pointer border-2 ${
@@ -298,7 +298,7 @@ export default function ProductDetailPage() {
             {selectedProduct.ProductDescription}
           </div>
           <div className="basis-1/2 justify-center flex ">
-            <img src={selectedProduct.ProductImageUrl || 'https://via.placeholder.com/400x400?text=No+Image'} className=" max-h-80" />
+            <img src={selectedProduct.ProductImageUrl} className=" max-h-80" />
           </div>
         </div>
 

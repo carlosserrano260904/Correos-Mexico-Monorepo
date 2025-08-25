@@ -1,23 +1,14 @@
-// schemas/products.ts - Adaptado a la estructura real del backend
+// schemas/products.ts - CORREGIDO SEGÚN TU ESTRUCTURA REAL
 
 import { z } from 'zod'
 
 // ============================================================
-// 🗄️ BACKEND SCHEMAS (estructura real de la base de datos)
+// 🗄️ BACKEND SCHEMAS (según la estructura REAL que devuelve tu API)
 // ============================================================
 
 /**
- * Schema para ProductImage entity
- */
-export const BackendProductImageSchema = z.object({
-  id: z.number(),
-  url: z.string(),
-  orden: z.number(),
-  productId: z.number(),
-})
-
-/**
- * Schema para la entidad Product real del backend
+ * Schema para la entidad Product REAL según el error de TypeScript
+ * Tu backend devuelve esta estructura exacta
  */
 export const BackendProductEntitySchema = z.object({
   id: z.number(),
@@ -25,43 +16,45 @@ export const BackendProductEntitySchema = z.object({
   descripcion: z.string(),
   precio: z.number(),
   categoria: z.string().nullable(),
-  inventario: z.number(),
-  color: z.string(),
-  marca: z.string(),
-  slug: z.string(),
-  vendedor: z.string(),
-  estado: z.boolean(),
-  vendidos: z.number(),
-  sku: z.string(),
   
-  // Relaciones (opcionales cuando vienen populadas)
-  images: z.array(BackendProductImageSchema).optional().default([]),
+  // ✅ CAMPOS QUE SÍ TIENES (según el error)
+  inventario: z.number(),
+  color: z.string().nullable(),
+  
+  // ✅ IMAGEN como STRING (no como array de relaciones)
+  imagen: z.string().nullable(),
+  
+  // ✅ RELACIONES OPCIONALES (pueden venir o no)
+  images: z.array(z.any()).optional().default([]), // Por si acaso viene la relación
   favoritos: z.array(z.any()).optional().default([]),
   carrito: z.array(z.any()).optional().default([]),
   reviews: z.array(z.any()).optional().default([]),
 })
 
 /**
- * Schema para CreateProductDto (matches backend exactly)
+ * Schema para CreateProductDto
  */
 export const BackendCreateProductDtoSchema = z.object({
-  nombre: z.string().min(1, 'Nombre es requerido').max(60),
-  descripcion: z.string().min(1, 'Descripción es requerida').max(120),
+  nombre: z.string().min(1, 'Nombre es requerido'),
+  descripcion: z.string().min(1, 'Descripción es requerida'), 
   precio: z.number().positive('Precio debe ser positivo'),
   categoria: z.string().optional(),
-  // Only these 4 fields are supported by backend CreateProductDto
+  inventario: z.number().int().min(0).optional().default(0),
+  color: z.string().optional().default('#000000'),
+  // imagen se maneja por separado en multipart
 })
 
 /**
- * Schema para UpdateProductDto (todos opcionales) - matches backend DTO exactly
+ * Schema para UpdateProductDto
  */
 export const BackendUpdateProductDtoSchema = z.object({
-  nombre: z.string().min(1).max(60).optional(),
-  descripcion: z.string().min(1).max(120).optional(),
+  nombre: z.string().min(1).optional(),
+  descripcion: z.string().min(1).optional(),
   precio: z.number().positive().optional(),
   categoria: z.string().optional(),
   inventario: z.number().int().min(0).optional(),
-  // color field is not supported in backend UpdateProductDto
+  color: z.string().optional(),
+  // imagen se maneja por separado
 })
 
 // ============================================================
@@ -69,64 +62,48 @@ export const BackendUpdateProductDtoSchema = z.object({
 // ============================================================
 
 /**
- * Schema del producto para frontend/UI (mapeado desde backend)
+ * Variant para productos (compatible con CarrouselProducts)
  */
-export const FrontendProductSchema = z.object({
-  // === CAMPOS MAPEADOS DESDE BACKEND ===
-  ProductID: z.number(), // id
-  ProductName: z.string(), // nombre
-  ProductDescription: z.string(), // descripcion
-  productPrice: z.number(), // precio
-  ProductCategory: z.string().nullable(), // categoria
-  ProductStock: z.number().int().min(0), // inventario
-  Color: z.string(), // color
-  ProductBrand: z.string(), // marca
-  ProductSlug: z.string(), // slug
-  ProductSellerName: z.string(), // vendedor
-  ProductStatus: z.boolean(), // estado
-  ProductSold: z.number().int().min(0), // vendidos
-  ProductSKU: z.string(), // sku
-  
-  // === IMÁGENES ===
-  ProductImageUrl: z.string().optional(), // URL principal (primera imagen)
-  ProductImages: z.array(z.object({
-    id: z.number(),
-    url: z.string(),
-    orden: z.number(),
-  })).optional().default([]), // Todas las imágenes
-  
-  // === CAMPOS EXTRA PARA UI ===
-  ProductCupons: z.array(z.any()).optional().default([]),
+export const ProductVariantSchema = z.object({
+  tipo: z.literal('Color'),
+  valor: z.string(),
+  price: z.number(), // ⚠️ "price" no "precio"
+  inventario: z.number().int().min(0),
+  sku: z.string(),
 })
 
 /**
- * Schema para transformar de backend a frontend
+ * Schema del producto para frontend/UI
  */
-export const ProductTransformSchema = BackendProductEntitySchema.transform((backendProduct) => ({
-  ProductID: backendProduct.id,
-  ProductName: backendProduct.nombre,
-  ProductDescription: backendProduct.descripcion,
-  productPrice: backendProduct.precio,
-  ProductCategory: backendProduct.categoria,
-  ProductStock: backendProduct.inventario,
-  Color: backendProduct.color,
-  ProductBrand: backendProduct.marca,
-  ProductSlug: backendProduct.slug,
-  ProductSellerName: backendProduct.vendedor,
-  ProductStatus: backendProduct.estado,
-  ProductSold: backendProduct.vendidos,
-  ProductSKU: backendProduct.sku,
-  ProductImageUrl: backendProduct.images?.[0]?.url || '',
-  ProductImages: backendProduct.images || [],
-  ProductCupons: [],
-}))
+export const FrontendProductSchema = z.object({
+  // === CAMPOS MAPEADOS DESDE BD ===
+  ProductID: z.number(),
+  ProductName: z.string(),
+  ProductDescription: z.string(),
+  ProductImageUrl: z.string(),
+  productPrice: z.number(),
+  ProductCategory: z.string(),
+  ProductStock: z.number().int().min(0),
+  Color: z.string(),
+  
+  // === CAMPOS EXTRA PARA UI ===
+  ProductSlug: z.string(),
+  ProductBrand: z.string(),
+  ProductSellerName: z.string(),
+  ProductStatus: z.boolean(),
+  ProductSold: z.number().int().min(0),
+  
+  // === VARIANTS PARA CARROUSEL ===
+  variants: z.array(ProductVariantSchema),
+  ProductCupons: z.array(z.any()),
+})
 
 // ============================================================
 // 📝 TIPOS TYPESCRIPT
 // ============================================================
 
 export type BackendProductEntity = z.infer<typeof BackendProductEntitySchema>
-export type BackendProductImage = z.infer<typeof BackendProductImageSchema>
 export type BackendCreateProductDto = z.infer<typeof BackendCreateProductDtoSchema>
 export type BackendUpdateProductDto = z.infer<typeof BackendUpdateProductDtoSchema>
+export type ProductVariant = z.infer<typeof ProductVariantSchema>
 export type FrontendProduct = z.infer<typeof FrontendProductSchema>

@@ -14,7 +14,11 @@ import React from "react"
 import { ProductosProps } from "@/types/index"
 
 interface ProductSheetProps {
-  product?: ProductosProps
+<<<<<<< HEAD
+  product: ProductosProps
+=======
+  product?: ProductosPropsFront
+>>>>>>> fddc691a74543ca3dccd31a2c064cac05de4dbb0
   children?: React.ReactNode
   asTableRow?: boolean
 }

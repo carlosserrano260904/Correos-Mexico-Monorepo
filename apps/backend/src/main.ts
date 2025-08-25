@@ -19,30 +19,13 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, configDocs);
     SwaggerModule.setup('docs', app, document);
 
-    // Configuración del CORS - Updated for file uploads
+    // Configuración del CORS
     app.use(
       cors({
-        origin: [
-          'http://localhost:4200', 
-          'http://localhost:3000', 
-          'http://localhost:3001', 
-          'http://localhost:3002',
-          'http://localhost:3003',  // Add more ports for dev
-          'https://midominio.com'
-        ],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
-        allowedHeaders: [
-          'Content-Type', 
-          'Authorization', 
-          'X-Requested-With',
-          'Accept',
-          'Origin',
-          'Access-Control-Request-Method',
-          'Access-Control-Request-Headers'
-        ],
+        origin: ['http://localhost:4200', 'https://midominio.com', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
-        optionsSuccessStatus: 200, // For legacy browser support
-        maxAge: 86400 // Cache preflight for 24 hours
       }),
     );
 

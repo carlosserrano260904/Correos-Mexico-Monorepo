@@ -136,13 +136,11 @@ async function bootstrap() {
       if (dupByName) continue;
 
       // Asegurar unicidad de slug y sku
-      const marcaStr = p.marca || 'GEN';
-      const colorStr = p.color || 'STD';
-      const base = slugify(`${p.nombre}-${marcaStr}-${colorStr}`);
+      const base = slugify(`${p.nombre}-${p.marca}-${p.color}`);
       p.slug = await ensureUniqueSlug(productRepo, base);
       p.sku = await ensureUniqueSKU(
         productRepo,
-        `${marcaStr.substring(0, 3)}-${colorStr.substring(0, 3)}`
+        `${p.marca.substring(0, 3)}-${p.color.substring(0, 3)}`
       );
 
       // --- creación y guardado en dos pasos tipados (evita Product | Product[]) ---

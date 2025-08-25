@@ -14,15 +14,15 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { AddImagesDto } from './dto/add-images.dto';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
-import { Review } from 'src/review/entities/review.entity';        
-import { ReviewImage } from 'src/review/entities/review-image.entity'; 
+import { Review } from 'src/review/entities/review.entity';
+import { ReviewImage } from 'src/review/entities/review-image.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
 @ApiTags('products')
 @ApiExtraModels(Product, ProductImage, Review, ReviewImage, Profile)
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10))
@@ -32,11 +32,24 @@ export class ProductsController {
     schema: {
       type: 'object',
       properties: {
-        nombre: { type: 'string', example: 'Tenis Runner' },
-        descripcion: { type: 'string', example: 'Tenis deportivos para correr' },
-        precio: { type: 'number', example: 1299.9 },
-        categoria: { type: 'string', example: 'Calzado', nullable: true },
-        images: { type: 'array', items: { type: 'string', format: 'binary' } },
+        nombre: { type: 'string', example: 'Tenis Runner', description: 'Nombre del producto' },
+        descripcion: { type: 'string', example: 'Tenis deportivos para correr', description: 'Descripción del producto' },
+        precio: { type: 'number', example: 1299.9, description: 'Precio del producto' },
+        categoria: { type: 'string', example: 'Calzado', nullable: true, description: 'Categoría del producto' },
+        altura: { type: 'float', example: 120.0, nullable: true, description: 'Altura del producto' },
+        ancho: { type: 'float', example: 5.0, nullable: true, description: 'Ancho del producto' },
+        largo: { type: 'float', example: 120.0, nullable: true, description: 'Largo del producto' },
+        peso: { type: 'float', example: 5.5, nullable: true, description: 'Peso del producto' },
+        inventario: { type: 'number', example: 25, description: 'Stock disponible del producto' },
+        color: { type: 'string', example: 'Negro', description: 'Color del producto' },
+        marca: { type: 'string', example: 'Nike', description: 'Marca del producto' },
+        slug: { type: 'string', example: 'tenis-runner-negro', description: 'Slug único del producto' },
+        vendedor: { type: 'string', example: 'SportCenter MX', description: 'Nombre del vendedor' },
+        estado: { type: 'boolean', example: true, description: 'Estado del producto (activo/inactivo)' },
+        vendidos: { type: 'number', example: 0, description: 'Cantidad de productos vendidos' },
+        sku: { type: 'string', example: 'SKU-ABC-001', description: 'Código SKU del producto' },
+        idPerfil: { type: 'number', example: 1, nullable: true, description: 'ID del perfil del vendedor' },
+        images: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Imágenes del producto' },
       },
       required: ['nombre', 'descripcion', 'precio'],
     },
@@ -75,6 +88,11 @@ export class ProductsController {
   ) {
     const ordenes = (_dto as any)?.ordenes;
     return this.productsService.addImages(id, files, ordenes);
+  }
+
+  @Get('/findSome')
+  findSome() {
+    return this.productsService.findSome();
   }
 
   @Get()

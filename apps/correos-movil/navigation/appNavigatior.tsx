@@ -45,6 +45,7 @@ import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
 import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
 import NameOfReceivePerson from '../screens/repartidor/NameOfReceivePerson';
 import CheckoutTabs from '../screens/usuario/detalles_pedido/CheckoutTabs';
+import HistorialFacturas from '../screens/facturas/historial_facturas';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -97,6 +98,7 @@ export default function AppNavigator() {
             <Stack.Screen name="FormularioVendedor" component={FormularioVendedor} options={{headerShown: false}} />
             <Stack.Screen name="NombreQuienRecibe" component={NameOfReceivePerson} options={{headerShown: false}} />
             <Stack.Screen name="Checkout" component={CheckoutTabs} options={{headerShown: false}}/>
+            <Stack.Screen name="HistorialFacturas" component={HistorialFacturas}/>
 
         </Stack.Navigator>
     );

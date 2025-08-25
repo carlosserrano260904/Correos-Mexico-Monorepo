@@ -5,6 +5,7 @@ import { Carrito } from "../../carrito/entities/carrito.entity";
 import { ProductImage } from "./product-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { Review } from "src/review/entities/review.entity"; // <- usa SIEMPRE esta misma ruta
+import { Float } from "react-native/Libraries/Types/CodegenTypes";
 
 @Entity("productos")
 export class Product {
@@ -19,6 +20,22 @@ export class Product {
   @ApiProperty({ example: "Tenis deportivos para correr" })
   @Column({ type: "varchar", length: 120 })
   descripcion: string;
+
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  altura: Float | null;
+
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  largo: Float | null;
+
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  ancho: Float | null;
+
+  @ApiProperty({example: "2kg"})
+  @Column({type: "float4", nullable: true})
+  peso: Float | null;
 
   @ApiProperty({ example: 1299.9, type: Number })
   @Column({
@@ -64,6 +81,10 @@ export class Product {
   @ApiProperty({ example: "SKU-ABC-001" })
   @Column({ type: "varchar", length: 60 })
   sku: string;
+
+  @ApiProperty({ example: 1})
+  @Column({ type: "int", nullable: true })
+  idPerfil: number | null;
 
   @ApiProperty({ type: () => [ProductImage] })
   @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })

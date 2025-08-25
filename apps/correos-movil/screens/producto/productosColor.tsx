@@ -1,6 +1,7 @@
 // screens/productosColor.tsx
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Pressable, ScrollView, StyleSheet, Text, View, Platform,
   ActivityIndicator, TextInput, SafeAreaView, TouchableOpacity
@@ -68,47 +69,77 @@ export const formatPrice = (price: number) => {
 };
 
 export default function ProductsScreen() {
-  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  // Asumo que el nombre de esta pantalla en tu navegador es 'Productos'
+  // y que has actualizado RootStackParamList para que acepte `{ categoria?: string }`
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Productos'>;
+  type ProductsRouteProp = RouteProp<RootStackParamList, 'Productos'>;
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<ProductsRouteProp>();
 
   const [productos, setProductos] = useState<Articulo[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Todos');
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
 
-  useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        const resp = await fetch(`${API_URL}/api/products`);
-        const data: unknown = await resp.json();
+  const fetchProductos = useCallback(async () => {
+    try {
+      const resp = await fetch(`${API_URL}/api/products`);
+      const data: unknown = await resp.json();
 
-        if (Array.isArray(data)) {
-          const mapped = (data as BackendProduct[]).map(mapToArticulo);
-          setProductos(mapped);
-        } else {
-          console.error('La respuesta de la API no es un arreglo:', data);
-          setProductos([]);
-        }
-      } catch (err) {
-        console.error('Error al cargar productos:', err);
+      if (Array.isArray(data)) {
+        const mapped = (data as BackendProduct[]).map(mapToArticulo);
+        setProductos(mapped);
+      } else {
+        console.error('La respuesta de la API no es un arreglo:', data);
         setProductos([]);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchProductos();
+    } catch (err) {
+      console.error('Error al cargar productos:', err);
+      setProductos([]);
+    }
   }, []);
 
-  const categorias = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
+  useFocusEffect(
+    useCallback(() => {
+      const categoryFromParams = route.params?.categoria;
 
-  const productosFiltrados =
-    (categoriaSeleccionada === 'Todos'
-      ? productos
-      : productos.filter(p => p.categoria === categoriaSeleccionada)
-    ).filter(p => {
-      const q = searchText.toLowerCase().trim();
-      return p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q);
-    });
+      // Si se pasa una categoría por parámetros, la establecemos como seleccionada.
+      if (categoryFromParams) {
+        setCategoriaSeleccionada(categoryFromParams);
+      }
+
+      setLoading(true);
+      fetchProductos().finally(() => {
+        setLoading(false);
+        // Importante: Limpiamos el parámetro para que no se reutilice en el siguiente focus.
+        // Esto permite al usuario cambiar de filtro sin que se reinicie al volver.
+        if (categoryFromParams) {
+          navigation.setParams({ categoria: undefined });
+        }
+      });
+    }, [fetchProductos, navigation, route.params?.categoria])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchProductos();
+    setIsRefreshing(false);
+  }, [fetchProductos]);
+
+  const categorias = useMemo(() => {
+    const uniqueCategorias = [...new Set(productos.map(p => p.categoria).filter(Boolean) as string[])];
+    // Ordena alfabéticamente para una mejor experiencia de usuario.
+    uniqueCategorias.sort((a, b) => a.localeCompare(b, 'es'));
+    return ['Todos', ...uniqueCategorias];
+  }, [productos]);
+
+  const productosFiltrados = useMemo(() => {
+    const q = searchText.toLowerCase().trim();
+    return productos
+      .filter(p => categoriaSeleccionada === 'Todos' || p.categoria === categoriaSeleccionada)
+      .filter(p => !q || p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q));
+  }, [productos, categoriaSeleccionada, searchText]);
 
   return (
     <SafeAreaView style={styles.contenedor}>
@@ -159,11 +190,16 @@ export default function ProductsScreen() {
         {loading ? (
           <ActivityIndicator size="large" />
         ) : (
-          <ProductListScreen productos={productosFiltrados} search={searchText} />
+          <ProductListScreen
+            productos={productosFiltrados}
+            search={searchText}
+            onRefresh={onRefresh}
+            refreshing={isRefreshing}
+          />
         )}
       </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
         <Headset color="#fff" size={moderateScale(24)} />
       </TouchableOpacity>
     </SafeAreaView>

@@ -31,6 +31,8 @@ export type ProductListScreenProps = {
   productos: Articulo[];
   search?: string;
   likeTrigger?: number;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 };
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -120,7 +122,13 @@ const ProductoCard: React.FC<{
   );
 };
 
-export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '', likeTrigger }) => {
+export const ProductListScreen: React.FC<ProductListScreenProps> = ({
+  productos,
+  search = '',
+  likeTrigger,
+  onRefresh,
+  refreshing,
+}) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
@@ -131,6 +139,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     if (!userId) return;
     try {
       const response = await fetch(`${IP}/api/favoritos/${userId}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error del servidor al obtener favoritos: ${response.status} ${errorText}`);
+      }
       const data = await response.json();
       if (Array.isArray(data)) {
         const favoritosMap = data.reduce(
@@ -143,6 +155,8 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
           {} as Record<number, number>
         );
         setFavoritos(favoritosMap);
+      } else {
+        console.error('La respuesta de la API de favoritos no es un arreglo:', data);
       }
     } catch (err) {
       console.error('Error al obtener favoritos:', err);
@@ -156,13 +170,15 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
   // Cargar carrito
   useEffect(() => {
     if (!userId) return;
-    fetch(`${IP}/api/carrito/${userId}`)
-      .then(r => {
+    const fetchCart = async () => {
+      try {
+        const r = await fetch(`${IP}/api/carrito/${userId}`);
         if (r.status === 404) return [];
-        if (!r.ok) throw new Error('Error al obtener el carrito');
-        return r.json();
-      })
-      .then((data: Array<{ producto: { id: number } }>) => {
+        if (!r.ok) {
+          const errorText = await r.text();
+          throw new Error(`Error al obtener el carrito - ${r.status}: ${errorText}`);
+        }
+        const data: Array<{ producto: { id: number } }> = await r.json();
         if (Array.isArray(data)) {
           const cartMap = data.reduce(
             (acc, item) => {
@@ -174,9 +190,14 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
             {} as Record<number, boolean>
           );
           setCartItems(cartMap);
+        } else {
+          console.error('La respuesta de la API de carrito no es un arreglo:', data);
         }
-      })
-      .catch(err => console.error('Error al obtener el carrito:', err));
+      } catch (err) {
+        console.error('Error al obtener el carrito:', err);
+      }
+    };
+    fetchCart();
   }, [userId]);
 
   // Filtrar productos
@@ -258,6 +279,9 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.listContentContainer}
         showsVerticalScrollIndicator={false}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+
       />
     </View>
   );

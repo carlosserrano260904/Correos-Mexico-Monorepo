@@ -1,5 +1,5 @@
 // apps/correos-movil/screens/usuario/carrito/CarritoScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet,
-  ScrollView,
   SafeAreaView,
   Dimensions,
 } from 'react-native';
@@ -30,6 +29,30 @@ const Colors = {
 };
 
 const API_BASE_URL = 'https://correos-mexico-monorepo.onrender.com/api';
+const CACHE_KEY = 'cart_cache_v1';
+const CACHE_TTL_MS = 60_000; // 1 minuto
+
+// ───────── Utilidades ─────────
+const getProductImage = (p: any): string | null => {
+  if (Array.isArray(p?.images) && p.images.length > 0) {
+    const sorted = [...p.images].sort(
+      (a: any, b: any) => (a?.orden ?? 0) - (b?.orden ?? 0)
+    );
+    return sorted[0]?.url ?? null;
+  }
+  return p?.imagen ?? null;
+};
+
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 10_000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
+};
 
 interface CartItem {
   id: string;
@@ -41,133 +64,25 @@ interface CartItem {
   color?: string;
 }
 
-const CarritoScreen = () => {
-  const navigation = useNavigation();
-  const isFocused = useIsFocused();
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const loadCart = async () => {
-    try {
-      setLoading(true);
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        Alert.alert('Error', 'No se encontró el usuario');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/carrito/${userId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setCart([]);
-        } else {
-          console.warn(`Error HTTP: ${response.status}`);
-        }
-        return;
-      }
-
-      const data = await response.json();
-
-      const formattedCart = data.map((item: any) => ({
-        id: item.id?.toString() || '',
-        productId: item.producto?.id?.toString() || '',
-        name: item.producto?.nombre || 'Sin nombre',
-        price: Number(item.precio_unitario || item.producto?.precio || 0),
-        quantity: Number(item.cantidad || 1),
-        image:
-          item.producto?.imagen ||
-          'https://via.placeholder.com/70x70?text=Sin+Imagen',
-        color: item.producto?.color || 'No especificado',
-      }));
-
-      setCart(formattedCart);
-    } catch (error: any) {
-      Alert.alert('Error', 'No se pudo cargar el carrito');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isFocused) {
-      loadCart();
-    }
-  }, [isFocused]);
-
-  const updateQuantity = async (id: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(id);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/carrito/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cantidad: newQuantity }),
-      });
-
-      if (!response.ok) throw new Error('Error al actualizar cantidad');
-      loadCart();
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar la cantidad');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFromCart = async (id: string) => {
-    try {
-      setLoading(true);
-      setCart(prevCart => prevCart.filter(item => item.id !== id)); // optimista
-      const response = await fetch(`${API_BASE_URL}/carrito/${id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) throw new Error('Error al eliminar del carrito');
-      loadCart();
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo eliminar el producto');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
-  const proceedToPayment = async () => {
-    try {
-      setLoading(true);
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        Alert.alert('Error', 'No se encontró el usuario');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/carrito/${userId}/proceder`);
-      if (!response.ok) throw new Error('Error al procesar el carrito');
-
-      const data = await response.json();
-      await AsyncStorage.setItem('resumen_carrito', JSON.stringify(data));
-      navigation.navigate('Checkout' as never);
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo proceder al pago');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderItem = ({ item }: { item: CartItem }) => (
+// Ítem memoizado para que no re-renderice toda la lista
+const CartRow = React.memo(function CartRow({
+  item,
+  loading,
+  onRemove,
+  onInc,
+  onDec,
+}: {
+  item: CartItem;
+  loading: boolean;
+  onRemove: (id: string) => void;
+  onInc: (id: string, qty: number) => void;
+  onDec: (id: string, qty: number) => void;
+}) {
+  return (
     <View style={styles.itemCard}>
-      {/* Botón fijo de eliminar */}
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => removeFromCart(item.id)}
+        onPress={() => onRemove(item.id)}
         disabled={loading}
         hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
         accessibilityLabel="Eliminar del carrito"
@@ -175,14 +90,14 @@ const CarritoScreen = () => {
         <Ionicons name="trash-outline" size={20} color="#9CA3AF" />
       </TouchableOpacity>
 
-      <Image source={{ uri: item.image }} style={styles.itemImage} />
+      <Image
+        source={{ uri: item.image }}
+        style={styles.itemImage}
+        defaultSource={undefined /* iOS: agrega un asset si quieres */}
+      />
 
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text
-          style={styles.itemTitle}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
+        <Text style={styles.itemTitle} numberOfLines={2} ellipsizeMode="tail">
           {item.name}
         </Text>
         <Text style={styles.itemDesc}>Color: {item.color}</Text>
@@ -191,7 +106,7 @@ const CarritoScreen = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <TouchableOpacity
             style={styles.qtyButton}
-            onPress={() => updateQuantity(item.id, item.quantity - 1)}
+            onPress={() => onDec(item.id, item.quantity - 1)}
             disabled={loading || item.quantity <= 1}
           >
             <Text style={styles.qtyButtonText}>−</Text>
@@ -199,7 +114,7 @@ const CarritoScreen = () => {
           <Text style={styles.qtyText}>{item.quantity}</Text>
           <TouchableOpacity
             style={styles.qtyButton}
-            onPress={() => updateQuantity(item.id, item.quantity + 1)}
+            onPress={() => onInc(item.id, item.quantity + 1)}
             disabled={loading}
           >
             <Text style={styles.qtyButtonText}>+</Text>
@@ -215,55 +130,218 @@ const CarritoScreen = () => {
       </View>
     </View>
   );
+});
 
-  const CustomHeader = () => (
-    <View style={headerStyles.header}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-        <TouchableOpacity
-          style={headerStyles.backButton}
-          onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Tabs' }],
-            });
-          }}
-          accessibilityLabel="Regresar"
-          accessibilityHint="Regresa a la pantalla principal"
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-        <Text style={headerStyles.headerTitle}>Carrito</Text>
-      </View>
-    </View>
+const CarritoScreen = () => {
+  const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [netLoading, setNetLoading] = useState(false); // solo para el spinner central
+
+  const calculateTotal = useCallback(
+    () => cart.reduce((total, item) => total + item.price * item.quantity, 0),
+    [cart]
+  );
+
+  // Prefetch de imágenes (mejora el render)
+  const prefetchImages = useCallback(async (items: CartItem[]) => {
+    const urls = items.map((i) => i.image).filter(Boolean);
+    await Promise.allSettled(urls.map((u) => Image.prefetch(u)));
+  }, []);
+
+  const mapResponse = useCallback((data: any[]) => {
+    return data.map((item: any) => ({
+      id: item.id?.toString() || '',
+      productId: item.producto?.id?.toString() || '',
+      name: item.producto?.nombre || 'Sin nombre',
+      price: Number(item.precio_unitario || item.producto?.precio || 0),
+      quantity: Number(item.cantidad || 1),
+      image:
+        getProductImage(item.producto) ||
+        'https://via.placeholder.com/70x70?text=Sin+Imagen',
+      color: item.producto?.color || 'No especificado',
+    })) as CartItem[];
+  }, []);
+
+  const loadFromCache = useCallback(async () => {
+    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.ts < CACHE_TTL_MS && Array.isArray(parsed.data)) {
+        return parsed.data as CartItem[];
+      }
+    } catch {}
+    return null;
+  }, []);
+
+  const saveCache = useCallback(async (data: CartItem[]) => {
+    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  }, []);
+
+  const loadCart = useCallback(async () => {
+    setNetLoading(true);
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        Alert.alert('Error', 'No se encontró el usuario');
+        return;
+      }
+
+      // 1) Mostrar caché instantáneo
+      const cached = await loadFromCache();
+      if (cached) {
+        setCart(cached);
+      }
+
+      // 2) Refrescar en segundo plano
+      const response = await fetchWithTimeout(`${API_BASE_URL}/carrito/${userId}`);
+      if (!response.ok) {
+        if (response.status === 404) setCart([]);
+        return;
+      }
+      const data = await response.json();
+      const formatted = mapResponse(data);
+      setCart(formatted);
+      saveCache(formatted);
+      prefetchImages(formatted);
+    } catch (error: any) {
+      if (cart.length === 0) {
+        Alert.alert('Error', 'No se pudo cargar el carrito');
+      }
+    } finally {
+      setNetLoading(false);
+    }
+  }, [cart.length, loadFromCache, mapResponse, prefetchImages, saveCache]);
+
+  useEffect(() => {
+    if (isFocused) loadCart();
+  }, [isFocused, loadCart]);
+
+  // Handlers memo
+  const updateQuantity = useCallback(async (id: string, newQuantity: number) => {
+    if (newQuantity <= 0) return removeFromCart(id);
+    try {
+      setLoading(true);
+      const response = await fetchWithTimeout(`${API_BASE_URL}/carrito/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cantidad: newQuantity }),
+      });
+      if (!response.ok) throw new Error('Error al actualizar cantidad');
+      // Actualización local rápida
+      setCart(prev => prev.map(it => it.id === id ? { ...it, quantity: newQuantity } : it));
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar la cantidad');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const removeFromCart = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setCart(prev => prev.filter(item => item.id !== id)); // optimista
+      const response = await fetchWithTimeout(`${API_BASE_URL}/carrito/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('Error al eliminar del carrito');
+    } catch {
+      Alert.alert('Error', 'No se pudo eliminar el producto');
+      loadCart(); // re-sync
+    } finally {
+      setLoading(false);
+    }
+  }, [loadCart]);
+
+  const proceedToPayment = useCallback(async () => {
+    try {
+      setLoading(true);
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        Alert.alert('Error', 'No se encontró el usuario');
+        return;
+      }
+      const response = await fetchWithTimeout(`${API_BASE_URL}/carrito/${userId}/proceder`);
+      if (!response.ok) throw new Error('Error al procesar el carrito');
+      const data = await response.json();
+      await AsyncStorage.setItem('resumen_carrito', JSON.stringify(data));
+      navigation.navigate('Checkout' as never);
+    } catch {
+      Alert.alert('Error', 'No se pudo proceder al pago');
+    } finally {
+      setLoading(false);
+    }
+  }, [navigation]);
+
+  const keyExtractor = useCallback((it: CartItem) => it.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: CartItem }) => (
+      <CartRow
+        item={item}
+        loading={loading}
+        onRemove={removeFromCart}
+        onInc={(id, qty) => updateQuantity(id, qty)}
+        onDec={(id, qty) => updateQuantity(id, qty)}
+      />
+    ),
+    [loading, removeFromCart, updateQuantity]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({ length: 94, offset: 94 * index, index }),
+    []
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
       <StatusBar style="dark" />
-      <CustomHeader />
 
-      <ScrollView style={{ paddingHorizontal: 16, marginBottom: cart.length > 0 ? 120 : 20 }}>
-        {loading ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
-        ) : cart.length === 0 ? (
-          <View style={{ alignItems: 'center', marginVertical: 40 }}>
-            <Text style={{ fontSize: 48, color: '#D1D5DB', marginBottom: 8 }}>🛒</Text>
-            <Text style={{ color: '#6B7280' }}>Tu carrito está vacío</Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8 }}>
-              Añade productos a tu carrito para verlos aquí
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={cart}
-            keyExtractor={item => item.id}
-            renderItem={renderItem}
-            scrollEnabled={false}
-          />
-        )}
-      </ScrollView>
+      {/* Header */}
+      <View style={headerStyles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <TouchableOpacity
+            style={headerStyles.backButton}
+            onPress={() => {
+              navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+            }}
+            accessibilityLabel="Regresar"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.dark} />
+          </TouchableOpacity>
+          <Text style={headerStyles.headerTitle}>Carrito</Text>
+        </View>
+      </View>
+
+      {netLoading && cart.length === 0 ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      ) : cart.length === 0 ? (
+        <View style={{ alignItems: 'center', marginTop: 40 }}>
+          <Text style={{ fontSize: 48, color: '#D1D5DB', marginBottom: 8 }}>🛒</Text>
+          <Text style={{ color: '#6B7280' }}>Tu carrito está vacío</Text>
+          <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8 }}>
+            Añade productos a tu carrito para verlos aquí
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={cart}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140 }}
+          initialNumToRender={8}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          removeClippedSubviews
+          getItemLayout={getItemLayout}
+        />
+      )}
 
       {cart.length > 0 && (
         <View style={styles.checkoutBox}>
@@ -333,12 +411,12 @@ const headerStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   itemCard: {
-    position: 'relative',                 // ← para posicionar el botón fijo
+    position: 'relative',
     backgroundColor: 'white',
     borderRadius: 10,
     flexDirection: 'row',
     padding: 12,
-    paddingRight: 40,                     // ← deja espacio para el icono fijo
+    paddingRight: 40,
     marginVertical: 7,
     elevation: 2,
     shadowColor: '#000',
@@ -355,7 +433,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F4F6',          // minimalista y consistente
+    backgroundColor: '#F3F4F6',
   },
   itemImage: {
     width: 70,

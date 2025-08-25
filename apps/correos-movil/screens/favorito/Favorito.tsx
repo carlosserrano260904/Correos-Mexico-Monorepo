@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// apps/correos-movil/screens/usuario/favoritos/FavoritosScreen.tsx
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +17,6 @@ import { Heart } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,14 +30,110 @@ const Colors = {
 };
 
 const API_BASE_URL = 'https://correos-mexico-monorepo.onrender.com/api';
+const CACHE_KEY = 'favorites_cache_v1';
+const CACHE_TTL_MS = 60_000;
+
+// ───────── Utilidades ─────────
+const getProductImage = (p: any): string | null => {
+  if (Array.isArray(p?.images) && p.images.length > 0) {
+    const sorted = [...p.images].sort(
+      (a: any, b: any) => (a?.orden ?? 0) - (b?.orden ?? 0)
+    );
+    return sorted[0]?.url ?? null;
+  }
+  return p?.imagen ?? null;
+};
+
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 10_000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
+};
+
+const FavoriteRow = React.memo(function FavoriteRow({
+  item,
+  loading,
+  onRemove,
+  onAdd,
+}: {
+  item: any;
+  loading: boolean;
+  onRemove: (id: string) => void;
+  onAdd: (prod: any) => void;
+}) {
+  const img = getProductImage(item.producto) || 'https://via.placeholder.com/70x70?text=Sin+Imagen';
+  return (
+    <View style={styles.itemCard}>
+      <View style={{ position: 'relative' }}>
+        <Image
+          source={{ uri: img }}
+          style={styles.itemImage}
+          defaultSource={undefined}
+        />
+        <TouchableOpacity
+          style={styles.removeBtn}
+          onPress={() => onRemove(item.id)}
+          disabled={loading}
+        >
+          <Heart size={14} color="white" fill="#e11d48" />
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text style={styles.itemTitle}>
+          {item.producto?.nombre || 'Sin nombre'}
+        </Text>
+        <Text style={styles.itemDesc} numberOfLines={2}>
+          {item.producto?.descripcion || ''}
+        </Text>
+        <Text style={styles.itemPrice}>
+          MXN{' '}
+          {item.producto?.precio !== undefined
+            ? Number(item.producto.precio).toFixed(2)
+            : ''}
+        </Text>
+        <TouchableOpacity
+          onPress={() => onAdd(item.producto)}
+          style={styles.addCartBtn}
+          disabled={loading}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 15 }}>
+            {loading ? 'Añadiendo...' : 'Añadir a la cesta'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+});
 
 const FavoritosScreen = () => {
   const navigation = useNavigation();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [netLoading, setNetLoading] = useState(false);
 
-  const loadFavorites = async () => {
-    setLoading(true);
+  const loadFromCache = useCallback(async () => {
+    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.ts < CACHE_TTL_MS && Array.isArray(parsed.data)) {
+        return parsed.data as any[];
+      }
+    } catch {}
+    return null;
+  }, []);
+
+  const saveCache = useCallback(async (data: any[]) => {
+    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  }, []);
+
+  const loadFavorites = useCallback(async () => {
+    setNetLoading(true);
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) {
@@ -46,42 +142,56 @@ const FavoritosScreen = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/favoritos/${userId}`);
-      const data = await response.json();
+      // 1) Cache inmediata
+      const cached = await loadFromCache();
+      if (cached) setFavorites(cached);
 
-      setFavorites(Array.isArray(data) ? data : []);
+      // 2) Refresco en segundo plano
+      const response = await fetchWithTimeout(`${API_BASE_URL}/favoritos/${userId}`);
+      const data = await response.json();
+      const arr = Array.isArray(data) ? data : [];
+      setFavorites(arr);
+      saveCache(arr);
+
+      // Prefetch de la primera imagen de cada producto
+      const urls = arr
+        .map((it: any) => getProductImage(it.producto))
+        .filter(Boolean) as string[];
+      await Promise.allSettled(urls.map((u) => Image.prefetch(u)));
     } catch (error) {
-      console.error('Error al cargar favoritos:', error);
-      Alert.alert('Error', 'No se pudo cargar la lista de favoritos');
-      setFavorites([]);
+      if (favorites.length === 0) {
+        console.error('Error al cargar favoritos:', error);
+        Alert.alert('Error', 'No se pudo cargar la lista de favoritos');
+      }
     } finally {
-      setLoading(false);
+      setNetLoading(false);
     }
-  };
+  }, [favorites.length, loadFromCache, saveCache]);
 
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
-    }, [])
+    }, [loadFavorites])
   );
 
-  const removeFavorite = async (id: string) => {
+  const removeFavorite = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/favoritos/${id}`, {
+      setFavorites(prev => prev.filter(item => item.id !== id)); // optimista
+      const response = await fetchWithTimeout(`${API_BASE_URL}/favoritos/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error('Error al eliminar favorito');
-      setFavorites(prev => prev.filter(item => item.id !== id));
     } catch (error) {
       Alert.alert('Error', 'No se pudo eliminar el favorito');
+      loadFavorites();
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadFavorites]);
 
-  const addToCart = async (producto: any) => {
+  const addToCart = useCallback(async (producto: any) => {
     setLoading(true);
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -91,7 +201,7 @@ const FavoritosScreen = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/carrito`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/carrito`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,75 +225,44 @@ const FavoritosScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const CustomHeader = () => (
-    <View style={headerStyles.header}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-        <TouchableOpacity
-          style={headerStyles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Regresar"
-          accessibilityHint="Regresa a la pantalla anterior"
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-        <Text style={headerStyles.headerTitle}>Favoritos</Text>
-      </View>
-    </View>
+  const keyExtractor = useCallback((it: any) => it.id?.toString?.() ?? String(it.id), []);
+  const renderItem = useCallback(
+    ({ item }: any) => (
+      <FavoriteRow
+        item={item}
+        loading={loading}
+        onRemove={removeFavorite}
+        onAdd={addToCart}
+      />
+    ),
+    [loading, removeFavorite, addToCart]
   );
-
-  const renderItem = ({ item }: any) => (
-    <View style={styles.itemCard}>
-      <View style={{ position: 'relative' }}>
-        <Image
-          source={{
-            uri:
-              item.producto?.imagen ||
-              'https://via.placeholder.com/70x70?text=Sin+Imagen'
-          }}
-          style={styles.itemImage}
-        />
-        <TouchableOpacity
-          style={styles.removeBtn}
-          onPress={() => removeFavorite(item.id)}
-          disabled={loading}
-        >
-          <Heart size={14} color="white" fill="#e11d48" />
-        </TouchableOpacity>
-      </View>
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.itemTitle}>
-          {item.producto?.nombre || 'Sin nombre'}
-        </Text>
-        <Text style={styles.itemDesc}>
-          {item.producto?.descripcion || ''}
-        </Text>
-        <Text style={styles.itemPrice}>
-          MXN{' '}
-          {item.producto?.precio !== undefined
-            ? Number(item.producto.precio).toFixed(2)
-            : ''}
-        </Text>
-        <TouchableOpacity
-          onPress={() => addToCart(item.producto)}
-          style={styles.addCartBtn}
-          disabled={loading}
-        >
-          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 15 }}>
-            {loading ? 'Añadiendo...' : 'Añadir a la cesta'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({ length: 94, offset: 94 * index, index }),
+    []
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
       <StatusBar style="dark" />
-      <CustomHeader />
 
-      {loading ? (
+      {/* Header */}
+      <View style={headerStyles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <TouchableOpacity
+            style={headerStyles.backButton}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Regresar"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.dark} />
+          </TouchableOpacity>
+          <Text style={headerStyles.headerTitle}>Favoritos</Text>
+        </View>
+      </View>
+
+      {netLoading && favorites.length === 0 ? (
         <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           <ActivityIndicator size="large" color={Colors.primary} />
         </View>
@@ -199,8 +278,14 @@ const FavoritosScreen = () => {
         <FlatList
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
           data={favorites}
-          keyExtractor={item => item.id?.toString()}
+          keyExtractor={keyExtractor}
           renderItem={renderItem}
+          initialNumToRender={8}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          removeClippedSubviews
+          getItemLayout={getItemLayout}
         />
       )}
     </SafeAreaView>

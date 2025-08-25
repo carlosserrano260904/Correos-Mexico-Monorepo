@@ -1,5 +1,4 @@
-
-
+// apps/correos-movil/screens/usuario/carrito/Pantalla.Resumen.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -20,8 +19,16 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import { obtenerDirecciones } from '../../../api/direcciones';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL; // p.ej: https://correos-mexico-monorepo.onrender.com
 const { width, height } = Dimensions.get('window');
+
+/** Normalizo el base de API para evitar duplicar /api según el entorno */
+const apiBase = () => {
+  const root = Constants?.expoConfig?.extra?.IP_LOCAL
+    ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000`
+    : BASE_URL;
+  return `${root}/api`;
+};
 
 const Colors = {
   primary: '#E91E63',
@@ -36,7 +43,7 @@ const Colors = {
 };
 
 interface CartItem {
-  id: string;
+  id: string;            // ID del registro en tabla carrito (no el producto)
   name: string;
   price: number;
   quantity: number;
@@ -70,9 +77,12 @@ interface Card {
   last4: string;
 }
 
+const CACHE_KEY = 'cart_cache_v1'; // mismo que usa tu CarritoScreen
+
 const PantallaResumen = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [direccion, setDireccion] = useState<Direccion | null>(null);
   const [puntoRecogida, setPuntoRecogida] = useState<PuntoRecogida | null>(null);
@@ -87,23 +97,36 @@ const PantallaResumen = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('Usuario no encontrado');
 
-      const response = await axios.get(`${BASE_URL}/api/carrito/${userId}`);
-      const data = response.data;
+      // Si el backend devuelve 404 cuando está vacío, lo tratamos como "[]"
+      try {
+        const response = await axios.get(`${apiBase()}/carrito/${userId}`);
+        const data = Array.isArray(response.data) ? response.data : [];
 
-      const formatted = data
-        .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
-        .map((item: any) => ({
-          id: item.id?.toString() || '',
-          name: item.producto.nombre ?? 'Sin nombre',
-          price: Number(item.precio_unitario ?? item.producto.precio ?? 0),
-          quantity: Number(item.cantidad ?? 1),
-          image: item.producto.imagen ?? 'https://via.placeholder.com/120x120.png?text=Producto',
-          color: item.producto.color ?? 'No especificado',
-        }));
+        const formatted = data
+          .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
+          .map((item: any) => ({
+            id: item.id?.toString() || '',
+            name: item.producto?.nombre ?? 'Sin nombre',
+            price: Number(item.precio_unitario ?? item.producto?.precio ?? 0),
+            quantity: Number(item.cantidad ?? 1),
+            // Dejamos las imágenes "para más rato" como acordamos:
+            image: item.producto?.imagen ?? 'https://via.placeholder.com/120x120.png?text=Producto',
+            color: item.producto?.color ?? 'No especificado',
+          })) as CartItem[];
 
-      setCart(formatted);
+        setCart(formatted);
+      } catch (e: any) {
+        if (axios.isAxiosError(e) && e.response?.status === 404) {
+          // carrito vacío
+          setCart([]);
+        } else {
+          throw e;
+        }
+      }
     } catch (error) {
       console.error('Error al cargar el carrito:', error);
+      // No hacemos alert aquí para no molestar si está vacío; la UI ya muestra vacío
+      setCart([]);
     } finally {
       setIsLoading(false);
     }
@@ -169,8 +192,40 @@ const PantallaResumen = () => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  /** Borra todo el carrito en backend (DELETE a cada ítem) y limpia el caché local */
+  const vaciarCarrito = useCallback(async (userId: string) => {
+    try {
+      // 1) Intentamos obtener los ítems (si da 404, ya está vacío)
+      let items: any[] = [];
+      try {
+        const r = await axios.get(`${apiBase()}/carrito/${userId}`);
+        items = Array.isArray(r.data) ? r.data : [];
+      } catch (e: any) {
+        if (!(axios.isAxiosError(e) && e.response?.status === 404)) {
+          throw e; // si no es 404, re-lanzamos
+        }
+      }
+
+      // 2) Eliminamos cada registro del carrito por ID
+      await Promise.allSettled(
+        items.map((it: any) => axios.delete(`${apiBase()}/carrito/${it.id}`))
+      );
+
+      // 3) Limpiamos cache local usado por CarritoScreen para que se vea vacío al volver
+      await AsyncStorage.removeItem(CACHE_KEY);
+
+      // 4) Limpiamos el estado local
+      setCart([]);
+    } catch (e) {
+      console.warn('No se pudo vaciar el carrito completamente. Se intentará re-sincronizar luego.', e);
+    }
+  }, []);
+
   const confirmarCompra = async () => {
     try {
+      if (confirming) return;
+      setConfirming(true);
+
       const profileId = await AsyncStorage.getItem('userId');
       if (!profileId || !tarjeta?.stripeCardId) {
         Alert.alert('Error', 'No se encontró tarjeta o usuario.');
@@ -179,16 +234,21 @@ const PantallaResumen = () => {
 
       const total = calculateTotal();
 
-      const res = await axios.post(
-        `${Constants.expoConfig.extra.IP_LOCAL ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api` : BASE_URL}/pagos/confirmar`,
-        {
-          profileId,
-          total,
-          stripeCardId: tarjeta.stripeCardId,
-        }
-      );  
+      // Confirmación de pago/orden
+      const res = await axios.post(`${apiBase()}/pagos/confirmar`, {
+        profileId,
+        total,
+        stripeCardId: tarjeta.stripeCardId,
+      });
 
       if (res.data?.status === 'success') {
+        // 🔥 Vaciar carrito automáticamente
+        await vaciarCarrito(profileId);
+
+        // (Opcional) limpiar cualquier resumen previo
+        await AsyncStorage.removeItem('resumen_carrito');
+
+        // Navegación a pantalla de éxito
         navigation.navigate('PagoExitosoScreen' as never);
       } else {
         Alert.alert('Error', 'El pago no se pudo completar.');
@@ -196,6 +256,8 @@ const PantallaResumen = () => {
     } catch (error: any) {
       console.error('Error en confirmación de pago:', error?.response?.data || error.message);
       Alert.alert('Error', 'Ocurrió un error al procesar el pago.');
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -282,8 +344,16 @@ const PantallaResumen = () => {
               <Text style={styles.totalAmount}>MXN {calculateTotal().toFixed(2)}</Text>
             </View>
 
-            <TouchableOpacity style={styles.confirmBtn} onPress={confirmarCompra}>
-              <Text style={styles.confirmText}>Confirmar compra</Text>
+            <TouchableOpacity
+              style={[styles.confirmBtn, confirming && { opacity: 0.7 }]}
+              onPress={confirmarCompra}
+              disabled={confirming}
+            >
+              {confirming ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.confirmText}>Confirmar compra</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}

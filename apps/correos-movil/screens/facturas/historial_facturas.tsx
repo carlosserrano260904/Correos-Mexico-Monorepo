@@ -80,7 +80,12 @@ const InvoiceHistoryScreen = () => {
   setLoading(true);
   try {
     const token = await AsyncStorage.getItem('token');
-    console.log('token:', token);
+    if (!token) {
+      Alert.alert('Error de autenticación', 'No se encontró el token de usuario. Por favor, inicie sesión de nuevo.');
+      setLoading(false);
+      return;
+    }
+
     console.log('profileId usado:', profileId);
 
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/facturas/profile/${profileId}`, {
@@ -107,7 +112,7 @@ const InvoiceHistoryScreen = () => {
   }
 };
 
-const downloadInvoice = async (invoiceId) => {
+const downloadInvoice = async (invoiceId: number) => {
   try {
     console.log('Downloading invoice:', invoiceId);
     Alert.alert('Descarga', `Descargando factura ${invoiceId}`);
@@ -117,7 +122,7 @@ const downloadInvoice = async (invoiceId) => {
   }
 };
 
-const searchInvoices = (query) => {
+const searchInvoices = (query: string) => {
   setSearchQuery(query);
 };
 
@@ -136,8 +141,8 @@ const onRefresh = async () => {
     { key: 'overdue', label: 'Vencidas', count: invoices.filter(inv => inv.status === 'overdue').length }
   ];
 
-  const getStatusColor = (status) => {
-    const colors = {
+  const getStatusColor = (status: string) => {
+    const colors: { [key: string]: string } = {
       paid: Colors.success,
       pending: Colors.warning,
       overdue: Colors.error
@@ -145,8 +150,8 @@ const onRefresh = async () => {
     return colors[status] || Colors.gray;
   };
 
-  const getStatusText = (status) => {
-    const texts = {
+  const getStatusText = (status: string) => {
+    const texts: { [key: string]: string } = {
       paid: 'Pagada',
       pending: 'Pendiente',
       overdue: 'Vencida'
@@ -161,7 +166,7 @@ const onRefresh = async () => {
     return matchesSearch && matchesFilter;
   });
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-MX', {
       day: '2-digit',
       month: '2-digit',
@@ -169,7 +174,7 @@ const onRefresh = async () => {
     });
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'

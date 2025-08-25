@@ -53,7 +53,7 @@ const TarificadorMexpost = () => {
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
   // Definimos las dimensiones máximas
-  const max_peso  = 50;
+  const max_peso  = 40;
   const max_alto  = 300;
   const max_ancho = 300;
   const max_largo = 300;
@@ -642,7 +642,7 @@ const TarificadorMexpost = () => {
                       <CheckoutButton
                         amount={costo}
                         email={email}
-                        profileId={115}
+                        profileId={profileId}
                         onPaymentSuccess={(paymentResult) => {
                           console.log('Pago exitoso:', paymentResult);
                           // Aquí puedes hacer lo que necesites después del pago

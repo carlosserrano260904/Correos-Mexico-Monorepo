@@ -10,6 +10,8 @@ import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
 import { moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CircularProgressAvatar from './CircularProgressAvatar';
+import AppHeader from '../../../components/common/AppHeader';
+
 
 const PINK = '#E6007E';
 type Props = NativeStackScreenProps<RootStackParamList, 'UserDetailsScreen'>;
@@ -149,16 +151,7 @@ export default function UserDetailsScreen({ route, navigation }: Props) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={PINK} />
-      <SafeAreaView style={styles.headerSafe}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mi perfil</Text>
-          <View style={{ width: 40 }} />
-        </View>
-      </SafeAreaView>
+      <AppHeader title="Mi perfil" onBack={() => navigation.goBack()} />
 
       <SafeAreaView style={styles.contentSafe}>
         <KeyboardAvoidingView

@@ -400,13 +400,13 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
             <ScrollView style={styles.newCardForm}>
               <Text style={styles.amountText}>Total a pagar: ${amount} MXN</Text>
               
-              <Text style={styles.testCardInfo}>
+              {/* <Text style={styles.testCardInfo}>
                 💡 Tarjetas de prueba disponibles:{'\n'}
                 • 4242 4242 4242 4242 (Visa){'\n'}
                 • 5555 5555 5555 4444 (Mastercard){'\n'}
                 • 4000 0566 5566 5556 (Visa Debit){'\n'}
                 Usa cualquier fecha futura y CVC de 3 dígitos
-              </Text>
+              </Text> */}
               
               <TextInput
                 style={styles.input}
@@ -451,7 +451,7 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
               </View>
 
               <View style={styles.cardRow}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={[styles.processButton, styles.halfButton, loading && styles.disabledButton]}
                   onPress={handleAddCardOnly}
                   disabled={loading}
@@ -461,7 +461,7 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
                   ) : (
                     <Text style={styles.processButtonText}>Solo Agregar</Text>
                   )}
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <TouchableOpacity
                   style={[styles.processButton, styles.halfButton, loading && styles.disabledButton]}
@@ -471,7 +471,7 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
                   {loading ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <Text style={styles.processButtonText}>Agregar y Pagar</Text>
+                    <Text style={styles.processButtonText}>Pagar</Text>
                   )}
                 </TouchableOpacity>
               </View>

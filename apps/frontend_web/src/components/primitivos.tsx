@@ -25,6 +25,7 @@ export const Btn = ({children, className, link}: {children: React.ReactNode, cla
 export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductName, ProductPrice, onClick }: ProductCardProps) => {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { profile } = useAuth();
+  console.log('🔍 DEBUG primitivos.tsx - profile:', profile, 'profile.id:', profile?.id);
   const cart = useCartWithBackend(profile?.id || null);
   const { getProduct } = useProducts();
   

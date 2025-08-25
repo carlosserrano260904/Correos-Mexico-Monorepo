@@ -88,10 +88,11 @@ function sampleProductsFor(category: string): NewProduct[] {
       estado: Math.random() < 0.9, // 90% activos
       vendidos: randomVendidos(),
       sku: '',              // se setea único abajo
-      altura: null,
-      largo: null,
-      ancho: null,
-      peso: null,
+      // TEMPORALLY COMMENTED OUT - DATABASE SYNC ISSUE
+      // altura: null,
+      // largo: null,
+      // ancho: null,
+      // peso: null,
       idPerfil: null,
     });
   }

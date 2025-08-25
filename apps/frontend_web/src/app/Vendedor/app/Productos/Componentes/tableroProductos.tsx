@@ -34,19 +34,38 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
           const { ProductImageUrl } = entrada;
           // Si no hay imagen, usa la imagen por defecto
           if (!ProductImageUrl) {
-            return { ...entrada, ProductImageUrl: DEFAULT_IMAGE };
+            return { 
+              ...entrada, 
+              ProductImageUrl: DEFAULT_IMAGE,
+              ProductImages: entrada.ProductImages || [],
+              ProductCupons: entrada.ProductCupons || []
+            };
           }
           // Si ya es una URL completa, úsala tal cual
           const isFullUrl = /^https?:\/\//i.test(ProductImageUrl);
           if (isFullUrl) {
-            return { ...entrada };
+            return { 
+              ...entrada,
+              ProductImages: entrada.ProductImages || [],
+              ProductCupons: entrada.ProductCupons || []
+            };
           }
           // De lo contrario, resuelve el key a una URL firmada
           try {
             const url = await uploadApiService.getImageUrl(ProductImageUrl);
-            return { ...entrada, ProductImageUrl: url };
+            return { 
+              ...entrada, 
+              ProductImageUrl: url,
+              ProductImages: entrada.ProductImages || [],
+              ProductCupons: entrada.ProductCupons || []
+            };
           } catch {
-            return { ...entrada, ProductImageUrl: DEFAULT_IMAGE };
+            return { 
+              ...entrada, 
+              ProductImageUrl: DEFAULT_IMAGE,
+              ProductImages: entrada.ProductImages || [],
+              ProductCupons: entrada.ProductCupons || []
+            };
           }
         })
       );
@@ -75,28 +94,20 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lista.map((entrada) => (
-                <Producto
-                  key={entrada.ProductID}
-                  ProductID={entrada.ProductID}
-                  productPrice={entrada.productPrice}
-                  ProductDescription={entrada.ProductDescription}
-                  ProductImageUrl={entrada.ProductImageUrl}
-                  ProductName={entrada.ProductName}
-                  ProductBrand={entrada.ProductBrand}
-                  ProductStatus={entrada.ProductStatus}
-                  ProductStock={entrada.ProductStock}
-                  ProductCategory={entrada.ProductCategory}
-                  ProductSellerName={entrada.ProductSellerName}
-                  ProductSold={entrada.ProductSold}
-                  ProductSlug={entrada.ProductSlug}
-                  Color={entrada.Color}
-                  ProductSKU={entrada.ProductSKU}
-                  ProductImages={entrada.ProductImages || []}
-                  ProductCupons={entrada.ProductCupons || []}
-                  variant={variants}
-                />
-              ))}
+              {lista.map((entrada) => {
+                const productoProps = {
+                  ...entrada,
+                  ProductImages: entrada.ProductImages ?? [],
+                  ProductCupons: entrada.ProductCupons ?? [],
+                  variant: variants as 'full' | 'compact'
+                };
+                return (
+                  <Producto
+                    key={entrada.ProductID}
+                    {...productoProps}
+                  />
+                );
+              })}
             </TableBody>
 
           </Table>
@@ -106,31 +117,23 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
     case 'compact':
       return (
         <div className="bg-white max-h-[270px] overflow-y-auto rounded-xl border">
-          {lista.map((entrada, idx) => (
-          <div className="px-6" key={idx}>
-            <Producto
-              key={entrada.ProductID}
-              ProductID={entrada.ProductID}
-              productPrice={entrada.productPrice}
-              ProductDescription={entrada.ProductDescription}
-              ProductImageUrl={entrada.ProductImageUrl}
-              ProductName={entrada.ProductName}
-              ProductBrand={entrada.ProductBrand}
-              ProductStatus={entrada.ProductStatus}
-              ProductStock={entrada.ProductStock}
-              ProductCategory={entrada.ProductCategory}
-              ProductSellerName={entrada.ProductSellerName}
-              ProductSold={entrada.ProductSold}
-              ProductSlug={entrada.ProductSlug}
-              Color={entrada.Color}
-              ProductSKU={entrada.ProductSKU}
-              ProductImages={entrada.ProductImages || []}
-              ProductCupons={entrada.ProductCupons || []}
-              variant={variants}
-            />
-            {idx < lista.length - 1 && <Separator />}
-          </div>
-        ))}
+          {lista.map((entrada, idx) => {
+            const productoProps = {
+              ...entrada,
+              ProductImages: entrada.ProductImages ?? [],
+              ProductCupons: entrada.ProductCupons ?? [],
+              variant: variants as 'full' | 'compact'
+            };
+            return (
+              <div className="px-6" key={idx}>
+                <Producto
+                  key={entrada.ProductID}
+                  {...productoProps}
+                />
+                {idx < lista.length - 1 && <Separator />}
+              </div>
+            );
+          })}
         </div>
       );
   }

@@ -21,21 +21,22 @@ export class Product {
   @Column({ type: "varchar", length: 120 })
   descripcion: string;
 
-  @ApiProperty({example: "120 cm"})
-  @Column({type: "float4", nullable: true})
-  altura: Float | null;
+  // TEMPORALLY COMMENTED OUT - DATABASE SYNC ISSUE
+  // @ApiProperty({example: "120 cm"})
+  // @Column({type: "float4", nullable: true})
+  // altura: Float | null;
 
-  @ApiProperty({example: "120 cm"})
-  @Column({type: "float4", nullable: true})
-  largo: Float | null;
+  // @ApiProperty({example: "120 cm"})
+  // @Column({type: "float4", nullable: true})
+  // largo: Float | null;
 
-  @ApiProperty({example: "120 cm"})
-  @Column({type: "float4", nullable: true})
-  ancho: Float | null;
+  // @ApiProperty({example: "120 cm"})
+  // @Column({type: "float4", nullable: true})
+  // ancho: Float | null;
 
-  @ApiProperty({example: "2kg"})
-  @Column({type: "float4", nullable: true})
-  peso: Float | null;
+  // @ApiProperty({example: "2kg"})
+  // @Column({type: "float4", nullable: true})
+  // peso: Float | null;
 
   @ApiProperty({ example: 1299.9, type: Number })
   @Column({

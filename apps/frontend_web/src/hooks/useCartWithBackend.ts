@@ -24,6 +24,7 @@ import type { FrontendProduct } from '@/schemas/products';
  * console.log(cart.items, cart.loading, cart.error);
  */
 export const useCartWithBackend = (profileId: number | null) => {
+  console.log('🔍 DEBUG useCartWithBackend - hook called with profileId:', profileId, 'type:', typeof profileId);
   const {
     // State
     cartItems,
@@ -57,9 +58,14 @@ export const useCartWithBackend = (profileId: number | null) => {
 
   // Load cart when profile changes
   useEffect(() => {
+    console.log('🔍 DEBUG useEffect - profileId:', profileId, 'currentProfileId:', currentProfileId);
     if (profileId && profileId !== currentProfileId) {
       console.log(`🔄 Profile changed to ${profileId}, loading cart...`);
       loadCart(profileId);
+    } else if (!profileId) {
+      console.warn('⚠️ No profileId provided, cannot load cart from backend');
+    } else if (profileId === currentProfileId) {
+      console.log(`ℹ️ ProfileId ${profileId} hasn't changed, not reloading cart`);
     }
   }, [profileId, currentProfileId, loadCart]);
 

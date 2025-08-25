@@ -28,7 +28,7 @@ export default function UbicacionScreen() {
   const [textoBusqueda, setTextoBusqueda] = useState('');
   const [ubicacionUsuario, setUbicacionUsuario] = useState(null);
   const mapRef = useRef(null);
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef(null); 
   const navigation = useNavigation();
 
 
@@ -503,19 +503,14 @@ export default function UbicacionScreen() {
             ref={mapRef}
             style={styles.mapa}
             initialRegion={{
-              latitude: ubicacionUsuario
-                ? ubicacionUsuario.latitude
-                : sucursalSeleccionada.coordenadas.latitude,
-              longitude: ubicacionUsuario
-                ? ubicacionUsuario.longitude
-                : sucursalSeleccionada.coordenadas.longitude,
+              latitude: sucursalSeleccionada.coordenadas.latitude,
+              longitude: sucursalSeleccionada.coordenadas.longitude,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}
-            showsUserLocation={!!ubicacionUsuario}
+            showsUserLocation={ubicacionUsuario ? true : false}
             showsMyLocationButton={false}
           >
-
             {sucursales.map((s) => (
               s.coordenadas && (
                 <Marker
@@ -687,7 +682,7 @@ const styles = StyleSheet.create({
   },
   mapa: {
     width: '100%',
-    height: 330
+    height: 280
   },
   infoContainer: {
     backgroundColor: '#fff',

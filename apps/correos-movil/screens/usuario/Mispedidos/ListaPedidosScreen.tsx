@@ -8,24 +8,28 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  Alert,
   StatusBar,
   SafeAreaView,
+  Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useMyAuth } from '../../../context/AuthContext';
 import { Picker } from '@react-native-picker/picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useMyAuth } from '../../../context/AuthContext';
+
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const PINK = '#fff';
+const PINK = '#E6007E';
 
 interface Producto {
   id: number;
   nombre: string;
   precio: number;
-  imagen?: string;
-  images?: { url: string }[];
+  imagen: string;
 }
 
 interface ProductoEnPedido {
@@ -65,8 +69,13 @@ export default function ListaPedidosScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
   const [anioSeleccionado, setAnioSeleccionado] = useState<number>(new Date().getFullYear());
+  const limpiarFiltros = () => {
+    setSearchQuery('');
+    setFiltroFecha({ mes: null, anio: null });
+  };
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ListaPedidosScreen'>>();
   const { userId } = useMyAuth();
 
   useEffect(() => {
@@ -89,60 +98,77 @@ export default function ListaPedidosScreen() {
         setLoading(false);
       }
     };
+
     fetchPedidos();
   }, [userId]);
 
   const filtrarPedidos = pedidos.filter((pedido) => {
     const fecha = new Date(pedido.fecha);
-    const coincideBusqueda =
-      pedido.productos.some((p) => p.producto.nombre.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      new Date(pedido.fecha).toLocaleDateString('es-MX').includes(searchQuery);
+    const fechaFormateada = fecha
+      .toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
+      .toLowerCase();
+
+    const coincideFechaBusqueda = fechaFormateada.includes(searchQuery.toLowerCase());
+
+    const coincideProducto = pedido.productos.some((p) =>
+      p.producto.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const coincideFiltroFecha =
       (filtroFecha.mes === null || fecha.getMonth() === filtroFecha.mes) &&
       (filtroFecha.anio === null || fecha.getFullYear() === filtroFecha.anio);
-    return coincideBusqueda && coincideFiltroFecha;
+
+    return (coincideFechaBusqueda || coincideProducto) && coincideFiltroFecha;
   });
 
-  const limpiarFiltros = () => {
-    setSearchQuery('');
-    setFiltroFecha({ mes: null, anio: null });
+  const abrirFiltroFecha = () => {
+    setModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: Pedido }) => (
-    <TouchableOpacity
-      style={styles.cardContainer}
-      onPress={() => navigation.navigate('MisPedidosScreen', { pedido: item })}
-      activeOpacity={0.8}
-    >
-      <View style={[styles.statusBar, { backgroundColor: statusColors[item.status] || '#ccc' }]} />
-      <View style={styles.cardContent}>
-        <FlatList
-          data={item.productos}
-          horizontal
-          keyExtractor={(p) => p.producto.id.toString()}
-          renderItem={({ item: prod }) => (
-            <Image
-              source={
-                prod.producto.images?.[0]?.url
-                  ? { uri: prod.producto.images[0].url }
-                  : require('../../../assets/image.png')
-              }
-              style={styles.productImage}
-            />
-          )}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingVertical: 4 }}
+  const renderItem = ({ item }: { item: Pedido }) => {
+    const previewImage = item.productos?.[0]?.producto?.imagen;
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('MisPedidosScreen', { pedido: item })}
+      >
+        <Image
+          source={previewImage ? { uri: previewImage } : require('../../../assets/image.png')}
+          style={styles.previewImage}
         />
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>Pedido del  {new Date(item.fecha).toLocaleDateString()}</Text>
-          <Text style={styles.cardStatus}>{item.status.toUpperCase()}</Text>
-          <Text numberOfLines={2} style={styles.products}>
-            {item.productos.map((p) => p.producto.nombre).join(', ')}
+        <View style={styles.cardDetails}>
+          <Text style={styles.title}>
+            Pedido del{' '}
+            {
+              new Date(item.fecha)
+                .toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
+            }
+          </Text>
+          <Text style={styles.detailsText}>
+            Status:{' '}
+            <Text
+              style={{
+                color: statusColors[item.status] || '#333',
+                fontWeight: 'bold',
+                textTransform: 'capitalize',
+              }}
+            >
+              {item.status}
+            </Text>
+          </Text>
+          <Text style={styles.detailsText}>
+            Productos:{' '}
+            {item.productos.map(p => p.producto.nombre).join(', ')}
+          </Text>
+
+          <Text style={styles.detailsText}>
+            Fecha: {new Date(item.fecha).toLocaleDateString('es-MX')}
           </Text>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -162,17 +188,23 @@ export default function ListaPedidosScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={PINK} />
+      <StatusBar barStyle="light-content" backgroundColor={PINK} />
       <SafeAreaView style={{ backgroundColor: PINK }}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel="Regresar"
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mis Pedidos</Text>
+          <Text style={styles.headerTitle}>Mis pedidos</Text>
+          <View style={{ width: 24 }} />
         </View>
       </SafeAreaView>
 
-      {/* Barra de búsqueda */}
       <TextInput
         style={styles.searchInput}
         placeholder="Buscar por fecha o producto..."
@@ -180,8 +212,7 @@ export default function ListaPedidosScreen() {
         onChangeText={setSearchQuery}
       />
 
-      {/* Botones de filtro */}
-      <TouchableOpacity style={styles.filtroButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={styles.filtroButton} onPress={abrirFiltroFecha}>
         <Text style={styles.filtroButtonText}>Filtrar por mes/año</Text>
       </TouchableOpacity>
       {(searchQuery !== '' || filtroFecha.mes !== null || filtroFecha.anio !== null) && (
@@ -190,15 +221,17 @@ export default function ListaPedidosScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Modal de filtros */}
+
       {modalVisible && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Filtrar por mes y año</Text>
+
             <Text style={styles.modalLabel}>Mes:</Text>
             <Picker
               selectedValue={mesSeleccionado}
-              onValueChange={(itemValue) => setMesSeleccionado(itemValue)}
+              onValueChange={(itemValue: React.SetStateAction<number>) => setMesSeleccionado(itemValue)}
+              style={styles.picker}
             >
               {[
                 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -207,15 +240,18 @@ export default function ListaPedidosScreen() {
                 <Picker.Item key={index} label={mes} value={index} />
               ))}
             </Picker>
+
             <Text style={styles.modalLabel}>Año:</Text>
             <Picker
               selectedValue={anioSeleccionado}
-              onValueChange={(itemValue) => setAnioSeleccionado(itemValue)}
+              onValueChange={(itemValue: React.SetStateAction<number>) => setAnioSeleccionado(itemValue)}
+              style={styles.picker}
             >
               {[2024, 2025, 2026].map((anio) => (
                 <Picker.Item key={anio} label={anio.toString()} value={anio} />
               ))}
             </Picker>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalBtn}
@@ -252,69 +288,180 @@ export default function ListaPedidosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f7f7' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 12 },
-  backButton: { width: 24, justifyContent: 'center', alignItems: 'center' },
+  container: {
+    backgroundColor: '#f7f7f7',
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
+    height: Platform.OS === 'ios' ? 70 : 60,
+    justifyContent: 'space-between',
+    backgroundColor: PINK,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+    textAlign: 'center',
+    flex: 1,
+  },
+  card: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 16,
+    backgroundColor: '#e0e0e0',
+  },
+  cardDetails: {
+    flex: 1,
+  },
+  title: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 4 },
+  detailsText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   searchInput: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 10,
     backgroundColor: '#fff',
   },
   filtroButton: {
     backgroundColor: '#E6007E',
     paddingVertical: 10,
-    borderRadius: 50,
-    marginHorizontal: 16,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+    alignItems: 'center',
     marginBottom: 8,
+    alignSelf: 'center',
+  },
+  filtroButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 5,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+
+  modalLabel: {
+    fontSize: 14,
+    marginTop: 10,
+    marginBottom: 4,
+    color: '#333',
+  },
+
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+
+  picker: {
+    width: '100%',
+    height: 60,
+    color: '#333',
+  },
+
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+
+  modalBtn: {
+    flex: 1,
+    backgroundColor: '#E6007E',
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginHorizontal: 5,
     alignItems: 'center',
   },
-  filtroButtonText: { color: '#fff', fontWeight: '600', textTransform: 'uppercase' },
+
+  modalBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
   limpiarButton: {
     backgroundColor: '#ddd',
     paddingVertical: 8,
     borderRadius: 8,
-    marginHorizontal: 16,
+    alignItems: 'center',
     marginBottom: 12,
+  },
+
+  limpiarButtonText: {
+    color: '#333',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  backButton: {
+    width: 24,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  limpiarButtonText: { color: '#333', fontWeight: 'bold' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { color: 'red', fontSize: 16, textAlign: 'center' },
-  emptyText: { color: '#666', fontSize: 16, textAlign: 'center' },
 
-  /* Cards */
-  cardContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 5,
-    overflow: 'hidden',
-  },
-  statusBar: { height: 6, width: '100%' },
-  cardContent: { padding: 12 },
-  productImage: { width: 60, height: 60, borderRadius: 8, marginRight: 8, backgroundColor: '#f0f0f0' },
-  cardInfo: { marginTop: 8 },
-  cardTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
-  cardStatus: { fontWeight: '600', color: '#555', marginBottom: 4 },
-  products: { color: '#555', fontSize: 14 },
 
-  /* Modal */
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: '90%', backgroundColor: '#fff', borderRadius: 12, padding: 20 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-  modalLabel: { fontSize: 14, marginBottom: 4 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  modalBtn: { flex: 1, backgroundColor: '#E6007E', paddingVertical: 10, borderRadius: 8, marginHorizontal: 5, alignItems: 'center' },
-  modalBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 });

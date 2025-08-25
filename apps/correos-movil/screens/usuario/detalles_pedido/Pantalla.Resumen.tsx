@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+
+
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,9 +12,6 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
-  Modal,
-  Animated,
-  Easing,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -36,12 +35,8 @@ const Colors = {
   textSecondary: '#757575',
 };
 
-// ===== DEMO: Forzar éxito de pago =====
-const FORCE_PAYMENT_SUCCESS = true;
-
 interface CartItem {
-  id: string;           // id del item en el carrito (backend carrito)
-  productId: number;    // id del producto real (para DTO)
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -75,23 +70,6 @@ interface Card {
   last4: string;
 }
 
-type CreatePedidoDto = {
-  profileId: number;
-  status: string;
-  estatus_pago?: string;
-  total?: number;
-  direccionId?: number;
-  calle?: string | null;
-  numero_int?: string | null;
-  numero_exterior?: string | null;
-  cp?: string | null;
-  ciudad?: string | null;
-  nombre?: string | null;
-  last4?: string | null;
-  brand?: string | null;
-  productos: { producto_id: number; cantidad: number }[];
-};
-
 const PantallaResumen = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,41 +78,8 @@ const PantallaResumen = () => {
   const [puntoRecogida, setPuntoRecogida] = useState<PuntoRecogida | null>(null);
   const [modoEnvio, setModoEnvio] = useState<'domicilio' | 'puntoRecogida' | null>(null);
   const [tarjeta, setTarjeta] = useState<Card | null>(null);
-
-  const [isPaying, setIsPaying] = useState(false);
-  const spinValue = useRef(new Animated.Value(0)).current;
-
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-
-  // Helpers
-  const apiBase = () =>
-    Constants.expoConfig?.extra?.IP_LOCAL
-      ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
-      : BASE_URL;
-
-  // Animación de spinner
-  useEffect(() => {
-    if (!isPaying) return;
-    const loop = Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 1,
-        duration: 1000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => {
-      loop.stop();
-      spinValue.setValue(0);
-    };
-  }, [isPaying, spinValue]);
-
-  const rotation = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   const loadCart = async () => {
     try {
@@ -145,11 +90,10 @@ const PantallaResumen = () => {
       const response = await axios.get(`${BASE_URL}/api/carrito/${userId}`);
       const data = response.data;
 
-      const formatted: CartItem[] = data
+      const formatted = data
         .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
         .map((item: any) => ({
           id: item.id?.toString() || '',
-          productId: Number(item.producto?.id ?? 0), // ⬅️ importante para DTO
           name: item.producto.nombre ?? 'Sin nombre',
           price: Number(item.precio_unitario ?? item.producto.precio ?? 0),
           quantity: Number(item.cantidad ?? 1),
@@ -179,6 +123,7 @@ const PantallaResumen = () => {
         return;
       }
 
+      // domicilio
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) return;
 
@@ -224,42 +169,6 @@ const PantallaResumen = () => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-  const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-  // Construye el payload CreatePedidoDto con lo disponible en pantalla/AsyncStorage
-  const buildPedidoPayload = async (): Promise<CreatePedidoDto> => {
-    const profileIdStr = await AsyncStorage.getItem('userId');
-    const profileId = Number(profileIdStr);
-
-    return {
-      profileId,
-      status: 'CREADO',               // o 'PAGADO' si prefieres crear después de cobrar
-      estatus_pago: 'pendiente',
-      total: calculateTotal(),        // el backend recalcula, pero lo enviamos
-
-      // Envío (solo si es domicilio; para punto de recogida puedes omitir direccionId)
-      direccionId: modoEnvio === 'domicilio' ? direccion?.id : undefined,
-
-      // Copia de dirección (no sensible)
-      calle: direccion?.calle ?? null,
-      numero_int: direccion?.numero_interior != null ? String(direccion.numero_interior) : null,
-      numero_exterior: direccion?.numero_exterior != null ? String(direccion.numero_exterior) : null,
-      cp: direccion?.codigo_postal ?? null,
-      ciudad: direccion?.municipio ?? null,
-
-      // Datos visibles de tarjeta
-      nombre: null,                   // si no lo capturas, déjalo null
-      last4: tarjeta?.last4 ?? null,
-      brand: tarjeta?.brand ?? null,
-
-      // Productos
-      productos: cart.map(i => ({
-        producto_id: i.productId,
-        cantidad: i.quantity,
-      })),
-    };
-  };
-
   const confirmarCompra = async () => {
     try {
       const profileId = await AsyncStorage.getItem('userId');
@@ -268,53 +177,25 @@ const PantallaResumen = () => {
         return;
       }
 
-      setIsPaying(true);
-
-      const url = apiBase();
-
-      // 1) Crear pedido
-      const pedidoPayload = await buildPedidoPayload();
-      console.log('[POST /pedidos] =>', pedidoPayload);
-      const { data: pedidoResp } = await axios.post(`${url}/api/api/pedido`, pedidoPayload);
-
-      const pedidoId: number | undefined =
-        pedidoResp?.id ?? pedidoResp?.pedido?.id ?? pedidoResp?.data?.id;
-
-      // 2) Cobrar
       const total = calculateTotal();
-      let ok = false;
 
-      try {
-        const res = await axios.post(`${url}/pagos/confirmar`, {
+      const res = await axios.post(
+        `${Constants.expoConfig.extra.IP_LOCAL ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api` : BASE_URL}/pagos/confirmar`,
+        {
           profileId,
           total,
           stripeCardId: tarjeta.stripeCardId,
-          pedidoId, // si tu endpoint lo admite, se enlaza el pago al pedido
-        });
-        ok = res?.data?.status?.toLowerCase?.() === 'success';
-      } catch (err) {
-        console.log('Fallo en request real de pago.');
-      }
+        }
+      );  
 
-      if (FORCE_PAYMENT_SUCCESS) ok = true;
-
-      await sleep(900);
-      setIsPaying(false);
-
-      if (ok) {
-        // (Opcional) Marca pagado en el pedido si tienes endpoint PATCH:
-        // if (pedidoId) await axios.patch(`${url}/pedidos/${pedidoId}`, { status: 'PAGADO', estatus_pago: 'pagado' });
-
-        // Navega a éxito y limpia el stack
-        // @ts-ignore
-        navigation.reset({ index: 0, routes: [{ name: 'PagoExitosoScreen' }] });
+      if (res.data?.status === 'success') {
+        navigation.navigate('PagoExitosoScreen' as never);
       } else {
         Alert.alert('Error', 'El pago no se pudo completar.');
       }
     } catch (error: any) {
-      console.error('Error en confirmación de compra:', error?.response?.data || error.message);
-      setIsPaying(false);
-      Alert.alert('Error', 'Ocurrió un error al procesar la compra.');
+      console.error('Error en confirmación de pago:', error?.response?.data || error.message);
+      Alert.alert('Error', 'Ocurrió un error al procesar el pago.');
     }
   };
 
@@ -401,31 +282,12 @@ const PantallaResumen = () => {
               <Text style={styles.totalAmount}>MXN {calculateTotal().toFixed(2)}</Text>
             </View>
 
-            <TouchableOpacity
-              style={[styles.confirmBtn, isPaying && { opacity: 0.7 }]}
-              onPress={confirmarCompra}
-              disabled={isPaying}
-              activeOpacity={0.8}
-            >
-              {isPaying ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <Text style={styles.confirmText}>Confirmar compra</Text>
-              )}
+            <TouchableOpacity style={styles.confirmBtn} onPress={confirmarCompra}>
+              <Text style={styles.confirmText}>Confirmar compra</Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-
-      {/* Modal de procesamiento */}
-      <Modal visible={isPaying} transparent animationType="fade" statusBarTranslucent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Animated.View style={[styles.spinner, { transform: [{ rotate: rotation }] }]} />
-            <Text style={styles.modalText}>Procesando pago…</Text>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -487,37 +349,6 @@ const styles = StyleSheet.create({
   confirmText: { color: Colors.white, fontWeight: '600', fontSize: 16 },
   loadingContainer: { marginTop: 80, alignItems: 'center' },
   emptyContainer: { marginTop: 60, alignItems: 'center' },
-
-  // Modal & spinner
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 340,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    paddingVertical: 28,
-    alignItems: 'center',
-    elevation: 6,
-  },
-  spinner: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 4,
-    borderColor: '#e8e8e8',
-    borderTopColor: Colors.primary,
-    marginBottom: 12,
-  },
-  modalText: {
-    color: Colors.textPrimary,
-    fontWeight: '600',
-  },
 });
 
 export default PantallaResumen;

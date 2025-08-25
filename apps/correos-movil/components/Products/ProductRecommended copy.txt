@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,24 +13,53 @@ import { useNavigation } from '@react-navigation/native';
 import { useMyAuth } from '../../context/AuthContext';
 
 const IP = process.env.EXPO_PUBLIC_API_URL;
-const DEFAULT_IMAGE =
-  'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
 
-export type Articulo = {
-  id: string;
-  nombre: string;
-  precio: string;
-  imagen?: string | string[];
-  image?: string;
-  images?: string[];
-  color?: string[];
-  categoria?: string;
+export interface Articulo {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    imagen: string[];
+    precio: number;
+    categoria: string;
+    color: string;
+}
+
+interface ProductRecommendedProps {
+    productos: Articulo[];
+    likeTrigger?: number;
+}
+
+const ProductRecommended: React.FC<ProductRecommendedProps> = ({ productos = [], likeTrigger }) => {
+    const [items, setItems] = useState<Articulo[]>(productos);
+
+    useEffect(() => {
+        // Si productos es null o undefined, usa array vacío
+        setItems(productos ?? []);
+        // Si necesitas hacer fetch aquí, hazlo usando likeTrigger como dependencia
+        // Ejemplo:
+        // fetchRecommended().then(data => setItems(data));
+    }, [productos, likeTrigger]);
+
+    return (
+        <React.Fragment>
+            {items.length === 0 ? (
+                <View style={{ alignItems: 'center', padding: 16 }}>
+                    <Text>No hay productos recomendados.</Text>
+                </View>
+            ) : (
+                items.map(item => (
+                    <View key={item.id} style={{ marginBottom: 12 }}>
+                        <Text>{item.nombre}</Text>
+                        {/* Renderiza más detalles aquí */}
+                    </View>
+                ))
+            )}
+        </React.Fragment>
+    );
 };
 
 export type ProductListScreenProps = {
   productos: Articulo[];
-  search?: string;
-  likeTrigger?: number;
 };
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -55,16 +84,17 @@ const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   );
 };
 
+const placeholderImage = require('../../assets/placeholder.jpg'); // Ajusta la ruta si es necesario
+
 const ProductoCard: React.FC<{
   articulo: Articulo;
   favoritos: Record<number, number>;
   toggleFavorito: (id: number) => void;
   isInCart: boolean;
-}> = ({ articulo, favoritos = {}, toggleFavorito, isInCart }) => {
+}> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
   const nav = useNavigation<any>();
   const idNum = parseInt(articulo.id, 10);
-  const isLiked = favoritos && favoritos.hasOwnProperty(idNum);
-
+  const isLiked = favoritos.hasOwnProperty(idNum);
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
     colorArray = articulo.color.split(',');
@@ -73,24 +103,23 @@ const ProductoCard: React.FC<{
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
-  // 🔹 Fallback chain para la imagen
-  const imageUri =
-    (Array.isArray(articulo.imagen) && articulo.imagen[0]) ||
-    articulo.images?.[0] ||
-    articulo.image ||
-    (typeof articulo.imagen === 'string' ? articulo.imagen : null) ||
-    DEFAULT_IMAGE;
+  // Validación de imagen
+  const imagenValida =
+    Array.isArray(articulo.imagen) &&
+    articulo.imagen.length > 0 &&
+    typeof articulo.imagen[0] === 'string' &&
+    articulo.imagen[0].length > 0;
 
   return (
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={{ uri: imageUri.trim() }}
-          style={styles.imagenProductoCard}
-          resizeMode="cover"
-          onError={(e) =>
-            console.log('ERROR IMG CARD =>', imageUri, e.nativeEvent.error)
+          source={
+            imagenValida
+              ? { uri: articulo.imagen[0] }
+              : placeholderImage
           }
+          style={styles.imagenProductoCard}
         />
       </TouchableOpacity>
 
@@ -120,45 +149,47 @@ const ProductoCard: React.FC<{
   );
 };
 
-export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '', likeTrigger }) => {
+export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '' }) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
   const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
 
-  // Cargar favoritos
-  const fetchFavorites = async () => {
-    if (!userId) return;
-    try {
-      const response = await fetch(`${IP}/api/favoritos/${userId}`);
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        const favoritosMap = data.reduce(
-          (acc, fav) => {
-            if (fav?.producto?.id) {
-              acc[fav.producto.id] = fav.id;
-            }
-            return acc;
-          },
-          {} as Record<number, number>
-        );
-        setFavoritos(favoritosMap);
-      }
-    } catch (err) {
-      console.error('Error al obtener favoritos:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchFavorites();
-  }, [userId, likeTrigger]);
-
-  // Cargar carrito
   useEffect(() => {
     if (!userId) return;
+
+    fetch(`${IP}/api/favoritos/${userId}`)
+      .then(r => {
+        if (r.status === 404) {
+          return [];
+        }
+        return r.json();
+      })
+      .then((data: Array<{ id: number; producto: { id: number } }>) => {
+        if (Array.isArray(data)) {
+          const favoritosMap = data.reduce(
+            (acc, fav) => {
+              if (fav && fav.producto && fav.producto.id) {
+                acc[fav.producto.id] = fav.id;
+              }
+              return acc;
+            },
+            {} as Record<number, number>,
+          );
+          setFavoritos(favoritosMap);
+        }
+      })
+      .catch(err => console.error('Error al obtener favoritos:', err));
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+
     fetch(`${IP}/api/carrito/${userId}`)
       .then(r => {
-        if (r.status === 404) return [];
+        if (r.status === 404) {
+          return [];
+        }
         if (!r.ok) throw new Error('Error al obtener el carrito');
         return r.json();
       })
@@ -166,12 +197,12 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
         if (Array.isArray(data)) {
           const cartMap = data.reduce(
             (acc, item) => {
-              if (item?.producto?.id) {
+              if (item && item.producto && item.producto.id) {
                 acc[item.producto.id] = true;
               }
               return acc;
             },
-            {} as Record<number, boolean>
+            {} as Record<number, boolean>,
           );
           setCartItems(cartMap);
         }
@@ -179,7 +210,6 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       .catch(err => console.error('Error al obtener el carrito:', err));
   }, [userId]);
 
-  // Filtrar productos
   useEffect(() => {
     const searchText = search.toLowerCase().trim();
     const nuevos = productos.filter(p =>
@@ -188,7 +218,6 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     setFiltered(nuevos);
   }, [productos, search]);
 
-  // Toggle favoritos
   const toggleFavorito = async (productoId: number) => {
     if (!userId) {
       console.log('Usuario no loggeado, no se puede marcar como favorito.');
@@ -201,14 +230,15 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
     if (esFavorito) {
       const favoritoId = favoritos[productoId];
       setFavoritos(prev => {
-        const next = { ...prev };
-        delete next[productoId];
-        return next;
+        const newState = { ...prev };
+        delete newState[productoId];
+        return newState;
       });
 
       try {
-        const r = await fetch(`${IP}/api/favoritos/${favoritoId}`, { method: 'DELETE' });
-        if (!r.ok) {
+        const url = `${IP}/api/favoritos/${favoritoId}`;
+        const response = await fetch(url, { method: 'DELETE' });
+        if (!response.ok) {
           console.error('Error al eliminar el favorito, revirtiendo estado.');
           setFavoritos(originalFavoritos);
         }
@@ -218,34 +248,32 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
       }
     } else {
       try {
-        const r = await fetch(`${IP}/api/favoritos`, {
+        const url = `${IP}/api/favoritos`;
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ profileId: userId, productId: productoId }),
         });
 
-        if (!r.ok) {
-          const body = await r.text();
-          throw new Error(`Error al agregar favorito - ${r.status}: ${body}`);
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Error al agregar favorito - Status: ${response.status}, Body: ${errorBody}`);
         }
 
-        const nuevo = await r.json();
-        setFavoritos(prev => ({ ...prev, [productoId]: nuevo.id }));
+        const nuevoFavorito = await response.json();
+        setFavoritos(prev => ({ ...prev, [productoId]: nuevoFavorito.id }));
       } catch (error) {
         console.error('No se pudo agregar el favorito:', error);
       }
     }
   };
 
-  // Número de columnas responsive
-  const cols = Dimensions.get('window').width;
-  const numCols = cols > 1024 ? 4 : cols > 768 ? 3 : 2;
-
   return (
     <View style={styles.container}>
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
+        horizontal
         renderItem={({ item }) => (
           <ProductoCard
             articulo={item}
@@ -254,10 +282,9 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
             isInCart={cartItems.hasOwnProperty(parseInt(item.id, 10))}
           />
         )}
-        numColumns={numCols}
-        columnWrapperStyle={styles.row}
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContentContainer}
-        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
       />
     </View>
   );
@@ -265,15 +292,13 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
   tarjetaProducto: {
-    flex: 1,
+    width: 160, // Ancho fijo para las tarjetas
     margin: 5,
     backgroundColor: 'white',
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3,
-    maxWidth: '48%',
   },
   imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
   estadoProducto: {
@@ -297,7 +322,7 @@ const styles = StyleSheet.create({
   },
   textoContador: { fontSize: 10, fontWeight: '600', color: '#666' },
   listContentContainer: {
-    paddingBottom: 20,
+    paddingBottom: 10,
     paddingHorizontal: 10,
   },
 });

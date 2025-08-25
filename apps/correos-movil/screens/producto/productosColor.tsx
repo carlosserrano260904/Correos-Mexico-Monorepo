@@ -1,7 +1,6 @@
 // screens/productosColor.tsx
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import {
   Pressable, ScrollView, StyleSheet, Text, View, Platform,
   ActivityIndicator, TextInput, SafeAreaView, TouchableOpacity
@@ -75,53 +74,41 @@ export default function ProductsScreen() {
   const [productos, setProductos] = useState<Articulo[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Todos');
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
 
-  const fetchProductos = useCallback(async () => {
-    try {
-      const resp = await fetch(`${API_URL}/api/products`);
-      const data: unknown = await resp.json();
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        const resp = await fetch(`${API_URL}/api/products`);
+        const data: unknown = await resp.json();
 
-      if (Array.isArray(data)) {
-        const mapped = (data as BackendProduct[]).map(mapToArticulo);
-        setProductos(mapped);
-      } else {
-        console.error('La respuesta de la API no es un arreglo:', data);
+        if (Array.isArray(data)) {
+          const mapped = (data as BackendProduct[]).map(mapToArticulo);
+          setProductos(mapped);
+        } else {
+          console.error('La respuesta de la API no es un arreglo:', data);
+          setProductos([]);
+        }
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
         setProductos([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error al cargar productos:', err);
-      setProductos([]);
-    }
+    };
+    fetchProductos();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchProductos().finally(() => setLoading(false));
-    }, [fetchProductos])
-  );
+  const categorias = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
 
-  const onRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchProductos();
-    setIsRefreshing(false);
-  }, [fetchProductos]);
-
-  const categorias = useMemo(() => {
-    const uniqueCategorias = [...new Set(productos.map(p => p.categoria).filter(Boolean) as string[])];
-    // Ordena alfabéticamente para una mejor experiencia de usuario.
-    uniqueCategorias.sort((a, b) => a.localeCompare(b, 'es'));
-    return ['Todos', ...uniqueCategorias];
-  }, [productos]);
-
-  const productosFiltrados = useMemo(() => {
-    const q = searchText.toLowerCase().trim();
-    return productos
-      .filter(p => categoriaSeleccionada === 'Todos' || p.categoria === categoriaSeleccionada)
-      .filter(p => !q || p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q));
-  }, [productos, categoriaSeleccionada, searchText]);
+  const productosFiltrados =
+    (categoriaSeleccionada === 'Todos'
+      ? productos
+      : productos.filter(p => p.categoria === categoriaSeleccionada)
+    ).filter(p => {
+      const q = searchText.toLowerCase().trim();
+      return p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q);
+    });
 
   return (
     <SafeAreaView style={styles.contenedor}>
@@ -172,16 +159,11 @@ export default function ProductsScreen() {
         {loading ? (
           <ActivityIndicator size="large" />
         ) : (
-          <ProductListScreen
-            productos={productosFiltrados}
-            search={searchText}
-            onRefresh={onRefresh}
-            refreshing={isRefreshing}
-          />
+          <ProductListScreen productos={productosFiltrados} search={searchText} />
         )}
       </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('DistributorPage')} style={styles.customerServiceContainer}>
         <Headset color="#fff" size={moderateScale(24)} />
       </TouchableOpacity>
     </SafeAreaView>

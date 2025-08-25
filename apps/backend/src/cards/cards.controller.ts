@@ -4,7 +4,7 @@ import { CreateCardDto } from './dto/create-card.dto';
 
 @Controller('cards')
 export class CardsController {
-  constructor(private readonly cardsService: CardsService) { }
+  constructor(private readonly cardsService: CardsService) {}
 
   @Post()
   addCard(@Body() dto: CreateCardDto) {
@@ -28,10 +28,8 @@ export class CardsController {
     return this.cardsService.getCards(+profileId);
   }
 
-  @Delete()
-  deleteCard(@Body() body: { paymentMethodId: string, profileId: number }) {
-    console.log('Petición DELETE recibida:', body);
-    // Buscar la tarjeta en la BD por stripeCardId y profileId
-    return this.cardsService.deleteCardByStripeId(body.paymentMethodId, body.profileId);
+  @Delete(':id')
+  deleteCard(@Param('id') id: number) {
+    return this.cardsService.deleteCard(+id);
   }
 }

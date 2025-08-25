@@ -29,38 +29,7 @@ interface ProductRecommendedProps {
     likeTrigger?: number;
 }
 
-const ProductRecommended: React.FC<ProductRecommendedProps> = ({ productos = [], likeTrigger }) => {
-    const [items, setItems] = useState<Articulo[]>(productos);
-
-    useEffect(() => {
-        // Si productos es null o undefined, usa array vacío
-        setItems(productos ?? []);
-        // Si necesitas hacer fetch aquí, hazlo usando likeTrigger como dependencia
-        // Ejemplo:
-        // fetchRecommended().then(data => setItems(data));
-    }, [productos, likeTrigger]);
-
-    return (
-        <React.Fragment>
-            {items.length === 0 ? (
-                <View style={{ alignItems: 'center', padding: 16 }}>
-                    <Text>No hay productos recomendados.</Text>
-                </View>
-            ) : (
-                items.map(item => (
-                    <View key={item.id} style={{ marginBottom: 12 }}>
-                        <Text>{item.nombre}</Text>
-                        {/* Renderiza más detalles aquí */}
-                    </View>
-                ))
-            )}
-        </React.Fragment>
-    );
-};
-
-export type ProductListScreenProps = {
-  productos: Articulo[];
-};
+const placeholderImage = require('../../assets/placeholder.jpg');
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   const max = 3;
@@ -93,7 +62,7 @@ const ProductoCard: React.FC<{
   isInCart: boolean;
 }> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
   const nav = useNavigation<any>();
-  const idNum = parseInt(articulo.id, 10);
+  const idNum = parseInt(articulo.id.toString(), 10);
   const isLiked = favoritos.hasOwnProperty(idNum);
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
@@ -103,7 +72,6 @@ const ProductoCard: React.FC<{
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
-  // Validación de imagen
   const imagenValida =
     Array.isArray(articulo.imagen) &&
     articulo.imagen.length > 0 &&
@@ -279,7 +247,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos,
             articulo={item}
             favoritos={favoritos}
             toggleFavorito={toggleFavorito}
-            isInCart={cartItems.hasOwnProperty(parseInt(item.id, 10))}
+            isInCart={cartItems.hasOwnProperty(parseInt(item.id.toString(), 10))}
           />
         )}
         showsHorizontalScrollIndicator={false}

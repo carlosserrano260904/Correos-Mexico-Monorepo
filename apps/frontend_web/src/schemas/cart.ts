@@ -12,7 +12,7 @@ import { z } from 'zod'
 export const BackendCartItemSchema = z.object({
   id: z.number(),
   cantidad: z.number().int().positive(),
-  precio_unitario: z.number(),
+  precio_unitario: z.coerce.number(),
   activo: z.boolean(),
   usuario: z.object({
     id: z.number(),
@@ -21,15 +21,15 @@ export const BackendCartItemSchema = z.object({
     id: z.number(),
     nombre: z.string(),
     descripcion: z.string(),
-    precio: z.number(),
+    precio: z.coerce.number(),
     categoria: z.string().nullable(),
-    inventario: z.number(),
+    inventario: z.coerce.number(),
     color: z.string(),
     marca: z.string(),
     slug: z.string(),
     vendedor: z.string(),
     estado: z.boolean(),
-    vendidos: z.number(),
+    vendidos: z.coerce.number(),
     sku: z.string(),
     images: z.array(z.object({
       id: z.number(),
@@ -44,8 +44,8 @@ export const BackendCartItemSchema = z.object({
  */
 export const BackendCartResponseSchema = z.object({
   items: z.array(BackendCartItemSchema),
-  subtotal: z.number(),
-  total: z.number(),
+  subtotal: z.coerce.number(),
+  total: z.coerce.number(),
 })
 
 /**

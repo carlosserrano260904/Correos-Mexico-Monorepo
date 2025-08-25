@@ -36,6 +36,7 @@ import {
   CartItemTransformSchema,
   CartTransformSchema,
   BackendCreateCartDto,
+  BackendCreateCartDtoSchema,
   BackendUpdateCartDto,
   AddToCartRequest,
   UpdateCartQuantityRequest,

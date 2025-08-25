@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const ProfileUserSchema = z.object({
   nombre: z.string(),
   apellido: z.string(),
-  numero: z.string(),
+  numero: z.string().nullable().optional,
   estado: z.string(),
   ciudad: z.string(),
   fraccionamiento: z.string(),

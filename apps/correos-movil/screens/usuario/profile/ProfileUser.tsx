@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useIsFocused } from '@react-navigation/native';
 import { usuarioPorId } from '../../../api/profile';
@@ -9,9 +9,6 @@ import { moderateScale } from 'react-native-size-matters';
 import axios from 'axios';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useUser } from '@clerk/clerk-expo';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Loader from '../../../components/common/Loader';
-
 
 type SectionItem = {
   label: string;
@@ -45,11 +42,6 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
       }
     })();
   }, [isFocused]);
-
-  
-if (!usuario) {
-  return <Loader message="Cargando tu perfil..." />;
-}
 
 
   const handleSignOut = async () => {
@@ -86,6 +78,7 @@ if (!usuario) {
     {
       title: 'Cuenta',
       items: [
+        { label: 'Publicar producto', icon: 'box', to: 'PublicarProducto' },
         { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
         { label: 'Mis cupones', icon: 'tag', to: 'MisCuponesScreen' },
       ],
@@ -108,9 +101,8 @@ if (!usuario) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#E6007A" translucent={false} />
-
-      <SafeAreaView edges={['top']} style={styles.headerSafe}>
+      <StatusBar barStyle="light-content" backgroundColor="#E6007A" />
+      <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.profileButton}
@@ -144,7 +136,7 @@ if (!usuario) {
         </View>
       </SafeAreaView>
 
-      <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.contentSafe}>
+      <SafeAreaView style={styles.contentSafe}>
         <ScrollView
           style={styles.container}
           contentContainerStyle={styles.scrollContent}
@@ -177,7 +169,11 @@ if (!usuario) {
           ))}
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={handleSignOut}>
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={handleSignOut}
+            >
               <View style={styles.itemLeft}>
                 <Icon name="log-out" size={20} color="red" />
                 <Text style={[styles.itemText, { color: 'red' }]}>Cerrar sesión</Text>
@@ -185,7 +181,11 @@ if (!usuario) {
               <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={deleteAccount}>
+            <TouchableOpacity
+              style={styles.item}
+              activeOpacity={0.7}
+              onPress={deleteAccount}
+            >
               <View style={styles.itemLeft}>
                 <Icon name="trash-2" size={20} color="red" />
                 <Text style={[styles.itemText, { color: 'red' }]}>Eliminar cuenta</Text>
@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 30,
     padding: moderateScale(16),
   },
   profileButton: {

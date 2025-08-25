@@ -18,18 +18,18 @@ export class PedidosService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
 
-  ) { }
+  ) {}
 
   async create(createPedidoDto: CreatePedidoDto) {
     await this.pedidoRepository.manager.transaction(async (manager) => {
       const pedido = new Pedido();
 
       const profile = await manager.findOne(Profile, {
-        where: { id: createPedidoDto.profileId },
+        where: { id: createPedidoDto.profileid },
       });
       if (!profile) {
         throw new NotFoundException(
-          `El perfil con ID ${createPedidoDto.profileId} no existe`,
+          `El perfil con ID ${createPedidoDto.profileid} no existe`,
         );
       }
 
@@ -45,17 +45,6 @@ export class PedidosService {
       }
 
       pedido.direccion = direccion;
-
-      // Asignar los nuevos campos del DTO
-      pedido.estatus_pago = createPedidoDto.estatus_pago ?? '';
-      pedido.calle = createPedidoDto.calle ?? '';
-      pedido.numero_int = createPedidoDto.numero_int ?? '';
-      pedido.numero_exterior = createPedidoDto.numero_exterior ?? '';
-      pedido.cp = createPedidoDto.cp ?? '';
-      pedido.ciudad = createPedidoDto.ciudad ?? '';
-      pedido.nombre = createPedidoDto.nombre ?? '';
-      pedido.last4 = createPedidoDto.last4 ?? '';
-      pedido.brand = createPedidoDto.brand ?? '';
 
       let total = 0;
       const detalles: PedidoProducto[] = [];
@@ -95,24 +84,24 @@ export class PedidosService {
   }
 
   async findAll() {
-  return this.pedidoRepository.find({
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+    return this.pedidoRepository.find({
+      relations: ['productos', 'productos.producto', 'direccion'],
+      order: { fecha: 'DESC' },
+    });
+  }
 
-  async findByUser(profileId: number) {
-  return this.pedidoRepository.find({
-    where: { profile: { id: profileId } },
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+  async findByUser(profileid: number) {
+    return this.pedidoRepository.find({
+      where: { profile: { id: profileid } },
+      relations: ['productos', 'productos.producto', 'direccion'],
+      order: { fecha: 'DESC' },
+    });
+  }
 
   async findOne(id: number) {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
-      relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
+      relations: ['productos', 'productos.producto', 'direccion'],
     });
 
     if (!pedido) {

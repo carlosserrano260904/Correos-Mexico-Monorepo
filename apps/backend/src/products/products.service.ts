@@ -1,7 +1,7 @@
 // products.service.ts
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In, DataSource } from "typeorm";
+import { Repository, In } from "typeorm";
 import { Product } from "./entities/product.entity";
 import { ProductImage } from "./entities/product-image.entity";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -10,226 +10,134 @@ import { UploadImageService } from "src/upload-image/upload-image.service";
 
 @Injectable()
 export class ProductsService {
-  private readonly logger = new Logger(ProductsService.name);
-
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
-    private readonly uploadImageService: UploadImageService,
-    private readonly dataSource: DataSource,
-  ) { }
+    private readonly uploadImageService: UploadImageService
+  ) {}
 
   // Crear producto + subir imágenes (multipart/form-data)
   async createWithImages(
     createProductDto: CreateProductDto,
     files?: Express.Multer.File[]
   ): Promise<Product> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const product = this.productRepository.create({ ...createProductDto });
+    await this.productRepository.save(product);
 
-    try {
-      // Con un DTO y un ValidationPipe bien configurados, las conversiones de tipo son automáticas.
-      // El código del servicio se vuelve más limpio y se enfoca en la lógica de negocio.
-      const { inventario, ...productData } = createProductDto;
-      const productToCreate = {
-        ...productData,
-      };
-      const product = this.productRepository.create(productToCreate);
-      await queryRunner.manager.save(product);
-
-      if (files?.length) {
-        const uploads = await Promise.all(
-          files.map(async (file, idx) => {
-            const url = await this.uploadImageService.uploadFileImage(file);
-            const img = this.productImageRepository.create({
-              url,
-              orden: idx,
-              productId: product.id,
-            });
-            return queryRunner.manager.save(img);
-          }),
-        );
-        product.images = uploads;
-      } else {
-        product.images = [];
-      }
-
-      await queryRunner.commitTransaction();
-      return product;
-    } catch (error) {
-      this.logger.error(`Error al crear producto: ${error.message}`, error.stack);
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+    if (files?.length) {
+      // sube cada archivo a S3 y guarda su fila en product_images
+      const uploads = await Promise.all(
+        files.map(async (file, idx) => {
+          const url = await this.uploadImageService.uploadFileImage(file);
+          const img = this.productImageRepository.create({
+            url,
+            orden: idx,
+            productId: product.id,
+          });
+          return this.productImageRepository.save(img);
+        })
+      );
+      product.images = uploads;
+    } else {
+      product.images = [];
     }
+
+    return product;
   }
 
   async addImages(
     productId: number,
     files: Express.Multer.File[],
     ordenes?: number[]
-  ): Promise<ProductImage[]> {
-    const product = await this.productRepository.findOneBy({ id: productId });
-    if (!product) {
-      throw new NotFoundException(`Producto con ID ${productId} no encontrado`);
-    }
+  ) {
+    const product = await this.productRepository.findOne({ where: { id: productId } });
+    if (!product) throw new NotFoundException("Producto no encontrado");
 
-    const maxOrderResult = await this.productImageRepository
-      .createQueryBuilder("img")
-      .select("MAX(img.orden)", "max_orden")
-      .where("img.productId = :productId", { productId })
-      .getRawOne();
-    const startOrder = (maxOrderResult?.max_orden ?? -1) + 1;
-
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const imgs = await Promise.all(
-        files.map(async (file, i) => {
-          const url = await this.uploadImageService.uploadFileImage(file);
-          const img = this.productImageRepository.create({
+    const imgs = await Promise.all(
+      files.map(async (file, i) => {
+        const url = await this.uploadImageService.uploadFileImage(file);
+        return this.productImageRepository.save(
+          this.productImageRepository.create({
             url,
-            orden: ordenes?.[i] ?? startOrder + i,
+            orden: ordenes?.[i] ?? 0,
             productId: productId,
-          });
-          return queryRunner.manager.save(img);
-        }),
-      );
-      await queryRunner.commitTransaction();
-      return imgs;
-    } catch (error) {
-      this.logger.error(
-        `Error al agregar imágenes al producto ${productId}: ${error.message}`,
-        error.stack,
-      );
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+          })
+        );
+      })
+    );
+
+    return imgs;
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productRepository.find({
-      relations: { images: true, reviews: { profile: true, images: true } },
+    return this.productRepository.find({ relations: { images: true,reviews: { profile: true, images: true } }
     });
   }
 
   async findOne(id: number): Promise<Product> {
     const producto = await this.productRepository.findOne({
       where: { id },
-      relations: { images: true, reviews: { profile: true, images: true } },
+      relations: { images: true,reviews: { profile: true, images: true } }
     });
-    if (!producto) {
-      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
-    }
+    if (!producto) throw new NotFoundException("Producto no encontrado");
     return producto;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const producto = await this.productRepository.preload({
-      id,
-      ...updateProductDto,
-    });
-    if (!producto) {
-      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
-    }
-    return this.productRepository.save(producto);
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    const producto = await this.findOne(id);
+    Object.assign(producto, updateProductDto);
+    await this.productRepository.save(producto);
+    return "Producto actualizado correctamente";
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.productRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
-    }
+  async remove(id: number) {
+    const producto = await this.findOne(id);
+    await this.productRepository.remove(producto);
+    return "Producto eliminado correctamente";
   }
 
-  async removeImage(imageId: number, productId: number): Promise<void> {
-    // Nota: Esto no elimina el archivo de imagen del almacenamiento (ej. S3).
-    // Se necesitaría una lógica adicional para eso.
-    const result = await this.productImageRepository.delete({
-      id: imageId,
-      productId,
-    });
-    if (result.affected === 0) {
-      throw new NotFoundException(
-        "Imagen no encontrada o no pertenece al producto.",
-      );
-    }
+  async removeImage(imageId: number, productId: number) {
+    const img = await this.productImageRepository.findOne({ where: { id: imageId, productId } });
+    if (!img) throw new NotFoundException("Imagen no encontrada");
+    await this.productImageRepository.remove(img);
+    return "Imagen eliminada";
   }
 
   async updateWithImages(
-    id: number,
-    dto: UpdateProductDto,
-    files?: Express.Multer.File[],
-  ): Promise<Product> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  id: number,
+  dto: UpdateProductDto,
+  files?: Express.Multer.File[]
+) {
+  const producto = await this.findOne(id);
 
-    try {
-      // NOTA: Al usar multipart/form-data, los tipos numéricos pueden llegar como strings.
-      // Un ValidationPipe con `transform: true` es un mejor lugar para manejar esta conversión.
-      const updateData: { [key: string]: any } = { ...dto };
-      const numericFields = ['precio', 'stock', 'altura', 'largo', 'ancho', 'peso'];
-
-      for (const field of numericFields) {
-        if (field in updateData && updateData[field] != null) {
-          (updateData as any)[field] = Number(updateData[field]);
-        }
-      }
-
-      const producto = await queryRunner.manager.preload(Product, {
-        id,
-        ...updateData,
-      });
-
-      if (!producto) {
-        throw new NotFoundException(`Producto con ID ${id} no encontrado`);
-      }
-      await queryRunner.manager.save(producto);
-
-      if (files?.length) {
-        const maxOrderResult = await queryRunner.manager
-          .createQueryBuilder(ProductImage, "img")
-          .select("MAX(img.orden)", "max_orden")
-          .where("img.productId = :productId", { productId: id })
-          .getRawOne();
-        const startOrder = (maxOrderResult?.max_orden ?? -1) + 1;
-
-        await Promise.all(
-          files.map(async (file, idx) => {
-            const url = await this.uploadImageService.uploadFileImage(file);
-            const img = this.productImageRepository.create({
-              url,
-              orden: startOrder + idx,
-              productId: id,
-            });
-            return queryRunner.manager.save(img);
-          }),
-        );
-      }
-
-      await queryRunner.commitTransaction();
-      // Recargar la entidad para devolverla con todas las relaciones actualizadas
-      return this.findOne(id);
-    } catch (error) {
-      this.logger.error(
-        `Error al actualizar el producto ${id}: ${error.message}`,
-        error.stack,
-      );
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+  // convierte precio si viene como string (multipart)
+  if (dto?.precio != null) {
+    (dto as any).precio = Number(dto.precio);
   }
+
+  Object.assign(producto, dto);
+  await this.productRepository.save(producto);
+
+  if (files?.length) {
+    const uploads = await Promise.all(
+      files.map(async (file, idx) => {
+        const url = await this.uploadImageService.uploadFileImage(file);
+        return this.productImageRepository.save(
+          this.productImageRepository.create({
+            url,
+            orden: idx,
+            productId: producto.id,
+          })
+        );
+      })
+    );
+    producto.images = [...(producto.images ?? []), ...uploads];
+  }
+
+  return producto; // devuelve el objeto guardado para verificar cambios
+}
 
   // Tu método optimizado, agregando relations para imágenes
   async get18RandomByCategoryOptimized(categoria: string): Promise<Product[]> {
@@ -254,21 +162,5 @@ export class ProductsService {
     const map = new Map<number, Product>();
     productsUnordered.forEach((p) => map.set(p.id, p));
     return ids.map((id) => map.get(id)).filter(Boolean) as Product[];
-  }
-
-  async findSome(): Promise<any[]> {
-    const products = await this.productRepository.find({
-      relations: { images: true },
-    });
-
-    // Retornamos solo la primera imagen de cada producto
-    return products.map((p) => ({
-      id: p.id,
-      nombre: p.nombre,
-      precio: p.precio,
-      categoria: p.categoria,
-      estado: p.estado,
-      image: p.images?.length ? p.images[0] : null,
-    }));
   }
 }

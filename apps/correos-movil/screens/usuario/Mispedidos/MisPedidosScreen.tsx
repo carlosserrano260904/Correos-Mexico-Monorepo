@@ -1,28 +1,18 @@
 import React from 'react';
-import { 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
-  View, 
-  TouchableOpacity, 
-  Image, 
-  StatusBar, 
-  SafeAreaView, 
-  Platform, 
-  Modal 
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, StatusBar, SafeAreaView, Platform, Modal } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import SeguimientoEnvioSimulado from './SeguimientoEnvioSimulado';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const PINK = '#E6007E';
+
 
 interface Producto {
   id: number;
   nombre: string;
   precio: number;
   imagen: string;
-  images?: { url: string }[];
 }
 
 interface ProductoEnPedido {
@@ -43,6 +33,7 @@ interface Direccion {
   mas_info: string;
 }
 
+
 interface Pedido {
   id: number;
   status: string;
@@ -50,12 +41,9 @@ interface Pedido {
   fecha: string;
   productos: ProductoEnPedido[];
   direccion: Direccion;
-  paymentMethod?: {
-    last4: string | null;
-    brand: string | null;
-  };
 }
 
+// Tipamos los parámetros de la ruta para obtener autocompletado y seguridad de tipos.
 type MisPedidosScreenRouteProp = RouteProp<{ params: { pedido: Pedido } }, 'params'>;
 
 export default function MisPedidosScreen() {
@@ -65,99 +53,92 @@ export default function MisPedidosScreen() {
   const [modalVisible, setModalVisible] = React.useState(false);
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView >
+
+    <View style={styles.containerHeader}>
+
+      <StatusBar barStyle="light-content" backgroundColor={PINK} />
+      <SafeAreaView style={{ backgroundColor: PINK }}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel="Regresar"
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            Pedido del {new Date(pedido.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
-          </Text>
+          <Text style={styles.headerTitle}>Pedido del {new Date(pedido.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}</Text>
+          <View style={{ width: 24 }} />
         </View>
       </SafeAreaView>
 
 
-      
+      <ScrollView style={styles.container}>
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
 
-        {/* Productos */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Productos</Text>
-          {pedido.productos.map((item) => (
-            <View key={item.producto.id} style={styles.productCard}>
-              <Image
-                source={
-                  item.producto.images && item.producto.images.length > 0
-                    ? { uri: item.producto.images[0].url }
-                    : require('../../../assets/image.png')
-                }
-                style={styles.productImage}
-              />
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{item.producto.nombre}</Text>
-                <Text style={styles.productQuantity}>Cantidad: {item.cantidad}</Text>
-                <Text style={styles.productPrice}>
-                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(item.producto.precio)}
-                </Text>
+        {Array.isArray(pedido.productos) && pedido.productos.length > 0 ? (
+          pedido.productos
+            // Filtramos para asegurar que el producto y sus datos esenciales existan
+            .filter((productoEnPedido: { producto: any; }) => productoEnPedido && productoEnPedido.producto)
+            .map((productoEnPedido) => (
+              // Usamos el ID del producto como key, es más estable que el índice
+              <View key={productoEnPedido.producto.id} style={styles.productContainer}>
+                <Image
+                  // Usamos la imagen de la BD. Si no existe, usamos una local como fallback.
+                  source={
+                    productoEnPedido.producto.imagen
+                      ? { uri: productoEnPedido.producto.imagen }
+                      : require('../../../assets/image.png')
+                  }
+                  style={styles.productImage}
+                />
+                <View style={styles.productInfoContainer}>
+                  {/* Mostramos el nombre del producto en lugar del ID */}
+                  <Text style={styles.productTitle}>{productoEnPedido.producto.nombre}</Text>
+                  <Text style={styles.productDetails}>Cantidad: {productoEnPedido.cantidad}</Text>
+                  {/* Mostramos el precio de cada producto, formateado como moneda */}
+                  <Text style={styles.productPrice}>
+                    {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(productoEnPedido.producto.precio)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))
+        ) : (
+          <Text style={styles.productDetails}>No hay detalles de productos para este pedido.</Text>
+        )}
 
-        {/* Detalles del pedido */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Detalles del pedido</Text>
+        <View style={styles.details}>
+          <Text style={styles.detailsTitle}>Detalles del pedido</Text>
           <Text>Fecha: <Text style={styles.bold}>{new Date(pedido.fecha).toLocaleDateString()}</Text></Text>
           <Text>Total: <Text style={styles.bold}>{new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(pedido.total)}</Text></Text>
-          <Text>Status: <Text style={styles.bold}>{pedido.status}</Text></Text>
-          
+        </View>
+
+        <View style={styles.details}>
+          <Text style={styles.detailsTitle}>Dirección de envío</Text>
+          <Text>Nombre: <Text style={styles.bold}>{pedido.direccion.nombre}</Text></Text>
+          <Text>Calle: <Text style={styles.bold}>{pedido.direccion.calle}</Text></Text>
+          <Text>Colonia/Fracc.: <Text style={styles.bold}>{pedido.direccion.colonia_fraccionamiento}</Text></Text>
+          <Text>Núm. Exterior: <Text style={styles.bold}>{pedido.direccion.numero_exterior}</Text></Text>
+          <Text>Núm. Interior: <Text style={styles.bold}>{pedido.direccion.numero_interior ?? 'N/A'}</Text></Text>
+          <Text>CP: <Text style={styles.bold}>{pedido.direccion.codigo_postal}</Text></Text>
+          <Text>Municipio: <Text style={styles.bold}>{pedido.direccion.municipio}</Text></Text>
+          <Text>Estado: <Text style={styles.bold}>{pedido.direccion.estado}</Text></Text>
+          <Text>Teléfono: <Text style={styles.bold}>{pedido.direccion.numero_celular}</Text></Text>
+          <Text>Más info: <Text style={styles.bold}>{pedido.direccion.mas_info ?? 'N/A'}</Text></Text>
         </View>
 
 
-                {/* Números de guía por producto */}
-<View style={styles.section}>
-  <Text style={styles.sectionTitle}>Número de guia de los productos:</Text>
-  {pedido.productos.map((productoEnPedido) => (
-    <Text key={productoEnPedido.id}>
-      {productoEnPedido.producto.nombre}: <Text style={styles.bold}>{productoEnPedido.n_guia ?? 'N/A'}</Text>
-    </Text>
-  ))}
-</View>
-
-
-        {/* Dirección */}
-        <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Dirección de envío</Text>
-        <Text>Calle: <Text style={styles.bold}>{pedido.calle ?? 'N/A'}</Text></Text>
-        <Text>Núm. Interior: <Text style={styles.bold}>{pedido.numero_int ?? 'N/A'}</Text></Text>
-        <Text>Núm. Exterior: <Text style={styles.bold}>{pedido.numero_exterior ?? 'N/A'}</Text></Text>
-        <Text>CP: <Text style={styles.bold}>{pedido.cp ?? 'N/A'}</Text></Text>
-        <Text>Ciudad: <Text style={styles.bold}>{pedido.ciudad ?? 'N/A'}</Text></Text>
-        <Text>Nombre: <Text style={styles.bold}>{pedido.nombre ?? 'N/A'}</Text></Text>
-      </View>
-
-
-        {/* Método de pago */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Método de pago</Text>
-          <Text>Tarjeta: <Text style={styles.bold}>{pedido.paymentMethod?.brand ?? 'N/A'}</Text></Text>
-          <Text>Últimos 4 dígitos: <Text style={styles.bold}>{pedido.paymentMethod?.last4 ?? 'N/A'}</Text></Text>
-        </View>
-
-        {/* Botón seguimiento */}
         <TouchableOpacity
-          style={styles.trackButton}
           onPress={() => setModalVisible(true)}
+          style={styles.trackButton}
         >
           <Text style={styles.trackButtonText}>Ver seguimiento de envío</Text>
         </TouchableOpacity>
 
       </ScrollView>
 
-      {/* Modal de seguimiento */}
+
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -169,53 +150,82 @@ export default function MisPedidosScreen() {
             <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeIcon}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
+
+            {/* Aquí renderizamos el componente de seguimiento */}
             <SeguimientoEnvioSimulado status={pedido.status} />
           </View>
         </View>
       </Modal>
+
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  containerHeader: {
+    backgroundColor: '#f7f7f7',
+    flex: 1,
+  },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 16 : 12,
-    
+    paddingTop: Platform.OS === 'ios' ? 30 : StatusBar.currentHeight || 20,
+    height: Platform.OS === 'ios' ? 70 : 60,
     justifyContent: 'space-between',
+    backgroundColor: PINK,
   },
-  backButton: { width: 24, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { color: 'black', fontWeight: 'bold', fontSize: 20, flex: 1, textAlign: 'left', marginLeft: 12 },
+  title: { fontSize: 22, fontWeight: '700', marginLeft: 16 },
+  productContainer: { flexDirection: 'row', marginBottom: 16, alignItems: 'center' },
+  productImage: { width: 80, height: 80, borderRadius: 8 },
+  productInfoContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  productTitle: { fontWeight: '600', fontSize: 16 },
+  productDetails: { color: '#777', fontSize: 14 },
+  productPrice: { marginTop: 4, fontWeight: '700', fontSize: 16 },
 
-  section: {
+
+  details: {
     marginBottom: 16,
-    padding: 12,
+    padding: 10,
     backgroundColor: '#f2f2f2',
     borderRadius: 8,
   },
-  sectionTitle: { fontWeight: '700', fontSize: 16, marginBottom: 8 },
 
-  productCard: { flexDirection: 'row', marginBottom: 12, backgroundColor: '#fff', borderRadius: 8, overflow: 'hidden', elevation: 2 },
-  productImage: { width: 80, height: 80 },
-  productInfo: { flex: 1, padding: 8, justifyContent: 'center' },
-  productName: { fontWeight: '600', fontSize: 16 },
-  productQuantity: { color: '#555', fontSize: 14, marginTop: 2 },
-  productPrice: { marginTop: 4, fontWeight: '700', fontSize: 15 },
 
+  detailsTitle: { fontWeight: '700', fontSize: 16, marginBottom: 4 },
   bold: { fontWeight: '600' },
-
+  seguimiento: { marginTop: 10 },
+  backButton: {
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+    textAlign: 'center',
+    flex: 1,
+  },
   trackButton: {
     backgroundColor: PINK,
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 10,
   },
-  trackButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-
+  trackButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
@@ -229,5 +239,14 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  closeIcon: { position: 'absolute', top: 10, right: 10, zIndex: 1 },
+  closeButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 10,
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+  },
 });

@@ -47,28 +47,16 @@ export class CardsService {
     return this.cardRepository.find();
   }
 
-  async deleteCardByStripeId(stripeCardId: string, profileId: number) {
-    console.log('deleteCardByStripeId:', { stripeCardId, profileId });
-    const card = await this.cardRepository.findOne({ where: { stripeCardId, profileId } });
-    console.log('Card encontrada:', card);
+  async deleteCard(id: number) {
+    const card = await this.cardRepository.findOne({ where: { id } });
     if (!card) return;
 
-    const stripeCustomerId = (await this.cardRepository.manager.findOne('Profile', { where: { id: profileId } }))?.['stripeCustomerId'];
-    console.log('stripeCustomerId:', stripeCustomerId);
+    const stripeCustomerId = (await this.cardRepository.manager.findOne('Profile', { where: { id: card.profileId } }))?.['stripeCustomerId'];
+
     if (stripeCustomerId) {
-      let stripeResult;
-      if (stripeCardId.startsWith('pm_')) {
-        // Es un PaymentMethod
-        stripeResult = await this.stripe.paymentMethods.detach(stripeCardId);
-        console.log('Detach PaymentMethod:', stripeResult);
-      } else {
-        // Es un Source (legacy)
-        stripeResult = await this.stripe.customers.deleteSource(stripeCustomerId, stripeCardId);
-        console.log('Delete Source:', stripeResult);
-      }
+      await this.stripe.customers.deleteSource(stripeCustomerId, card.stripeCardId);
     }
-    const dbResult = await this.cardRepository.delete(card.id);
-    console.log('Resultado BD:', dbResult);
-    return dbResult;
-}
+
+    return this.cardRepository.delete(id);
+  }
 }

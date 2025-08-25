@@ -26,7 +26,6 @@ export class ProductsService {
     createProductDto: CreateProductDto,
     files?: Express.Multer.File[]
   ): Promise<Product> {
-<<<<<<< HEAD
     // Generate default values for missing fields
     const productData = {
       ...createProductDto,
@@ -51,11 +50,9 @@ export class ProductsService {
     
     const product = this.productRepository.create(productData);
     await this.productRepository.save(product);
-=======
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
->>>>>>> 53a3b36b4d1f320bf8f660e0cd3bc1cb44b33d3b
 
     try {
       // Con un DTO y un ValidationPipe bien configurados, las conversiones de tipo son automáticas.

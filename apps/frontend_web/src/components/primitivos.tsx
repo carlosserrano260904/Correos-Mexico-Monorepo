@@ -8,7 +8,8 @@ import { IoBagOutline, IoHeartOutline, IoHeartSharp, IoBag } from "react-icons/i
 import { FaAngleRight } from "react-icons/fa6";
 import { useFavorites } from '@/hooks/useFavorites';
 import { useProducts } from '@/hooks/useProduct';
-import { useCart } from '@/hooks/useCart';
+import { useCartWithBackend } from '@/hooks/useCartWithBackend';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Btn = ({children, className, link}: {children: React.ReactNode, className:string, link?:string}) => {
   if (link) {
@@ -23,7 +24,8 @@ export const Btn = ({children, className, link}: {children: React.ReactNode, cla
 
 export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductName, ProductPrice, onClick }: ProductCardProps) => {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
-  const { addToCart, removeFromCart, getCartItem } = useCart();
+  const { profile } = useAuth();
+  const cart = useCartWithBackend(profile?.id || null);
   const { getProduct } = useProducts();
   
   const formattedPrice = new Intl.NumberFormat('es-MX', {
@@ -32,7 +34,7 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   }).format(ProductPrice);
   
   const isProductFavorite = isFavorite(ProductID);
-  const isInCart = getCartItem(ProductID) !== undefined;
+  const isInCart = cart.hasItem(ProductID);
   
   const Colors: string[] = ProductColors.filter(function(color){
     return color.includes('#')
@@ -53,17 +55,17 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
     }
   };
 
-  const handleToggleCart = (e: React.MouseEvent) => {
+  const handleToggleCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (isInCart) {
-      removeFromCart(ProductID);
+      await cart.removeFromCart(ProductID);
     } else {
       // Obtener el producto completo del store de productos
       const fullProduct = getProduct(ProductID);
       if (fullProduct) {
-        addToCart(fullProduct, 1); // Agregar con cantidad 1
+        await cart.addToCart(fullProduct, 1); // Agregar con cantidad 1
       }
     }
   };

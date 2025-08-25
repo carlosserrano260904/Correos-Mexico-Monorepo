@@ -25,6 +25,23 @@ import {
 } from '@/schemas/auth'
 
 import {
+  BackendCartItem,
+  BackendCartResponse,
+  BackendCartItemSchema,
+  BackendCartResponseSchema,
+  FrontendCartItem,
+  FrontendCart,
+  FrontendCartItemSchema,
+  FrontendCartSchema,
+  CartItemTransformSchema,
+  CartTransformSchema,
+  BackendCreateCartDto,
+  BackendUpdateCartDto,
+  AddToCartRequest,
+  UpdateCartQuantityRequest,
+} from '@/schemas/cart'
+
+import {
   BackendProfileEntity,
   BackendProfileEntitySchema,
   BackendCreateProfileDto,
@@ -554,4 +571,170 @@ export function mapFrontendProfileToUpdateDto(frontendProfile: Partial<FrontendP
     
     throw new Error(`Error inesperado validando datos del perfil: ${String(error)}`)
   }
+}
+
+// ============================================================
+// 🛒 CART MAPPERS
+// ============================================================
+
+/**
+ * 🔄 Backend CartItem -> Frontend CartItem
+ */
+export function mapBackendCartItemToFrontend(backendItem: unknown): FrontendCartItem {
+  console.log('🔍 Datos del item del carrito del backend recibidos:', backendItem)
+  
+  try {
+    // ✅ Validar que los datos coinciden con el schema del backend
+    const validated = BackendCartItemSchema.parse(backendItem)
+    console.log('✅ Datos del item validados del backend:', validated)
+    
+    // ✅ Mapear usando el schema transform
+    const frontendItem = CartItemTransformSchema.parse(validated)
+    
+    console.log('✅ Item del carrito mapeado para frontend:', frontendItem)
+    
+    return frontendItem
+    
+  } catch (error) {
+    console.error('❌ Error mapeando backend cart item -> frontend:', error)
+    console.error('❌ Datos que causaron error:', backendItem)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues)
+    }
+    
+    throw new Error(`Error mapeando item del carrito: ${error}`)
+  }
+}
+
+/**
+ * 🔄 Backend CartResponse -> Frontend Cart
+ */
+export function mapBackendCartToFrontend(backendCart: unknown): FrontendCart {
+  console.log('🔍 Datos del carrito del backend recibidos:', backendCart)
+  
+  try {
+    // ✅ Validar que los datos coinciden con el schema del backend
+    const validated = BackendCartResponseSchema.parse(backendCart)
+    console.log('✅ Datos del carrito validados del backend:', validated)
+    
+    // ✅ Mapear usando el schema transform
+    const frontendCart = CartTransformSchema.parse(validated)
+    
+    console.log('✅ Carrito mapeado para frontend:', frontendCart)
+    
+    return frontendCart
+    
+  } catch (error) {
+    console.error('❌ Error mapeando backend cart -> frontend:', error)
+    console.error('❌ Datos que causaron error:', backendCart)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues)
+    }
+    
+    throw new Error(`Error mapeando carrito: ${error}`)
+  }
+}
+
+/**
+ * 🔄 Frontend Product -> Backend AddToCartDto
+ */
+export function mapFrontendProductToAddCartDto(
+  product: FrontendProduct, 
+  profileId: number, 
+  quantity: number = 1
+): BackendCreateCartDto {
+  console.log('🔍 Preparando datos para agregar al carrito:', { product: product.ProductID, profileId, quantity })
+  
+  try {
+    const addToCartDto = {
+      profileId,
+      productId: product.ProductID,
+      cantidad: Math.max(1, Math.floor(quantity)),
+    }
+    
+    console.log('✅ DTO preparado (antes de validación Zod):', addToCartDto)
+    
+    // ✅ Validar con Zod
+    const validatedDto = BackendCreateCartDtoSchema.parse(addToCartDto)
+    console.log('✅ DTO validado por Zod exitosamente:', validatedDto)
+    
+    return validatedDto
+    
+  } catch (error) {
+    console.error('❌ Error en mapFrontendProductToAddCartDto:', error)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as any
+      const messages = zodError.issues.map((issue: any) => 
+        `${issue.path.join('.')}: ${issue.message}`
+      ).join('; ')
+      throw new Error(`Validación fallida: ${messages}`)
+    }
+    
+    throw new Error(`Error inesperado preparando datos para carrito: ${String(error)}`)
+  }
+}
+
+/**
+ * 🔄 Validate Update Cart Quantity Request
+ */
+export function validateUpdateCartQuantity(quantity: number): BackendUpdateCartDto {
+  console.log('🔍 Validando cantidad para actualizar carrito:', quantity)
+  
+  try {
+    const updateDto = {
+      cantidad: Math.max(1, Math.floor(quantity)),
+    }
+    
+    console.log('✅ DTO preparado (antes de validación Zod):', updateDto)
+    
+    // ✅ Validar con Zod
+    const validatedDto = BackendUpdateCartDtoSchema.parse(updateDto)
+    console.log('✅ DTO validado por Zod exitosamente:', validatedDto)
+    
+    return validatedDto
+    
+  } catch (error) {
+    console.error('❌ Error en validateUpdateCartQuantity:', error)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as any
+      const messages = zodError.issues.map((issue: any) => 
+        `${issue.path.join('.')}: ${issue.message}`
+      ).join('; ')
+      throw new Error(`Validación fallida: ${messages}`)
+    }
+    
+    throw new Error(`Error inesperado validando cantidad: ${String(error)}`)
+  }
+}
+
+/**
+ * 🔄 Validar array de items del carrito del backend
+ */
+export function validateBackendCartItemsArray(items: unknown[]): FrontendCartItem[] {
+  console.log(`🔍 Validando ${items.length} items del carrito del backend...`)
+  
+  const validItems: FrontendCartItem[] = []
+  const errors: string[] = []
+  
+  items.forEach((item, index) => {
+    try {
+      console.log(`🛒 Procesando item del carrito ${index + 1}`)
+      const validItem = mapBackendCartItemToFrontend(item)
+      validItems.push(validItem)
+    } catch (error) {
+      console.error(`❌ Error en item del carrito ${index + 1}:`, error)
+      errors.push(`Item ${index + 1}: ${error}`)
+    }
+  })
+  
+  if (errors.length > 0) {
+    console.warn(`⚠️ Se encontraron ${errors.length} items con errores:`, errors)
+  }
+  
+  console.log(`✅ ${validItems.length} items válidos de ${items.length} totales`)
+  return validItems
 }

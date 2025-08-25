@@ -1,21 +1,15 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { FrontendProduct } from '@/schemas/products'
-import { cartApiService, type BackendCartItem } from '@/services/cartApi'
+import type { FrontendCartItem, FrontendCart } from '@/schemas/cart'
+import { cartApiService } from '@/services/cartApi'
+import { mapBackendCartToFrontend } from '@/utils/mappers'
 
-// Cart item interface usando el nuevo schema
-export interface CartItemProps {
-  ProductID: number;
-  ProductImageUrl: string;
-  ProductName: string;
-  productPrice: number;
-  prodcutQuantity: number;
-  isSelected: boolean;
-  cartItemId?: number; // ID del registro en la tabla carrito del backend
-}
+// Usar el tipo del schema de Zod
+export type CartItemProps = FrontendCartItem;
 
 interface CartState {
-  cartItems: CartItemProps[];
+  cartItems: FrontendCartItem[];
   appliedCupons: number[];
   shippingCost: number;
   loading: boolean;
@@ -43,8 +37,8 @@ interface CartState {
   removeSelected: () => void;
   
   // Read
-  getCartItem: (productId: number) => CartItemProps | undefined;
-  getSelectedItems: () => CartItemProps[];
+  getCartItem: (productId: number) => FrontendCartItem | undefined;
+  getSelectedItems: () => FrontendCartItem[];
   getTotalItems: () => number;
   getSubtotal: () => number;
   getTotal: () => number;
@@ -71,31 +65,18 @@ export const useCartStore = create<CartState>()(
         error: null,
         currentProfileId: null,
 
-        // Helper function to map backend items to frontend format
-        mapBackendItemToFrontend: (backendItem: BackendCartItem): CartItemProps => ({
-          ProductID: backendItem.producto.id,
-          ProductImageUrl: backendItem.producto.images?.[0]?.url || '',
-          ProductName: backendItem.producto.nombre,
-          productPrice: backendItem.producto.precio,
-          prodcutQuantity: backendItem.cantidad,
-          isSelected: true,
-          cartItemId: backendItem.id,
-        }),
-
-        // Load cart from backend
+        // Load cart from backend using new schema
         loadCart: async (profileId: number) => {
           set({ loading: true, error: null, currentProfileId: profileId });
           
           try {
             console.log(`🛒 Loading cart for profile ${profileId}`);
-            const cartData = await cartApiService.getCart(profileId);
+            const frontendCart = await cartApiService.getCart(profileId);
             
-            const mappedItems = cartData.items.map((item) => 
-              get().mapBackendItemToFrontend(item)
-            );
+            console.log('✅ Cart loaded and mapped:', frontendCart);
             
             set({ 
-              cartItems: mappedItems,
+              cartItems: frontendCart.items,
               loading: false,
               error: null,
             });
@@ -118,11 +99,8 @@ export const useCartStore = create<CartState>()(
           try {
             console.log(`🛒 Adding product ${product.ProductID} to cart for profile ${profileId}`);
             
-            await cartApiService.addToCart({
-              profileId,
-              productId: product.ProductID,
-              cantidad: quantity,
-            });
+            // Use new API method with automatic validation
+            await cartApiService.addProductToCart(product, profileId, quantity);
             
             // Reload cart to get updated data
             await get().loadCart(profileId);
@@ -141,7 +119,7 @@ export const useCartStore = create<CartState>()(
         syncUpdateQuantity: async (productId: number, quantity: number) => {
           const cartItem = get().cartItems.find(item => item.ProductID === productId);
           
-          if (!cartItem?.cartItemId) {
+          if (!cartItem?.CartItemId) {
             set({ error: 'Cart item not found or missing backend ID' });
             return;
           }
@@ -149,9 +127,10 @@ export const useCartStore = create<CartState>()(
           set({ loading: true, error: null });
           
           try {
-            console.log(`🛒 Updating quantity for item ${cartItem.cartItemId} to ${quantity}`);
+            console.log(`🛒 Updating quantity for item ${cartItem.CartItemId} to ${quantity}`);
             
-            await cartApiService.updateQuantity(cartItem.cartItemId, { cantidad: quantity });
+            // Use new API method with automatic validation
+            await cartApiService.updateItemQuantity(cartItem.CartItemId, quantity);
             
             // Update locally for immediate feedback
             set(state => ({
@@ -177,7 +156,7 @@ export const useCartStore = create<CartState>()(
         syncRemoveFromCart: async (productId: number) => {
           const cartItem = get().cartItems.find(item => item.ProductID === productId);
           
-          if (!cartItem?.cartItemId) {
+          if (!cartItem?.CartItemId) {
             set({ error: 'Cart item not found or missing backend ID' });
             return;
           }
@@ -185,9 +164,9 @@ export const useCartStore = create<CartState>()(
           set({ loading: true, error: null });
           
           try {
-            console.log(`🛒 Removing item ${cartItem.cartItemId} from cart`);
+            console.log(`🛒 Removing item ${cartItem.CartItemId} from cart`);
             
-            await cartApiService.removeFromCart(cartItem.cartItemId);
+            await cartApiService.removeFromCart(cartItem.CartItemId);
             
             // Update locally for immediate feedback
             set(state => ({
@@ -220,12 +199,26 @@ export const useCartStore = create<CartState>()(
             };
           }
           
-          const newItem: CartItemProps = {
+          const newItem: FrontendCartItem = {
+            CartItemId: 0, // Temporary ID for local-only items
             ProductID: product.ProductID,
-            ProductImageUrl: product.ProductImageUrl || '',
             ProductName: product.ProductName,
+            ProductDescription: product.ProductDescription,
             productPrice: product.productPrice,
+            ProductCategory: product.ProductCategory,
+            ProductStock: product.ProductStock,
+            Color: product.Color,
+            ProductBrand: product.ProductBrand,
+            ProductSlug: product.ProductSlug,
+            ProductSellerName: product.ProductSellerName,
+            ProductStatus: product.ProductStatus,
+            ProductSold: product.ProductSold,
+            ProductSKU: product.ProductSKU,
             prodcutQuantity: quantity,
+            unitPrice: product.productPrice,
+            isActive: true,
+            ProductImageUrl: product.ProductImageUrl || '',
+            ProductImages: product.ProductImages || [],
             isSelected: true
           };
           
@@ -235,12 +228,26 @@ export const useCartStore = create<CartState>()(
         }, false, 'addToCart'),
         
         addMultipleToCart: (products) => set((state) => {
-          const newItems: CartItemProps[] = products.map(product => ({
+          const newItems: FrontendCartItem[] = products.map(product => ({
+            CartItemId: 0, // Temporary ID for local-only items
             ProductID: product.ProductID,
-            ProductImageUrl: product.ProductImageUrl || '',
             ProductName: product.ProductName,
+            ProductDescription: product.ProductDescription,
             productPrice: product.productPrice,
+            ProductCategory: product.ProductCategory,
+            ProductStock: product.ProductStock,
+            Color: product.Color,
+            ProductBrand: product.ProductBrand,
+            ProductSlug: product.ProductSlug,
+            ProductSellerName: product.ProductSellerName,
+            ProductStatus: product.ProductStatus,
+            ProductSold: product.ProductSold,
+            ProductSKU: product.ProductSKU,
             prodcutQuantity: 1,
+            unitPrice: product.productPrice,
+            isActive: true,
+            ProductImageUrl: product.ProductImageUrl || '',
+            ProductImages: product.ProductImages || [],
             isSelected: true
           }));
           

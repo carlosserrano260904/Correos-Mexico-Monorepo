@@ -9,8 +9,17 @@ export const useCart = () => {
     CartItems: store.cartItems,
     AppliedCupons: store.appliedCupons,
     ShippingCost: store.shippingCost,
+    Loading: store.loading,
+    Error: store.error,
+    CurrentProfileId: store.currentProfileId,
     
-    // Insert
+    // Backend sync operations (preferred for authenticated users)
+    loadCart: store.loadCart,
+    syncAddToCart: store.syncAddToCart,
+    syncUpdateQuantity: store.syncUpdateQuantity,
+    syncRemoveFromCart: store.syncRemoveFromCart,
+    
+    // Local-only operations (fallback/offline use)
     addToCart: store.addToCart,
     addMultipleToCart: store.addMultipleToCart,
     
@@ -36,6 +45,9 @@ export const useCart = () => {
     removeCupon: store.removeCupon,
     
     // Shipping
-    setShippingCost: store.setShippingCost
+    setShippingCost: store.setShippingCost,
+    
+    // Error handling
+    clearError: store.clearError,
   }
 }

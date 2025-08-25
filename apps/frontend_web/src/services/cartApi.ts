@@ -1,52 +1,47 @@
 // src/services/cartApi.ts
 import api from '../lib/api';
-
-export interface BackendCartItem {
-  id: number;
-  profileId: number;
-  productId: number;
-  cantidad: number;
-  producto: {
-    id: number;
-    nombre: string;
-    precio: number;
-    images: Array<{ url: string }>;
-  };
-}
-
-export interface CartResponse {
-  items: BackendCartItem[];
-  subtotal: number;
-  total: number;
-}
-
-export interface AddToCartRequest {
-  profileId: number;
-  productId: number;
-  cantidad: number;
-}
-
-export interface UpdateQuantityRequest {
-  cantidad: number;
-}
+import { 
+  BackendCartResponse,
+  BackendCartResponseSchema,
+  BackendCreateCartDto,
+  BackendUpdateCartDto,
+  FrontendCart,
+  AddToCartRequest,
+  UpdateCartQuantityRequest,
+  AddToCartRequestSchema,
+  UpdateCartQuantityRequestSchema
+} from '@/schemas/cart';
+import { 
+  mapBackendCartToFrontend,
+  mapFrontendProductToAddCartDto,
+  validateUpdateCartQuantity 
+} from '@/utils/mappers';
+import type { FrontendProduct } from '@/schemas/products';
 
 class CartApiService {
   private readonly baseUrl = '/carrito';
 
   /**
-   * Obtener carrito del usuario
+   * Obtener carrito del usuario con validación Zod y mapeo
    */
-  async getCart(profileId: number): Promise<CartResponse> {
+  async getCart(profileId: number): Promise<FrontendCart> {
     try {
       console.log(`🛒 === OBTENIENDO CARRITO PARA PERFIL ${profileId} ===`);
       
-      const response = await api.get<CartResponse>(`${this.baseUrl}/${profileId}`);
+      const response = await api.get<BackendCartResponse>(`${this.baseUrl}/${profileId}`);
       
-      console.log('📡 Respuesta del carrito:');
+      console.log('📡 Respuesta del carrito (backend):');
       console.log(`   Status: ${response.status}`);
       console.log(`   Items en carrito: ${response.data.items?.length || 0}`);
+      console.log('   Data:', response.data);
       
-      return response.data;
+      // Validar y mapear usando Zod schemas
+      const validatedBackendCart = BackendCartResponseSchema.parse(response.data);
+      const frontendCart = mapBackendCartToFrontend(validatedBackendCart);
+      
+      console.log('✅ Carrito mapeado y validado para frontend:', frontendCart);
+      
+      return frontendCart;
       
     } catch (error) {
       console.error('❌ === ERROR OBTENIENDO CARRITO ===');
@@ -59,19 +54,27 @@ class CartApiService {
         console.error(`   Data:`, axiosError.response?.data);
       }
       
+      if (error && typeof error === 'object' && 'issues' in error) {
+        console.error('❌ Errores de validación Zod:', (error as any).issues);
+      }
+      
       throw new Error('Error al obtener carrito del servidor');
     }
   }
 
   /**
-   * Agregar producto al carrito
+   * Agregar producto al carrito con validación Zod
    */
   async addToCart(data: AddToCartRequest): Promise<string> {
     try {
       console.log('🛒 === AGREGANDO PRODUCTO AL CARRITO ===');
-      console.log('📤 Datos a enviar:', data);
+      console.log('📤 Datos a enviar (antes de validación):', data);
       
-      const response = await api.post<string>(this.baseUrl, data);
+      // Validar datos de entrada
+      const validatedData = AddToCartRequestSchema.parse(data);
+      console.log('✅ Datos validados por Zod:', validatedData);
+      
+      const response = await api.post<string>(this.baseUrl, validatedData);
       
       console.log('📡 Respuesta del servidor:');
       console.log(`   Status: ${response.status}`);
@@ -91,19 +94,48 @@ class CartApiService {
         console.error(`   Data:`, axiosError.response?.data);
       }
       
+      if (error && typeof error === 'object' && 'issues' in error) {
+        console.error('❌ Errores de validación Zod:', (error as any).issues);
+      }
+      
       throw new Error('Error al agregar producto al carrito');
     }
   }
 
   /**
-   * Actualizar cantidad de un item del carrito
+   * Agregar producto al carrito usando FrontendProduct
    */
-  async updateQuantity(cartItemId: number, data: UpdateQuantityRequest): Promise<string> {
+  async addProductToCart(product: FrontendProduct, profileId: number, quantity: number = 1): Promise<string> {
+    try {
+      console.log('🛒 === AGREGANDO PRODUCTO AL CARRITO (DESDE FRONTEND) ===');
+      console.log('📤 Producto:', { id: product.ProductID, name: product.ProductName });
+      
+      // Mapear FrontendProduct a AddToCartRequest usando mapper
+      const addToCartRequest = mapFrontendProductToAddCartDto(product, profileId, quantity);
+      
+      return await this.addToCart(addToCartRequest);
+      
+    } catch (error) {
+      console.error('❌ === ERROR AGREGANDO PRODUCTO DESDE FRONTEND ===');
+      console.error('Error completo:', error);
+      
+      throw new Error('Error al agregar producto al carrito');
+    }
+  }
+
+  /**
+   * Actualizar cantidad de un item del carrito con validación Zod
+   */
+  async updateQuantity(cartItemId: number, data: UpdateCartQuantityRequest): Promise<string> {
     try {
       console.log(`🛒 === ACTUALIZANDO CANTIDAD DEL ITEM ${cartItemId} ===`);
-      console.log('📤 Nueva cantidad:', data.cantidad);
+      console.log('📤 Nueva cantidad (antes de validación):', data.cantidad);
       
-      const response = await api.patch<string>(`${this.baseUrl}/${cartItemId}`, data);
+      // Validar datos de entrada
+      const validatedData = UpdateCartQuantityRequestSchema.parse(data);
+      console.log('✅ Datos validados por Zod:', validatedData);
+      
+      const response = await api.patch<string>(`${this.baseUrl}/${cartItemId}`, validatedData);
       
       console.log('📡 Respuesta del servidor:');
       console.log(`   Status: ${response.status}`);
@@ -121,6 +153,30 @@ class CartApiService {
         console.error(`   Status: ${axiosError.response?.status}`);
         console.error(`   Data:`, axiosError.response?.data);
       }
+      
+      if (error && typeof error === 'object' && 'issues' in error) {
+        console.error('❌ Errores de validación Zod:', (error as any).issues);
+      }
+      
+      throw new Error('Error al actualizar cantidad en el carrito');
+    }
+  }
+
+  /**
+   * Actualizar cantidad usando número simple
+   */
+  async updateItemQuantity(cartItemId: number, quantity: number): Promise<string> {
+    try {
+      console.log(`🛒 === ACTUALIZANDO CANTIDAD SIMPLE DEL ITEM ${cartItemId} ===`);
+      
+      // Validar y mapear usando helper
+      const updateData = validateUpdateCartQuantity(quantity);
+      
+      return await this.updateQuantity(cartItemId, updateData);
+      
+    } catch (error) {
+      console.error(`❌ === ERROR ACTUALIZANDO CANTIDAD SIMPLE ===`);
+      console.error('Error completo:', error);
       
       throw new Error('Error al actualizar cantidad en el carrito');
     }

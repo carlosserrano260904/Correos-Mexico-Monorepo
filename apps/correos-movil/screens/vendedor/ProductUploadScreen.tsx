@@ -355,7 +355,7 @@ const ProductUploadScreen: React.FC = () => {
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <ArrowLeft color="#000000ff" size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subir producto</Text>
+        <Text style={styles.headerTitle}>Crear producto</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingTop: Constants.statusBarHeight,
-    paddingBottom: 60,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',

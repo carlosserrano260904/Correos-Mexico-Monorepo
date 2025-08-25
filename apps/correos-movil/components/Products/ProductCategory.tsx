@@ -13,11 +13,14 @@ import { useMyAuth } from '../../context/AuthContext';
 
 const IP = process.env.EXPO_PUBLIC_API_URL;
 
+const DEFAULT_IMAGE =
+  'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
+
 export interface Articulo {
     id: number;
     nombre: string;
     descripcion: string;
-    imagen: string[];
+    image: { url: string };
     precio: number;
     categoria: string;
     color: string;
@@ -27,8 +30,6 @@ interface ProductCategoryListProps {
     products: Articulo[];
     categoria: string;
 }
-
-const placeholderImage = require('../../assets/placeholder.jpg');
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
   const max = 3;
@@ -59,7 +60,7 @@ const ProductoCard: React.FC<{
   isInCart: boolean;
 }> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
   const nav = useNavigation<any>();
-  const idNum = parseInt(articulo.id.toString(), 10);
+  const idNum = articulo.id;
   const isLiked = favoritos.hasOwnProperty(idNum);
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
@@ -69,21 +70,11 @@ const ProductoCard: React.FC<{
   }
   const colores = [...new Set(colorArray.map(s => (s || '').trim()).filter(Boolean))];
 
-  const imagenValida =
-    Array.isArray(articulo.imagen) &&
-    articulo.imagen.length > 0 &&
-    typeof articulo.imagen[0] === 'string' &&
-    articulo.imagen[0].length > 0;
-
   return (
     <View style={styles.tarjetaProducto}>
       <TouchableOpacity onPress={() => nav.navigate('ProductView', { id: idNum })}>
         <Image
-          source={
-            imagenValida
-              ? { uri: articulo.imagen[0] }
-              : placeholderImage
-          }
+          source={{ uri: articulo.image?.url || DEFAULT_IMAGE }}
           style={styles.imagenProductoCard}
         />
       </TouchableOpacity>
@@ -240,7 +231,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
             articulo={item}
             favoritos={favoritos}
             toggleFavorito={toggleFavorito}
-            isInCart={cartItems.hasOwnProperty(parseInt(item.id.toString(), 10))}
+            isInCart={cartItems.hasOwnProperty(item.id)}
           />
         )}
         showsHorizontalScrollIndicator={false}

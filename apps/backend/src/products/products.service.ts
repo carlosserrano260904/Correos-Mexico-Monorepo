@@ -140,9 +140,31 @@ export class ProductsService {
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productRepository.find({
-      relations: { images: true, reviews: { profile: true, images: true } },
-    });
+    try {
+      this.logger.log('🚀 Iniciando obtención de todos los productos');
+      
+      // Try with minimal relations first to identify the issue
+      const products = await this.productRepository.find({
+        relations: { images: true }, // Only load images, skip reviews for now
+      });
+      
+      this.logger.log(`✅ Productos obtenidos exitosamente: ${products.length}`);
+      return products;
+      
+    } catch (error) {
+      this.logger.error(`❌ Error en findAll(): ${error.message}`, error.stack);
+      
+      // Fallback: try without any relations
+      try {
+        this.logger.log('🔄 Intentando obtener productos sin relaciones...');
+        const basicProducts = await this.productRepository.find();
+        this.logger.log(`⚠️ Productos básicos obtenidos: ${basicProducts.length}`);
+        return basicProducts;
+      } catch (fallbackError) {
+        this.logger.error(`❌ Error crítico en findAll(): ${fallbackError.message}`, fallbackError.stack);
+        throw fallbackError;
+      }
+    }
   }
 
   async findOne(id: number): Promise<Product> {

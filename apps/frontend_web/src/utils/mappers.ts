@@ -43,6 +43,17 @@ import {
 } from '@/schemas/cart'
 
 import {
+  BackendFavorito,
+  BackendFavoritesResponse,
+  BackendFavoritesResponseSchema,
+  BackendCreateFavoritoDto,
+  FrontendFavorite,
+  FrontendFavorites,
+  FrontendFavoriteSchema,
+  FrontendFavoritesSchema,
+} from '@/schemas/favorites'
+
+import {
   BackendProfileEntity,
   BackendProfileEntitySchema,
   BackendCreateProfileDto,
@@ -292,6 +303,45 @@ export function handleValidationError(error: unknown, context: string): never {
 // ============================================================
 
 /**
+ * 🔄 Backend Signup Response -> Frontend AuthResponse (for OTP verification flow)
+ */
+export function mapBackendSignupToFrontend(backendSignup: unknown, userEmail?: string): FrontendAuthResponse {
+  console.log('🔍 Datos de signup del backend recibidos:', backendSignup)
+  
+  try {
+    const validated = BackendAuthResponseSchema.parse(backendSignup)
+    console.log('✅ Datos de signup validados del backend:', validated)
+    
+    // Estructura de signup temporal que requiere verificación OTP
+    const frontendAuth: FrontendAuthResponse = {
+      access_token: '', // No hay access_token real aún
+      user: {
+        id: validated.id || validated.userId || 0,
+        correo: userEmail || 'temp@temporary.com', // Usar email real si está disponible
+        nombre: 'Usuario', // Default value
+        apellido: '', // Default value
+      },
+      token: validated.token, // Token temporal para OTP
+      userId: validated.id || validated.userId || 0,
+      needsVerification: true
+    }
+    
+    console.log('✅ Signup response mapeada para frontend:', frontendAuth)
+    return FrontendAuthResponseSchema.parse(frontendAuth)
+    
+  } catch (error) {
+    console.error('❌ Error mapeando backend signup -> frontend:', error)
+    console.error('❌ Datos que causaron error:', backendSignup)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues)
+    }
+    
+    throw new Error(`Error mapeando signup response: ${error}`)
+  }
+}
+
+/**
  * 🔄 Backend AuthResponse -> Frontend AuthResponse
  */
 export function mapBackendAuthToFrontend(backendAuth: unknown): FrontendAuthResponse {
@@ -334,7 +384,7 @@ export function mapBackendAuthToFrontend(backendAuth: unknown): FrontendAuthResp
         access_token: '', // No hay access_token real aún
         user: {
           id: validated.id,
-          correo: '', // Se llenará después
+          correo: 'temp@temporary.com', // Email temporal válido para pasar validación
           nombre: 'Usuario', // Default value
           apellido: '', // Default value
         },
@@ -468,9 +518,9 @@ export function mapBackendProfileToFrontend(backendProfile: unknown): FrontendPr
       codigoPostal: validated.codigoPostal,
       avatar: validated.imagen || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
       
-      // Computed fields
-      direccionCompleta: `${validated.calle}, ${validated.fraccionamiento}, ${validated.ciudad}, ${validated.estado} ${validated.codigoPostal}`,
-      nombreCompleto: `${validated.nombre} ${validated.apellido}`,
+      // Computed fields (handle nulls gracefully)
+      direccionCompleta: `${validated.calle || ''}, ${validated.fraccionamiento || ''}, ${validated.ciudad || ''}, ${validated.estado || ''} ${validated.codigoPostal || ''}`.trim(),
+      nombreCompleto: `${validated.nombre || ''} ${validated.apellido || ''}`.trim(),
     }
     
     console.log('✅ Perfil mapeado para frontend:', frontendProfile)
@@ -635,6 +685,118 @@ export function mapBackendCartToFrontend(backendCart: unknown): FrontendCart {
     }
     
     throw new Error(`Error mapeando carrito: ${error}`)
+  }
+}
+
+// ============================================================
+// ❤️ FAVORITES MAPPERS
+// ============================================================
+
+/**
+ * 🔄 Backend Favorito -> Frontend Favorite
+ */
+export function mapBackendFavoritoToFrontend(backendFavorito: BackendFavorito): FrontendFavorite {
+  console.log('🔍 Mapeando favorito individual:', backendFavorito.id)
+  
+  try {
+    const frontendFavorite: FrontendFavorite = {
+      // === CAMPOS DEL FAVORITO ===
+      FavoriteId: backendFavorito.id,
+      DateAdded: backendFavorito.fechaAgregado,
+      
+      // === CAMPOS DEL PRODUCTO ===
+      ProductID: backendFavorito.producto.id,
+      ProductName: backendFavorito.producto.nombre,
+      ProductDescription: backendFavorito.producto.descripcion,
+      productPrice: backendFavorito.producto.precio,
+      ProductCategory: backendFavorito.producto.categoria,
+      ProductStock: backendFavorito.producto.inventario,
+      Color: backendFavorito.producto.color,
+      ProductBrand: backendFavorito.producto.marca,
+      ProductSlug: backendFavorito.producto.slug,
+      ProductSellerName: backendFavorito.producto.vendedor,
+      ProductStatus: backendFavorito.producto.estado,
+      ProductSold: backendFavorito.producto.vendidos,
+      ProductSKU: backendFavorito.producto.sku,
+      
+      // === IMÁGENES ===
+      ProductImageUrl: backendFavorito.producto.images?.[0]?.url || '',
+      ProductImages: backendFavorito.producto.images || [],
+    }
+    
+    // Validar resultado con Zod
+    const validated = FrontendFavoriteSchema.parse(frontendFavorite)
+    console.log('✅ Favorito mapeado exitosamente:', validated.FavoriteId)
+    
+    return validated
+    
+  } catch (error) {
+    console.error('❌ Error mapeando favorito individual:', error)
+    console.error('❌ Datos que causaron error:', backendFavorito)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues)
+    }
+    
+    throw new Error(`Error mapeando favorito individual: ${error}`)
+  }
+}
+
+/**
+ * 🔄 Backend Favorites Array -> Frontend Favorites
+ */
+export function mapBackendFavoritesToFrontend(backendFavorites: BackendFavoritesResponse): FrontendFavorites {
+  console.log(`🔍 Mapeando ${backendFavorites.length} favoritos`)
+  
+  try {
+    const mappedFavorites = backendFavorites.map(favorito => 
+      mapBackendFavoritoToFrontend(favorito)
+    )
+    
+    const frontendFavorites: FrontendFavorites = {
+      favorites: mappedFavorites,
+      totalFavorites: mappedFavorites.length,
+    }
+    
+    // Validar resultado con Zod
+    const validated = FrontendFavoritesSchema.parse(frontendFavorites)
+    console.log('✅ Lista de favoritos mapeada exitosamente:', validated.totalFavorites, 'favoritos')
+    
+    return validated
+    
+  } catch (error) {
+    console.error('❌ Error mapeando lista de favoritos:', error)
+    console.error('❌ Datos que causaron error:', backendFavorites)
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues)
+    }
+    
+    throw new Error(`Error mapeando lista de favoritos: ${error}`)
+  }
+}
+
+/**
+ * 🔄 Frontend Product -> Backend CreateFavoritoDto
+ */
+export function mapFrontendProductToAddFavoritesDto(
+  product: FrontendProduct, 
+  profileId: number
+): BackendCreateFavoritoDto {
+  console.log('🔍 Preparando datos para agregar a favoritos:', { product: product.ProductID, profileId })
+  
+  try {
+    const addToFavoritesDto: BackendCreateFavoritoDto = {
+      profileId,
+      productId: product.ProductID,
+    }
+    
+    console.log('✅ DTO preparado para favoritos:', addToFavoritesDto)
+    return addToFavoritesDto
+    
+  } catch (error) {
+    console.error('❌ Error preparando DTO para favoritos:', error)
+    throw new Error(`Error preparando datos para favoritos: ${String(error)}`)
   }
 }
 

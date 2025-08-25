@@ -163,7 +163,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
     }
   }
 
-  export const Producto = ({ ProductID, productPrice, ProductDescription, ProductImageUrl, ProductName, ProductBrand, ProductStatus, ProductStock, ProductCategory, ProductSellerName, variant = 'full', ProductSold, ProductSlug, Color }: ProductoComponentProps) => {
+  export const Producto = ({ ProductID, productPrice, ProductDescription, ProductImageUrl, ProductName, ProductBrand, ProductStatus, ProductStock, ProductCategory, ProductSellerName, variant = 'full', ProductSold, ProductSlug, Color, ProductSKU }: ProductoComponentProps) => {
     const { deleteProduct } = useProducts()
 
       const [isEditing, setIsEditing] = useState(false)

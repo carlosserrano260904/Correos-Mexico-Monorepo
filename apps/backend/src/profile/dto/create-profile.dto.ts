@@ -26,12 +26,12 @@ export class CreateProfileDto {
 
   @ApiProperty({
     example: '6182538020',
-    description: 'Número telefónico del usuario (exactamente 10 dígitos numéricos)',
+    description: 'Número telefónico del usuario (10-15 dígitos, puede incluir formato internacional)',
   })
   @IsOptional()
   @ValidateIf((o) => o.numero !== '')
-  @Matches(/^\d{10}$/, {
-    message: 'El número debe contener exactamente 10 dígitos',
+  @Matches(/^\+?[\d\s\-\(\)]{10,15}$/, {
+    message: 'El número debe contener entre 10 y 15 dígitos, puede incluir + para código de país',
   })
   numero?: string;
 

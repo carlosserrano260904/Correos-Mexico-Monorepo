@@ -2,6 +2,7 @@
 import api from '../lib/api';
 import { 
   mapBackendAuthToFrontend, 
+  mapBackendSignupToFrontend,
   mapBackendUserToFrontend, 
   mapBackendOtpToFrontend 
 } from '../utils/mappers';
@@ -78,7 +79,7 @@ class AuthApiService {
       console.log(`   Token temporal recibido para verificación OTP`);
       
       // Map backend response to frontend format
-      const mappedResponse = mapBackendAuthToFrontend(response.data);
+      const mappedResponse = mapBackendSignupToFrontend(response.data, data.correo);
       
       // For signup, don't store auth token yet (user needs to verify OTP first)
       // Store minimal info for OTP verification
@@ -128,9 +129,18 @@ class AuthApiService {
   async login(data: LoginRequest): Promise<FrontendAuthResponse> {
     try {
       console.log('🔐 === INICIANDO SESIÓN ===');
-      console.log('📤 Email:', data.correo);
+      console.log('📤 Datos de login:', { correo: data.correo, contrasena: '[HIDDEN]' });
+      console.log('📤 Datos completos enviados al backend:', { ...data, contrasena: '[HIDDEN]' });
       
-      const response = await api.post(`${this.baseUrl}/signin`, data);
+      // Clean and validate data to match backend expectations
+      const cleanedData = {
+        correo: data.correo,
+        contrasena: data.contrasena
+      };
+      
+      console.log('📤 Datos limpios para el backend:', { correo: cleanedData.correo, contrasena: '[HIDDEN]' });
+      
+      const response = await api.post(`${this.baseUrl}/signin`, cleanedData);
       
       console.log('📡 Respuesta de login:');
       console.log(`   Status: ${response.status}`);
@@ -159,7 +169,18 @@ class AuthApiService {
         console.error(`   Data:`, axiosError.response?.data);
         
         // Handle specific error cases
-        if (axiosError.response?.status === 401) {
+        if (axiosError.response?.status === 400) {
+          const errorData = axiosError.response?.data;
+          if (errorData && errorData.message) {
+            console.error('❌ Error 400 - Mensaje específico:', errorData.message);
+            throw new Error(`Error de validación: ${Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message}`);
+          }
+          throw new Error('Datos de login inválidos. Verifica tu email y contraseña.');
+        } else if (axiosError.response?.status === 401) {
+          const errorData = axiosError.response?.data;
+          if (errorData && errorData.message) {
+            throw new Error(errorData.message);
+          }
           throw new Error('Correo o contraseña incorrectos');
         } else if (axiosError.response?.status === 404) {
           throw new Error('No existe una cuenta con este correo electrónico');

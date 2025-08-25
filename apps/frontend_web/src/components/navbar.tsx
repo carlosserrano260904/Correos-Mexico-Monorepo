@@ -13,6 +13,7 @@ import {
     IoLogOutOutline
 } from "react-icons/io5";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,7 +31,26 @@ export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
     const auth = useAuth();
+    const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
+
+    // Función para manejar el acceso a favoritos
+    const handleFavoritesAccess = () => {
+        if (!auth.isAuthenticated) {
+            router.push('/login?redirect=/favoritos');
+            return;
+        }
+        // Si está autenticado, continúa con el comportamiento normal del dropdown
+    };
+
+    // Función para manejar el acceso al carrito
+    const handleCartAccess = () => {
+        if (!auth.isAuthenticated) {
+            router.push('/login?redirect=/Carrito');
+            return;
+        }
+        // Si está autenticado, continúa con el comportamiento normal del dropdown
+    };
 
     // Marcar como montado solo en el cliente
     useEffect(() => {
@@ -86,9 +106,11 @@ export const Navbar = () => {
                         <IoAppsOutline className="w-5 h-5" />
                         <span className="text-sm font-medium">App</span>
                     </div>
+                    {/* Favoritos - siempre botón simple durante hidratación */}
                     <div className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoHeartOutline className="w-5 h-5" />
                     </div>
+                    {/* Carrito - siempre botón simple durante hidratación */}
                     <div className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoBagOutline className="w-5 h-5" />
                     </div>
@@ -176,14 +198,15 @@ export const Navbar = () => {
                 </DropdownMenu>
 
                 {/* Favoritos */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
-                        <IoHeartOutline className={`w-5 h-5 ${totalFavorites > 0 ? 'hidden' : 'block'}`} />
-                        <IoHeartSharp className={`w-5 h-5 text-red-600 ${totalFavorites > 0 ? 'block' : 'hidden'}`} />
-                        <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ${totalFavorites > 0 ? 'block' : 'hidden'}`}>
-                            {totalFavorites}
-                        </span>
-                    </DropdownMenuTrigger>
+                {auth.isAuthenticated ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
+                            <IoHeartOutline className={`w-5 h-5 ${totalFavorites > 0 ? 'hidden' : 'block'}`} />
+                            <IoHeartSharp className={`w-5 h-5 text-red-600 ${totalFavorites > 0 ? 'block' : 'hidden'}`} />
+                            <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ${totalFavorites > 0 ? 'block' : 'hidden'}`}>
+                                {totalFavorites}
+                            </span>
+                        </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[350px] p-4 overflow-y-auto max-h-[400px]">
                         <div className="flex-col">
                             <div className="flex items-center">
@@ -237,18 +260,28 @@ export const Navbar = () => {
                             )}
                         </div>
                     </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenu>
+                ) : (
+                    // Botón de favoritos para usuarios no autenticados
+                    <button 
+                        onClick={handleFavoritesAccess}
+                        className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative"
+                    >
+                        <IoHeartOutline className="w-5 h-5" />
+                    </button>
+                )}
 
                 {/* Carrito */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
-                        <IoBagOutline className="w-5 h-5" />
-                        {getTotalItems() > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-[#DE1484] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                {getTotalItems()}
-                            </span>
-                        )}
-                    </DropdownMenuTrigger>
+                {auth.isAuthenticated ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
+                            <IoBagOutline className="w-5 h-5" />
+                            {getTotalItems() > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-[#DE1484] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {getTotalItems()}
+                                </span>
+                            )}
+                        </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[380px] p-4 overflow-y-auto max-h-[450px]">
                         <div className="flex-col">
                             {/* Header */}
@@ -323,7 +356,16 @@ export const Navbar = () => {
                             )}
                         </div>
                     </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenu>
+                ) : (
+                    // Botón de carrito para usuarios no autenticados
+                    <button 
+                        onClick={handleCartAccess}
+                        className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative"
+                    >
+                        <IoBagOutline className="w-5 h-5" />
+                    </button>
+                )}
 
                 {/* Usuario - Mostrar según estado de autenticación */}
                 {auth.loading ? (

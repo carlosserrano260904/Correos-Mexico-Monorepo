@@ -55,16 +55,14 @@ export const ProductSheet = ({ product, children, asTableRow = false }: ProductS
 
             <td className="relative">
               <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10">
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
               </div>
             </td>
           </tr>
@@ -91,30 +89,65 @@ export const ProductSheet = ({ product, children, asTableRow = false }: ProductS
             <div className="grid gap-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <p className="text-muted-foreground">Precio</p>
+                  <p className="font-medium">${product.productPrice?.toFixed(2) ?? "-"}</p>
+                </div>
+                <div>
                   <p className="text-muted-foreground">Estado</p>
                   <p className="font-medium">{product.ProductStatus ? "Activo" : "Inactivo"}</p>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-muted-foreground">Inventario</p>
                   <p className="font-medium">{product.ProductStock ?? "-"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Color</p>
+                  <p className="font-medium">{product.Color ?? "-"}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-muted-foreground">Categoría</p>
-                  <p className="font-medium">{product.ProductCategory}</p>
+                  <p className="font-medium">{product.ProductCategory ?? "-"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Vendedor</p>
-                  <p className="font-medium">{product.ProductSellerName}</p>
+                  <p className="text-muted-foreground">Marca</p>
+                  <p className="font-medium">{product.ProductBrand ?? "-"}</p>
                 </div>
               </div>
 
-              <div>
-                <p className="text-muted-foreground">Productos vendidos</p>
-                <p className="font-medium">{product.ProductSold ?? "-"}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-muted-foreground">Vendedor</p>
+                  <p className="font-medium">{product.ProductSellerName ?? "-"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Productos vendidos</p>
+                  <p className="font-medium">{product.ProductSold ?? "-"}</p>
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-muted-foreground">SKU</p>
+                  <p className="font-medium">{product.ProductSKU ?? "-"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Slug</p>
+                  <p className="font-medium">{product.ProductSlug ?? "-"}</p>
+                </div>
+              </div>
+
+              {product.ProductDescription && (
+                <div>
+                  <p className="text-muted-foreground">Descripción</p>
+                  <p className="font-medium text-wrap break-words">{product.ProductDescription}</p>
+                </div>
+              )}
             </div>
           </div>
         </SheetContent>
@@ -149,16 +182,14 @@ export const ProductSheet = ({ product, children, asTableRow = false }: ProductS
           )}
 
           <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10">
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </SheetTrigger>
@@ -184,30 +215,65 @@ export const ProductSheet = ({ product, children, asTableRow = false }: ProductS
           <div className="grid gap-4 text-sm">
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <p className="text-muted-foreground">Precio</p>
+                <p className="font-medium">${product.productPrice?.toFixed(2) ?? "-"}</p>
+              </div>
+              <div>
                 <p className="text-muted-foreground">Estado</p>
                 <p className="font-medium">{product.ProductStatus ? "Activo" : "Inactivo"}</p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-muted-foreground">Inventario</p>
                 <p className="font-medium">{product.ProductStock ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Color</p>
+                <p className="font-medium">{product.Color ?? "-"}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-muted-foreground">Categoría</p>
-                <p className="font-medium">{product.ProductCategory}</p>
+                <p className="font-medium">{product.ProductCategory ?? "-"}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Vendedor</p>
-                <p className="font-medium">{product.ProductSellerName}</p>
+                <p className="text-muted-foreground">Marca</p>
+                <p className="font-medium">{product.ProductBrand ?? "-"}</p>
               </div>
             </div>
 
-            <div>
-              <p className="text-muted-foreground">Productos vendidos</p>
-              <p className="font-medium">{product.ProductSold ?? "-"}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-muted-foreground">Vendedor</p>
+                <p className="font-medium">{product.ProductSellerName ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Productos vendidos</p>
+                <p className="font-medium">{product.ProductSold ?? "-"}</p>
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-muted-foreground">SKU</p>
+                <p className="font-medium">{product.ProductSKU ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Slug</p>
+                <p className="font-medium">{product.ProductSlug ?? "-"}</p>
+              </div>
+            </div>
+
+            {product.ProductDescription && (
+              <div>
+                <p className="text-muted-foreground">Descripción</p>
+                <p className="font-medium text-wrap break-words">{product.ProductDescription}</p>
+              </div>
+            )}
           </div>
         </div>
       </SheetContent>

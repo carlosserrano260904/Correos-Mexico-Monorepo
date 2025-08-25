@@ -11,14 +11,14 @@ import { z } from 'zod'
  */
 export const BackendProfileEntitySchema = z.object({
   id: z.number(),
-  nombre: z.string().min(0), // Allow empty strings from registration
-  apellido: z.string().min(0), // Allow empty strings from registration
-  numero: z.string().min(0), // Allow empty strings from registration
-  estado: z.string().min(0), // Allow empty strings from registration
-  ciudad: z.string().min(0), // Allow empty strings from registration
-  fraccionamiento: z.string().min(0), // Allow empty strings from registration
-  calle: z.string().min(0), // Allow empty strings from registration
-  codigoPostal: z.string().min(0), // Allow empty strings from registration
+  nombre: z.string().nullable(), // Allow null values for existing users
+  apellido: z.string().nullable(), // Allow null values for existing users
+  numero: z.string().nullable(), // Allow null values for existing users
+  estado: z.string().nullable(), // Allow null values for existing users
+  ciudad: z.string().nullable(), // Allow null values for existing users
+  fraccionamiento: z.string().nullable(), // Allow null values for existing users
+  calle: z.string().nullable(), // Allow null values for existing users
+  codigoPostal: z.string().nullable(), // Allow null values for existing users
   imagen: z.string().optional().default('https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'), // avatar with default
   stripeCustomerId: z.string().nullable().optional(), // Only nullable field
   // Relations (optional when populated)
@@ -37,7 +37,10 @@ export const BackendProfileEntitySchema = z.object({
 export const BackendCreateProfileDtoSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido').max(30),
   apellido: z.string().min(1, 'Apellido es requerido').max(30),
-  numero: z.string().min(1, 'Número es requerido').max(10),
+  numero: z.string()
+    .min(10, 'Número debe tener al menos 10 dígitos')
+    .max(15, 'Número no puede exceder 15 caracteres')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'El número solo puede contener dígitos, espacios, guiones, paréntesis y el símbolo +'),
   estado: z.string().min(1, 'Estado es requerido'),
   ciudad: z.string().min(1, 'Ciudad es requerida'),
   fraccionamiento: z.string().min(1, 'Fraccionamiento es requerido'),
@@ -51,7 +54,11 @@ export const BackendCreateProfileDtoSchema = z.object({
 export const BackendUpdateProfileDtoSchema = z.object({
   nombre: z.string().min(1).max(30).optional(),
   apellido: z.string().min(1).max(30).optional(),
-  numero: z.string().min(1).max(10).optional(),
+  numero: z.string()
+    .min(10, 'Número debe tener al menos 10 dígitos')
+    .max(15, 'Número no puede exceder 15 caracteres')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'El número solo puede contener dígitos, espacios, guiones, paréntesis y el símbolo +')
+    .optional(),
   estado: z.string().min(1).optional(),
   ciudad: z.string().min(1).optional(),
   fraccionamiento: z.string().min(1).optional(),
@@ -69,14 +76,14 @@ export const BackendUpdateProfileDtoSchema = z.object({
 export const FrontendProfileSchema = z.object({
   // === CAMPOS MAPEADOS DESDE BACKEND ===
   id: z.number(),
-  nombre: z.string(),
-  apellido: z.string(),
-  telefono: z.string(), // numero -> telefono
-  estado: z.string(),
-  ciudad: z.string(),
-  fraccionamiento: z.string(),
-  calle: z.string(),
-  codigoPostal: z.string(),
+  nombre: z.string().nullable(),
+  apellido: z.string().nullable(),
+  telefono: z.string().nullable(), // numero -> telefono (can be null for existing users)
+  estado: z.string().nullable(),
+  ciudad: z.string().nullable(),
+  fraccionamiento: z.string().nullable(),
+  calle: z.string().nullable(),
+  codigoPostal: z.string().nullable(),
   avatar: z.string().optional(), // imagen -> avatar
   
   // === CAMPOS EXTRA PARA UI ===

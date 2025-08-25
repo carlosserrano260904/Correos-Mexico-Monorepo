@@ -78,8 +78,23 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
               {lista.map((entrada) => (
                 <Producto
                   key={entrada.ProductID}
-                  {...entrada}             // se pasan todas las propiedades de ProductosProps
-                  variant={variants}       // y se sobrescribe/añade 'variant'
+                  ProductID={entrada.ProductID}
+                  productPrice={entrada.productPrice}
+                  ProductDescription={entrada.ProductDescription}
+                  ProductImageUrl={entrada.ProductImageUrl}
+                  ProductName={entrada.ProductName}
+                  ProductBrand={entrada.ProductBrand}
+                  ProductStatus={entrada.ProductStatus}
+                  ProductStock={entrada.ProductStock}
+                  ProductCategory={entrada.ProductCategory}
+                  ProductSellerName={entrada.ProductSellerName}
+                  ProductSold={entrada.ProductSold}
+                  ProductSlug={entrada.ProductSlug}
+                  Color={entrada.Color}
+                  ProductSKU={entrada.ProductSKU}
+                  ProductImages={entrada.ProductImages || []}
+                  ProductCupons={entrada.ProductCupons || []}
+                  variant={variants}
                 />
               ))}
             </TableBody>
@@ -95,7 +110,22 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
           <div className="px-6" key={idx}>
             <Producto
               key={entrada.ProductID}
-              {...entrada}
+              ProductID={entrada.ProductID}
+              productPrice={entrada.productPrice}
+              ProductDescription={entrada.ProductDescription}
+              ProductImageUrl={entrada.ProductImageUrl}
+              ProductName={entrada.ProductName}
+              ProductBrand={entrada.ProductBrand}
+              ProductStatus={entrada.ProductStatus}
+              ProductStock={entrada.ProductStock}
+              ProductCategory={entrada.ProductCategory}
+              ProductSellerName={entrada.ProductSellerName}
+              ProductSold={entrada.ProductSold}
+              ProductSlug={entrada.ProductSlug}
+              Color={entrada.Color}
+              ProductSKU={entrada.ProductSKU}
+              ProductImages={entrada.ProductImages || []}
+              ProductCupons={entrada.ProductCupons || []}
               variant={variants}
             />
             {idx < lista.length - 1 && <Separator />}

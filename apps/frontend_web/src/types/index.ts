@@ -1,21 +1,40 @@
 import { HTMLAttributes, ReactNode } from "react"
 
-// Importar todos los tipos desde los esquemas Zod
-// ACTUALIZAR la sección de exports en types/index.ts:
-
-// Importar todos los tipos desde los esquemas Zod
-export {
-  // ✅ USAR FrontendProduct como ProductosProps para compatibilidad
-  type FrontendProduct as ProductosProps, // ← Esta línea asegura compatibilidad
-  type FrontendProduct, // ← También exportar el nombre nuevo
-
- 
-  // Tipos para API Backend
-  type BackendProductEntity,
-  type BackendCreateProductDto,
-  type BackendUpdateProductDto,
- 
+// Import types first before using them
+import { 
+  FrontendProduct,
+  BackendProductEntity,
+  BackendCreateProductDto,
+  BackendUpdateProductDto
 } from '../schemas/products'
+
+import {
+  FrontendFavorite,
+  FrontendFavorites,
+  BackendFavorito,
+  BackendFavoritesResponse,
+  BackendCreateFavoritoDto,
+} from '../schemas/favorites'
+
+// Re-export all the imported types
+export type {
+  FrontendProduct,
+  BackendProductEntity,
+  BackendCreateProductDto,
+  BackendUpdateProductDto,
+  FrontendFavorite,
+  FrontendFavorites,
+  BackendFavorito,
+  BackendFavoritesResponse,
+  BackendCreateFavoritoDto,
+}
+
+// Extended ProductosProps with optional favorite fields
+export interface ProductosProps extends FrontendProduct {
+  // Optional favorite-specific fields (when item is from favorites)
+  FavoriteId?: number;
+  DateAdded?: string;
+}
 
 // ... resto de tus types existentes
 

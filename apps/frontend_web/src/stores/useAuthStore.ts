@@ -330,10 +330,10 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
               });
               
-              console.log('✅ User is authenticated');
+              console.log('✅ User is authenticated (using cached data)');
               
-              // Optionally refresh user data
-              get().getCurrentUser().catch(console.error);
+              // DON'T call getCurrentUser here - it causes infinite loops
+              // Let components call getCurrentUser when they need fresh data
             }
           } else {
             console.log('ℹ️ User is not authenticated');

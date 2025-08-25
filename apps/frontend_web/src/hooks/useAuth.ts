@@ -44,10 +44,10 @@ export const useAuth = () => {
     checkAuthStatus,
   } = useAuthStore();
 
-  // Check auth status on mount
+  // Check auth status on mount only (no dependencies to avoid infinite loops)
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Wrapper functions with error handling
   const handleRegister = async (data: RegisterRequest) => {

@@ -182,14 +182,15 @@ class AuthApiService {
         throw new Error('No hay token de autenticación');
       }
       
+      console.log('🔍 Realizando petición al endpoint /auth/me...');
+      
       const response = await api.get(`${this.baseUrl}/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        timeout: 15000, // Override default timeout for this specific request
       });
       
       console.log('📡 Usuario actual obtenido:');
       console.log(`   Status: ${response.status}`);
+      console.log('   Response data:', response.data);
       
       // Map backend response to frontend format
       const mappedUser = mapBackendUserToFrontend(response.data);
@@ -205,13 +206,75 @@ class AuthApiService {
       console.error('❌ === ERROR OBTENIENDO USUARIO ===');
       console.error('Error completo:', error);
       
+      // Handle specific error types
+      if (error && typeof error === 'object' && 'code' in error) {
+        const axiosError = error as any;
+        
+        if (axiosError.code === 'ECONNABORTED') {
+          // Timeout error - try to use cached data as fallback
+          console.error('⏱️ Request timeout - intentando usar datos en caché');
+          const cachedUser = this.getStoredUser();
+          if (cachedUser) {
+            console.log('💾 Usando datos de usuario en caché como fallback');
+            return cachedUser;
+          }
+          throw new Error('El servidor no responde y no hay datos guardados. Verifica tu conexión.');
+        }
+        
+        if (axiosError.code === 'NETWORK_ERROR' || axiosError.code === 'ERR_NETWORK') {
+          // Network error - try to use cached data as fallback
+          console.error('🌐 Network error - intentando usar datos en caché');
+          const cachedUser = this.getStoredUser();
+          if (cachedUser) {
+            console.log('💾 Usando datos de usuario en caché como fallback');
+            return cachedUser;
+          }
+          throw new Error('Sin conexión al servidor y no hay datos guardados.');
+        }
+      }
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
+        console.error('📡 Response error:');
+        console.error(`   Status: ${axiosError.response?.status}`);
+        console.error(`   Data:`, axiosError.response?.data);
+        
         if (axiosError.response?.status === 401) {
           // Token expired or invalid, clear storage
+          console.log('🚪 Token inválido - cerrando sesión automáticamente');
           this.logout();
           throw new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
         }
+        
+        if (axiosError.response?.status === 404) {
+          throw new Error('Endpoint de usuario no encontrado. Contacta soporte.');
+        }
+        
+        if (axiosError.response?.status === 500) {
+          throw new Error('Error interno del servidor. Intenta más tarde.');
+        }
+      }
+      
+      // Check if server is completely unreachable
+      if (error && typeof error === 'object' && 'request' in error) {
+        const axiosError = error as any;
+        if (axiosError.request && !axiosError.response) {
+          // Server unreachable - try cached data
+          console.error('🔌 Servidor inaccesible - intentando usar datos en caché');
+          const cachedUser = this.getStoredUser();
+          if (cachedUser) {
+            console.log('💾 Usando datos de usuario en caché como fallback');
+            return cachedUser;
+          }
+          throw new Error('No se puede conectar al servidor y no hay datos guardados.');
+        }
+      }
+      
+      // Final fallback - try cached data
+      const cachedUser = this.getStoredUser();
+      if (cachedUser) {
+        console.log('💾 Error desconocido - usando datos en caché como último recurso');
+        return cachedUser;
       }
       
       throw new Error('Error al obtener información del usuario');
@@ -407,20 +470,71 @@ class AuthApiService {
   /**
    * Health check for auth service
    */
-  async healthCheck(): Promise<boolean> {
+  async healthCheck(): Promise<{ isHealthy: boolean; error?: string }> {
     try {
-      // Try to access a protected endpoint with an invalid token
-      await api.get(`${this.baseUrl}/me`, {
-        headers: { Authorization: 'Bearer invalid-token' },
+      console.log('🏥 === VERIFICANDO ESTADO DEL SERVIDOR ===');
+      
+      // Try to ping a basic endpoint with short timeout
+      await api.get('/auth/ping', { 
+        timeout: 5000,
+        headers: { Authorization: 'Bearer invalid-token' }
       });
-      return true;
+      
+      return { isHealthy: true };
     } catch (error) {
-      // 401 means the service is working (just unauthorized)
+      console.log('🔍 Respuesta del health check:', error);
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        return axiosError.response?.status === 401;
+        // 401 or 404 means server is responding (just endpoint protected/not found)
+        if (axiosError.response?.status === 401 || axiosError.response?.status === 404) {
+          return { isHealthy: true };
+        }
+        return { 
+          isHealthy: false, 
+          error: `Server responded with ${axiosError.response?.status}` 
+        };
       }
-      return false;
+      
+      if (error && typeof error === 'object' && 'code' in error) {
+        const axiosError = error as any;
+        if (axiosError.code === 'ECONNABORTED') {
+          return { isHealthy: false, error: 'Server timeout' };
+        }
+        if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ERR_NETWORK') {
+          return { isHealthy: false, error: 'Cannot connect to server' };
+        }
+      }
+      
+      return { isHealthy: false, error: 'Unknown error' };
+    }
+  }
+
+  /**
+   * Test backend connection with detailed logging
+   */
+  async testConnection(): Promise<void> {
+    console.log('🧪 === PROBANDO CONEXIÓN AL BACKEND ===');
+    console.log('🌐 URL base configurada:', api.defaults.baseURL);
+    console.log('⏱️ Timeout configurado:', api.defaults.timeout, 'ms');
+    
+    // Check health first
+    const health = await this.healthCheck();
+    console.log('🏥 Estado del servidor:', health);
+    
+    if (!health.isHealthy) {
+      console.error('❌ Servidor no disponible:', health.error);
+      throw new Error(`Servidor no disponible: ${health.error}`);
+    }
+    
+    // Try getCurrentUser with detailed logging
+    console.log('👤 Intentando obtener usuario actual...');
+    try {
+      const user = await this.getCurrentUser();
+      console.log('✅ Usuario obtenido correctamente:', user);
+    } catch (error) {
+      console.error('❌ Error obteniendo usuario:', error);
+      throw error;
     }
   }
 }

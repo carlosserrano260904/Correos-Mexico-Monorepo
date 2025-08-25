@@ -3,7 +3,10 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api', // ← Agregar /api
-  timeout: 10000,
+  timeout: 30000, // Increase timeout to 30 seconds
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // ... resto del código igual
@@ -11,11 +14,11 @@ const api = axios.create({
 // Interceptor para requests
 api.interceptors.request.use(
   (config) => {
-    // Aquí puedes agregar tokens de autenticación si los tienes
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Automatically add auth token if available
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

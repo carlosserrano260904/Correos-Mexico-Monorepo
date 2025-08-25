@@ -15,8 +15,9 @@ export default function perfil(){
 
     // Profile state
     const [profile, setProfile] = useState<Profile | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Start as false, set to true when loading
     const [error, setError] = useState<string | null>(null);
+    const [profileLoaded, setProfileLoaded] = useState(false);
     
     // Editing state
     const [editando, setEditando] = useState(false);
@@ -26,8 +27,31 @@ export default function perfil(){
     const [nuevaFoto, setNuevaFoto] = useState<string | null>(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+    // Load user data if not available
+    useEffect(() => {
+        console.log('🔍 Checking auth status:', {
+            isAuthenticated: auth.isAuthenticated,
+            hasUser: !!auth.user,
+            loading: auth.loading
+        });
+
+        if (auth.isAuthenticated && !auth.user && !auth.loading) {
+            console.log('🔄 Refreshing user data...');
+            auth.refreshUserData?.();
+        }
+    }, [auth.isAuthenticated, auth.user, auth.loading]);
+
     // Load profile data on mount
     useEffect(() => {
+        console.log('🔄 useEffect triggered with:', {
+            hasUser: !!auth.user,
+            userId: auth.user?.id,
+            hasProfile: !!profile,
+            profileLoaded,
+            loading,
+            hasAuthProfile: !!auth.profile
+        });
+
         const loadProfile = async () => {
             console.log('🔍 Auth user data:', auth.user);
             console.log('🔍 Auth profile data:', auth.profile);
@@ -41,6 +65,7 @@ export default function perfil(){
                     setProfile(mappedProfile);
                     setTempProfile(mappedProfile);
                     setLoading(false);
+                    setProfileLoaded(true);
                     return;
                 } catch (err) {
                     console.log('❌ Failed to map auth.profile, trying API call');
@@ -65,6 +90,7 @@ export default function perfil(){
                 
                 setProfile(profileData);
                 setTempProfile(profileData); // Initialize temp with current data
+                setProfileLoaded(true);
                 console.log('✅ Profile loaded via API:', profileData);
                 
             } catch (err) {
@@ -89,6 +115,7 @@ export default function perfil(){
                     };
                     setProfile(tempProfile);
                     setTempProfile(tempProfile);
+                    setProfileLoaded(true);
                 } else {
                     setError(err instanceof Error ? err.message : 'Error al cargar el perfil');
                 }
@@ -97,10 +124,11 @@ export default function perfil(){
             }
         };
 
-        if (auth.user && !profile && !loading) {
+        if (auth.user && !profile && !profileLoaded) {
+            console.log('🚀 Triggering profile load...');
             loadProfile();
         }
-    }, [auth.user?.id, auth.profile?.id, profile, loading]);
+    }, [auth.user?.id, auth.profile?.id, profileLoaded]); // Add profileLoaded flag to prevent multiple loads
 
     const handleLogout = () => {
         auth.logout();
@@ -245,15 +273,33 @@ export default function perfil(){
         }
     };
 
-    // Show loading state
-    if (loading && !profile) {
+    // Show loading state when waiting for authentication or profile data
+    if ((auth.loading || loading) && !profile) {
         return (
             <Plantilla>
                 <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
                     <div className="flex items-center justify-center h-64">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Cargando perfil...</p>
+                            <p className="mt-4 text-gray-600">
+                                {auth.loading ? 'Verificando autenticación...' : 'Cargando perfil...'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </Plantilla>
+        );
+    }
+
+    // Show loading state when waiting for user data
+    if (auth.isAuthenticated && !auth.user && !auth.loading) {
+        return (
+            <Plantilla>
+                <div className="max-w-4xl min-w-full mx-auto p-8 px-8 py-8">
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Cargando datos del usuario...</p>
                         </div>
                     </div>
                 </div>

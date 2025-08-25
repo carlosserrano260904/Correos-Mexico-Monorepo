@@ -181,7 +181,7 @@ const onRefresh = async () => {
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
         <TouchableOpacity
           style={headerStyles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('ProfileUser')}
           accessibilityLabel="Regresar"
           accessibilityHint="Regresa a la pantalla anterior"
         >

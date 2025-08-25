@@ -235,7 +235,7 @@ export default function RegistrarUnidadPage() {
                     {/* Zona Asignada */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Zona asignada (clave CUO destino)
+                        Zona asignada
                       </label>
                       <input
                         name="zonaAsignada"

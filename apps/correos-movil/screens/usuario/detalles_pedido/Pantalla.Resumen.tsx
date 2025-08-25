@@ -39,6 +39,18 @@ const Colors = {
 // ===== DEMO: Forzar éxito de pago =====
 const FORCE_PAYMENT_SUCCESS = true;
 
+// ---------- helper: toma imagen con orden 0 (con fallbacks) ----------
+const getImageOrden0 = (producto: any): string => {
+  const imgs = producto?.images;
+  if (Array.isArray(imgs) && imgs.length > 0) {
+    const img0 = imgs.find((x: any) => Number(x?.orden) === 0) || imgs[0];
+    const url = (img0?.url ?? producto?.imagen ?? '').toString().trim();
+    return url || 'https://via.placeholder.com/120x120.png?text=Producto';
+  }
+  if (producto?.imagen) return String(producto.imagen).trim(); // soporte legacy
+  return 'https://via.placeholder.com/120x120.png?text=Producto';
+};
+
 interface CartItem {
   id: string;           // id del item en el carrito (backend carrito)
   productId: number;    // id del producto real (para DTO)
@@ -111,7 +123,7 @@ const PantallaResumen = () => {
   const apiBase = () =>
     Constants.expoConfig?.extra?.IP_LOCAL
       ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
-      : BASE_URL;
+      : `${BASE_URL}/api`; // normaliza para que siempre termine en /api
 
   // Animación de spinner
   useEffect(() => {
@@ -142,19 +154,20 @@ const PantallaResumen = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('Usuario no encontrado');
 
-      const response = await axios.get(`${BASE_URL}/api/carrito/${userId}`);
+      const API = apiBase();
+      const response = await axios.get(`${API}/carrito/${userId}`);
       const data = response.data;
 
-      const formatted: CartItem[] = data
+      const formatted: CartItem[] = (Array.isArray(data) ? data : [])
         .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
         .map((item: any) => ({
           id: item.id?.toString() || '',
-          productId: Number(item.producto?.id ?? 0), // ⬅️ importante para DTO
-          name: item.producto.nombre ?? 'Sin nombre',
-          price: Number(item.precio_unitario ?? item.producto.precio ?? 0),
+          productId: Number(item.producto?.id ?? 0),
+          name: item.producto?.nombre ?? 'Sin nombre',
+          price: Number(item.precio_unitario ?? item.producto?.precio ?? 0),
           quantity: Number(item.cantidad ?? 1),
-          image: item.producto.imagen ?? 'https://via.placeholder.com/120x120.png?text=Producto',
-          color: item.producto.color ?? 'No especificado',
+          image: getImageOrden0(item.producto), // <<<<<< usa orden 0
+          color: item.producto?.color ?? 'No especificado',
         }));
 
       setCart(formatted);
@@ -233,26 +246,18 @@ const PantallaResumen = () => {
 
     return {
       profileId,
-      status: 'CREADO',               // o 'PAGADO' si prefieres crear después de cobrar
+      status: 'CREADO',
       estatus_pago: 'pendiente',
-      total: calculateTotal(),        // el backend recalcula, pero lo enviamos
-
-      // Envío (solo si es domicilio; para punto de recogida puedes omitir direccionId)
+      total: calculateTotal(),
       direccionId: modoEnvio === 'domicilio' ? direccion?.id : undefined,
-
-      // Copia de dirección (no sensible)
       calle: direccion?.calle ?? null,
       numero_int: direccion?.numero_interior != null ? String(direccion.numero_interior) : null,
       numero_exterior: direccion?.numero_exterior != null ? String(direccion.numero_exterior) : null,
       cp: direccion?.codigo_postal ?? null,
       ciudad: direccion?.municipio ?? null,
-
-      // Datos visibles de tarjeta
-      nombre: null,                   // si no lo capturas, déjalo null
+      nombre: null,
       last4: tarjeta?.last4 ?? null,
       brand: tarjeta?.brand ?? null,
-
-      // Productos
       productos: cart.map(i => ({
         producto_id: i.productId,
         cantidad: i.quantity,
@@ -270,12 +275,12 @@ const PantallaResumen = () => {
 
       setIsPaying(true);
 
-      const url = apiBase();
+      const API = apiBase();
 
       // 1) Crear pedido
       const pedidoPayload = await buildPedidoPayload();
-      console.log('[POST /pedidos] =>', pedidoPayload);
-      const { data: pedidoResp } = await axios.post(`${url}/api/api/pedido`, pedidoPayload);
+      console.log('[POST /pedido] =>', pedidoPayload);
+      const { data: pedidoResp } = await axios.post(`${API}/api/pedido`, pedidoPayload);
 
       const pedidoId: number | undefined =
         pedidoResp?.id ?? pedidoResp?.pedido?.id ?? pedidoResp?.data?.id;
@@ -285,11 +290,11 @@ const PantallaResumen = () => {
       let ok = false;
 
       try {
-        const res = await axios.post(`${url}/pagos/confirmar`, {
+        const res = await axios.post(`${API}/pagos/confirmar`, {
           profileId,
           total,
           stripeCardId: tarjeta.stripeCardId,
-          pedidoId, // si tu endpoint lo admite, se enlaza el pago al pedido
+          pedidoId,
         });
         ok = res?.data?.status?.toLowerCase?.() === 'success';
       } catch (err) {
@@ -302,10 +307,6 @@ const PantallaResumen = () => {
       setIsPaying(false);
 
       if (ok) {
-        // (Opcional) Marca pagado en el pedido si tienes endpoint PATCH:
-        // if (pedidoId) await axios.patch(`${url}/pedidos/${pedidoId}`, { status: 'PAGADO', estatus_pago: 'pagado' });
-
-        // Navega a éxito y limpia el stack
         // @ts-ignore
         navigation.reset({ index: 0, routes: [{ name: 'PagoExitosoScreen' }] });
       } else {
@@ -379,7 +380,11 @@ const PantallaResumen = () => {
             {cart.map((item, idx) => (
               <View key={item.id}>
                 <TouchableOpacity style={styles.productCard} onPress={() => handleToggleProductDetails(idx)}>
-                  <Image source={{ uri: item.image }} style={styles.image} />
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.image}
+                    onError={(e) => console.log('Resumen image error:', item.image, e.nativeEvent)}
+                  />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.name}>{item.name}</Text>
                     <Text style={styles.desc}>Color: {item.color}</Text>

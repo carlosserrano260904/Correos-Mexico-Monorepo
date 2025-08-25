@@ -23,7 +23,7 @@ export class CarritoService {
   async obtenerCarrito(profileId: number) {
     const productos = await this.carritoRepo.find({
       where: { usuario: { id: profileId }, activo: true },
-      relations: ['producto'],
+      relations: ['producto','producto.images'],
     });
 
     if (!productos.length) {

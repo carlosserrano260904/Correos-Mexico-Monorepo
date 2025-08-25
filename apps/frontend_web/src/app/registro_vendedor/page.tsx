@@ -6,31 +6,20 @@ import { useRouter } from 'next/navigation';
 
 const RegistroVendedor: React.FC = () => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    curp: '',
-    rfc: '',
-    direccion: '',
-    codigoPostal: '',
-    categoria: '',
+    nombre_tienda: '',
+    categoria_tienda: '',
+    telefono: '',
+    direccion_fiscal: '',
+    userId: '',
+    rfc: '',         // <-- Agrega este campo
+    curp: '',        // <-- Agrega este campo
   });
 
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    // Convierte la CURP a mayúsculas
-    if (name === 'curp') {
-      setFormData({ ...formData, [name]: value.toUpperCase() });
-    }
-    // Acepta solo dígitos en código postal
-    else if (name === 'codigoPostal') {
-      const numericValue = value.replace(/\D/g, ''); // 
-      setFormData({ ...formData, [name]: numericValue });
-    }
-    else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const generarNumeroSeguimiento = () => {
@@ -40,15 +29,32 @@ const RegistroVendedor: React.FC = () => {
     return `${letra}${numeros}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Formulario enviado:', formData);
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:3000/api/vendedor/crear-solicitud', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-    const numeroSeguimiento = generarNumeroSeguimiento();
-    const fecha = encodeURIComponent(new Date().toISOString());
+    if (response.ok) {
+      // Si el backend regresa el número de seguimiento, úsalo aquí
+      // const data = await response.json();
+      // const numeroSeguimiento = data.numeroSeguimiento || generarNumeroSeguimiento();
 
-    router.push(`/estatus_solicitud?seguimiento=${numeroSeguimiento}&fecha=${fecha}`);
-  };
+      const numeroSeguimiento = generarNumeroSeguimiento();
+      const fecha = encodeURIComponent(new Date().toISOString());
+      router.push(`/estatus_solicitud?seguimiento=${numeroSeguimiento}&fecha=${fecha}`);
+    } else {
+      alert('Hubo un error al enviar la solicitud. Intenta de nuevo.');
+    }
+  } catch (error) {
+    alert('Error de conexión con el servidor.');
+  }
+};
 
   return (
     <Plantilla>
@@ -61,11 +67,59 @@ const RegistroVendedor: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Nombre</label>
+              <label className="block text-sm font-semibold text-gray-700">Nombre de la tienda</label>
               <input
                 type="text"
-                name="nombre"
-                value={formData.nombre}
+                name="nombre_tienda"
+                value={formData.nombre_tienda}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">Teléfono</label>
+              <input
+                type="text"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">Dirección fiscal</label>
+              <input
+                type="text"
+                name="direccion_fiscal"
+                value={formData.direccion_fiscal}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">ID de usuario</label>
+              <input
+                type="text"
+                name="userId"
+                value={formData.userId}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">RFC</label>
+              <input
+                type="text"
+                name="rfc"
+                value={formData.rfc}
                 onChange={handleChange}
                 className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
                 required
@@ -79,47 +133,6 @@ const RegistroVendedor: React.FC = () => {
                 name="curp"
                 value={formData.curp}
                 onChange={handleChange}
-                maxLength={18}
-                className="mt-1 w-full border rounded-md px-3 py-2 uppercase focus:outline-pink-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">RFC</label>
-              <input
-                type="text"
-                name="rfc"
-                value={formData.rfc}
-                onChange={handleChange}
-                maxLength={13}
-                className="mt-1 w-full border rounded-md px-3 py-2 uppercase focus:outline-pink-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">Dirección del negocio</label>
-              <input
-                type="text"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">Código Postal</label>
-              <input
-                type="text"
-                name="codigoPostal"
-                value={formData.codigoPostal}
-                onChange={handleChange}
-                inputMode="numeric"
-                pattern="[0-9]{5}"
-                maxLength={5}
                 className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
                 required
               />
@@ -128,8 +141,8 @@ const RegistroVendedor: React.FC = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700">Categoría de productos</label>
               <select
-                name="categoria"
-                value={formData.categoria}
+                name="categoria_tienda"
+                value={formData.categoria_tienda}
                 onChange={handleChange}
                 className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-pink-500"
                 required
@@ -144,6 +157,7 @@ const RegistroVendedor: React.FC = () => {
                 <option value="electronica">Electronica</option>
               </select>
             </div>
+
           </div>
 
           <button

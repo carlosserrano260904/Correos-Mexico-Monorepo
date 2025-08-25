@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { useHistorialStore } from "@/stores/historialStore";
 import { Plantilla } from "@/app/Administrador/components/plantilla";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function HistorialAsignacionesPage() {
   const { historial, loading, fetchHistorial } = useHistorialStore();
+  const router = useRouter();
 
   const [totales, setTotales] = useState({
     conductores: 0,
@@ -49,6 +52,16 @@ export default function HistorialAsignacionesPage() {
         </div>
       </div>
 
+      {/*Boton para asignar */}
+      <div>
+       <Button
+         className="bg-slate-800 hover:bg-slate-700 text-white mt-8 my-4"
+         onClick={() => router.push("/Administrador/app/Resumen/crear")}
+       >
+         Asignar llegada y retorno
+       </Button>
+    </div>
+
       {/*Historial de asignacion */}
     <div className="bg-gray-100 rounded-xl p-2">
       <h2 className="text-gray-700 text-sm font-medium px-3 py-2">Historial de asignaciones</h2>
@@ -59,8 +72,6 @@ export default function HistorialAsignacionesPage() {
               <th className="text-left py-2 px-4 font-medium text-gray-700">Conductor</th>
               <th className="text-left py-2 px-4 font-medium text-gray-700">CURP</th>
               <th className="text-left py-2 px-4 font-medium text-gray-700">Placas unidad</th>
-              <th className="text-left py-2 px-4 font-medium text-gray-700">Oficina salida</th>
-              <th className="text-left py-2 px-4 font-medium text-gray-700">Oficina destino</th>
               <th className="text-left py-2 px-4 font-medium text-gray-700">Oficina actual</th>
               <th className="text-left py-2 px-4 font-medium text-gray-700">Fecha asignación</th>
               <th className="text-left py-2 px-4 font-medium text-gray-700">Fecha llegada destino</th>
@@ -70,11 +81,11 @@ export default function HistorialAsignacionesPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="py-4 text-center text-gray-500">Cargando...</td>
+                <td colSpan={7} className="py-4 text-center text-gray-500">Cargando...</td>
               </tr>
             ) : historial.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-4 text-center text-gray-500">Sin registros</td>
+                <td colSpan={7} className="py-4 text-center text-gray-500">Sin registros</td>
               </tr>
             ) : (
               historial.map((item) => (
@@ -82,8 +93,6 @@ export default function HistorialAsignacionesPage() {
                   <td className="py-2 px-4 font-semibold">{item.nombreConductor}</td>
                   <td className="py-2 px-4">{item.curp}</td>
                   <td className="py-2 px-4">{item.placasUnidad}</td>
-                  <td className="py-2 px-4">{item.oficinaSalida}</td>
-                  <td className="py-2 px-4">{item.claveCuoDestino}</td>
                   <td className="py-2 px-4">{item.claveOficinaActual}</td>
                   <td className="py-2 px-4">{item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : "-"}</td>
                   <td className="py-2 px-4">{item.fechaLlegadaDestino ? new Date(item.fechaLlegadaDestino).toLocaleString() : "-"}</td>

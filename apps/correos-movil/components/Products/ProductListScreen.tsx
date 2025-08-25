@@ -31,8 +31,6 @@ export type ProductListScreenProps = {
   productos: Articulo[];
   search?: string;
   likeTrigger?: number;
-  onRefresh?: () => void;
-  refreshing?: boolean;
 };
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -122,13 +120,7 @@ const ProductoCard: React.FC<{
   );
 };
 
-export const ProductListScreen: React.FC<ProductListScreenProps> = ({
-  productos,
-  search = '',
-  likeTrigger,
-  onRefresh,
-  refreshing,
-}) => {
+export const ProductListScreen: React.FC<ProductListScreenProps> = ({ productos, search = '', likeTrigger }) => {
   const { userId } = useMyAuth();
   const [filtered, setFiltered] = useState<Articulo[]>([]);
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
@@ -266,9 +258,6 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.listContentContainer}
         showsVerticalScrollIndicator={false}
-        onRefresh={onRefresh}
-        refreshing={refreshing}
-
       />
     </View>
   );

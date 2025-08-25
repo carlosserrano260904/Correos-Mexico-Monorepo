@@ -1,16 +1,13 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, Button } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { moderateScale } from 'react-native-size-matters';
 import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
 import { useNavigation } from '@react-navigation/native';
-import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
+import { ShoppingBag, Headset, Heart, Home } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -28,7 +25,6 @@ const imageData2 = [
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
-
 const CorreosClicButton = () => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const mouseAnim = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -129,34 +125,8 @@ const CorreosClicButton = () => {
 };
 
 export default function HomeUser() {
-  const [products, setProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
 
   const navigation = useNavigation<NavigationProp>();
-
-  React.useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/api/products/findSome`);
-        if (!response.ok) {
-          console.log(response);
-          throw new Error('Error al obtener los productos');
-          
-        }
-        const data = await response.json();
-        console.log(data);
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   const progress = useSharedValue<number>(0);
 
@@ -175,10 +145,14 @@ export default function HomeUser() {
     });
   };
 
+
+
   return (
-    <View>
+    <View >
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
+
         <View style={styles.headerContainer}>
+
           <View>
             <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
           </View>
@@ -189,17 +163,18 @@ export default function HomeUser() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconsHeader}
-              onPress={() => navigation.navigate('Favorito')}
+              onPress={() => navigation.navigate('Favorito')} // ← Aquí
             >
               <Heart color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconsHeader}
-              onPress={() => navigation.navigate('Carrito')}
-            >
+              onPress={() => navigation.navigate('Carrito')} // 
+>
               <ShoppingBag color={"#DE1484"} size={moderateScale(24)} />
             </TouchableOpacity>
           </View>
+
         </View>
 
         <View style={styles.searchBarContainer}>
@@ -328,13 +303,7 @@ export default function HomeUser() {
           </View>
 
           <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#DE1484" />
-            ) : error ? (
-              <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-            ) : (
-              <ProductCategoryList products={products} categoria={'Ropa, moda y calzado'} />
-            )}
+            <Text>Aqui van los productos</Text>
           </View>
         </View>
 
@@ -345,15 +314,8 @@ export default function HomeUser() {
               <Text style={styles.seeAll}>Ver todo</Text>
             </TouchableOpacity>
           </View>
-          
           <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#DE1484" />
-            ) : error ? (
-              <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-            ) : (
-              <ProductCategoryList products={products} categoria={'FONART'} />
-            )}
+            <Text>Aqui van los productos</Text>
           </View>
         </View>
 
@@ -409,13 +371,7 @@ export default function HomeUser() {
           </View>
 
           <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#DE1484" />
-            ) : error ? (
-              <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-            ) : (
-              <ProductCategoryList products={products} categoria={'Ropa, moda y calzado'} />
-            )}
+            <Text>Aqui van los productos</Text>
           </View>
         </View>
       </ScrollView>
@@ -423,9 +379,9 @@ export default function HomeUser() {
       <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
         <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
-    </View>
+
+    </View >
   )
-  
 }
 
 const styles = StyleSheet.create({
@@ -598,4 +554,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
+
 });

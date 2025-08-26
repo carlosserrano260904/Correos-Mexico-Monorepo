@@ -125,6 +125,10 @@ export const ProductListScreen: React.FC<ProductRecommendedProps> = ({ productos
 
     try {
       const response = await fetch(`${IP}/api/favoritos/${userId}`);
+      if (response.status === 404) {
+        setFavoritos({});
+        return;
+      }
       const data = await response.json();
       if (Array.isArray(data)) {
         const favoritosMap = data.reduce(

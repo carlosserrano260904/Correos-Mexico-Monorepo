@@ -139,6 +139,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
     if (!userId) return;
     try {
       const response = await fetch(`${IP}/api/favoritos/${userId}`);
+      if (response.status === 404) {
+        setFavoritos({});
+        return;
+      }
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error del servidor al obtener favoritos: ${response.status} ${errorText}`);
@@ -173,7 +177,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
     const fetchCart = async () => {
       try {
         const r = await fetch(`${IP}/api/carrito/${userId}`);
-        if (r.status === 404) return [];
+        if (r.status === 404) {
+          setCartItems({});
+          return;
+        }
         if (!r.ok) {
           const errorText = await r.text();
           throw new Error(`Error al obtener el carrito - ${r.status}: ${errorText}`);

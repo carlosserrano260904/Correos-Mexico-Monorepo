@@ -15,7 +15,7 @@ interface ProductState {
   loadProducts: () => Promise<void>
   loadProduct: (id: number) => Promise<FrontendProduct | null>
   selectProduct: (productId: number) => void
-  addProduct: (newProduct: Omit<FrontendProduct, 'ProductID'>, file?: File) => Promise<void> // ← Cambiar tipo
+  addProduct: (newProduct: Omit<FrontendProduct, 'ProductID'>, file?: File, additionalFiles?: File[]) => Promise<void> // ← Soporte múltiples archivos
   updateProduct: (id: number, updates: Partial<FrontendProduct>) => Promise<void> // ← Cambiar tipo
   deleteProduct: (id: number) => Promise<void>
   
@@ -90,19 +90,28 @@ export const useProductsStore = create<ProductState>()(
         }
       },
 
-      // Agregar nuevo producto con validación Zod
-      addProduct: async (newProduct, file) => {
+      // Agregar nuevo producto con soporte para múltiples archivos
+      addProduct: async (newProduct, file, additionalFiles) => {
         set({ loading: true, error: null })
         
         try {
+          console.log('🏪 Store: Creando producto con archivos...')
+          console.log('📁 Archivo principal:', file?.name)
+          console.log('📁 Archivos adicionales:', additionalFiles?.length || 0)
+          
           // Mapear y validar los datos del producto
           const createDto = mapFrontendToCreateDto(newProduct)
           
-          // Preparar archivos para enviar
+          // Preparar archivos para enviar - combinar archivo principal y adicionales
           const files: File[] = []
           if (file) {
             files.push(file)
           }
+          if (additionalFiles && additionalFiles.length > 0) {
+            files.push(...additionalFiles)
+          }
+          
+          console.log(`📦 Total de archivos a enviar: ${files.length}`)
           
           const createdProduct = await productsApiService.createProduct(createDto, files)
           
@@ -110,13 +119,15 @@ export const useProductsStore = create<ProductState>()(
             products: [...state.products, createdProduct],
             loading: false
           }))
+          
+          console.log('✅ Store: Producto creado exitosamente')
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear producto'
           set({ 
             error: errorMessage,
             loading: false 
           })
-          console.error('Error adding product:', error)
+          console.error('❌ Store: Error adding product:', error)
         }
       },
 

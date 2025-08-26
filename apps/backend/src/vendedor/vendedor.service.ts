@@ -86,7 +86,7 @@ export class VendedorService {
 
             // Mapear productos del vendedor
             const productos: ProductoPedidoDto[] = productosVendedor.map(pp => ({
-                sku: pp.producto.sku || 'SKU-NO-DISPONIBLE',
+                sku: pp.producto.sku,
                 nombre: pp.producto.nombre,
                 cantidad: pp.cantidad,
                 estado: primeraGuia?.situacion_actual || 'Sin información'

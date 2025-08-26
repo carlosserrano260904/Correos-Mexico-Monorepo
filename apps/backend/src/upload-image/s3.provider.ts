@@ -8,7 +8,6 @@ export const S3Provider: Provider = {
     const region = config.get<string>('AWS_REGION');
     const accessKeyId = config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = config.get<string>('AWS_SECRET_ACCESS_KEY');
-    const endpoint = config.get<string>('AWS_S3_ENDPOINT');
 
     const missing = [
       !region && 'AWS_REGION',
@@ -20,21 +19,14 @@ export const S3Provider: Provider = {
       throw new Error(`Faltan variables de entorno: ${missing.join(', ')}`);
     }
 
-    const clientConfig: any = {
+    return new S3Client({
       region: region!,
       credentials: {
         accessKeyId: accessKeyId!,
         secretAccessKey: secretAccessKey!,
       },
       forcePathStyle: true,
-    };
-
-    // If using a custom S3-compatible endpoint (like IDrive e2)
-    if (endpoint) {
-      clientConfig.endpoint = `https://${endpoint}`;
-    }
-
-    return new S3Client(clientConfig);
+    });
   },
   inject: [ConfigService],
 };

@@ -10,12 +10,14 @@ import {
 } from '../../../../../components/ui/table';
 import { ProductosProps } from '@/types/index';
 import { Producto } from '../../../components/primitivos';
+import { mapFrontendProductToComponent } from '@/utils/componentMappers';
+import { FrontendProduct } from '@/schemas/products';
   // Ajusta la ruta según tu proyecto
 import { Separator } from '../../../../../components/ui/separator';
 import { uploadApiService } from '@/services/uploadapi';
 
 interface Data {
-  entradas: ProductosProps[];
+  entradas: FrontendProduct[];
   variants?: 'full' | 'compact';
 }
 
@@ -23,7 +25,7 @@ const DEFAULT_IMAGE = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v174892
 
 export default function TableDemo({ entradas, variants = 'full' }: Data) {
   // Guardamos las entradas con la URL resuelta
-  const [lista, setLista] = useState<ProductosProps[]>([]);
+  const [lista, setLista] = useState<FrontendProduct[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,18 +97,46 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
             </TableHeader>
             <TableBody>
               {lista.map((entrada) => {
-                const productoProps = {
-                  ...entrada,
-                  ProductImages: entrada.ProductImages ?? [],
-                  ProductCupons: entrada.ProductCupons ?? [],
-                  variant: variants as 'full' | 'compact'
-                };
-                return (
-                  <Producto
-                    key={entrada.ProductID}
-                    {...productoProps}
-                  />
-                );
+                try {
+                  // ✅ Usar el mapper para convertir FrontendProduct a ProductoComponent
+                  const productoProps = mapFrontendProductToComponent(
+                    entrada, 
+                    variants as 'full' | 'compact'
+                  );
+                  return (
+                    <Producto
+                      key={entrada.ProductID}
+                      {...productoProps}
+                      ProductImages={productoProps.ProductImages || []}
+                      ProductCupons={productoProps.ProductCupons || []}
+                    />
+                  );
+                } catch (error) {
+                  console.error('❌ Error mapeando producto:', error, entrada);
+                  // Fallback: usar los datos directamente si el mapper falla
+                  return (
+                    <Producto
+                      key={entrada.ProductID}
+                      ProductID={entrada.ProductID}
+                      ProductName={entrada.ProductName}
+                      ProductDescription={entrada.ProductDescription || 'Sin descripción'}
+                      ProductImageUrl={entrada.ProductImageUrl || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'}
+                      productPrice={entrada.productPrice}
+                      ProductBrand={entrada.ProductBrand || 'Sin marca'}
+                      ProductStatus={entrada.ProductStatus}
+                      ProductStock={entrada.ProductStock}
+                      ProductCategory={entrada.ProductCategory || 'Sin categoría'}
+                      ProductSellerName={entrada.ProductSellerName || 'Sin vendedor'}
+                      ProductSold={entrada.ProductSold}
+                      ProductSlug={entrada.ProductSlug}
+                      Color={entrada.Color}
+                      ProductSKU={entrada.ProductSKU}
+                      ProductImages={entrada.ProductImages || []}
+                      ProductCupons={entrada.ProductCupons || []}
+                      variant={variants as 'full' | 'compact'}
+                    />
+                  );
+                }
               })}
             </TableBody>
 
@@ -118,21 +148,52 @@ export default function TableDemo({ entradas, variants = 'full' }: Data) {
       return (
         <div className="bg-white max-h-[270px] overflow-y-auto rounded-xl border">
           {lista.map((entrada, idx) => {
-            const productoProps = {
-              ...entrada,
-              ProductImages: entrada.ProductImages ?? [],
-              ProductCupons: entrada.ProductCupons ?? [],
-              variant: variants as 'full' | 'compact'
-            };
-            return (
-              <div className="px-6" key={idx}>
-                <Producto
-                  key={entrada.ProductID}
-                  {...productoProps}
-                />
-                {idx < lista.length - 1 && <Separator />}
-              </div>
-            );
+            try {
+              // ✅ Usar el mapper para convertir FrontendProduct a ProductoComponent
+              const productoProps = mapFrontendProductToComponent(
+                entrada, 
+                variants as 'full' | 'compact'
+              );
+              return (
+                <div className="px-6" key={idx}>
+                  <Producto
+                    key={entrada.ProductID}
+                    {...productoProps}
+                    ProductImages={productoProps.ProductImages || []}
+                    ProductCupons={productoProps.ProductCupons || []}
+                  />
+                  {idx < lista.length - 1 && <Separator />}
+                </div>
+              );
+            } catch (error) {
+              console.error('❌ Error mapeando producto (compact):', error, entrada);
+              // Fallback: usar los datos directamente si el mapper falla
+              return (
+                <div className="px-6" key={idx}>
+                  <Producto
+                    key={entrada.ProductID}
+                    ProductID={entrada.ProductID}
+                    ProductName={entrada.ProductName}
+                    ProductDescription={entrada.ProductDescription || 'Sin descripción'}
+                    ProductImageUrl={entrada.ProductImageUrl || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'}
+                    productPrice={entrada.productPrice}
+                    ProductBrand={entrada.ProductBrand || 'Sin marca'}
+                    ProductStatus={entrada.ProductStatus}
+                    ProductStock={entrada.ProductStock}
+                    ProductCategory={entrada.ProductCategory || 'Sin categoría'}
+                    ProductSellerName={entrada.ProductSellerName || 'Sin vendedor'}
+                    ProductSold={entrada.ProductSold}
+                    ProductSlug={entrada.ProductSlug}
+                    Color={entrada.Color}
+                    ProductSKU={entrada.ProductSKU}
+                    ProductImages={entrada.ProductImages || []}
+                    ProductCupons={entrada.ProductCupons || []}
+                    variant={variants as 'full' | 'compact'}
+                  />
+                  {idx < lista.length - 1 && <Separator />}
+                </div>
+              );
+            }
           })}
         </div>
       );

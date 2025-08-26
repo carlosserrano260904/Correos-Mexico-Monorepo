@@ -9,22 +9,11 @@ import { useProducts } from '@/hooks/useProduct';
 import { BtnLink } from '@/app/Vendedor/components/primitivos';
 import { FrontendProduct } from '@/types';
 import { uploadApiService } from '@/services/uploadapi';
+import { mapVariantsToBackendProduct, validateVariants, type FormularioData, type VariantData } from '@/utils/variantMapper';
+import { VariantPreview } from './VariantPreview';
 
-interface FormularioData {
-  ProductName: string;
-  ProductDescription: string;
-  productPrice: number;
-  ProductSlug: string;
-  ProductBrand: string;
-  ProductCategory: string;
-  variants: Array<{
-    tipo: 'Color' | 'Talla';
-    price: number;
-    valor: string;
-    inventario: number;
-    sku: string;
-  }>;
-}
+// Moved to variantMapper.ts
+// interface FormularioData is now imported
 
 export const Formulario: React.FC = () => {
   const { addProduct } = useProducts();
@@ -53,8 +42,9 @@ export const Formulario: React.FC = () => {
     1: true,
   });
 
-  // Estado para el archivo de imagen seleccionado
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // Estado para archivos de imagen por variante
+  const [variantImages, setVariantImages] = useState<Map<number, File>>(new Map());
+  const [allImageFiles, setAllImageFiles] = useState<File[]>([]);
 
   const DEFAULT_SLUG_BASE_URL = 'https://www.correosclic.gob.mx/';
 
@@ -158,66 +148,110 @@ export const Formulario: React.FC = () => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setSelectedFile(file);
-    console.log('📷 Archivo seleccionado:', file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    console.log(`📷 Archivo seleccionado para variante ${variantIndex + 1}:`, file.name);
+    
+    // Actualizar mapa de imágenes por variante
+    setVariantImages(prev => {
+      const newMap = new Map(prev);
+      newMap.set(variantIndex, file);
+      return newMap;
+    });
+    
+    // Actualizar array de todos los archivos
+    setAllImageFiles(prev => {
+      const newFiles = [...prev];
+      newFiles[variantIndex] = file;
+      return newFiles.filter(Boolean); // Remover elementos undefined
+    });
   };
 
   const handleCrearProducto = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault(); // si usas preventNavigation en el link
+    e.preventDefault();
     try {
-      console.log('selectedFile antes de subir:', selectedFile);
-      console.log('🔍 Creando producto…');
-      console.log('🔍 Archivo seleccionado:', selectedFile);
-
-      const totalStock = formData.variants.reduce(
-        (sum, variant) => sum + variant.inventario,
-        0
-      );
-      const firstColorVariant = formData.variants.find(
-        (v) => v.tipo === 'Color' && v.valor.trim() !== ''
-      );
-      const productColor = firstColorVariant?.valor || '#000000';
-
-      const newProduct: Omit<FrontendProduct, 'ProductID'> = {
-        ProductName: formData.ProductName,
-        ProductDescription: formData.ProductDescription,
-        productPrice: formData.productPrice,
-        ProductCategory: formData.ProductCategory,
-        ProductBrand: formData.ProductBrand,
-        ProductSlug: formData.ProductSlug,
-        ProductStock: totalStock,
-        Color: productColor,
-        ProductImageUrl: '', // se asignará más adelante
-        ProductImages: [], // Empty array for now
-        ProductStatus: true,
-        ProductSellerName: 'Admin',
-        ProductSold: 0,
-        ProductSKU: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Generate unique SKU
-        ProductCupons: [],
-      };
-
-      // The image will be handled by the backend along with the product creation
-      console.log('🔍 Image will be processed by backend:', selectedFile ? 'Yes' : 'No');
-      newProduct.ProductImageUrl = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'; // Default, will be updated by backend
-
-      console.log('✅ Product data ready to send:', newProduct);
-      console.log('📊 Product structure:', JSON.stringify(newProduct, null, 2));
-
-      // Step 2: Create the product
-      console.log('🚀 Creating product...');
-      await addProduct(newProduct, selectedFile || undefined);
-      console.log('🎉 Product created successfully!');
+      console.log('🚀 === CREANDO PRODUCTO CON VARIANTES ===');
+      console.log('📊 Datos del formulario:', formData);
+      console.log('🖼️ Imágenes por variante:', variantImages.size);
       
-      // Clean up and navigate
+      // PASO 1: Validar variantes
+      const validation = validateVariants(formData.variants);
+      if (!validation.isValid) {
+        console.error('❌ Errores de validación:', validation.errors);
+        alert(`Errores en las variantes:\n${validation.errors.join('\n')}`);
+        return;
+      }
+      
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️ Advertencias:', validation.warnings);
+      }
+      
+      // PASO 2: Mapear variantes a estructura del backend
+      const sellerId = 1; // TODO: Obtener del contexto de usuario
+      const mappingResult = mapVariantsToBackendProduct(
+        formData,
+        variantImages,
+        sellerId
+      );
+      
+      console.log('✅ Mapeo completado:', mappingResult.variantInfo);
+      console.log('📦 DTO del producto:', mappingResult.productDto);
+      console.log('🖼️ Archivos de imagen:', mappingResult.imageFiles.length);
+      
+      // PASO 3: Crear el producto usando el hook existente
+      console.log('🚀 Enviando al backend...');
+      
+      // Convertir DTO a FrontendProduct para compatibilidad con useProducts
+      const frontendProductForHook: Omit<FrontendProduct, 'ProductID'> = {
+        ProductName: mappingResult.productDto.nombre,
+        ProductDescription: mappingResult.productDto.descripcion,
+        productPrice: mappingResult.productDto.precio,
+        ProductCategory: mappingResult.productDto.categoria,
+        ProductBrand: mappingResult.productDto.marca,
+        ProductSlug: mappingResult.productDto.slug,
+        ProductStock: mappingResult.productDto.inventario,
+        Color: mappingResult.productDto.color,
+        ProductImageUrl: '',
+        ProductImages: [],
+        ProductStatus: mappingResult.productDto.estado,
+        ProductSellerName: mappingResult.productDto.vendedor,
+        ProductSold: mappingResult.productDto.vendidos || 0,
+        ProductSKU: mappingResult.productDto.sku,
+        ProductCupons: [],
+        
+        // Nuevos campos
+        ProductHeight: mappingResult.productDto.altura,
+        ProductLength: mappingResult.productDto.largo,
+        ProductWidth: mappingResult.productDto.ancho,
+        ProductWeight: mappingResult.productDto.peso,
+        ProductSellerId: mappingResult.productDto.idPerfil,
+      };
+      
+      // Usar todas las imágenes de las variantes
+      const imageFilesArray = mappingResult.imageFiles;
+      const primaryImage = imageFilesArray.length > 0 ? imageFilesArray[0] : undefined;
+      const additionalImages = imageFilesArray.length > 1 ? imageFilesArray.slice(1) : undefined;
+      
+      console.log('📁 Enviando archivos:', {
+        primary: primaryImage?.name,
+        additional: additionalImages?.map(f => f.name) || []
+      });
+      
+      await addProduct(frontendProductForHook, primaryImage, additionalImages);
+      
+      console.log('🎉 Producto con variantes creado exitosamente!');
+      console.log(`📊 Resumen: ${mappingResult.variantInfo.variantSummary}`);
+      
+      // Limpiar y navegar
       resetForm();
       router.push('/Vendedor/app/Productos');
       
     } catch (error) {
-      console.error('❌ Error creando producto:', error);
+      console.error('❌ Error creando producto con variantes:', error);
       
-      // Show user-friendly error message
       let errorMessage = 'Error desconocido al crear producto';
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -225,11 +259,6 @@ export const Formulario: React.FC = () => {
       
       alert(`Error al crear producto: ${errorMessage}`);
     }
-
-
-
-
-    
   };
 
   const resetForm = () => {
@@ -250,7 +279,8 @@ export const Formulario: React.FC = () => {
         },
       ],
     });
-    setSelectedFile(null);
+    setVariantImages(new Map());
+    setAllImageFiles([]);
     setNumVariantes(1);
     setVariantesVisibles({ 1: true });
   };
@@ -426,9 +456,8 @@ export const Formulario: React.FC = () => {
                       name={`file-upload-${numero}`}
                       type="file"
                       className="sr-only"
-                      multiple
                       accept="image/*"
-                      onChange={handleFileChange}
+                      onChange={(e) => handleFileChange(e, variantIndex)}
                     />
                   </div>
                 </div>
@@ -599,7 +628,14 @@ export const Formulario: React.FC = () => {
         <h2 className="text-xl font-bold text-gray-900 mb-6">
           Variantes del Producto
         </h2>
-        <div className="space-y-6">
+        
+        {/* Preview de las variantes */}
+        <VariantPreview 
+          formData={formData} 
+          variantImages={variantImages} 
+        />
+        
+        <div className="space-y-6 mt-6">
           {Array.from({ length: numVariantes }).map((_, index) =>
             renderSingleVariantForm(index + 1)
           )}

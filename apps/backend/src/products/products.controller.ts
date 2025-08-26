@@ -92,7 +92,7 @@ export class ProductsController {
 
   @Get('/findSome')
   findSome() {
-    return this.productsService.findAll();
+    return this.productsService.findSome();
   }
 
   @Get()

@@ -26,30 +26,6 @@ export class ProductsService {
     createProductDto: CreateProductDto,
     files?: Express.Multer.File[]
   ): Promise<Product> {
-    // Generate default values for missing fields
-    const productData = {
-      ...createProductDto,
-      // Generate slug from name if not provided
-      slug: createProductDto.nombre
-        ? createProductDto.nombre
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-        : null,
-      // Generate SKU if not provided
-      sku: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      // Set default values for other fields
-      color: 'Sin especificar',
-      marca: 'Sin marca',
-      vendedor: 'Administrador',
-    };
-
-    console.log('🏗️ Creating product with data:', productData);
-    
-    const product = this.productRepository.create(productData);
-    await this.productRepository.save(product);
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -140,31 +116,9 @@ export class ProductsService {
   }
 
   async findAll(): Promise<Product[]> {
-    try {
-      this.logger.log('🚀 Iniciando obtención de todos los productos');
-      
-      // Try with minimal relations first to identify the issue
-      const products = await this.productRepository.find({
-        relations: { images: true }, // Only load images, skip reviews for now
-      });
-      
-      this.logger.log(`✅ Productos obtenidos exitosamente: ${products.length}`);
-      return products;
-      
-    } catch (error) {
-      this.logger.error(`❌ Error en findAll(): ${error.message}`, error.stack);
-      
-      // Fallback: try without any relations
-      try {
-        this.logger.log('🔄 Intentando obtener productos sin relaciones...');
-        const basicProducts = await this.productRepository.find();
-        this.logger.log(`⚠️ Productos básicos obtenidos: ${basicProducts.length}`);
-        return basicProducts;
-      } catch (fallbackError) {
-        this.logger.error(`❌ Error crítico en findAll(): ${fallbackError.message}`, fallbackError.stack);
-        throw fallbackError;
-      }
-    }
+    return this.productRepository.find({
+      relations: { images: true, reviews: { profile: true, images: true } },
+    });
   }
 
   async findOne(id: number): Promise<Product> {

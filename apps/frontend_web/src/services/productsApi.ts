@@ -144,19 +144,44 @@ class ProductsApiService {
       // Crear FormData para multipart/form-data
       const formData = new FormData();
       
-      // Agregar campos del producto
+      // === CAMPOS BÁSICOS REQUERIDOS ===
       formData.append('nombre', productData.nombre);
       formData.append('descripcion', productData.descripcion);
       formData.append('precio', productData.precio.toString());
-      if (productData.categoria) {
-        formData.append('categoria', productData.categoria);
+      formData.append('inventario', productData.inventario.toString());
+      formData.append('categoria', productData.categoria);
+      formData.append('color', productData.color);
+      formData.append('marca', productData.marca);
+      formData.append('slug', productData.slug);
+      formData.append('estado', productData.estado.toString());
+      formData.append('sku', productData.sku);
+      formData.append('vendedor', productData.vendedor);
+      formData.append('vendidos', (productData.vendidos || 0).toString());
+      formData.append('idPerfil', productData.idPerfil.toString());
+      
+      // === DIMENSIONES FÍSICAS OPCIONALES ===
+      if (productData.altura !== undefined) {
+        formData.append('altura', productData.altura.toString());
+      }
+      if (productData.largo !== undefined) {
+        formData.append('largo', productData.largo.toString());
+      }
+      if (productData.ancho !== undefined) {
+        formData.append('ancho', productData.ancho.toString());
+      }
+      if (productData.peso !== undefined) {
+        formData.append('peso', productData.peso.toString());
       }
       
-      // Agregar archivos si existen
+      // === AGREGAR ARCHIVOS ===
       if (files && files.length > 0) {
+        console.log(`📁 Agregando ${files.length} archivos al FormData:`);
         files.forEach((file, index) => {
-          formData.append('images', file);
+          console.log(`   ${index + 1}. ${file.name} (${file.type})`);
+          formData.append('images', file); // El backend espera 'images' como nombre del campo
         });
+      } else {
+        console.log('📁 No se enviaron archivos');
       }
       
       const response = await api.post<BackendProductEntity>(

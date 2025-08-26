@@ -23,7 +23,6 @@ export class CarritoController {
   @ApiParam({ name: 'profileId', type: Number, description: 'ID del perfil (profileId)' })
   @ApiResponse({ status: 200, description: 'Carrito obtenido correctamente.' })
   obtener(@Param('profileId') profileId: number) {
-    console.log('🛒 DEBUG CONTROLLER - obtenerCarrito llamado con profileId:', profileId, 'tipo:', typeof profileId);
     return this.carritoService.obtenerCarrito(profileId);
   }
 
@@ -48,7 +47,6 @@ export class CarritoController {
   agregarProducto(
     @Body() body: { profileId: number; productId: number; cantidad: number },
   ) {
-    console.log('🛒 DEBUG CONTROLLER - agregarProducto llamado con body:', body);
     return this.carritoService.agregarProducto(
       body.profileId,
       body.productId,

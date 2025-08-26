@@ -21,22 +21,21 @@ export class Product {
   @Column({ type: "varchar", length: 120 })
   descripcion: string;
 
-  // TEMPORALLY COMMENTED OUT - DATABASE SYNC ISSUE
-  // @ApiProperty({example: "120 cm"})
-  // @Column({type: "float4", nullable: true})
-  // altura: Float | null;
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  altura: Float | null;
 
-  // @ApiProperty({example: "120 cm"})
-  // @Column({type: "float4", nullable: true})
-  // largo: Float | null;
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  largo: Float | null;
 
-  // @ApiProperty({example: "120 cm"})
-  // @Column({type: "float4", nullable: true})
-  // ancho: Float | null;
+  @ApiProperty({example: "120 cm"})
+  @Column({type: "float4", nullable: true})
+  ancho: Float | null;
 
-  // @ApiProperty({example: "2kg"})
-  // @Column({type: "float4", nullable: true})
-  // peso: Float | null;
+  @ApiProperty({example: "2kg"})
+  @Column({type: "float4", nullable: true})
+  peso: Float | null;
 
   @ApiProperty({ example: 1299.9, type: Number })
   @Column({
@@ -55,21 +54,21 @@ export class Product {
   @Column({ type: "int", default: 0 })
   inventario: number;
 
-  @ApiProperty({ example: "Negro", nullable: true })
-  @Column({ type: "varchar", length: 40, nullable: true, default: "Sin color" })
-  color: string | null;
+  @ApiProperty({ example: "Negro" })
+  @Column({ type: "varchar", length: 40 })
+  color: string;
 
-  @ApiProperty({ example: "Nike", nullable: true })
-  @Column({ type: "varchar", length: 60, nullable: true, default: "Sin marca" })
-  marca: string | null;
+  @ApiProperty({ example: "Nike" })
+  @Column({ type: "varchar", length: 60 })
+  marca: string;
 
-  @ApiProperty({ example: "tenis-runner-negro", nullable: true })
-  @Column({ type: "varchar", length: 120, nullable: true })
-  slug: string | null;
+  @ApiProperty({ example: "tenis-runner-negro" })
+  @Column({ type: "varchar", length: 120 })
+  slug: string;
 
-  @ApiProperty({ example: "SportCenter MX", nullable: true })
-  @Column({ type: "varchar", length: 80, nullable: true, default: "Vendedor" })
-  vendedor: string | null;
+  @ApiProperty({ example: "SportCenter MX" })
+  @Column({ type: "varchar", length: 80 })
+  vendedor: string;
 
   @ApiProperty({ example: true })
   @Column({ type: "boolean", default: true })
@@ -79,9 +78,9 @@ export class Product {
   @Column({ type: "int", default: 0 })
   vendidos: number;
 
-  @ApiProperty({ example: "SKU-ABC-001", nullable: true })
-  @Column({ type: "varchar", length: 60, nullable: true })
-  sku: string | null;
+  @ApiProperty({ example: "SKU-ABC-001" })
+  @Column({ type: "varchar", length: 60 })
+  sku: string;
 
   @ApiProperty({ example: 1})
   @Column({ type: "int", nullable: true })

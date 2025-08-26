@@ -100,11 +100,29 @@ export function mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
       ProductSold: validated.vendidos,
       ProductSKU: validated.sku,
       
+      // === NUEVAS DIMENSIONES FÍSICAS ===
+      ProductHeight: validated.altura,
+      ProductLength: validated.largo,
+      ProductWidth: validated.ancho,
+      ProductWeight: validated.peso,
+      
+      // === VENDEDOR ===
+      ProductSellerId: validated.idPerfil,
+      
       // === IMÁGENES ===
       ProductImages: validated.images || [],
       
       // === CAMPOS EXTRA PARA UI ===
       ProductCupons: [],
+      
+      // === CAMPOS CALCULADOS PARA UI ===
+      ProductVolume: validated.altura && validated.largo && validated.ancho 
+        ? validated.altura * validated.largo * validated.ancho 
+        : undefined,
+      ProductDimensions: validated.altura && validated.largo && validated.ancho
+        ? `${validated.altura} x ${validated.largo} x ${validated.ancho} cm`
+        : undefined,
+      ProductWeightDisplay: validated.peso ? `${validated.peso} kg` : undefined,
     }
     
     console.log('✅ Producto mapeado para frontend:', frontendProduct)
@@ -145,14 +163,28 @@ export function mapFrontendToCreateDto(frontendProduct: Partial<FrontendProduct>
       return isNaN(num) ? fallback : num
     }
     
-    // ✅ MAPEAR SOLO LOS CAMPOS QUE ACEPTA EL BACKEND CreateProductDto
+    // ✅ MAPEAR CAMPOS QUE ACEPTA EL BACKEND CreateProductDto (ACTUALIZADO)
     const createDto = {
+      // === CAMPOS BÁSICOS REQUERIDOS ===
       nombre: safeString(frontendProduct.ProductName, 'Producto sin nombre'),
       descripcion: safeString(frontendProduct.ProductDescription, 'Sin descripción'),
       precio: Math.max(0.01, safeNumber(frontendProduct.productPrice, 0.01)),
+      inventario: Math.max(0, safeNumber(frontendProduct.ProductStock, 0)),
       categoria: safeString(frontendProduct.ProductCategory, 'Sin categoría'),
-      // NOTA: inventario y color NO están soportados en CreateProductDto del backend
-      // imagen se maneja por separado en tu servicio con archivos
+      color: safeString(frontendProduct.Color, 'Sin especificar'),
+      marca: safeString(frontendProduct.ProductBrand, 'Sin marca'),
+      slug: safeString(frontendProduct.ProductSlug, 'producto-sin-slug'),
+      estado: frontendProduct.ProductStatus ?? true,
+      sku: safeString(frontendProduct.ProductSKU, 'SKU-AUTO-' + Date.now()),
+      vendedor: safeString(frontendProduct.ProductSellerName, 'Vendedor no especificado'),
+      vendidos: safeNumber(frontendProduct.ProductSold, 0),
+      idPerfil: safeNumber(frontendProduct.ProductSellerId, 1), // Requerido en backend
+      
+      // === DIMENSIONES FÍSICAS OPCIONALES ===
+      altura: frontendProduct.ProductHeight || undefined,
+      largo: frontendProduct.ProductLength || undefined,
+      ancho: frontendProduct.ProductWidth || undefined,
+      peso: frontendProduct.ProductWeight || undefined,
     }
     
     console.log('✅ DTO creado para backend:', createDto)
@@ -224,7 +256,67 @@ export function mapFrontendToUpdateDto(frontendProduct: Partial<FrontendProduct>
       }
     }
     
-    // NOTE: Color field is not supported in UpdateProductDto - removed to prevent API errors
+    if (frontendProduct.Color !== undefined) {
+      const color = safeString(frontendProduct.Color)
+      if (color) updateDto.color = color
+    }
+    
+    if (frontendProduct.ProductBrand !== undefined) {
+      const marca = safeString(frontendProduct.ProductBrand)
+      if (marca) updateDto.marca = marca
+    }
+    
+    if (frontendProduct.ProductSlug !== undefined) {
+      const slug = safeString(frontendProduct.ProductSlug)
+      if (slug) updateDto.slug = slug
+    }
+    
+    if (frontendProduct.ProductStatus !== undefined) {
+      updateDto.estado = frontendProduct.ProductStatus
+    }
+    
+    if (frontendProduct.ProductSKU !== undefined) {
+      const sku = safeString(frontendProduct.ProductSKU)
+      if (sku) updateDto.sku = sku
+    }
+    
+    if (frontendProduct.ProductSellerName !== undefined) {
+      const vendedor = safeString(frontendProduct.ProductSellerName)
+      if (vendedor) updateDto.vendedor = vendedor
+    }
+    
+    if (frontendProduct.ProductSold !== undefined) {
+      const vendidos = safeNumber(frontendProduct.ProductSold)
+      if (vendidos !== undefined && vendidos >= 0) {
+        updateDto.vendidos = Math.floor(vendidos)
+      }
+    }
+    
+    if (frontendProduct.ProductSellerId !== undefined) {
+      const idPerfil = safeNumber(frontendProduct.ProductSellerId)
+      if (idPerfil !== undefined) updateDto.idPerfil = idPerfil
+    }
+    
+    // === DIMENSIONES FÍSICAS ===
+    if (frontendProduct.ProductHeight !== undefined) {
+      const altura = safeNumber(frontendProduct.ProductHeight)
+      if (altura !== undefined && altura > 0) updateDto.altura = altura
+    }
+    
+    if (frontendProduct.ProductLength !== undefined) {
+      const largo = safeNumber(frontendProduct.ProductLength)
+      if (largo !== undefined && largo > 0) updateDto.largo = largo
+    }
+    
+    if (frontendProduct.ProductWidth !== undefined) {
+      const ancho = safeNumber(frontendProduct.ProductWidth)
+      if (ancho !== undefined && ancho > 0) updateDto.ancho = ancho
+    }
+    
+    if (frontendProduct.ProductWeight !== undefined) {
+      const peso = safeNumber(frontendProduct.ProductWeight)
+      if (peso !== undefined && peso > 0) updateDto.peso = peso
+    }
     
     console.log('✅ DTO preparado (antes de validación Zod):', updateDto)
     

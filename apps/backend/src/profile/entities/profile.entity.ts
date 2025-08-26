@@ -26,8 +26,8 @@ export class Profile {
   apellido: string;
 
   @ApiProperty({ example: '6181234567' })
-  @Column({ type: 'varchar', length: 15, nullable: true })
-  numero: string | null;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  numero: string;
 
   @OneToMany(() => Factura, (factura) => factura.profile)
   facturas: Factura[];

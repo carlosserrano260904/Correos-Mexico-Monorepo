@@ -2,8 +2,6 @@
   import Link from 'next/link';
   import React, { useState } from 'react'
   import { TableCell, TableRow } from '../../../components/ui/table';
-  import { CuponesPropsFront, OrdenesProps } from '@/types/interface'
-  import {FrontendProduct, ProductosProps} from "@/types/index"
   import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../../../components/ui/sheet';
   import { FaInfo } from 'react-icons/fa6';
   import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -12,13 +10,29 @@
   import { useCupons } from '@/hooks/useCupons';
   import { Button } from '@/components/ui/button';
   import { Separator } from '@/components/ui/separator';
-  import { productsApiService } from '@/services/productsApi' // Ajusta la ruta según tu estructura
+  import { productsApiService } from '@/services/productsApi'
   import { toast } from 'sonner'
   import { Input } from '@/components/ui/input'
   import { Label } from '@/components/ui/label'
   import { Textarea } from '@/components/ui/textarea'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import { FaEdit } from "react-icons/fa"
+  
+  // 🎯 NUEVOS IMPORTS - Schemas y Mappers
+  import { 
+    ProductoComponentSchema, 
+    CuponFrontendSchema, 
+    OrdenComponentSchema,
+    type ProductoComponent,
+    type CuponFrontend,
+    type OrdenComponent,
+    getStatusBadgeClass,
+    getStatusText,
+    formatPrice,
+    formatDate
+  } from '@/schemas/components';
+  import { mapFrontendProductToComponent, validateComponentData } from '@/utils/componentMappers';
+  import { FrontendProduct } from '@/schemas/products';
 
 
   export const Title = ({ children, size = "xl", className }: { children: React.ReactNode, size?: string, className?: string }) => {
@@ -27,9 +41,8 @@
     )
   }
 
-  export interface ProductoComponentProps extends ProductosProps {
-  variant?: 'full' | 'compact';
-}
+  // ✅ USAMOS EL TIPO DEL SCHEMA EN LUGAR DE INTERFACE
+  export type ProductoComponentProps = ProductoComponent;
 
   type BtnLinkProps = {
   link?: string;
@@ -68,20 +81,13 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
   );
 };
 
-  export const Cupon = ({ CuponID, CuponCode, TimesUsed, CuponStatus, EndDate, variant = 'full' }: CuponesPropsFront) => {
+  export const Cupon = ({ CuponID, CuponCode, TimesUsed, CuponStatus, EndDate, variant = 'full' }: CuponFrontend) => {
     const { deleteCupon } = useCupons()
     
+    // ✅ USAMOS LOS HELPERS DEL SCHEMA
     const getStatusBadge = (status: number) => (
-      <span className={`w-max rounded-lg px-[6px] ${
-        status === 1 ? 'text-green-400 bg-green-100' :
-        status === 2 ? 'text-orange-400 bg-orange-100' :
-        status === 3 ? 'text-red-400 bg-red-100' : ''
-      }`}>
-        {
-          status === 1 ? 'Activo' :
-          status === 2 ? 'Borrado' :
-          status === 3 ? 'Caducado' : ''
-        }
+      <span className={`w-max rounded-lg px-[6px] ${getStatusBadgeClass(status)}`}>
+        {getStatusText(status)}
       </span>
     );
 
@@ -163,7 +169,34 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
     }
   }
 
-  export const Producto = ({ ProductID, productPrice, ProductDescription, ProductImageUrl, ProductName, ProductBrand, ProductStatus, ProductStock, ProductCategory, ProductSellerName, variant = 'full', ProductSold, ProductSlug, Color, ProductSKU }: ProductoComponentProps) => {
+  export const Producto = ({ 
+    ProductID, 
+    productPrice, 
+    ProductDescription, 
+    ProductImageUrl, 
+    ProductName, 
+    ProductBrand, 
+    ProductStatus, 
+    ProductStock, 
+    ProductCategory, 
+    ProductSellerName, 
+    variant = 'full', 
+    ProductSold, 
+    ProductSlug, 
+    Color, 
+    ProductSKU,
+    ProductImages,
+    ProductCupons,
+    // Nuevos campos opcionales
+    ProductHeight,
+    ProductLength, 
+    ProductWidth,
+    ProductWeight,
+    ProductSellerId,
+    ProductVolume,
+    ProductDimensions,
+    ProductWeightDisplay
+  }: ProductoComponentProps) => {
     const { deleteProduct } = useProducts()
 
       const [isEditing, setIsEditing] = useState(false)
@@ -176,14 +209,32 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
     ProductStock: ProductStock || 0,
     ProductCategory: ProductCategory || '',
     Color: Color || '',
-    ProductImageUrl: ProductImageUrl || ''
+    ProductImageUrl: ProductImageUrl || '',
+    ProductBrand: ProductBrand || '',
+    ProductSKU: ProductSKU || '',
+    // Nuevos campos físicos
+    ProductHeight: ProductHeight || undefined,
+    ProductLength: ProductLength || undefined,
+    ProductWidth: ProductWidth || undefined,
+    ProductWeight: ProductWeight || undefined
   })
 
    const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    setFormData(prev => {
+      let processedValue: any = value;
+      
+      // Manejar campos de dimensiones físicas (convertir string vacío a undefined)
+      if (['ProductHeight', 'ProductLength', 'ProductWidth', 'ProductWeight'].includes(field)) {
+        if (typeof value === 'string') {
+          processedValue = value.trim() === '' ? undefined : Number(value) || undefined;
+        }
+      }
+      
+      return {
+        ...prev,
+        [field]: processedValue
+      };
+    });
   }
 
  const handleSave = async () => {
@@ -199,7 +250,14 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
       ProductStock: Number(formData.ProductStock),
       productPrice: Number(formData.productPrice),
       ProductCategory: formData.ProductCategory,
+      ProductBrand: formData.ProductBrand,
+      ProductSKU: formData.ProductSKU,
       Color: formData.Color,
+      // Nuevos campos físicos (ya procesados por handleInputChange)
+      ProductHeight: formData.ProductHeight,
+      ProductLength: formData.ProductLength,
+      ProductWidth: formData.ProductWidth,
+      ProductWeight: formData.ProductWeight,
     }
     
     console.log('🔍 Datos para enviar al mapper:', frontendProductUpdate)
@@ -239,7 +297,14 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
       ProductStock: ProductStock || 0,
       ProductCategory: ProductCategory || '',
       Color: Color || '',
-      ProductImageUrl: ProductImageUrl || ''
+      ProductImageUrl: ProductImageUrl || '',
+      ProductBrand: ProductBrand || '',
+      ProductSKU: ProductSKU || '',
+      // Nuevos campos físicos
+      ProductHeight: ProductHeight || undefined,
+      ProductLength: ProductLength || undefined,
+      ProductWidth: ProductWidth || undefined,
+      ProductWeight: ProductWeight || undefined
     })
     setIsEditing(false)
   }
@@ -363,9 +428,15 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Electrónica">Electrónica</SelectItem>
+                  <SelectItem value="Joyeria y Bisuteria">Joyeria y Bisuteria</SelectItem>
                   <SelectItem value="Ropa">Ropa</SelectItem>
                   <SelectItem value="Hogar">Hogar</SelectItem>
+                  <SelectItem value="Alimentos y bebidas">Alimentos y bebidas</SelectItem>
+                  <SelectItem value="Belleza y cuidado personal">Belleza y cuidado personal</SelectItem>
+                  <SelectItem value="Cocina">Cocina</SelectItem>
+                  <SelectItem value="Electronica">Electronica</SelectItem>
+                  <SelectItem value="Herramienta">Herramienta</SelectItem>
+                  <SelectItem value="Artesanal">Artesanal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -378,6 +449,87 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
                 placeholder="Color del producto"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="edit-brand" className='mb-2'>Marca</Label>
+              <Input
+                id="edit-brand"
+                value={formData.ProductBrand}
+                onChange={(e) => handleInputChange('ProductBrand', e.target.value)}
+                placeholder="Marca del producto"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-sku" className='mb-2'>SKU</Label>
+              <Input
+                id="edit-sku"
+                value={formData.ProductSKU}
+                onChange={(e) => handleInputChange('ProductSKU', e.target.value)}
+                placeholder="SKU del producto"
+              />
+            </div>
+          </div>
+
+          {/* Nuevas dimensiones físicas */}
+          <div>
+            <Label className='mb-2 text-sm font-semibold'>Dimensiones físicas (opcional)</Label>
+            <div className="grid grid-cols-4 gap-4 mt-2">
+              <div>
+                <Label htmlFor="edit-height" className='mb-1 text-xs'>Alto (cm)</Label>
+                <Input
+                  id="edit-height"
+                  type="number"
+                  value={formData.ProductHeight || ''}
+                  onChange={(e) => handleInputChange('ProductHeight', e.target.value || '')}
+                  placeholder="0"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-length" className='mb-1 text-xs'>Largo (cm)</Label>
+                <Input
+                  id="edit-length"
+                  type="number"
+                  value={formData.ProductLength || ''}
+                  onChange={(e) => handleInputChange('ProductLength', e.target.value || '')}
+                  placeholder="0"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-width" className='mb-1 text-xs'>Ancho (cm)</Label>
+                <Input
+                  id="edit-width"
+                  type="number"
+                  value={formData.ProductWidth || ''}
+                  onChange={(e) => handleInputChange('ProductWidth', e.target.value || '')}
+                  placeholder="0"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-weight" className='mb-1 text-xs'>Peso (kg)</Label>
+                <Input
+                  id="edit-weight"
+                  type="number"
+                  value={formData.ProductWeight || ''}
+                  onChange={(e) => handleInputChange('ProductWeight', e.target.value || '')}
+                  placeholder="0"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+            </div>
+            {(formData.ProductHeight && formData.ProductLength && formData.ProductWidth) && (
+              <div className="mt-2 text-xs text-gray-600">
+                Volumen: {(Number(formData.ProductHeight) * Number(formData.ProductLength) * Number(formData.ProductWidth)).toLocaleString()} cm³
+              </div>
+            )}
           </div>
 
           <div>
@@ -469,6 +621,37 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
           <div className='w-full'>Inventario</div>
           <div className='w-full text-right'>{ProductStock}</div>
         </div>
+        
+        {/* Dimensiones físicas */}
+        {(ProductHeight || ProductLength || ProductWidth || ProductWeight) && (
+          <>
+            <Separator className='mt-2' />
+            <div className='flex mt-3.5'>
+              <div className='w-full'>Dimensiones</div>
+              <div className='w-full text-right'>
+                {ProductDimensions || `${ProductHeight || '?'} × ${ProductLength || '?'} × ${ProductWidth || '?'} cm`}
+              </div>
+            </div>
+            {ProductWeight && (
+              <div className='flex mt-3.5'>
+                <div className='w-full'>Peso</div>
+                <div className='w-full text-right'>{ProductWeightDisplay || `${ProductWeight} kg`}</div>
+              </div>
+            )}
+            {ProductVolume && (
+              <div className='flex mt-3.5'>
+                <div className='w-full'>Volumen</div>
+                <div className='w-full text-right'>{ProductVolume.toLocaleString()} cm³</div>
+              </div>
+            )}
+          </>
+        )}
+        
+        <Separator className='mt-2' />
+        <div className='flex mt-3.5'>
+          <div className='w-full'>SKU</div>
+          <div className='w-full text-right'>{ProductSKU}</div>
+        </div>
         <div className='flex mt-3.5'>
           <div className='w-full'>Imagenes</div>
           <div className='w-full text-right'><img src={ProductImageUrl} className="" ></img></div>
@@ -507,7 +690,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
 
   }
 
-  export const Orden = ({ OrderID, OrderInfo, NoProducts, OrderStatus, OrderTotal, OrderDate, PaymentMethod, ClientName, Email, PhoneNumber, PackageStatus }: OrdenesProps) => {
+  export const Orden = ({ OrderID, OrderInfo, NoProducts, OrderStatus, OrderTotal, OrderDate, PaymentMethod, ClientName, Email, PhoneNumber, PackageStatus }: OrdenComponent) => {
 
     return (
       <TableRow key={OrderID}>
@@ -515,8 +698,8 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
         <TableCell className="max-w-32 break-words whitespace-normal">{OrderInfo.map((item) => (item.ProductName))}</TableCell>
         <TableCell>{NoProducts}</TableCell>
         <TableCell>
-          <p className={`w-max rounded-lg px-[6px] ${OrderStatus === 1 ? 'text-green-400 bg-green-100' : OrderStatus === 2 ? 'text-orange-400 bg-orange-100' : OrderStatus === 3 ? 'text-red-400 bg-red-100' : ''}`}>
-            {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : ''}
+          <p className={`w-max rounded-lg px-[6px] ${getStatusBadgeClass(OrderStatus)}`}>
+            {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : 'Desconocido'}
           </p>
         </TableCell>
         <TableCell>${OrderTotal}</TableCell>
@@ -560,9 +743,8 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
                   <div className='basis-1/2'>
                     <p>{OrderDate}</p>
                     <p className='my-2'>{PaymentMethod}</p>
-                    <p className={`w-max rounded-lg px-[6px]
-                          ${OrderStatus === 1 ? 'text-green-400 bg-green-100' : OrderStatus === 2 ? 'text-orange-400 bg-orange-100' : OrderStatus === 3 ? 'text-red-400 bg-red-100' : ''}`}>
-                      {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : ''}
+                    <p className={`w-max rounded-lg px-[6px] ${getStatusBadgeClass(OrderStatus)}`}>
+                      {OrderStatus === 1 ? 'Completado' : OrderStatus === 2 ? 'Pendiente' : OrderStatus === 3 ? 'Cancelado' : 'Desconocido'}
                     </p>
                   </div>
                 </div>

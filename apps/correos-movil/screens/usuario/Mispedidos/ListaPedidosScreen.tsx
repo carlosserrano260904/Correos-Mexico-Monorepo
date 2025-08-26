@@ -75,7 +75,7 @@ export default function ListaPedidosScreen() {
         if (!userId) throw new Error('No se proporcionó un ID de usuario.');
         if (!API_URL) throw new Error('La URL de la API no está configurada.');
 
-        const response = await fetch(`${API_URL}/api/api/pedido/user/${userId}`);
+        const response = await fetch(`${API_URL}/api/pedido/user/${userId}`);
         if (!response.ok) {
           const errorBody = await response.text();
           throw new Error(`Status: ${response.status}. Cuerpo: ${errorBody}`);

@@ -51,7 +51,7 @@ const API_ROOT = Constants.expoConfig?.extra?.IP_LOCAL
   : `${(BASE_URL || '').replace(/\/$/, '')}/api`;
 
 // 👇 añade el 'api/' extra del controlador
-const PEDIDOS_PREFIX = 'api/pedido';
+const PEDIDOS_PREFIX = 'pedido';
 
 export async function obtenerPedidosPorUsuario(profileId: number) {
   const { data } = await axios.get(`${API_ROOT}/${PEDIDOS_PREFIX}/user/${profileId}`);

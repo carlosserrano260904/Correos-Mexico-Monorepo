@@ -98,7 +98,7 @@ export default function AppNavigator() {
             <Stack.Screen name="FormularioVendedor" component={FormularioVendedor} options={{headerShown: false}} />
             <Stack.Screen name="NombreQuienRecibe" component={NameOfReceivePerson} options={{headerShown: false}} />
             <Stack.Screen name="Checkout" component={CheckoutTabs} options={{headerShown: false}}/>
-            <Stack.Screen name="HistorialFacturas" component={HistorialFacturas}/>
+            <Stack.Screen name="HistorialDeFacturas" component={HistorialFacturas}/>
 
         </Stack.Navigator>
     );

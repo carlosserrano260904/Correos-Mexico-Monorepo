@@ -141,7 +141,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
       );
       setFavoritos(favoritosMap);
     } catch (err) {
-      console.error('Error al obtener favoritos:', err);
+      console.warn('Error al obtener favoritos:', err);
     }
   };
 

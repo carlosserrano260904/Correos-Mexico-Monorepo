@@ -159,7 +159,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
         console.error('La respuesta de la API de favoritos no es un arreglo:', data);
       }
     } catch (err) {
-      console.error('Error al obtener favoritos:', err);
+      console.warn('Error al obtener favoritos:', err);
     }
   };
 

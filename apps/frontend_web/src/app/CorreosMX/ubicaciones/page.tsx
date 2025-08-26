@@ -17,7 +17,7 @@ export default function Ubicaciones() {
   const [showPostalWarning, setShowPostalWarning] = useState(false);
 
   //  estado para manejar los detalles
-  const [showDetails, setShowDetails] = useState({});
+  const [showDetails, setShowDetails] = useState<{[key: number]: boolean}>({});
 
   const handleSearch = () => {
     if (!estado || !municipio) {
@@ -52,7 +52,7 @@ export default function Ubicaciones() {
     console.log('Limpiando los resultados...');
   };
 
-  const toggleDetails = (index) => {
+  const toggleDetails = (index: number) => {
     setShowDetails((prevState) => ({
       ...prevState,
       [index]: !prevState[index],
@@ -67,9 +67,9 @@ export default function Ubicaciones() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      position: 'relative',
+      position: 'relative' as const,
       overflow: 'hidden',
-      flexDirection: 'row',
+      flexDirection: 'row' as const,
       gap: '40px',
     },
     circulo1: {

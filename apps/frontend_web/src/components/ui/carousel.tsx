@@ -35,6 +35,20 @@ const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 function useCarousel() {
   const context = React.useContext(CarouselContext)
 
+  if (typeof window === 'undefined') {
+    // Return a default context during SSR
+    return {
+      carouselRef: null,
+      api: null,
+      scrollPrev: () => {},
+      scrollNext: () => {},
+      canScrollPrev: false,
+      canScrollNext: false,
+      orientation: 'horizontal' as const,
+      opts: undefined,
+    }
+  }
+
   if (!context) {
     throw new Error("useCarousel must be used within a <Carousel />")
   }

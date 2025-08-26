@@ -1,7 +1,11 @@
+ // schemas/schemas.ts
+import { z } from 'zod';
+
+// Perfil de usuario
 export const ProfileUserSchema = z.object({
   nombre: z.string(),
   apellido: z.string(),
-  numero: z.string().nullable().optional(),
+  numero: z.string().nullable().optional,
   estado: z.string(),
   ciudad: z.string(),
   fraccionamiento: z.string(),
@@ -74,6 +78,7 @@ export type RootStackParamList = {
   RecibirPaquete: { package: any };
   TomarEvidencia: { package: any };
   FormularioVendedor: undefined;
+  HistorialFacturas: undefined;
 };
 
 // Producto y contenidos
@@ -86,87 +91,3 @@ export const ProductoSchema = z.object({
   inventario: z.number(),
   precio: z.string(),
 });
-
-export const ContenidoSchema = z.object({
-  id: z.number(),
-  precio: z.string(),
-  cantidad: z.number(),
-  producto: ProductoSchema,
-});
-
-// --------------------------------------------------
-// Compra (una transacción)
-export const MisComprasSchema = z.object({
-  id: z.number(),
-  total: z.string(),
-  diaTransaccion: z
-    .string()
-    .refine((s) => !isNaN(Date.parse(s)), { message: 'Debe ser fecha ISO válida' })
-    .transform((s) => new Date(s)),
-  profileId: z.number(),
-  contenidos: z.array(ContenidoSchema),
-});
-
-// --------------------------------------------------
-// Schema para la respuesta (array de compras)
-export const MisComprasSchemaDB = z.array(MisComprasSchema);
-
-// --------------------------------------------------
-// Tipos TS
-// 1) Tipo para una sola compra
-export type MisComprasType = z.infer<typeof MisComprasSchema>;
-// 2) Tipo para el array de compras
-export type MisComprasResponse = z.infer<typeof MisComprasSchemaDB>;
-
-//---------------------------------------------------
-// Direcciones
-
-export const DireccionesSchema=z.object({
-  id: z.number(),
-    nombre: z.string(),
-    calle: z.string(),
-    colonia_fraccionamiento: z.string(),
-    numero_interior: z.number().nullable(),
-    numero_exterior: z.number().nullable(), 
-    numero_celular: z.string(),
-    codigo_postal: z.string(),
-    estado: z.string(),
-    municipio: z.string(),
-    mas_info: z.string().optional(),
-    usuario: z.object({
-      id: z.number(),
-      nombre: z.string(),
-      apellido: z.string(),
-      numero: z.string(),
-      estado: z.string(),
-      ciudad: z.string(),
-      fraccionamiento: z.string(),
-      calle: z.string(),
-      codigoPostal: z.string(),
-      imagen: z.string(),
-    }),
-})
-
-export const DireccionesSchemaDB = z.array(DireccionesSchema) 
-export type DireccionesType = z.infer<typeof DireccionesSchemaDB>
-
-
-//pedidosss
-
-
-export const MisPedidosSchemaDB = z.array(
-  z.object({
-    id: z.number(),
-    fecha: z.string(), // o z.date() si ya es tipo Date
-    status: z.string(),
-    total: z.number(),
-    productos: z.array(
-      z.object({
-        producto_id: z.number(),
-        cantidad: z.number(),
-      })
-    ),
-  })
-);
-
-export type MisPedidosType = z.infer<typeof MisPedidosSchemaDB>[number];

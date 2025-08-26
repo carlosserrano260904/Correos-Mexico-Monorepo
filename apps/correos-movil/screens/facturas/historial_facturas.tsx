@@ -5,7 +5,6 @@ import {
   Calendar,
   ChevronRight,
   DollarSign,
-  Download,
   FileText,
   RefreshCw,
   Search
@@ -52,6 +51,21 @@ interface Factura {
   productos: string[];
   profileId: number;
 }
+
+const SearchBar = ({ searchQuery, onSearch }) => (
+  <View style={styles.searchContainer}>
+    <View style={styles.searchBar}>
+      <Search size={20} color={Colors.gray} />
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Buscar por número o sucursal..."
+        placeholderTextColor={Colors.gray}
+        value={searchQuery}
+        onChangeText={onSearch}
+      />
+    </View>
+  </View>
+);
 
 const InvoiceHistoryScreen = () => {
   const navigation = useNavigation();
@@ -107,19 +121,7 @@ const InvoiceHistoryScreen = () => {
   }
 };
 
-const downloadInvoice = async (invoiceId) => {
-  try {
-    console.log('Downloading invoice:', invoiceId);
-    Alert.alert('Descarga', `Descargando factura ${invoiceId}`);
-  } catch (error) {
-    console.error('Error downloading invoice:', error);
-    Alert.alert('Error', 'No se pudo descargar la factura');
-  }
-};
 
-const searchInvoices = (query) => {
-  setSearchQuery(query);
-};
 
 const onRefresh = async () => {
   if (!userId) return;
@@ -181,7 +183,7 @@ const onRefresh = async () => {
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
         <TouchableOpacity
           style={headerStyles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('ProfileUser')}
           accessibilityLabel="Regresar"
           accessibilityHint="Regresa a la pantalla anterior"
         >
@@ -191,21 +193,6 @@ const onRefresh = async () => {
           <Text style={headerStyles.headerTitle}>Historial de Facturas</Text>
           <Text style={headerStyles.headerSubtitle}>Correos Móvil</Text>
         </View>
-      </View>
-    </View>
-  );
-
-  const SearchBar = () => (
-    <View style={styles.searchContainer}>
-      <View style={styles.searchBar}>
-        <Search size={20} color={Colors.gray} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar por número o sucursal..."
-          placeholderTextColor={Colors.gray}
-          value={searchQuery}
-          onChangeText={searchInvoices}
-        />
       </View>
     </View>
   );
@@ -306,16 +293,7 @@ const onRefresh = async () => {
         <Text style={styles.dueDateText}>
           Vence: {formatDate(item.fecha_vencimiento)}
         </Text>
-        <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation();
-            downloadInvoice(item.id);
-          }}
-          style={styles.downloadButton}
-        >
-          <Download size={16} color={Colors.primary} />
-          <Text style={styles.downloadButtonText}>Descargar</Text>
-        </TouchableOpacity>
+        
       </View>
     </TouchableOpacity>
   );
@@ -343,7 +321,7 @@ const onRefresh = async () => {
       <CustomHeader />
 
       <View style={styles.content}>
-        <SearchBar />
+        <SearchBar searchQuery={searchQuery} onSearch={setSearchQuery} />
         <FilterButtons />
         <RefreshButton />
 

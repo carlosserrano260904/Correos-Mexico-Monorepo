@@ -96,6 +96,7 @@ if (!usuario) {
         { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
         { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
         { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
+        { label: 'Historial de Facturas', icon: 'file-text', to: 'HistorialFacturas' },
       ],
     },
     {

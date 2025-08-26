@@ -1,22 +1,41 @@
 // src/products/products.controller.ts
 import {
-  Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post,
-  UseInterceptors, UploadedFiles
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse,
-  ApiParam, ApiTags, ApiExtraModels, getSchemaPath
-} from '@nestjs/swagger';
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFiles,
+  Query,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+
+} from "@nestjs/common";
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ProductsService } from './products.service';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import { Profile } from './../profile/entities/profile.entity';
+import { ReviewImage } from './../review/entities/review-image.entity';
+import { Review } from './../review/entities/review.entity';
+import { AddImagesDto } from './dto/add-images.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { AddImagesDto } from './dto/add-images.dto';
-import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { ReviewImage } from 'src/review/entities/review-image.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Product } from './entities/product.entity';
+import { ProductsService } from './products.service';
 
 @ApiTags('products')
 @ApiExtraModels(Product, ProductImage, Review, ReviewImage, Profile)
@@ -90,8 +109,17 @@ export class ProductsController {
     return this.productsService.addImages(id, files, ordenes);
   }
 
-  @Get('/findSome')
-  findSome() {
+  /**
+   * Obtiene todos los productos activos (estado: true).
+   * @returns Un arreglo de productos activos.
+   */
+  @Get("active")
+  findAllActive(): Promise<Product[]> {
+    return this.productsService.findAllActive();
+  }
+
+  @Get("some")
+  findSome(): Promise<any[]> {
     return this.productsService.findSome();
   }
 
@@ -118,30 +146,40 @@ export class ProductsController {
   @UseInterceptors(FilesInterceptor('images', 10))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'Actualizar producto (todos los campos opcionales)',
+    description: 'Subir imagenes a producto existente',
     schema: {
       type: 'object',
       properties: {
-        nombre: { type: 'string', example: 'Producto actualizado' },
-        descripcion: { type: 'string', example: 'Desc...' },
-        precio: { type: 'number', example: 1299.9 },
-        categoria: { type: 'string', example: 'Calzado' },
-        images: { type: 'array', items: { type: 'string', format: 'binary' } },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+          example: []
+        },
       },
     },
   })
+
   update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProductDto,
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateProductDto: UpdateProductDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.productsService.updateWithImages(id, dto, files);
+    return this.productsService.updateWithImages(id, updateProductDto, files);
   }
 
-  @Delete(':id')
-  @ApiParam({ name: 'id', type: Number })
-  @ApiOkResponse({ description: 'Producto eliminado' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+
+  @Patch(":id/delete")
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Producto desactivado correctamente.', schema: { type: 'object', properties: { message: { type: 'string', example: 'Producto desactivado' } } } })
+  async softRemove(@Param("id", ParseIntPipe) id: number): Promise<{ message: string }> {
+    await this.productsService.softRemove(id);
+    return { message: 'Producto desactivado' };
+  }
+
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.productsService.remove(id);
   }
 

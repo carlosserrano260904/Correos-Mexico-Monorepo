@@ -121,6 +121,14 @@ export class ProductsService {
     });
   }
 
+
+  async findAllActive(): Promise<Product[]> {
+    return this.productRepository.find({
+      where: { estado: true },
+      relations: { images: true, reviews: { profile: true, images: true } },
+    });
+  }
+
   async findOne(id: number): Promise<Product> {
     const producto = await this.productRepository.findOne({
       where: { id },
@@ -150,6 +158,18 @@ export class ProductsService {
     }
   }
 
+  async softRemove(id: number): Promise<Product> {
+    const product = await this.productRepository.findOneBy({ id });
+
+    if (!product) {
+      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
+    }
+
+    // Cambiamos el estado en lugar de borrarlo (soft delete)
+    product.estado = false;
+    return this.productRepository.save(product);
+  }
+
   async removeImage(imageId: number, productId: number): Promise<void> {
     // Nota: Esto no elimina el archivo de imagen del almacenamiento (ej. S3).
     // Se necesitaría una lógica adicional para eso.
@@ -176,18 +196,12 @@ export class ProductsService {
     try {
       // NOTA: Al usar multipart/form-data, los tipos numéricos pueden llegar como strings.
       // Un ValidationPipe con `transform: true` es un mejor lugar para manejar esta conversión.
-      const updateData: { [key: string]: any } = { ...dto };
-      const numericFields = ['precio', 'stock', 'altura', 'largo', 'ancho', 'peso'];
-
-      for (const field of numericFields) {
-        if (field in updateData && updateData[field] != null) {
-          (updateData as any)[field] = Number(updateData[field]);
-        }
-      }
+      // Al habilitar la transformación en el ValidationPipe global y usar @Type(() => Number) en el DTO,
+      // esta conversión manual ya no es necesaria.
 
       const producto = await queryRunner.manager.preload(Product, {
         id,
-        ...updateData,
+        ...dto,
       });
 
       if (!producto) {
@@ -258,6 +272,7 @@ export class ProductsService {
 
   async findSome(): Promise<any[]> {
     const products = await this.productRepository.find({
+      where: { estado: true }, // Filtrar solo productos activos
       relations: { images: true },
     });
 

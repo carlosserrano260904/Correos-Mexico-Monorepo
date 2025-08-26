@@ -20,8 +20,6 @@ import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
 import { useMyAuth } from './../../context/AuthContext';
 
-import { Float } from 'react-native/Libraries/Types/CodegenTypes';
-
 const IP = process.env.EXPO_PUBLIC_API_URL;
 
 const MAX_IMAGES = 9;
@@ -30,11 +28,11 @@ const MAX_IMAGES = 9;
 interface ProductFormData {
   nombre: string;
   descripcion: string;
-  altura: number | null;
-  ancho: number | null;
-  largo: number | null;
-  peso: number | null;
-  precio: number | null;
+  altura: string;
+  ancho: string;
+  largo: string;
+  peso: string;
+  precio: string;
   categoria: string;
   inventario: number | null;
   color: string;
@@ -57,11 +55,11 @@ interface ImageItem {
 const initialFormData: ProductFormData = {
   nombre: '',
   descripcion: '',
-  altura: null,
-  ancho: null,
-  largo: null,
-  peso: null,
-  precio: null,
+  altura: '',
+  ancho: '',
+  largo: '',
+  peso: '',
+  precio: '',
   categoria: '',
   inventario: null,
   color: '',
@@ -99,16 +97,29 @@ const ProductUploadScreen: React.FC = () => {
   ) => {
     const isIntegerField = field === 'inventario';
 
-    if (text === '') {
-      setFormData(prev => ({ ...prev, [field]: null }));
-      return;
-    }
+    if (isIntegerField) {
+      // Maneja campos de enteros como 'inventario'
+      if (text === '') {
+        setFormData(prev => ({ ...prev, [field]: null }));
+        return;
+      }
+      const sanitizedText = text.replace(/[^0-9]/g, '');
+      const numericValue = parseInt(sanitizedText, 10);
 
-    const sanitizedText = isIntegerField ? text.replace(/[^0-9]/g, '') : text.replace(/[^0-9.]/g, '');
-    const numericValue = parseFloat(sanitizedText);
-
-    if (!isNaN(numericValue)) {
-      setFormData(prev => ({ ...prev, [field]: numericValue }));
+      if (!isNaN(numericValue)) {
+        setFormData(prev => ({ ...prev, [field]: numericValue }));
+      } else {
+        setFormData(prev => ({ ...prev, [field]: null }));
+      }
+    } else {
+      // Maneja campos decimales (almacenados como string)
+      let sanitizedText = text.replace(/[^0-9.]/g, '');
+      const parts = sanitizedText.split('.');
+      if (parts.length > 2) {
+        // Si hay más de un punto, conserva solo el primero
+        sanitizedText = `${parts[0]}.${parts.slice(1).join('')}`;
+      }
+      setFormData(prev => ({ ...prev, [field]: sanitizedText as any }));
     }
   };
   
@@ -127,7 +138,6 @@ const ProductUploadScreen: React.FC = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
 
@@ -208,7 +218,7 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el precio del producto.');
       return;
     }
-    const precioNum = parseFloat(String(formData.precio));
+    const precioNum = parseFloat(formData.precio);
     if (isNaN(precioNum) || precioNum <= 0) {
       Alert.alert('Error', 'El precio debe ser un número mayor que 0');
       return;
@@ -237,7 +247,8 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el peso del producto.');
       return;
     }
-    if (isNaN(formData.peso) || formData.peso <= 0) {
+    const pesoNum = parseFloat(formData.peso);
+    if (isNaN(pesoNum) || pesoNum <= 0) {
       Alert.alert('Error', 'El peso debe ser un número mayor que 0');
       return;
     }
@@ -245,7 +256,8 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa la altura del producto.');
       return;
     }
-    if (isNaN(formData.altura) || formData.altura <= 0) {
+    const alturaNum = parseFloat(formData.altura);
+    if (isNaN(alturaNum) || alturaNum <= 0) {
       Alert.alert('Error', 'La altura debe ser un número mayor que 0');
       return;
     }
@@ -253,7 +265,8 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el ancho del producto.');
       return;
     }
-    if (isNaN(formData.ancho) || formData.ancho <= 0) {
+    const anchoNum = parseFloat(formData.ancho);
+    if (isNaN(anchoNum) || anchoNum <= 0) {
       Alert.alert('Error', 'El ancho debe ser un número mayor que 0');
       return;
     }
@@ -261,7 +274,8 @@ const ProductUploadScreen: React.FC = () => {
       Alert.alert('Error', 'Por favor ingresa el largo del producto.');
       return;
     }
-    if (isNaN(formData.largo) || formData.largo <= 0) {
+    const largoNum = parseFloat(formData.largo);
+    if (isNaN(largoNum) || largoNum <= 0) {
       Alert.alert('Error', 'El largo debe ser un número mayor que 0');
       return;
     }
@@ -280,14 +294,14 @@ const ProductUploadScreen: React.FC = () => {
     const data = new FormData();
     data.append('nombre', formData.nombre);
     data.append('descripcion', formData.descripcion);
-    data.append('precio', String(formData.precio));
+    data.append('precio', formData.precio);
     data.append('categoria', formData.categoria);
     data.append('inventario', String(formData.inventario));
     data.append('marca', formData.marca);
-    data.append('peso', formData.peso.toString());
-    data.append('altura', formData.altura.toString());
-    data.append('ancho', formData.ancho.toString());
-    data.append('largo', formData.largo.toString());
+    data.append('peso', formData.peso);
+    data.append('altura', formData.altura);
+    data.append('ancho', formData.ancho);
+    data.append('largo', formData.largo);
     data.append('color', formData.color || 'Sin color');
     data.append('vendedor', formData.vendedor);
     data.append('slug', generateSlug(formData));
@@ -367,18 +381,25 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.nombre}
             onChangeText={(text) => handleInputChange('nombre', text)}
             maxLength={60}
+            placeholder="Ej: Camisa de algodón"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
         {/* Input para precio */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Precio *</Text>
-          <TextInput
-            style={styles.textInput}
-            value={formData.precio === null ? '' : String(formData.precio)}
-            onChangeText={text => handleNumericFieldChange('precio', text)}
-            keyboardType="decimal-pad"
-          />
+          <View style={styles.priceInputContainer}>
+            <Text style={styles.currencySymbol}>$</Text>
+            <TextInput
+              style={styles.priceInput}
+              value={formData.precio}
+              onChangeText={text => handleNumericFieldChange('precio', text)}
+              keyboardType="decimal-pad"
+              placeholder="299.99"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
         </View>
 
         {/* Input para descripcion */}
@@ -390,6 +411,8 @@ const ProductUploadScreen: React.FC = () => {
             onChangeText={(text) => handleInputChange('descripcion', text)}
             multiline
             maxLength={120}
+            placeholder="Describe tu producto detalladamente"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -454,6 +477,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.inventario === null ? '' : String(formData.inventario)}
             onChangeText={text => handleNumericFieldChange('inventario', text)}
             keyboardType='decimal-pad'
+            placeholder="Ej: 50"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -465,6 +490,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.marca}
             onChangeText={(text) => handleInputChange('marca', text)}
             maxLength={60}
+            placeholder="Ej: Mi Marca"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -494,10 +521,12 @@ const ProductUploadScreen: React.FC = () => {
           <Text style={styles.label}>Peso *</Text>
           <TextInput
             style={styles.textInput}
-            value={formData.peso === null ? '' : String(formData.peso)}
+            value={formData.peso}
             onChangeText={text => handleNumericFieldChange('peso', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 0.5 (en kg)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -506,10 +535,12 @@ const ProductUploadScreen: React.FC = () => {
           <Text style={styles.label}>Altura *</Text>
           <TextInput
             style={styles.textInput}
-            value={formData.altura === null ? '' : String(formData.altura)}
+            value={formData.altura}
             onChangeText={text => handleNumericFieldChange('altura', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 10 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -518,10 +549,12 @@ const ProductUploadScreen: React.FC = () => {
           <Text style={styles.label}>Ancho *</Text>
           <TextInput
             style={styles.textInput}
-            value={formData.ancho === null ? '' : String(formData.ancho)}
+            value={formData.ancho}
             onChangeText={text => handleNumericFieldChange('ancho', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 20 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -530,10 +563,12 @@ const ProductUploadScreen: React.FC = () => {
           <Text style={styles.label}>Largo *</Text>
           <TextInput
             style={styles.textInput}
-            value={formData.largo === null ? '' : String(formData.largo)}
+            value={formData.largo}
             onChangeText={text => handleNumericFieldChange('largo', text)}
             maxLength={40}
             keyboardType='decimal-pad'
+            placeholder="Ej: 30 (en cm)"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -545,6 +580,8 @@ const ProductUploadScreen: React.FC = () => {
             value={formData.vendedor}
             onChangeText={(text) => handleInputChange('vendedor', text)}
             maxLength={80}
+            placeholder="Ej: Mi Tienda Oficial"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -668,6 +705,26 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: '#1F2937',
+    marginRight: 4,
+  },
+  priceInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1F2937',
   },
   row: {
     flexDirection: 'row',

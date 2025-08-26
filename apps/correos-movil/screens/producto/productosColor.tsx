@@ -1,5 +1,5 @@
 // screens/productosColor.tsx
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -12,6 +12,7 @@ import ProductListScreen, { Articulo } from '../../components/Products/ProductLi
 import { RootStackParamList } from '../../schemas/schemas';
 import { moderateScale } from 'react-native-size-matters';
 import { StatusBar } from 'react-native';
+
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const DEFAULT_IMAGE =
@@ -69,8 +70,12 @@ export const formatPrice = (price: number) => {
 };
 
 export default function ProductsScreen() {
-  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  // Asumo que el nombre de esta pantalla en tu navegador es 'Productos'
+  // y que has actualizado RootStackParamList para que acepte `{ categoria?: string }`
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Productos'>;
+  type ProductsRouteProp = RouteProp<RootStackParamList, 'Productos'>;
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<ProductsRouteProp>();
 
   const [productos, setProductos] = useState<Articulo[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Todos');
@@ -80,7 +85,7 @@ export default function ProductsScreen() {
 
   const fetchProductos = useCallback(async () => {
     try {
-      const resp = await fetch(`${API_URL}/api/products`);
+      const resp = await fetch(`${API_URL}/api/products/active`);
       const data: unknown = await resp.json();
 
       if (Array.isArray(data)) {
@@ -98,9 +103,36 @@ export default function ProductsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      let isEffectActive = true;
+
+      const categoryFromParams = route.params?.categoria;
+      const searchFromParams = route.params?.searchText;
+
+      if (categoryFromParams) {
+        setCategoriaSeleccionada(categoryFromParams);
+      }
+
+      if (searchFromParams) {
+        setSearchText(searchFromParams);
+      }
+
       setLoading(true);
-      fetchProductos().finally(() => setLoading(false));
-    }, [fetchProductos])
+      fetchProductos().finally(() => {
+        // Solo actualizamos si el efecto sigue activo (la pantalla no ha perdido el foco).
+        if (isEffectActive) {
+          setLoading(false);
+          // Limpiamos los parámetros para no reutilizarlos en la siguiente visita.
+          if (categoryFromParams || searchFromParams) {
+            navigation.setParams({ categoria: undefined, searchText: undefined });
+          }
+        }
+      });
+
+      // La función de limpieza se ejecuta cuando la pantalla pierde el foco.
+      return () => {
+        isEffectActive = false;
+      };
+    }, [fetchProductos, navigation, route.params?.categoria, route.params?.searchText])
   );
 
   const onRefresh = useCallback(async () => {
@@ -140,6 +172,7 @@ export default function ProductsScreen() {
             placeholder="Buscar un producto..."
             placeholderTextColor="#999"
             onChangeText={setSearchText}
+            value={searchText}
           />
         </View>
       </View>
@@ -156,8 +189,6 @@ export default function ProductsScreen() {
                 onPress={() => setCategoriaSeleccionada(categoria)}
               >
                 <Text
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
                   style={[styles.textoFiltro, categoria === categoriaSeleccionada && styles.textoFiltroActivo]}
                 >
                   {categoria}
@@ -170,14 +201,21 @@ export default function ProductsScreen() {
 
       <View style={styles.listContainer}>
         {loading ? (
-          <ActivityIndicator size="large" />
-        ) : (
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size="large" color="#DE1484" />
+            <Text style={styles.loadingText}>Cargando productos ...</Text>
+          </View>
+        ) : productosFiltrados.length > 0 ? (
           <ProductListScreen
             productos={productosFiltrados}
             search={searchText}
             onRefresh={onRefresh}
             refreshing={isRefreshing}
           />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.noResultsText}>No se encontraron coincidencias</Text>
+          </View>
         )}
       </View>
 
@@ -200,13 +238,19 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 16, marginVertical: 8 },
   filtrosContainer: { paddingHorizontal: 15, paddingVertical: 4 },
   botonFiltro: {
-    marginRight: 6, backgroundColor: '#eee', paddingVertical: 4, paddingHorizontal: 8,
-    borderRadius: 16, alignItems: 'center', justifyContent: 'center', maxWidth: 100, height: 50,
+    marginRight: 6, backgroundColor: '#eee', paddingVertical: 10, paddingHorizontal: 16,
+    borderRadius: 16, alignItems: 'center', justifyContent: 'center',
   },
   botonFiltroActivo: { backgroundColor: '#DE1484' },
   textoFiltro: { fontSize: 13, color: '#333' },
   textoFiltroActivo: { color: 'white', fontWeight: 'bold' },
   listContainer: { flex: 1, paddingTop: 10, marginBottom: 0 },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: { fontSize: 16, color: '#666' },
   customerServiceContainer: {
     width: moderateScale(60), height: moderateScale(60), backgroundColor: '#DE1484',
     position: 'absolute', bottom: '5%', right: '5%', borderRadius: 100, alignItems: 'center', justifyContent: 'center',
@@ -217,4 +261,21 @@ const styles = StyleSheet.create({
   },
   entradaBuscar: { flex: 1, fontSize: 14, paddingHorizontal: 12, color: '#333' },
   iconoBuscar: { paddingHorizontal: 8 },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: moderateScale(20),
+  },
+  loadingText: {
+    marginTop: moderateScale(10),
+    fontSize: moderateScale(16),
+    color: '#333',
+  },
+  noResultsText: {
+    color: '#555',
+    fontSize: moderateScale(16),
+    textAlign: 'center',
+  },
 });

@@ -1,11 +1,10 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, Animated, LayoutChangeEvent, ActivityIndicator, TextInput } from 'react-native'
 import * as React from 'react'
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { moderateScale } from 'react-native-size-matters';
-import SearchBarComponent from '../../../components/SearchBar/SearchBarComponent';
-import { useNavigation } from '@react-navigation/native';
-import { ShoppingBag, Headset, Heart } from 'lucide-react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { ShoppingBag, Headset, Heart, Search } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
@@ -132,31 +131,62 @@ export default function HomeUser() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [searchText, setSearchText] = React.useState('');
+
+  const categoriesData = [
+    { name: 'Ropa, moda y calzado', image: require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png") },
+    { name: 'Joyería y bisuteria', image: require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png") },
+    { name: 'Juegos y juguetes', image: require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png") },
+    { name: 'Hogar y decoración', image: require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png") },
+    { name: 'Belleza y cuidado personal', image: require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png") },
+    { name: 'Artesanías mexicanas', image: require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png") },
+    { name: 'FONART', image: require("../../../assets/icons_correos_mexico/Fonart-icon.png") },
+    { name: 'Original', image: require("../../../assets/icons_correos_mexico/Original-icon.png") },
+    { name: 'Jóvenes construyendo el futuro', image: require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png") },
+    { name: 'Hecho en Tamaulipas', image: require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png") },
+    { name: 'SEDECO Michoacán', image: require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png") },
+    { name: 'Filatelia mexicana', image: require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png") },
+    { name: 'Sabores artesanales', image: require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png") },
+  ];
 
   const navigation = useNavigation<NavigationProp>();
 
-  React.useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/api/products/findSome`);
-        if (!response.ok) {
-          console.log(response);
-          throw new Error('Error al obtener los productos');
-          
-        }
-        const data = await response.json();
-        console.log(data);
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleNavigateToProducts = (categoria: string) => {
+    // Navega a la pantalla 'Productos' y pasa el parámetro 'categoria'
+    navigation.navigate('ProductsScreen', { categoria, searchText: undefined });
+  };
 
-    fetchProducts();
-  }, []);
+  const handleSearchSubmit = () => {
+    const trimmedText = searchText.trim();
+    if (trimmedText) {
+      // Navega a la pantalla de productos pasando el texto de búsqueda
+      navigation.navigate('ProductsScreen', { searchText: trimmedText, categoria: undefined });
+      setSearchText(''); // Opcional: limpiar el buscador después de navegar
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchProducts = async () => {
+        try {
+          setLoading(true);
+          setError(null); // Limpiar errores previos al reintentar
+          const response = await fetch(`${API_URL}/api/products/some`);
+          if (!response.ok) {
+            throw new Error('Error al obtener los productos');
+          }
+          const data = await response.json();
+          setProducts(data);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProducts();
+    }, [])
+  );
 
   const progress = useSharedValue<number>(0);
 
@@ -203,7 +233,18 @@ export default function HomeUser() {
         </View>
 
         <View style={styles.searchBarContainer}>
-          <SearchBarComponent />
+          <View style={styles.searchWrapper}>
+            <Search color="#888" size={moderateScale(20)} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar un producto..."
+              placeholderTextColor="#888"
+              value={searchText}
+              onChangeText={setSearchText}
+              onSubmitEditing={handleSearchSubmit}
+              returnKeyType="search"
+            />
+          </View>
         </View>
 
         <CorreosClicButton />
@@ -232,7 +273,7 @@ export default function HomeUser() {
 
           <Pagination.Basic<{ color: string }>
             progress={progress}
-            data={imageData.map((image) => ({ image }))}
+            data={imageData2.map((image) => ({ image }))}
             size={moderateScale(8)}
             dotStyle={{
               borderRadius: 100,
@@ -252,72 +293,19 @@ export default function HomeUser() {
         </View>
 
         <View style={styles.categoriesContainer}>
-          <Text style={styles.textCategories}>Categorias</Text>
+          <Text style={styles.textCategories}>Categorías</Text>
           <ScrollView style={styles.modulesCategoriesContainer} horizontal={true} showsHorizontalScrollIndicator={false}>
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Ropa, moda y calzado</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Joyería y bisuteria</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Juegos y juguetes</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hogar y decoración</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Belleza y cuidado personal</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Artesanías mexicanas</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Fonart-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>FONART</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/Original-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Original</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Jóvenes construyendo el futuro</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Hecho en Tamaulipas</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>SEDECO Michoacán</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Filatelia mexicana</Text>
-            </View>
-
-            <View style={styles.modulesCategories}>
-              <Image style={styles.categoriesImage} source={require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png")} />
-              <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>Sabores artesanales</Text>
-            </View>
+            {categoriesData.map((category, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.modulesCategories}
+                onPress={() => handleNavigateToProducts(category.name)}
+                activeOpacity={0.7}
+              >
+                <Image style={styles.categoriesImage} source={category.image} />
+                <Text style={styles.modulesCategoriesText} numberOfLines={4} ellipsizeMode='tail'>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
 
@@ -341,7 +329,7 @@ export default function HomeUser() {
         <View style={styles.vendedorFonartContainer}>
           <View style={styles.textVendedorFonartContainer}>
             <Text style={styles.textVendedorFonart}>Vendedor destacado FONART</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleNavigateToProducts('FONART')}>
               <Text style={styles.seeAll}>Ver todo</Text>
             </TouchableOpacity>
           </View>
@@ -403,7 +391,7 @@ export default function HomeUser() {
         <View style={styles.featuredProductContainer}>
           <View style={styles.textFeaturedProductContainer}>
             <Text style={styles.textFeaturedProduct}>Productos destacados</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleNavigateToProducts('Productos destacados')}>
               <Text style={styles.seeAll}>Ver todo</Text>
             </TouchableOpacity>
           </View>
@@ -414,7 +402,7 @@ export default function HomeUser() {
             ) : error ? (
               <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
             ) : (
-              <ProductCategoryList products={products} categoria={'Ropa, moda y calzado'} />
+              <ProductCategoryList products={products} categoria={'Productos destacados'} />
             )}
           </View>
         </View>
@@ -460,6 +448,25 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     marginTop: moderateScale(20),
     paddingHorizontal: moderateScale(12)
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: moderateScale(50),
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 30,
+    paddingHorizontal: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: moderateScale(16),
+    color: '#121212',
+    paddingVertical: 0,
   },
   correosClicButtonContainer: {
     marginVertical: moderateScale(20),

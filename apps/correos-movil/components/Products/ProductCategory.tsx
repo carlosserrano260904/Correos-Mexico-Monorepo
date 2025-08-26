@@ -16,6 +16,13 @@ const IP = process.env.EXPO_PUBLIC_API_URL;
 const DEFAULT_IMAGE =
   'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
 
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price);
+};
+
 export interface Articulo {
     id: number;
     nombre: string;
@@ -98,7 +105,7 @@ const ProductoCard: React.FC<{
           {articulo.nombre}
         </Text>
         <Text style={styles.textoPrecio}>
-          MXN $ {(articulo.precio || 0).toFixed(2)}
+          MXN $ {formatPrice(articulo.precio || 0)}
         </Text>
       </View>
     </View>

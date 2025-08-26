@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Dimensions, 
-  SafeAreaView, 
-  Platform, 
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  SafeAreaView,
+  Platform,
   ActivityIndicator,
-  Alert 
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
+import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
@@ -26,127 +27,182 @@ const Colors = {
   background: '#F5F5F5',
 };
 
-const oficinasCorreos = [
-  {
-    id: 1,
-    nombre: 'Centro Durango',
-    lat: 24.025720,
-    lng: -104.653175,
-    direccion: 'Av. 20 de Noviembre 123, Centro',
-    horario: 'Lunes a Viernes 9:00 - 18:00',
-  },
-  {
-    id: 2,
-    nombre: 'Plaza Bicentenario',
-    lat: 24.033074,
-    lng: -104.666043,
-    direccion: 'Blvd. Felipe Pescador 456, Bicentenario',
-    horario: 'Lunes a Sábado 8:30 - 19:30',
-  },
-  {
-    id: 3,
-    nombre: 'Guadalupe Victoria',
-    lat: 24.448093,
-    lng: -104.111154,
-    direccion: 'Calle Hidalgo 789, Guadalupe Victoria',
-    horario: 'Lunes a Viernes 8:00 - 17:00',
-  },
-  {
-    id: 4,
-    nombre: 'Lerdo',
-    lat: 25.544398,
-    lng: -103.523998,
-    direccion: 'Av. Juárez 101, Centro Lerdo',
-    horario: 'Lunes a Sábado 9:00 - 19:00',
-  },
-];
+type Coordenadas = { latitude: number; longitude: number };
 
-const INITIAL_REGION = {
-  latitude: 24.025720,
-  longitude: -104.653175,
-  latitudeDelta: 1.0,
-  longitudeDelta: 1.0,
+type Sucursal = {
+  id_oficina?: string | number;
+  id?: string | number;
+  nombre_cuo?: string;
+  domicilio?: string;
+  codigo_postal?: string | number;
+  horario_atencion?: string;
+  telefono?: string;
+  latitud?: number | string;
+  longitud?: number | string;
+  lat?: number | string;
+  lng?: number | string;
+  latitude?: number | string;
+  longitude?: number | string;
+  coordenadas?: Coordenadas;
+  distancia?: number;
+  [k: string]: any;
 };
+
+// Preferimos EXPO_PUBLIC_API_URL; si no existe, caemos a IP_LOCAL:3000
+const API_BASE =
+  (process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '') || '') ||
+  (Constants.expoConfig?.extra?.IP_LOCAL ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000` : '');
 
 const MapaPuntosRecogidaScreen = () => {
   const navigation = useNavigation();
-  const [region, setRegion] = useState<Region>(INITIAL_REGION);
-  const [loading, setLoading] = useState(true);
-  const [selectedOffice, setSelectedOffice] = useState<number | null>(null);
 
+  const mapRef = useRef<MapView | null>(null);
+
+  const [ubicacionUsuario, setUbicacionUsuario] = useState<Coordenadas | null>(null);
+  const [loadingUbicacion, setLoadingUbicacion] = useState(true);
+
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+  const [sucursalSeleccionada, setSucursalSeleccionada] = useState<Sucursal | null>(null);
+  const [loadingOficinas, setLoadingOficinas] = useState(false);
+
+  // 1) Permisos + ubicación
   useEffect(() => {
     (async () => {
-      setLoading(true);
       try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert(
-            'Permiso denegado',
-            'Necesitamos acceso a tu ubicación para mostrarte las oficinas más cercanas',
-            [{ text: 'OK' }]
+            'Permisos de ubicación',
+            'Para mostrar las sucursales cercanas, necesitamos acceso a tu ubicación.'
           );
-          setLoading(false);
           return;
         }
-
-        let location = await Location.getCurrentPositionAsync({});
-        setRegion({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.3,
-          longitudeDelta: 0.3,
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 10000,
         });
-      } catch (error) {
-        console.error('Error al obtener ubicación:', error);
+        setUbicacionUsuario({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
       } finally {
-        setLoading(false);
+        setLoadingUbicacion(false);
       }
     })();
   }, []);
 
-  const handleBack = () => {
-    navigation.goBack();
+  // 2) Cargar oficinas desde /api/oficinas
+  useEffect(() => {
+    if (!API_BASE) {
+      setLoadingOficinas(false);
+      Alert.alert('Configuración', 'Falta configurar EXPO_PUBLIC_API_URL o extra.IP_LOCAL');
+      return;
+    }
+    (async () => {
+      setLoadingOficinas(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/oficinas`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as Sucursal[];
+
+        // Deduplicar por domicilio
+        const vistos = new Set<string>();
+        const dedup: Sucursal[] = [];
+        for (const item of data) {
+          const dom = item.domicilio?.toLowerCase()?.replace(/\s+/g, ' ')?.trim();
+          if (dom && !vistos.has(dom)) {
+            vistos.add(dom);
+            dedup.push(item);
+          }
+        }
+
+        // Normalizar coordenadas
+        const transformado = dedup
+          .map((it) => {
+            const lat = it.latitud ?? it.lat ?? it.latitude;
+            const lon = it.longitud ?? it.lng ?? it.longitude;
+            const coordenadas =
+              it.coordenadas?.latitude && it.coordenadas?.longitude
+                ? it.coordenadas
+                : lat != null && lon != null
+                ? { latitude: Number(lat), longitude: Number(lon) }
+                : undefined;
+
+            return { ...it, id_oficina: it.id_oficina ?? it.id, coordenadas } as Sucursal;
+          })
+          .filter((x) => x.coordenadas?.latitude && x.coordenadas?.longitude);
+
+        // Ordenar por distancia si tenemos ubicación
+        const withDistance = ubicacionUsuario
+          ? transformado
+              .map((s) => ({
+                ...s,
+                distancia: distanciaKm(ubicacionUsuario, s.coordenadas as Coordenadas),
+              }))
+              .sort((a, b) => (a.distancia ?? 0) - (b.distancia ?? 0))
+          : transformado;
+
+        setSucursales(withDistance);
+        setSucursalSeleccionada(withDistance[0] ?? null);
+      } catch {
+        Alert.alert('Error', 'No se pudieron cargar las oficinas.');
+      } finally {
+        setLoadingOficinas(false);
+      }
+    })();
+  }, [ubicacionUsuario]);
+
+  // 3) Región inicial
+  const initialRegion: Region | null = useMemo(() => {
+    const base =
+      sucursalSeleccionada?.coordenadas ||
+      sucursales.find((s) => s.coordenadas)?.coordenadas ||
+      ubicacionUsuario ||
+      null;
+
+    return base
+      ? { latitude: base.latitude, longitude: base.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }
+      : null;
+  }, [sucursalSeleccionada, sucursales, ubicacionUsuario]);
+
+  const distanciaKm = (c1: Coordenadas, c2: Coordenadas) => {
+    const R = 6371;
+    const dLat = ((c2.latitude - c1.latitude) * Math.PI) / 180;
+    const dLon = ((c2.longitude - c1.longitude) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((c1.latitude * Math.PI) / 180) *
+        Math.cos((c2.latitude * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const centrarEnSucursal = (s: Sucursal) => {
+    if (!s?.coordenadas) return;
+    setSucursalSeleccionada(s);
+    mapRef.current?.animateToRegion(
+      {
+        latitude: s.coordenadas.latitude,
+        longitude: s.coordenadas.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      },
+      350
+    );
   };
 
   const handleConfirmSelection = async () => {
-    if (!selectedOffice) {
-      Alert.alert(
-        'Selección requerida',
-        'Por favor selecciona un punto de recogida antes de continuar',
-        [{ text: 'OK' }]
-      );
+    if (!sucursalSeleccionada) {
+      Alert.alert('Selecciona un punto', 'Toca un marcador para elegir una sucursal.');
       return;
     }
-
-    const selected = oficinasCorreos.find(o => o.id === selectedOffice);
-    if (selected) {
-      try {
-        await AsyncStorage.setItem('modoEnvio', 'puntoRecogida');
-        await AsyncStorage.setItem('puntoRecogidaSeleccionado', JSON.stringify(selected));
-        
-        // Navegamos de regreso a la pantalla de Envío que está dentro del CheckoutTabs
-        navigation.goBack();
-        
-        // Opcional: Si necesitas ir directamente al Resumen, puedes usar:
-        // navigation.navigate('CheckoutTabs', { screen: 'Resumen' });
-        
-      } catch (error) {
-        console.error('Error al guardar la selección:', error);
-        Alert.alert('Error', 'No se pudo guardar la selección');
-      }
-    }
+    // Guarda y regresa (Patrón sin callback → no hay warning)
+    await AsyncStorage.setItem('puntoRecogidaSeleccionado', JSON.stringify(sucursalSeleccionada));
+    navigation.goBack();
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-          accessibilityLabel="Regresar"
-          accessibilityHint="Regresa a la pantalla anterior"
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={Colors.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Puntos de Recogida</Text>
@@ -154,59 +210,50 @@ const MapaPuntosRecogidaScreen = () => {
       </View>
 
       <View style={styles.mapaContainer}>
-        {loading ? (
+        {(!initialRegion && (loadingUbicacion || loadingOficinas)) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={Colors.primary} size="large" />
-            <Text style={styles.loadingText}>Buscando tu ubicación...</Text>
+            <Text style={styles.loadingText}>Cargando mapa y oficinas…</Text>
           </View>
-        ) : (
-          <>
-            <MapView
-              style={styles.map}
-              provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-              region={region}
-              showsUserLocation={true}
-              showsMyLocationButton={true}
-            >
-              {oficinasCorreos.map((oficina) => (
+        ) : initialRegion ? (
+          <MapView
+            ref={(ref) => (mapRef.current = ref)}
+            style={styles.mapa}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            initialRegion={initialRegion}
+            showsUserLocation={!!ubicacionUsuario}
+            showsMyLocationButton={false}
+          >
+            {sucursales.map((s, idx) =>
+              s.coordenadas ? (
                 <Marker
-                  key={oficina.id}
-                  coordinate={{ latitude: oficina.lat, longitude: oficina.lng }}
-                  title={oficina.nombre}
-                  description={`${oficina.direccion}\n${oficina.horario}`}
-                  pinColor={selectedOffice === oficina.id ? Colors.primary : '#4285F4'}
-                  onPress={() => setSelectedOffice(oficina.id)}
+                  key={String(s.id_oficina ?? s.id ?? idx)}
+                  coordinate={s.coordenadas}
+                  pinColor="#DE1484"
+                  onPress={() => centrarEnSucursal(s)}
+                  title={s.nombre_cuo || undefined}
+                  description={s.domicilio || undefined}
                 />
-              ))}
-            </MapView>
-
-            {selectedOffice && (
-              <View style={styles.selectedOfficeContainer}>
-                <Text style={styles.selectedOfficeTitle}>
-                  {oficinasCorreos.find(o => o.id === selectedOffice)?.nombre}
-                </Text>
-                <Text style={styles.selectedOfficeAddress}>
-                  {oficinasCorreos.find(o => o.id === selectedOffice)?.direccion}
-                </Text>
-                <Text style={styles.selectedOfficeSchedule}>
-                  Horario: {oficinasCorreos.find(o => o.id === selectedOffice)?.horario}
-                </Text>
-              </View>
+              ) : null
             )}
-          </>
+          </MapView>
+        ) : (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>No hay coordenadas disponibles para mostrar.</Text>
+          </View>
         )}
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
           styles.confirmButton,
-          { backgroundColor: selectedOffice ? Colors.primary : '#CCCCCC' }
+          { backgroundColor: sucursalSeleccionada ? Colors.primary : '#CCCCCC' },
         ]}
         onPress={handleConfirmSelection}
-        disabled={!selectedOffice}
+        disabled={!sucursalSeleccionada}
       >
         <Text style={styles.confirmButtonText}>
-          {selectedOffice ? 'Confirmar punto de recogida' : 'Selecciona un punto'}
+          {sucursalSeleccionada ? 'Confirmar punto de recogida' : 'Selecciona un punto'}
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -214,10 +261,7 @@ const MapaPuntosRecogidaScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -230,9 +274,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  backButton: {
-    padding: width * 0.02,
-  },
+  backButton: { padding: width * 0.02 },
   headerTitle: {
     fontSize: Math.min(width * 0.045, 20),
     color: Colors.dark,
@@ -247,43 +289,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 16,
     marginVertical: 10,
-    marginHorizontal: 0,
   },
-  map: {
-    flex: 1,
-    borderRadius: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    color: Colors.dark,
-  },
-  selectedOfficeContainer: {
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  selectedOfficeTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.dark,
-    marginBottom: 4,
-  },
-  selectedOfficeAddress: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 4,
-  },
-  selectedOfficeSchedule: {
-    fontSize: 14,
-    color: '#757575',
-    fontStyle: 'italic',
-  },
+  mapa: { flex: 1, borderRadius: 16 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 12, color: Colors.dark },
   confirmButton: {
     margin: 16,
     padding: 16,
@@ -291,11 +300,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  confirmButtonText: {
-    color: Colors.white,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  confirmButtonText: { color: Colors.white, fontWeight: 'bold', fontSize: 16 },
 });
 
 export default MapaPuntosRecogidaScreen;

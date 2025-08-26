@@ -11,9 +11,10 @@ import { StripeModule } from '../stripe/stripe.module'; // si tienes stripe.modu
   imports: [
     TypeOrmModule.forFeature([Profile, Card]),
     forwardRef(() => FacturasModule),
-    forwardRef(() => StripeModule), // si StripeService está en su propio módulo
+    forwardRef(() => StripeModule),
   ],
   controllers: [PagosController],
   providers: [PagosService],
+  exports: [PagosService],
 })
 export class PagosModule {}

@@ -358,7 +358,7 @@ const GuiaFormulario = ({ route, navigation }) => {
         <View style={styles.formSection}>
           <View style={styles.sectionHeader}>
             <Ionicons name="cash-outline" size={20} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Valor declarado (opcional)</Text>
+            <Text style={styles.sectionTitle}>Valor declarado</Text>
           </View>
           
           {renderInput("Valor declarado (MXN)", valorDeclarado, setValorDeclarado, "numeric")}

@@ -15,7 +15,8 @@ import {
   FlatList,
   Animated,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
@@ -24,6 +25,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckoutButton from '../../../components/Boton-pago-tariffador/CheckoutButton';
 import { ScrollView } from "react-native"
+
+const { height: screenHeight } = Dimensions.get('window');
 
 const TarificadorMexpost = () => {
   const navigation = useNavigation();
@@ -325,25 +328,28 @@ const TarificadorMexpost = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 25}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start' }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.title}>
-              Tarificador de envíos{"\n"}
-              <Text style={styles.subtitle}>MEXPOST</Text>
-            </Text>
-          </View>
+        {/* Header fijo */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.title}>
+            Tarificador de envíos{"\n"}
+            <Text style={styles.subtitle}>MEXPOST</Text>
+          </Text>
+        </View>
 
+        {/* Contenido scrolleable */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Tabs */}
           <View style={[styles.tabContainer, showQuote && styles.tabContainerWithBorder]}>
             <TouchableOpacity
@@ -422,7 +428,7 @@ const TarificadorMexpost = () => {
               </View>
 
               {activeTab === "Nacional" && datosEnvio && (
-                <>
+                <View style={styles.infoContainer}>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Origen:</Text>
                     <Text style={styles.infoValue}>{datosEnvio.ciudadOrigen}</Text>
@@ -441,11 +447,11 @@ const TarificadorMexpost = () => {
                     <Text style={styles.infoLabel}>Servicio:</Text>
                     <Text style={styles.infoValue}>{datosEnvio.servicio || "Estándar"}</Text>
                   </View>
-                </>
+                </View>
               )}
 
               {activeTab === "Internacional" && infoPais && (
-                <>
+                <View style={styles.infoContainer}>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Zona:</Text>
                     <Text style={styles.infoValue}>{infoPais.zona}</Text>
@@ -454,16 +460,14 @@ const TarificadorMexpost = () => {
                     <Text style={styles.infoLabel}>Descripción de zona:</Text>
                     <Text style={styles.infoValue}>{infoPais.descripcionZona}</Text>
                   </View>
-                </>
+                </View>
               )}
 
               {!showQuote && (
-                <>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
-                  </View>
+                <View style={styles.dimensionsSection}>
+                  <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
 
-                  <View style={{ position: 'relative' }}>
+                  <View style={styles.inputContainer}>
                     <TextInput
                       ref={pesoRef}
                       style={styles.input}
@@ -487,7 +491,7 @@ const TarificadorMexpost = () => {
                     )}
                   </View>
 
-                  <View style={{ position: 'relative' }}>
+                  <View style={styles.inputContainer}>
                     <TextInput
                       ref={altoRef}
                       style={styles.input}
@@ -511,7 +515,7 @@ const TarificadorMexpost = () => {
                     )}
                   </View>
 
-                  <View style={{ position: 'relative' }}>
+                  <View style={styles.inputContainer}>
                     <TextInput
                       ref={anchoRef}
                       style={styles.input}
@@ -535,7 +539,7 @@ const TarificadorMexpost = () => {
                     )}
                   </View>
 
-                  <View style={{ position: 'relative' }}>
+                  <View style={styles.inputContainer}>
                     <TextInput
                       ref={largoRef}
                       style={styles.input}
@@ -551,7 +555,6 @@ const TarificadorMexpost = () => {
                       }}
                       keyboardType="decimal-pad"
                       returnKeyType="done"
-                      onSubmitEditing={() => { /* Aquí puedes cerrar el teclado o hacer otra acción */ }}
                     />
                     {largo !== "" && (
                       <Text style={styles.unitLabel}>cm</Text>
@@ -569,11 +572,11 @@ const TarificadorMexpost = () => {
                       <Text style={styles.searchButtonText}>Cotizar</Text>
                     )}
                   </TouchableOpacity>
-                </>
+                </View>
               )}
 
               {showQuote && cotizacionData && (
-                <>
+                <View style={styles.quoteSection}>
                   <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>Detalles del servicio</Text>
                     <TouchableOpacity onPress={handleNuevaConsulta}>
@@ -645,34 +648,39 @@ const TarificadorMexpost = () => {
                     </Text>
                   </View>
 
-                  <CheckoutButton
-                    amount={activeTab === "Nacional" ? costo : cotizacionData.total}
-                    email={email}
-                    profileId={profileId || 115}
-                    onPaymentSuccess={(paymentResult) => {
-                      console.log('Pago exitoso:', paymentResult);
-                      navigation.navigate('GuiaFormulario', {
-                        datosTarifador: {
-                          codigoOrigen,
-                          codigoDestino,
-                          peso,
-                          alto,
-                          ancho,
-                          largo,
-                          costo: activeTab === "Nacional" ? costo : cotizacionData.total,
-                          tipoEnvio: activeTab,
-                        }
-                      });
-                    }}
-                    onPaymentError={(error) => {
-                      console.error('Error en pago:', error);
-                      Alert.alert('Error', 'Hubo un problema con el pago');
-                    }}
-                  />
-                </>
+                  <View style={styles.paymentButtonContainer}>
+                    <CheckoutButton
+                      amount={activeTab === "Nacional" ? costo : cotizacionData.total}
+                      email={email}
+                      profileId={profileId || 115}
+                      onPaymentSuccess={(paymentResult) => {
+                        console.log('Pago exitoso:', paymentResult);
+                        navigation.navigate('GuiaFormulario', {
+                          datosTarifador: {
+                            codigoOrigen,
+                            codigoDestino,
+                            peso,
+                            alto,
+                            ancho,
+                            largo,
+                            costo: activeTab === "Nacional" ? costo : cotizacionData.total,
+                            tipoEnvio: activeTab,
+                          }
+                        });
+                      }}
+                      onPaymentError={(error) => {
+                        console.error('Error en pago:', error);
+                        Alert.alert('Error', 'Hubo un problema con el pago');
+                      }}
+                    />
+                  </View>
+                </View>
               )}
             </View>
           )}
+
+          {/* Espaciado adicional para Android */}
+          <View style={styles.bottomSpacer} />
         </ScrollView>
 
         {/* Modal de países */}
@@ -731,33 +739,11 @@ const TarificadorMexpost = () => {
 }
 
 const styles = StyleSheet.create({
-  infoLabel: {
-    fontWeight: "bold",
-    color: "#000",
-  },
-  infoValue: {
-    color: "#333",
-  },
-  itemContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
-  },
-  itemText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  emptyText: {
-    padding: 20,
-    textAlign: "center",
-    color: "gray",
-  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
-  scrollView: {
+  keyboardAvoidingView: {
     flex: 1,
   },
   header: {
@@ -765,8 +751,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingHorizontal: 20,
     paddingTop: 20,
-    marginBottom: 3,
+    paddingBottom: 15,
     backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   backButton: {
     marginTop: 5,
@@ -783,15 +771,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: Platform.OS === 'android' ? 30 : 20,
+  },
   tabContainer: {
     flexDirection: "row",
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginTop: 15,
+    marginBottom: 20,
     backgroundColor: "#fff",
   },
   tabContainerWithBorder: {
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#f0f0f0",
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
@@ -818,15 +814,15 @@ const styles = StyleSheet.create({
   formContainer: {
     paddingHorizontal: 20,
     backgroundColor: "#fff",
-    paddingBottom: 20,
+    marginBottom: 20,
   },
   formContainerWithBorder: {
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#f0f0f0",
     borderRadius: 8,
     marginHorizontal: 20,
-    padding: 5,
-    marginBottom: -5,
+    padding: 10,
+    marginBottom: 15,
   },
   input: {
     backgroundColor: "#f5f5f5",
@@ -839,6 +835,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  inputContainer: {
+    position: 'relative',
+    marginBottom: 15,
   },
   inputText: {
     fontSize: 16,
@@ -853,12 +853,22 @@ const styles = StyleSheet.create({
   inputIcon: {
     marginLeft: 10,
   },
+  unitLabel: {
+    position: "absolute",
+    right: 25,
+    top: "40%",
+    transform: [{ translateY: -10 }],
+    color: "#e91e63",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   searchButton: {
     backgroundColor: "#e91e63",
     borderRadius: 25,
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 20,
     justifyContent: "center",
     minHeight: 52,
   },
@@ -886,7 +896,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#000",
-    marginBottom: 0,
   },
   limpiarButton: {
     color: "#e91e63",
@@ -894,27 +903,41 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   infoContainer: {
-    marginBottom: 30,
+    marginBottom: 25,
   },
   infoRow: {
-    marginBottom: 15,
-  },
-  infoMainRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 5,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  zonaText: {
-    fontSize: 14,
-    color: "#666",
+  infoLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+    flex: 1,
   },
-  ivaText: {
-    fontSize: 14,
-    color: "#666",
+  infoValue: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    textAlign: "right",
+  },
+  dimensionsSection: {
+    marginTop: 25,
+    marginBottom: 30,
+  },
+  quoteSection: {
+    marginTop: 20,
+    paddingBottom: 30,
   },
   detallesContainer: {
     marginBottom: 20,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
   },
   detalleRow: {
     flexDirection: "row",
@@ -925,29 +948,29 @@ const styles = StyleSheet.create({
   detalleLabel: {
     fontSize: 16,
     color: "#000",
+    flex: 1,
   },
   detalleValue: {
     fontSize: 16,
     color: "#000",
     fontWeight: "500",
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1,
+    textAlign: "right",
   },
   costoTotalContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    borderTopWidth: 2,
+    borderTopColor: "#e91e63",
+    borderBottomWidth: 2,
+    borderBottomColor: "#e91e63",
     marginTop: 10,
+    marginBottom: 20,
+    backgroundColor: "#fdf2f8",
+    borderRadius: 12,
   },
   costoTotalLabel: {
     fontSize: 18,
@@ -955,13 +978,21 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   costoTotalValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#e91e63",
   },
+  paymentButtonContainer: {
+    marginTop: 15,
+    marginBottom: Platform.OS === 'android' ? 25 : 15,
+  },
+  bottomSpacer: {
+    height: Platform.OS === 'android' ? 50 : 20,
+  },
+  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "transparent", // Fondo transparente
+    backgroundColor: "transparent",
     justifyContent: "flex-end",
   },
   modalContainer: {
@@ -995,18 +1026,6 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     padding: 5,
   },
-  countryList: {
-    flex: 1,
-  },
-  unitLabel: {
-  position: "absolute",
-  right: 25,
-  top: "40%",
-  transform: [{ translateY: -10 }],
-  color: "#e91e63",
-  fontWeight: "bold",
-  fontSize: 16,
-},
   countryItem: {
     paddingHorizontal: 20,
     paddingVertical: 15,
@@ -1017,7 +1036,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   countryItemSelected: {
-    backgroundColor: "#fde7f3", // Fondo rosa claro para seleccionado
+    backgroundColor: "#fde7f3",
     borderLeftWidth: 4,
     borderLeftColor: "#e91e63",
   },
@@ -1028,7 +1047,7 @@ const styles = StyleSheet.create({
   },
   countryTextSelected: {
     fontWeight: "bold",
-    color: "#e91e63", // Texto rosa para seleccionado
+    color: "#e91e63",
   },
   floatingButtonContainer: {
     alignItems: "center",
@@ -1053,7 +1072,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "600",
-
   },
   floatingButtonDisabled: {
     backgroundColor: "#e91e63",

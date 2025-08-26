@@ -1,4 +1,4 @@
-  // schemas/schemas.ts
+// schemas/schemas.ts
 import { z } from 'zod';
 
 // Perfil de usuario
@@ -19,35 +19,35 @@ export type SchemaProfileUser = z.infer<typeof ProfileUserSchema>;
 // Tipos de navegación (Stack Params)
 export type RootStackParamList = {
   Carrito: undefined;
-  Favorito : undefined;
-  Politicas:undefined
-  Productos:undefined
-  AgregarTarjetaScreen:undefined
-  MisTarjetasScreen:undefined
-  Direcciones:undefined
-  ListaPedidosScreen:undefined
-  SeguimientoEnvioSimulado:undefined
-  BarraProgresoEnvio:undefined
-  MisPedidosScreen:undefined
-  Resumen:undefined
-  MapaPuntosRecogida:undefined
-  Envio:undefined
-  Pago:undefined
-  Tarifador:undefined
-  ChatBot:undefined
-  LoadPackages:undefined
-  DistributorPage:undefined
-  QRScanner:undefined
-  ProductView:undefined
-  Tabs:undefined
+  Favorito: undefined;
+  Politicas: undefined
+  Productos: undefined
+  AgregarTarjetaScreen: undefined
+  MisTarjetasScreen: undefined
+  Direcciones: undefined
+  ListaPedidosScreen: undefined
+  SeguimientoEnvioSimulado: undefined
+  BarraProgresoEnvio: undefined
+  MisPedidosScreen: undefined
+  Resumen: undefined
+  MapaPuntosRecogida: undefined
+  Envio: undefined
+  Pago: undefined
+  Tarifador: undefined
+  ChatBot: undefined
+  LoadPackages: undefined
+  DistributorPage: undefined
+  QRScanner: undefined
+  ProductView: undefined
+  Tabs: undefined
   HomeUser: undefined;
   Product: undefined;
   ProductsScreen: { categoria?: string, searchText?: string; };
   RoutesView: undefined;
   Package: undefined;
   ProfileUser: undefined;
-  PublicarProducto:undefined
-  PackagesList:undefined
+  PublicarProducto: undefined
+  PackagesList: undefined
   ProductUploadScreen: undefined;
   UserDetailsScreen: { user: SchemaProfileUser };
   MisCompras: undefined;
@@ -120,33 +120,33 @@ export type MisComprasResponse = z.infer<typeof MisComprasSchemaDB>;
 //---------------------------------------------------
 // Direcciones
 
-export const DireccionesSchema=z.object({
+export const DireccionesSchema = z.object({
   id: z.number(),
+  nombre: z.string(),
+  calle: z.string(),
+  colonia_fraccionamiento: z.string(),
+  numero_interior: z.number().nullable(),
+  numero_exterior: z.number().nullable(),
+  numero_celular: z.string(),
+  codigo_postal: z.string(),
+  estado: z.string(),
+  municipio: z.string(),
+  mas_info: z.string().optional(),
+  usuario: z.object({
+    id: z.number(),
     nombre: z.string(),
-    calle: z.string(),
-    colonia_fraccionamiento: z.string(),
-    numero_interior: z.number().nullable(),
-    numero_exterior: z.number().nullable(), 
-    numero_celular: z.string(),
-    codigo_postal: z.string(),
+    apellido: z.string(),
+    numero: z.string().nullable(),
     estado: z.string(),
-    municipio: z.string(),
-    mas_info: z.string().optional(),
-    usuario: z.object({
-      id: z.number(),
-      nombre: z.string(),
-      apellido: z.string(),
-      numero: z.string(),
-      estado: z.string(),
-      ciudad: z.string(),
-      fraccionamiento: z.string(),
-      calle: z.string(),
-      codigoPostal: z.string(),
-      imagen: z.string(),
-    }),
+    ciudad: z.string(),
+    fraccionamiento: z.string(),
+    calle: z.string(),
+    codigoPostal: z.string(),
+    imagen: z.string(),
+  }),
 })
 
-export const DireccionesSchemaDB = z.array(DireccionesSchema) 
+export const DireccionesSchemaDB = z.array(DireccionesSchema)
 export type DireccionesType = z.infer<typeof DireccionesSchemaDB>
 
 

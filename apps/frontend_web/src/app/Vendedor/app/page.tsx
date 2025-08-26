@@ -22,7 +22,7 @@ export default function Home() {
               <TableroCupones entradas={Cupons} variant="compact"/>
             </div>
           <div className="flex-col justify-center w-full bg-[#F3F4F6] rounded-xl max-h-80 pt-3 mb-auto">
-              <Title size="sm" className="ms-6 text-[#374151]">Top productos del mes</Title>
+              <Title size="sm" className="ms-6 text-[#374151]">Top Productos del mes</Title>
               <TableDemo entradas={Products} variants="compact"/>
           </div>
         </div>

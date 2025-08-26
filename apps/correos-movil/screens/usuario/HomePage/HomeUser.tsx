@@ -8,6 +8,7 @@ import { ShoppingBag, Headset, Heart, Search } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
+import { useMyAuth } from '../../../context/AuthContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -128,10 +129,19 @@ const CorreosClicButton = () => {
 };
 
 export default function HomeUser() {
+  const { logout } = useMyAuth();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
+
+  const handleSignOut = async () => {
+        try {
+        await logout();
+        } catch (err) {
+        console.error('Logout error:', JSON.stringify(err, null, 2));
+        }
+    };
 
   const categoriesData = [
     { name: 'Ropa, moda y calzado', image: require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png") },
@@ -210,7 +220,9 @@ export default function HomeUser() {
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
           <View>
-            <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
+            <TouchableOpacity onPress={handleSignOut}>
+              <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.iconsHeaderContainer}>

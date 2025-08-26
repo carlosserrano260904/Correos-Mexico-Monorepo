@@ -16,7 +16,7 @@ import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { PedidoResponseDto } from './dto/pedido-response.dto';
 
 @ApiTags('Pedidos') // Agrupa las rutas en la sección "Pedidos"
-@Controller('api/pedido')
+@Controller('pedido')
 export class PedidosController {
   constructor(private readonly pedidosService: PedidosService) {}
 

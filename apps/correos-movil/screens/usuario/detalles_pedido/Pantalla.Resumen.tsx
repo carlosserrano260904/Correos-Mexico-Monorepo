@@ -1,3 +1,4 @@
+// apps/correos-movil/screens/usuario/carrito/Pantalla.Resumen.tsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -21,7 +22,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import { obtenerDirecciones } from '../../../api/direcciones';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL; // p.ej: https://correos-mexico-monorepo.onrender.com
 const { width, height } = Dimensions.get('window');
 
 const Colors = {
@@ -36,8 +37,14 @@ const Colors = {
   textSecondary: '#757575',
 };
 
-// ===== DEMO: Forzar éxito de pago =====
+// ===== DEMO: si lo dejas en true, forzará "éxito" del pago aunque el endpoint falle =====
 const FORCE_PAYMENT_SUCCESS = true;
+
+/** Normaliza base de API para que SIEMPRE termine en /api */
+const apiBase = () =>
+  Constants?.expoConfig?.extra?.IP_LOCAL
+    ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
+    : `${BASE_URL}/api`;
 
 // ---------- helper: toma imagen con orden 0 (con fallbacks) ----------
 const getImageOrden0 = (producto: any): string => {
@@ -52,8 +59,8 @@ const getImageOrden0 = (producto: any): string => {
 };
 
 interface CartItem {
-  id: string;           // id del item en el carrito (backend carrito)
-  productId: number;    // id del producto real (para DTO)
+  id: string;           // ID del registro en tabla carrito (no el producto)
+  productId: number;    // ID real del producto
   name: string;
   price: number;
   quantity: number;
@@ -104,6 +111,8 @@ type CreatePedidoDto = {
   productos: { producto_id: number; cantidad: number }[];
 };
 
+const CACHE_KEY = 'cart_cache_v1'; // mismo que usa tu CarritoScreen
+
 const PantallaResumen = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,12 +127,6 @@ const PantallaResumen = () => {
 
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-
-  // Helpers
-  const apiBase = () =>
-    Constants.expoConfig?.extra?.IP_LOCAL
-      ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
-      : `${BASE_URL}/api`; // normaliza para que siempre termine en /api
 
   // Animación de spinner
   useEffect(() => {
@@ -155,10 +158,16 @@ const PantallaResumen = () => {
       if (!userId) throw new Error('Usuario no encontrado');
 
       const API = apiBase();
-      const response = await axios.get(`${API}/carrito/${userId}`);
-      const data = response.data;
+      // Si el backend devuelve 404 cuando está vacío, lo tratamos como "[]"
+      let data: any[] = [];
+      try {
+        const response = await axios.get(`${API}/carrito/${userId}`);
+        data = Array.isArray(response.data) ? response.data : [];
+      } catch (e: any) {
+        if (!(axios.isAxiosError(e) && e.response?.status === 404)) throw e;
+      }
 
-      const formatted: CartItem[] = (Array.isArray(data) ? data : [])
+      const formatted: CartItem[] = data
         .filter((item: any) => item?.producto && typeof item.cantidad !== 'undefined')
         .map((item: any) => ({
           id: item.id?.toString() || '',
@@ -166,13 +175,14 @@ const PantallaResumen = () => {
           name: item.producto?.nombre ?? 'Sin nombre',
           price: Number(item.precio_unitario ?? item.producto?.precio ?? 0),
           quantity: Number(item.cantidad ?? 1),
-          image: getImageOrden0(item.producto), // <<<<<< usa orden 0
+          image: getImageOrden0(item.producto),
           color: item.producto?.color ?? 'No especificado',
         }));
 
       setCart(formatted);
     } catch (error) {
       console.error('Error al cargar el carrito:', error);
+      setCart([]); // UI de vacío
     } finally {
       setIsLoading(false);
     }
@@ -192,6 +202,7 @@ const PantallaResumen = () => {
         return;
       }
 
+      // domicilio
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) return;
 
@@ -218,9 +229,7 @@ const PantallaResumen = () => {
   const loadTarjetaSeleccionada = async () => {
     try {
       const seleccionada = await AsyncStorage.getItem('tarjetaSeleccionada');
-      if (seleccionada) {
-        setTarjeta(JSON.parse(seleccionada));
-      }
+      if (seleccionada) setTarjeta(JSON.parse(seleccionada));
     } catch (error) {
       console.error('Error al cargar tarjeta seleccionada:', error);
     }
@@ -265,6 +274,35 @@ const PantallaResumen = () => {
     };
   };
 
+  /** Borra todo el carrito en backend (DELETE a cada ítem) y limpia el caché local */
+  const vaciarCarrito = useCallback(async (userId: string) => {
+    try {
+      const API = apiBase();
+
+      // 1) Intentamos obtener los ítems (si da 404, ya está vacío)
+      let items: any[] = [];
+      try {
+        const r = await axios.get(`${API}/carrito/${userId}`);
+        items = Array.isArray(r.data) ? r.data : [];
+      } catch (e: any) {
+        if (!(axios.isAxiosError(e) && e.response?.status === 404)) {
+          throw e; // si no es 404, re-lanzamos
+        }
+      }
+
+      // 2) Eliminamos cada registro del carrito por ID
+      await Promise.allSettled(items.map((it: any) => axios.delete(`${API}/carrito/${it.id}`)));
+
+      // 3) Limpiamos cache local usado por CarritoScreen para que se vea vacío al volver
+      await AsyncStorage.removeItem(CACHE_KEY);
+
+      // 4) Limpiamos el estado local
+      setCart([]);
+    } catch (e) {
+      console.warn('No se pudo vaciar el carrito completamente. Se intentará re-sincronizar luego.', e);
+    }
+  }, []);
+
   const confirmarCompra = async () => {
     try {
       const profileId = await AsyncStorage.getItem('userId');
@@ -274,13 +312,12 @@ const PantallaResumen = () => {
       }
 
       setIsPaying(true);
-
       const API = apiBase();
 
-      // 1) Crear pedido
+      // 1) Crear pedido (OJO: API ya termina en /api, así que NO duplica /api)
       const pedidoPayload = await buildPedidoPayload();
-      console.log('[POST /pedido] =>', pedidoPayload);
-      const { data: pedidoResp } = await axios.post(`${API}/api/pedido`, pedidoPayload);
+      console.log('[POST] /pedido =>', pedidoPayload);
+      const { data: pedidoResp } = await axios.post(`${API}/pedido`, pedidoPayload);
 
       const pedidoId: number | undefined =
         pedidoResp?.id ?? pedidoResp?.pedido?.id ?? pedidoResp?.data?.id;
@@ -296,17 +333,23 @@ const PantallaResumen = () => {
           stripeCardId: tarjeta.stripeCardId,
           pedidoId,
         });
-        ok = res?.data?.status?.toLowerCase?.() === 'success';
+        ok = res?.data?.status?.toString?.().toLowerCase() === 'success';
       } catch (err) {
-        console.log('Fallo en request real de pago.');
+        console.log('Fallo en request real de pago (se aplica FORCE_PAYMENT_SUCCESS si está activo).');
       }
 
       if (FORCE_PAYMENT_SUCCESS) ok = true;
 
       await sleep(900);
-      setIsPaying(false);
 
       if (ok) {
+        // 🔥 Vaciar carrito automáticamente
+        await vaciarCarrito(profileId);
+
+        // (Opcional) limpiar cualquier resumen previo
+        await AsyncStorage.removeItem('resumen_carrito');
+
+        // Navegar a pantalla de éxito
         // @ts-ignore
         navigation.reset({ index: 0, routes: [{ name: 'PagoExitosoScreen' }] });
       } else {
@@ -314,8 +357,9 @@ const PantallaResumen = () => {
       }
     } catch (error: any) {
       console.error('Error en confirmación de compra:', error?.response?.data || error.message);
-      setIsPaying(false);
       Alert.alert('Error', 'Ocurrió un error al procesar la compra.');
+    } finally {
+      setIsPaying(false);
     }
   };
 

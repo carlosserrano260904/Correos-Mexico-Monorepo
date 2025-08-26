@@ -35,11 +35,11 @@ export const BackendProductEntitySchema = z.object({
   vendidos: z.number(),
   sku: z.string(),
   
-  // === NUEVAS DIMENSIONES FÍSICAS ===
-  altura: z.number().nullable().optional(), // Float nullable del backend
-  largo: z.number().nullable().optional(),  // Float nullable del backend
-  ancho: z.number().nullable().optional(),  // Float nullable del backend
-  peso: z.number().nullable().optional(),   // Float nullable del backend
+  // === NUEVAS DIMENSIONES FÍSICAS (pueden no existir en la BD) ===
+  altura: z.number().nullable().optional().catch(null), // Float nullable del backend - catch errors if column doesn't exist
+  largo: z.number().nullable().optional().catch(null),  // Float nullable del backend - catch errors if column doesn't exist
+  ancho: z.number().nullable().optional().catch(null),  // Float nullable del backend - catch errors if column doesn't exist
+  peso: z.number().nullable().optional().catch(null),   // Float nullable del backend - catch errors if column doesn't exist
   
   // === CAMPO DE VENDEDOR ===
   idPerfil: z.number().nullable().optional(), // ID del perfil del vendedor
@@ -115,7 +115,6 @@ export const FrontendProductSchema = z.object({
   ProductID: z.number(), // id
   ProductName: z.string(), // nombre
   ProductDescription: z.string().nullable(), // descripcion - puede ser null del backend
-  ProductImageUrl: z.string().optional(), // puede ser undefined durante el procesamiento
   productPrice: z.number(), // precio
   ProductCategory: z.string().nullable(), // categoria
   ProductStock: z.number().int().min(0), // inventario

@@ -29,37 +29,19 @@ export default function perfil(){
 
     // Load user data if not available
     useEffect(() => {
-        console.log('🔍 Checking auth status:', {
-            isAuthenticated: auth.isAuthenticated,
-            hasUser: !!auth.user,
-            loading: auth.loading
-        });
-
         if (auth.isAuthenticated && !auth.user && !auth.loading) {
-            console.log('🔄 Refreshing user data...');
             auth.refreshUserData?.();
         }
     }, [auth.isAuthenticated, auth.user, auth.loading]);
 
     // Load profile data on mount
     useEffect(() => {
-        console.log('🔄 useEffect triggered with:', {
-            hasUser: !!auth.user,
-            userId: auth.user?.id,
-            hasProfile: !!profile,
-            profileLoaded,
-            loading,
-            hasAuthProfile: !!auth.profile
-        });
 
         const loadProfile = async () => {
-            console.log('🔍 Auth user data:', auth.user);
-            console.log('🔍 Auth profile data:', auth.profile);
 
             // First, try to use the profile from auth context
             if (auth.profile) {
                 try {
-                    console.log('✅ Using profile from auth context');
                     // Map the auth.profile to our frontend format
                     const mappedProfile = mapBackendProfileToFrontend(auth.profile);
                     setProfile(mappedProfile);
@@ -68,14 +50,12 @@ export default function perfil(){
                     setProfileLoaded(true);
                     return;
                 } catch (err) {
-                    console.log('❌ Failed to map auth.profile, trying API call');
-                    console.error('Mapping error:', err);
+                    // Failed to map auth.profile, trying API call
                 }
             }
 
             // Fallback: try to load profile via API
             if (!auth.user?.id) {
-                console.log('❌ No user ID available');
                 setError('Usuario no encontrado');
                 setLoading(false);
                 return;
@@ -85,20 +65,17 @@ export default function perfil(){
                 setLoading(true);
                 setError(null);
                 
-                console.log('🔍 Loading profile via API for user:', auth.user.id);
                 const profileData = await profileApiService.getProfile(auth.user.id);
                 
                 setProfile(profileData);
                 setTempProfile(profileData); // Initialize temp with current data
                 setProfileLoaded(true);
-                console.log('✅ Profile loaded via API:', profileData);
                 
             } catch (err) {
-                console.error('❌ Error loading profile:', err);
+                // Error loading profile
                 
                 // If profile doesn't exist, create a temporary one for editing
                 if (err instanceof Error && err.message.includes('no encontrado')) {
-                    console.log('🆕 Creating temporary profile for new user');
                     const tempProfile: Profile = {
                         id: auth.user.id,
                         nombre: auth.user.nombre || '',
@@ -125,7 +102,6 @@ export default function perfil(){
         };
 
         if (auth.user && !profile && !profileLoaded) {
-            console.log('🚀 Triggering profile load...');
             loadProfile();
         }
     }, [auth.user?.id, auth.profile?.id, profileLoaded]); // Add profileLoaded flag to prevent multiple loads
@@ -155,17 +131,18 @@ export default function perfil(){
         try {
             setLoading(true);
             
-            // Check if profile exists or if we need to create it
+            // ✅ USE AUTH STORE TO UPDATE PROFILE - This handles both API and global state
             let updatedProfile: Profile;
             
             try {
-                // Try to update existing profile
-                updatedProfile = await profileApiService.updateProfile(auth.user.id, tempProfile);
-                console.log('✅ Profile updated:', updatedProfile);
+                // Use the auth store method that handles both API and state updates
+                await auth.updateProfile(tempProfile);
+                
+                // Get the updated profile from the auth store
+                updatedProfile = auth.profile || tempProfile as Profile;
             } catch (updateError) {
-                // If profile doesn't exist, try to create it
+                // If profile doesn't exist, try to create it directly
                 if (updateError instanceof Error && updateError.message.includes('no encontrado')) {
-                    console.log('🆕 Profile not found, creating new one');
                     updatedProfile = await profileApiService.createProfile({
                         nombre: tempProfile.nombre || '',
                         apellido: tempProfile.apellido || '', 
@@ -177,6 +154,9 @@ export default function perfil(){
                         codigoPostal: tempProfile.codigoPostal || '',
                     });
                     console.log('✅ Profile created:', updatedProfile);
+                    
+                    // Refresh auth store to get the new profile
+                    await auth.refreshUserData?.();
                 } else {
                     throw updateError; // Re-throw if it's a different error
                 }
@@ -193,12 +173,13 @@ export default function perfil(){
                     const blob = await response.blob();
                     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
                     
-                    // Upload avatar
-                    const uploadResult = await profileApiService.uploadAvatar(auth.user.id, file);
+                    // ✅ USE AUTH STORE TO UPLOAD AVATAR - This handles both API and global state
+                    await auth.uploadAvatar(file);
                     
-                    // Update profile with new avatar URL
-                    const finalProfile = { ...updatedProfile, avatar: uploadResult.url };
-                    setProfile(finalProfile);
+                    // Get updated profile from auth store
+                    const profileWithAvatar = auth.profile || updatedProfile;
+                    setProfile(profileWithAvatar);
+                    console.log('✅ Avatar uploaded via auth store');
                     
                 } catch (uploadError) {
                     console.error('❌ Error uploading avatar:', uploadError);
@@ -210,6 +191,21 @@ export default function perfil(){
             
             setNuevaFoto(null);
             setEditando(false);
+            
+            // ✅ FORCE REFRESH TO ENSURE SYNC ACROSS ALL COMPONENTS
+            setTimeout(async () => {
+                try {
+                    await auth.forceRefreshProfile?.();
+                    
+                    // Force window refresh to ensure all components update
+                    window.dispatchEvent(new CustomEvent('profile-updated', { 
+                        detail: { profile: auth.profile, user: auth.user } 
+                    }));
+                } catch (refreshError) {
+                    console.warn('⚠️ Could not force refresh profile:', refreshError);
+                }
+            }, 500);
+            
             console.log('✅ Profile updated successfully');
             
         } catch (err) {

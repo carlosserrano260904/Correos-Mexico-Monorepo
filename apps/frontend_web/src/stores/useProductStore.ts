@@ -10,6 +10,7 @@ interface ProductState {
   loading: boolean
   error: string | null
   isConnected: boolean
+  hasAttemptedLoad: boolean // ← Track if we've tried loading at least once
 
   // Actions
   loadProducts: () => Promise<void>
@@ -35,6 +36,7 @@ export const useProductsStore = create<ProductState>()(
       loading: false,
       error: null,
       isConnected: false,
+      hasAttemptedLoad: false,
 
       // Cargar todos los productos desde la API con validación Zod
       loadProducts: async () => {
@@ -47,7 +49,8 @@ export const useProductsStore = create<ProductState>()(
             products, 
             loading: false, 
             error: null,
-            isConnected: true // Actualizar estado de conexión exitosa
+            isConnected: true, // Actualizar estado de conexión exitosa
+            hasAttemptedLoad: true // Mark that we've attempted to load
           })
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido al cargar productos'
@@ -55,7 +58,8 @@ export const useProductsStore = create<ProductState>()(
             error: errorMessage,
             loading: false,
             products: [], // Limpiar productos en caso de error
-            isConnected: false // Actualizar estado de conexión fallida
+            isConnected: false, // Actualizar estado de conexión fallida
+            hasAttemptedLoad: true // Mark that we've attempted to load even if failed
           })
           console.error('Error loading products:', error)
         }

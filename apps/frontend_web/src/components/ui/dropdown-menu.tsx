@@ -27,7 +27,6 @@ function DropdownMenuTrigger({
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
       {...props}
-      ref={undefined} // Evitar conflictos de ref
     />
   )
 }

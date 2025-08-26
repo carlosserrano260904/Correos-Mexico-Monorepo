@@ -1,7 +1,14 @@
 import Link from 'next/link';
 import React, { useState } from "react";
+import { useAddress } from '@/hooks/useAddress';
+import { useAuthStore } from '@/stores/useAuthStore';
+import type { CreateAddressRequest } from '@/schemas/address';
 
-export default function FormularioAgregarDireccion(){
+interface FormularioAgregarDireccionProps {
+    onAddressCreated?: (address: any) => void;
+}
+
+export default function FormularioAgregarDireccion({ onAddressCreated }: FormularioAgregarDireccionProps){
     const [formData, setFormData] = useState({
         Nombre:'',
         Apellido:'',
@@ -14,7 +21,12 @@ export default function FormularioAgregarDireccion(){
         Colonia:'',
         NumeroDeTelefono:'',
         InstruccionesExtra:'',
-    })
+    });
+
+    // 🔐 Hooks para manejo de direcciones y autenticación
+    const { createAddress, loading } = useAddress();
+    const { user } = useAuthStore();
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
     const resetForm = () => setFormData({
         Nombre:'',
@@ -38,10 +50,67 @@ export default function FormularioAgregarDireccion(){
         }))
     }
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        console.log(JSON.stringify(formData));
-        resetForm()
+        
+        if (!user?.id) {
+            alert('Error: Usuario no autenticado');
+            return;
+        }
+
+        // Validar campos requeridos
+        if (!formData.Nombre || !formData.Calle || !formData.CodigoPostal || !formData.Estado || !formData.Municipio || !formData.Colonia || !formData.NumeroDeTelefono) {
+            alert('Por favor, completa todos los campos obligatorios');
+            return;
+        }
+
+        setIsSubmitting(true);
+        
+        try {
+            // 🔄 Transformar datos del formulario al formato del backend
+            const addressRequest: CreateAddressRequest = {
+                nombre: formData.Nombre,
+                calle: formData.Calle,
+                colonia_fraccionamiento: formData.Colonia,
+                numero_interior: formData.Numero ? parseInt(formData.Numero) : null,
+                numero_exterior: formData.Numero ? parseInt(formData.Numero) : null,
+                numero_celular: formData.NumeroDeTelefono,
+                codigo_postal: formData.CodigoPostal,
+                estado: formData.Estado,
+                municipio: formData.Municipio,
+                mas_info: formData.InstruccionesExtra || undefined,
+                usuarioId: user.id,
+            };
+
+            console.log('🏠 Creando dirección:', addressRequest);
+
+            // 📡 Crear dirección a través del hook
+            const result = await createAddress(addressRequest);
+            
+            if (result.success) {
+                console.log('✅ Dirección creada exitosamente:', result.address);
+                alert('Dirección guardada exitosamente');
+                resetForm();
+                
+                // Llamar callback para actualizar la vista padre
+                if (onAddressCreated) {
+                    onAddressCreated(result.address);
+                }
+                
+                // Opcional: cerrar modal o navegar
+                // window.location.reload(); // O usar router para navegar
+                
+            } else {
+                console.error('❌ Error creando dirección:', result.error);
+                alert(`Error al guardar la dirección: ${result.error}`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error inesperado:', error);
+            alert('Error inesperado al guardar la dirección');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -215,14 +284,29 @@ export default function FormularioAgregarDireccion(){
 
                 {/* Botón de Envío */}
                 <div className="flex justify-center pt-6">
-                    <Link href="/pago/" className="w-full max-w-md">
+                    <div className="w-full max-w-md">
                         <button 
+                            type="button"
                             onClick={handleSubmit} 
-                            className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-pink-300"
+                            disabled={isSubmitting || loading}
+                            className={`
+                                w-full font-semibold py-4 px-8 rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-pink-300
+                                ${isSubmitting || loading 
+                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                    : 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white hover:shadow-xl transform hover:-translate-y-0.5'
+                                }
+                            `}
                         >
-                            Guardar dirección de entrega
+                            {isSubmitting || loading ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                                    Guardando dirección...
+                                </div>
+                            ) : (
+                                'Guardar dirección de entrega'
+                            )}
                         </button>
-                    </Link>
+                    </div>
                 </div>
             </form>
         </div>

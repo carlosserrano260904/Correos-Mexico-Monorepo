@@ -160,12 +160,24 @@ class ProfileApiService {
       
       console.log('📡 Perfil actualizado:');
       console.log(`   Status: ${response.status}`);
+      console.log('📤 Response data:', response.data);
       
-      // Map backend response to frontend format
-      const mappedProfile = mapBackendProfileToFrontend(response.data);
-      console.log(`   Perfil ID: ${mappedProfile.id}`);
-      
-      return mappedProfile;
+      // Check if backend returned success message instead of profile data
+      if (response.data && typeof response.data === 'object' && 'message' in response.data && 'ok' in response.data) {
+        console.log('✅ Backend returned success message, fetching updated profile...');
+        
+        // Backend returned success message, fetch updated profile
+        const updatedProfile = await this.getProfile(profileId);
+        console.log(`   Perfil actualizado obtenido con ID: ${updatedProfile.id}`);
+        
+        return updatedProfile;
+      } else {
+        // Backend returned actual profile data
+        const mappedProfile = mapBackendProfileToFrontend(response.data);
+        console.log(`   Perfil ID: ${mappedProfile.id}`);
+        
+        return mappedProfile;
+      }
       
     } catch (error) {
       console.error(`❌ === ERROR ACTUALIZANDO PERFIL ${profileId} ===`);

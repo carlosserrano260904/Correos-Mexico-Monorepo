@@ -9,10 +9,10 @@ export const useProducts = () => {
   const isHydrated = useHydration()
 
   useEffect(() => {
-    if (store.products.length === 0 && !store.loading) {
+    if (!store.hasAttemptedLoad && !store.loading) {
       store.loadProducts()
     }
-  }, [store.products.length, store.loading, store.loadProducts])
+  }, [store.hasAttemptedLoad, store.loading])
 
   const getProductsByCategory = useMemo(() => {
     return (category: string): FrontendProduct[] => {

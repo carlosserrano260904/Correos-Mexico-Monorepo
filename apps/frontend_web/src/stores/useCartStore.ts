@@ -3,7 +3,6 @@ import { devtools, persist } from 'zustand/middleware'
 import type { FrontendProduct } from '@/schemas/products'
 import type { FrontendCartItem, FrontendCart } from '@/schemas/cart'
 import { cartApiService } from '@/services/cartApi'
-import { mapBackendCartToFrontend } from '@/utils/mappers'
 
 // Usar el tipo del schema de Zod
 export type CartItemProps = FrontendCartItem;
@@ -99,11 +98,13 @@ export const useCartStore = create<CartState>()(
           try {
             console.log(`🛒 Adding product ${product.ProductID} to cart for profile ${profileId}`);
             
-            // Use new API method with automatic validation
-            await cartApiService.addProductToCart(product, profileId, quantity);
+            // Add to cart via API (doesn't return item data)
+            await cartApiService.addToCart(profileId, product.ProductID, quantity);
             
-            // Reload cart to get updated data
+            // Reload cart to get updated data with full relations
             await get().loadCart(profileId);
+            
+            console.log('✅ Product added to cart and cart reloaded');
             
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error adding to cart';
@@ -118,9 +119,15 @@ export const useCartStore = create<CartState>()(
         // Sync update quantity with backend
         syncUpdateQuantity: async (productId: number, quantity: number) => {
           const cartItem = get().cartItems.find(item => item.ProductID === productId);
+          const profileId = get().currentProfileId;
           
           if (!cartItem?.CartItemId) {
             set({ error: 'Cart item not found or missing backend ID' });
+            return;
+          }
+          
+          if (!profileId) {
+            set({ error: 'Profile ID not available' });
             return;
           }
           
@@ -129,18 +136,13 @@ export const useCartStore = create<CartState>()(
           try {
             console.log(`🛒 Updating quantity for item ${cartItem.CartItemId} to ${quantity}`);
             
-            // Use new API method with automatic validation
-            await cartApiService.updateItemQuantity(cartItem.CartItemId, quantity);
+            // Update quantity via API
+            await cartApiService.updateQuantity(cartItem.CartItemId, quantity);
             
-            // Update locally for immediate feedback
-            set(state => ({
-              cartItems: state.cartItems.map(item =>
-                item.ProductID === productId 
-                  ? { ...item, prodcutQuantity: Math.max(1, quantity) }
-                  : item
-              ),
-              loading: false,
-            }));
+            // Reload cart to get updated data
+            await get().loadCart(profileId);
+            
+            console.log('✅ Quantity updated and cart reloaded');
             
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error updating quantity';
@@ -155,9 +157,15 @@ export const useCartStore = create<CartState>()(
         // Sync remove from cart with backend
         syncRemoveFromCart: async (productId: number) => {
           const cartItem = get().cartItems.find(item => item.ProductID === productId);
+          const profileId = get().currentProfileId;
           
           if (!cartItem?.CartItemId) {
             set({ error: 'Cart item not found or missing backend ID' });
+            return;
+          }
+          
+          if (!profileId) {
+            set({ error: 'Profile ID not available' });
             return;
           }
           
@@ -168,11 +176,10 @@ export const useCartStore = create<CartState>()(
             
             await cartApiService.removeFromCart(cartItem.CartItemId);
             
-            // Update locally for immediate feedback
-            set(state => ({
-              cartItems: state.cartItems.filter(item => item.ProductID !== productId),
-              loading: false,
-            }));
+            // Reload cart to get updated data
+            await get().loadCart(profileId);
+            
+            console.log('✅ Item removed and cart reloaded');
             
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error removing from cart';

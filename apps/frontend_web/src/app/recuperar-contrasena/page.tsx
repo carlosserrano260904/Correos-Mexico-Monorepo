@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'; 
-import CarruselLogin from '@/components/CarruselLogin'; 
+import CarruselLogin from '@/components/CarruselLogin';
+import { usePasswordRecovery } from '@/hooks/usePasswordRecovery'; 
 
 const RecuperarContrasena = () => {
   const [timer, setTimer] = useState(20);
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const router = useRouter(); 
+  const router = useRouter();
+  const passwordRecovery = usePasswordRecovery(); 
 
   useEffect(() => {
     if (timer > 0) {
@@ -18,26 +19,32 @@ const RecuperarContrasena = () => {
     }
   }, [timer]);
 
-  const handleResendCode = () => {
-    console.log("Código reenviado");
-    setTimer(20);
+  const handleResendCode = async () => {
+    if (!passwordRecovery.hasEmail()) {
+      return;
+    }
+    
+    const result = await passwordRecovery.resendOtp();
+    if (result.success) {
+      setTimer(20);
+    }
   };
 
-  const handleEnviarCodigo = () => {
+  const handleEnviarCodigo = async () => {
     if (!email) {
-      setError('Por favor, ingrese su correo electrónico.');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Ingrese un correo electrónico válido.');
       return;
     }
 
-    setError('');
-    // Aquí iría la lógica para enviar el código al correo
-    router.push('/verificacion'); 
+    const result = await passwordRecovery.sendOtp(email);
+    if (result.success) {
+      // Redirect to verification with password recovery flow
+      router.push(`/verificacion?email=${encodeURIComponent(email)}&flow=password-recovery`);
+    }
   };
 
   return (
@@ -90,15 +97,20 @@ const RecuperarContrasena = () => {
             />
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm mb-2 text-center">{error}</p>
+          {passwordRecovery.error && (
+            <p className="text-red-500 text-sm mb-2 text-center">{passwordRecovery.error}</p>
+          )}
+
+          {passwordRecovery.success && (
+            <p className="text-green-600 text-sm mb-2 text-center">{passwordRecovery.success}</p>
           )}
 
           <button 
             onClick={handleEnviarCodigo} 
-            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-3 sm:mb-4 text-sm"
+            disabled={passwordRecovery.loading}
+            className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-3 sm:mb-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Enviar código
+            {passwordRecovery.loading ? 'Enviando...' : 'Enviar código'}
           </button>
 
           {/* Temporizador o reenviar más compacto */}

@@ -1,14 +1,28 @@
 'use client'
 import Link from 'next/link';
 import React, { useState } from "react";
+import { usePayments } from '@/hooks/usePayments';
+import { useAuthStore } from '@/stores/useAuthStore';
+import type { AddCardRequest, CardFormData } from '@/schemas/payments';
+import { paymentsApiService } from '@/services/paymentsApi';
 
-export default function FormularioPagoTarjeta(){
+interface FormularioPagoTarjetaProps {
+    onCardCreated?: (card: any) => void;
+}
+
+export default function FormularioPagoTarjeta({ onCardCreated }: FormularioPagoTarjetaProps){
     const [formData, setFormData] = useState({
         NombreTarjeta: '',
         NumeroTarjeta: '',
         FechaExpiracion: '',
         CodigoSeguridad: '',
-    })
+    });
+
+    // 🔐 Hooks para manejo de pagos y autenticación
+    const { addCard, loading, validateCardForm } = usePayments();
+    const { user } = useAuthStore();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<string[]>([]);
     
     const resetForm = () => setFormData({
         NombreTarjeta: '',
@@ -25,10 +39,69 @@ export default function FormularioPagoTarjeta(){
         }))
     }
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        console.log(JSON.stringify(formData));
-        resetForm()
+        
+        if (!user?.id) {
+            alert('Error: Usuario no autenticado');
+            return;
+        }
+
+        // Limpiar errores previos
+        setErrors([]);
+
+        // Validar formulario
+        const validation = validateCardForm(formData);
+        if (!validation.isValid) {
+            setErrors(validation.errors);
+            return;
+        }
+
+        setIsSubmitting(true);
+        
+        try {
+            console.log('💳 === PROCESANDO NUEVA TARJETA ===');
+            console.log('📋 Datos del formulario:', {
+                ...formData,
+                NumeroTarjeta: `***${formData.NumeroTarjeta.slice(-4)}`,
+                CodigoSeguridad: '***'
+            });
+
+            // NOTA: Para un flujo completo con Stripe, necesitarías:
+            // 1. Crear token de Stripe con los datos de la tarjeta
+            // 2. Enviar el token (no los datos directos) al backend
+            
+            // Por ahora, vamos a simular el proceso esperando que el backend maneje Stripe
+            const cardRequest: AddCardRequest = {
+                stripeCustomerId: user.stripeCustomerId || `cus_${user.id}`, // Placeholder si no existe
+                token: `tok_${Date.now()}`, // Placeholder - en producción sería token de Stripe
+                profileId: user.id,
+            };
+
+            console.log('🔄 Enviando solicitud al backend...');
+            const result = await addCard(cardRequest);
+            
+            if (result.success && result.card) {
+                console.log('✅ Tarjeta agregada exitosamente:', result.card);
+                alert('Tarjeta agregada exitosamente');
+                resetForm();
+                
+                // Llamar callback para actualizar la vista padre
+                if (onCardCreated) {
+                    onCardCreated(result.card);
+                }
+                
+            } else {
+                console.error('❌ Error agregando tarjeta:', result.error);
+                setErrors([result.error || 'Error al agregar la tarjeta']);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error inesperado:', error);
+            setErrors(['Error inesperado al agregar la tarjeta']);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -44,6 +117,18 @@ export default function FormularioPagoTarjeta(){
                     </div>
                 </div>
             </div>
+
+            {/* Mostrar errores */}
+            {errors.length > 0 && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    <p className="font-semibold">Por favor corrige los siguientes errores:</p>
+                    <ul className="mt-2 list-disc list-inside">
+                        {errors.map((error, index) => (
+                            <li key={index} className="text-sm">{error}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             <form className="space-y-6">
                 {/* Sección Datos de la Tarjeta */}
@@ -116,14 +201,29 @@ export default function FormularioPagoTarjeta(){
 
                 {/* Botón de Envío */}
                 <div className="flex justify-center pt-6">
-                    <Link href="/confirmacion/" className="w-full max-w-md">
+                    <div className="w-full max-w-md">
                         <button 
+                            type="button"
                             onClick={handleSubmit} 
-                            className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-pink-300"
+                            disabled={isSubmitting || loading}
+                            className={`
+                                w-full font-semibold py-4 px-8 rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-pink-300
+                                ${isSubmitting || loading 
+                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                    : 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white hover:shadow-xl transform hover:-translate-y-0.5'
+                                }
+                            `}
                         >
-                            Guardar tarjeta
+                            {isSubmitting || loading ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                                    Guardando tarjeta...
+                                </div>
+                            ) : (
+                                'Guardar tarjeta'
+                            )}
                         </button>
-                    </Link>
+                    </div>
                 </div>
             </form>
         </div>

@@ -1,43 +1,59 @@
 // src/services/cartApi.ts
 import api from '../lib/api';
 import { 
-  BackendCartResponse,
-  BackendCartResponseSchema,
+  BackendCartItem,
+  BackendCartItemSchema,
   BackendCreateCartDto,
+  BackendCreateCartDtoSchema,
   BackendUpdateCartDto,
+  BackendUpdateCartDtoSchema,
   FrontendCart,
+  FrontendCartItem,
   AddToCartRequest,
   UpdateCartQuantityRequest,
   AddToCartRequestSchema,
-  UpdateCartQuantityRequestSchema
+  UpdateCartQuantityRequestSchema,
+  CartItemTransformSchema
 } from '@/schemas/cart';
-import { 
-  mapBackendCartToFrontend,
-  mapFrontendProductToAddCartDto,
-  validateUpdateCartQuantity 
-} from '@/utils/mappers';
 import type { FrontendProduct } from '@/schemas/products';
 
 class CartApiService {
   private readonly baseUrl = '/carrito';
 
   /**
-   * Obtener carrito del usuario con validación Zod y mapeo
+   * GET /carrito/:profileId - Obtener carrito del usuario
    */
   async getCart(profileId: number): Promise<FrontendCart> {
     try {
       console.log(`🛒 === OBTENIENDO CARRITO PARA PERFIL ${profileId} ===`);
       
-      const response = await api.get<BackendCartResponse>(`${this.baseUrl}/${profileId}`);
+      const response = await api.get<BackendCartItem[]>(`${this.baseUrl}/${profileId}`);
       
       console.log('📡 Respuesta del carrito (backend):');
       console.log(`   Status: ${response.status}`);
-      console.log(`   Items en carrito: ${response.data.items?.length || 0}`);
-      console.log('   Data:', response.data);
+      console.log(`   Items en carrito: ${response.data.length || 0}`);
+      console.log('   Raw data:', response.data);
       
-      // Validar y mapear usando Zod schemas
-      const validatedBackendCart = BackendCartResponseSchema.parse(response.data);
-      const frontendCart = mapBackendCartToFrontend(validatedBackendCart);
+      // El backend devuelve array directo de items de carrito con relaciones
+      const validatedItems = response.data.map(item => BackendCartItemSchema.parse(item));
+      
+      // Transformar a formato frontend
+      const frontendItems: FrontendCartItem[] = validatedItems.map(item => 
+        CartItemTransformSchema.parse(item)
+      );
+      
+      // Calcular totales
+      const subtotal = frontendItems.reduce((acc, item) => 
+        acc + (item.prodcutQuantity * item.unitPrice), 0
+      );
+      
+      const frontendCart: FrontendCart = {
+        items: frontendItems,
+        subtotal,
+        total: subtotal, // Sin impuestos por ahora
+        totalItems: frontendItems.reduce((acc, item) => acc + item.prodcutQuantity, 0),
+        selectedItems: frontendItems.length
+      };
       
       console.log('✅ Carrito mapeado y validado para frontend:', frontendCart);
       
@@ -49,53 +65,66 @@ class CartApiService {
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
+        
+        if (axiosError.response?.status === 404) {
+          // Carrito vacío - devolver carrito vacío en lugar de error
+          console.log('📝 Carrito vacío para el usuario');
+          return {
+            items: [],
+            subtotal: 0,
+            total: 0,
+            totalItems: 0,
+            selectedItems: 0
+          };
+        }
+        
+        const backendMessage = axiosError.response?.data?.message;
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
       }
       
-      if (error && typeof error === 'object' && 'issues' in error) {
-        console.error('❌ Errores de validación Zod:', (error as any).issues);
-      }
-      
-      throw new Error('Error al obtener carrito del servidor');
+      throw new Error('Error al obtener el carrito');
     }
   }
 
   /**
-   * Agregar producto al carrito con validación Zod
+   * POST /carrito - Agregar producto al carrito
+   * Returns success/failure, doesn't return the item (backend doesn't include relations)
    */
-  async addToCart(data: AddToCartRequest): Promise<string> {
+  async addToCart(profileId: number, productId: number, cantidad: number): Promise<void> {
     try {
-      console.log('🛒 === AGREGANDO PRODUCTO AL CARRITO ===');
-      console.log('📤 Datos a enviar (antes de validación):', data);
+      console.log(`🛒 === AGREGANDO AL CARRITO ===`);
+      console.log(`   Profile: ${profileId}, Product: ${productId}, Quantity: ${cantidad}`);
       
-      // Validar datos de entrada
-      const validatedData = AddToCartRequestSchema.parse(data);
-      console.log('✅ Datos validados por Zod:', validatedData);
+      // Validar datos antes de enviar
+      const validatedRequest = BackendCreateCartDtoSchema.parse({
+        profileId,
+        productId,
+        cantidad
+      });
       
-      const response = await api.post<string>(this.baseUrl, validatedData);
+      const response = await api.post(`${this.baseUrl}`, validatedRequest);
       
-      console.log('📡 Respuesta del servidor:');
+      console.log('📡 Producto agregado al carrito (backend):');
       console.log(`   Status: ${response.status}`);
-      console.log(`   Message: ${response.data}`);
+      console.log('   Response:', response.data);
       
-      return response.data;
+      // Don't try to parse the response since backend doesn't return full item with relations
+      // The cart store will reload the full cart to get updated data
+      console.log('✅ Item agregado exitosamente al carrito');
       
     } catch (error) {
       console.error('❌ === ERROR AGREGANDO AL CARRITO ===');
       console.error('Error completo:', error);
-      console.error('Datos que se intentaron enviar:', data);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
-      }
-      
-      if (error && typeof error === 'object' && 'issues' in error) {
-        console.error('❌ Errores de validación Zod:', (error as any).issues);
+        const backendMessage = axiosError.response?.data?.message;
+        
+        if (axiosError.response?.status === 404) {
+          throw new Error('Usuario o producto no encontrado');
+        }
+        
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
       }
       
       throw new Error('Error al agregar producto al carrito');
@@ -103,205 +132,194 @@ class CartApiService {
   }
 
   /**
-   * Agregar producto al carrito usando FrontendProduct
+   * PATCH /carrito/:id - Actualizar cantidad de un item
+   * Returns success/failure, backend might not include full relations
    */
-  async addProductToCart(product: FrontendProduct, profileId: number, quantity: number = 1): Promise<string> {
+  async updateQuantity(cartItemId: number, cantidad: number): Promise<void> {
     try {
-      console.log('🛒 === AGREGANDO PRODUCTO AL CARRITO (DESDE FRONTEND) ===');
-      console.log('📤 Producto:', { id: product.ProductID, name: product.ProductName });
+      console.log(`🛒 === ACTUALIZANDO CANTIDAD ===`);
+      console.log(`   Cart Item ID: ${cartItemId}, New Quantity: ${cantidad}`);
       
-      // Mapear FrontendProduct a AddToCartRequest usando mapper
-      const addToCartRequest = mapFrontendProductToAddCartDto(product, profileId, quantity);
+      // Validar datos antes de enviar
+      const validatedRequest = BackendUpdateCartDtoSchema.parse({ cantidad });
       
-      return await this.addToCart(addToCartRequest);
+      const response = await api.patch(`${this.baseUrl}/${cartItemId}`, validatedRequest);
       
-    } catch (error) {
-      console.error('❌ === ERROR AGREGANDO PRODUCTO DESDE FRONTEND ===');
-      console.error('Error completo:', error);
-      
-      throw new Error('Error al agregar producto al carrito');
-    }
-  }
-
-  /**
-   * Actualizar cantidad de un item del carrito con validación Zod
-   */
-  async updateQuantity(cartItemId: number, data: UpdateCartQuantityRequest): Promise<string> {
-    try {
-      console.log(`🛒 === ACTUALIZANDO CANTIDAD DEL ITEM ${cartItemId} ===`);
-      console.log('📤 Nueva cantidad (antes de validación):', data.cantidad);
-      
-      // Validar datos de entrada
-      const validatedData = UpdateCartQuantityRequestSchema.parse(data);
-      console.log('✅ Datos validados por Zod:', validatedData);
-      
-      const response = await api.patch<string>(`${this.baseUrl}/${cartItemId}`, validatedData);
-      
-      console.log('📡 Respuesta del servidor:');
+      console.log('📡 Cantidad actualizada (backend):');
       console.log(`   Status: ${response.status}`);
-      console.log(`   Message: ${response.data}`);
+      console.log('   Response:', response.data);
       
-      return response.data;
+      console.log('✅ Cantidad actualizada exitosamente');
       
     } catch (error) {
-      console.error(`❌ === ERROR ACTUALIZANDO CANTIDAD DEL ITEM ${cartItemId} ===`);
+      console.error('❌ === ERROR ACTUALIZANDO CANTIDAD ===');
       console.error('Error completo:', error);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
+        const backendMessage = axiosError.response?.data?.message;
+        
+        if (axiosError.response?.status === 404) {
+          throw new Error('Producto en carrito no encontrado');
+        } else if (axiosError.response?.status === 400) {
+          throw new Error(backendMessage || 'La cantidad mínima debe ser 1');
+        }
+        
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
       }
       
-      if (error && typeof error === 'object' && 'issues' in error) {
-        console.error('❌ Errores de validación Zod:', (error as any).issues);
-      }
-      
-      throw new Error('Error al actualizar cantidad en el carrito');
+      throw new Error('Error al actualizar cantidad');
     }
   }
 
   /**
-   * Actualizar cantidad usando número simple
+   * DELETE /carrito/:id - Eliminar item del carrito
    */
-  async updateItemQuantity(cartItemId: number, quantity: number): Promise<string> {
+  async removeFromCart(cartItemId: number): Promise<void> {
     try {
-      console.log(`🛒 === ACTUALIZANDO CANTIDAD SIMPLE DEL ITEM ${cartItemId} ===`);
+      console.log(`🛒 === ELIMINANDO DEL CARRITO ===`);
+      console.log(`   Cart Item ID: ${cartItemId}`);
       
-      // Validar y mapear usando helper
-      const updateData = validateUpdateCartQuantity(quantity);
+      const response = await api.delete(`${this.baseUrl}/${cartItemId}`);
       
-      return await this.updateQuantity(cartItemId, updateData);
-      
-    } catch (error) {
-      console.error(`❌ === ERROR ACTUALIZANDO CANTIDAD SIMPLE ===`);
-      console.error('Error completo:', error);
-      
-      throw new Error('Error al actualizar cantidad en el carrito');
-    }
-  }
-
-  /**
-   * Eliminar item del carrito
-   */
-  async removeFromCart(cartItemId: number): Promise<string> {
-    try {
-      console.log(`🛒 === ELIMINANDO ITEM ${cartItemId} DEL CARRITO ===`);
-      
-      const response = await api.delete<string>(`${this.baseUrl}/${cartItemId}`);
-      
-      console.log('📡 Respuesta del servidor:');
+      console.log('📡 Item eliminado del carrito:');
       console.log(`   Status: ${response.status}`);
-      console.log(`   Message: ${response.data}`);
       
-      return response.data;
+      console.log('✅ Item eliminado exitosamente');
       
     } catch (error) {
-      console.error(`❌ === ERROR ELIMINANDO ITEM ${cartItemId} ===`);
+      console.error('❌ === ERROR ELIMINANDO DEL CARRITO ===');
       console.error('Error completo:', error);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
+        const backendMessage = axiosError.response?.data?.message;
+        
+        if (axiosError.response?.status === 404) {
+          throw new Error('Producto en carrito no encontrado');
+        }
+        
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
       }
       
-      throw new Error('Error al eliminar item del carrito');
+      throw new Error('Error al eliminar producto del carrito');
     }
   }
 
   /**
-   * Calcular subtotal del carrito
+   * GET /carrito/:profileId/subtotal - Calcular subtotal del carrito
    */
-  async getSubtotal(profileId: number): Promise<{ subtotal: number }> {
+  async getSubtotal(profileId: number): Promise<number> {
     try {
-      console.log(`🛒 === CALCULANDO SUBTOTAL PARA PERFIL ${profileId} ===`);
+      console.log(`🛒 === CALCULANDO SUBTOTAL ===`);
+      console.log(`   Profile ID: ${profileId}`);
       
       const response = await api.get<{ subtotal: number }>(`${this.baseUrl}/${profileId}/subtotal`);
       
-      console.log('📡 Subtotal calculado:');
+      console.log('📡 Subtotal calculado (backend):');
       console.log(`   Status: ${response.status}`);
       console.log(`   Subtotal: $${response.data.subtotal}`);
       
-      return response.data;
+      return response.data.subtotal;
       
     } catch (error) {
-      console.error(`❌ === ERROR CALCULANDO SUBTOTAL ===`);
+      console.error('❌ === ERROR CALCULANDO SUBTOTAL ===');
       console.error('Error completo:', error);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
+        const backendMessage = axiosError.response?.data?.message;
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
       }
       
-      throw new Error('Error al calcular subtotal del carrito');
+      throw new Error('Error al calcular subtotal');
     }
   }
 
   /**
-   * Proceder al pago
+   * GET /carrito/:profileId/proceder - Proceder al pago
    */
-  async proceedToCheckout(profileId: number): Promise<any> {
+  async proceedToPayment(profileId: number): Promise<{ message: string; productos: BackendCartItem[] }> {
     try {
-      console.log(`🛒 === PROCEDIENDO AL PAGO PARA PERFIL ${profileId} ===`);
+      console.log(`🛒 === PROCEDIENDO AL PAGO ===`);
+      console.log(`   Profile ID: ${profileId}`);
       
-      const response = await api.get(`${this.baseUrl}/${profileId}/proceder`);
+      const response = await api.get<{ message: string; productos: BackendCartItem[] }>(`${this.baseUrl}/${profileId}/proceder`);
       
-      console.log('📡 Respuesta de checkout:');
+      console.log('📡 Preparando pago (backend):');
       console.log(`   Status: ${response.status}`);
-      console.log('   Data:', response.data);
+      console.log(`   Message: ${response.data.message}`);
+      console.log(`   Products: ${response.data.productos.length}`);
       
       return response.data;
       
     } catch (error) {
-      console.error(`❌ === ERROR EN CHECKOUT ===`);
+      console.error('❌ === ERROR PROCEDIENDO AL PAGO ===');
       console.error('Error completo:', error);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
-        console.error('📡 Detalles del error:');
-        console.error(`   Status: ${axiosError.response?.status}`);
-        console.error(`   Data:`, axiosError.response?.data);
-      }
-      
-      throw new Error('Error al proceder al checkout');
-    }
-  }
-
-  /**
-   * Health check del servicio de carrito
-   */
-  async healthCheck(): Promise<boolean> {
-    try {
-      console.log('🔍 === HEALTH CHECK DE CARRITO API ===');
-      
-      // Intentar obtener un carrito inexistente para verificar que el servicio responda
-      const response = await api.get(`${this.baseUrl}/999999`);
-      
-      console.log('📡 Health check response:');
-      console.log(`   Status: ${response.status}`);
-      console.log(`   ✅ API de carrito está funcionando`);
-      
-      return true;
-      
-    } catch (error) {
-      // Un 404 también indica que el servicio está funcionando
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
+        const backendMessage = axiosError.response?.data?.message;
+        
         if (axiosError.response?.status === 404) {
-          console.log('✅ API de carrito está funcionando (404 esperado)');
-          return true;
+          throw new Error('El carrito está vacío');
+        }
+        
+        throw new Error(backendMessage || `Error del servidor (${axiosError.response?.status})`);
+      }
+      
+      throw new Error('Error al proceder al pago');
+    }
+  }
+
+  /**
+   * Utility: Convert FrontendProduct to AddToCartRequest
+   */
+  productToAddCartRequest(product: FrontendProduct, profileId: number, quantity: number = 1): AddToCartRequest {
+    return AddToCartRequestSchema.parse({
+      profileId,
+      productId: product.ProductID,
+      cantidad: quantity
+    });
+  }
+
+  /**
+   * Health check for cart service
+   */
+  async healthCheck(): Promise<{ isHealthy: boolean; error?: string }> {
+    try {
+      console.log('🏥 === VERIFICANDO ESTADO DEL CARRITO API ===');
+      
+      // Try to access a basic endpoint with invalid data to check server response
+      await api.get(`${this.baseUrl}/0`, { timeout: 5000 });
+      
+      return { isHealthy: true };
+    } catch (error) {
+      console.log('🔍 Respuesta del cart health check:', error);
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        // 404 or 400 means server is responding (just invalid data)
+        if (axiosError.response?.status === 404 || axiosError.response?.status === 400) {
+          return { isHealthy: true };
+        }
+        return { 
+          isHealthy: false, 
+          error: `Cart API responded with ${axiosError.response?.status}` 
+        };
+      }
+      
+      if (error && typeof error === 'object' && 'code' in error) {
+        const axiosError = error as any;
+        if (axiosError.code === 'ECONNABORTED') {
+          return { isHealthy: false, error: 'Cart API timeout' };
+        }
+        if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ERR_NETWORK') {
+          return { isHealthy: false, error: 'Cannot connect to cart API' };
         }
       }
       
-      console.error('❌ === HEALTH CHECK FALLIDO ===');
-      console.error('Error:', error);
-      
-      return false;
+      return { isHealthy: false, error: 'Unknown cart API error' };
     }
   }
 }

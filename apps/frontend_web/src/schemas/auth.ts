@@ -7,9 +7,9 @@ import { z } from 'zod'
 // ============================================================
 
 /**
- * Schema para User entity del backend (CreateAccount entity)
+ * Schema para CreateAccount entity (tabla usuarios)
  */
-export const BackendUserEntitySchema = z.object({
+export const BackendCreateAccountEntitySchema = z.object({
   id: z.number(),
   correo: z.string().email(),
   nombre: z.string().nullable(), // nullable in entity
@@ -18,7 +18,7 @@ export const BackendUserEntitySchema = z.object({
   confirmado: z.boolean().optional().default(false),
   password: z.string().nullable().optional(), // nullable in entity
   token: z.string().nullable().optional(),
-  tokenCreatedAt: z.date().nullable().optional(),
+  tokenCreatedAt: z.union([z.date(), z.string()]).nullable().optional(), // Can be Date or string
   profile: z.object({
     id: z.number(),
     nombre: z.string().nullable(), // Can be null
@@ -29,11 +29,41 @@ export const BackendUserEntitySchema = z.object({
     fraccionamiento: z.string().nullable(), // Can be null
     calle: z.string().nullable(), // Can be null
     codigoPostal: z.string().nullable(), // Can be null
+    imagen: z.string().optional(),
+    stripeCustomerId: z.string().nullable().optional(),
   }).optional(),
 })
 
 /**
- * Schema para AuthResponse del backend (signin/signup)
+ * Schema para User entity (diferente tabla)
+ */
+export const BackendUserEntitySchema = z.object({
+  id: z.number(),
+  correo: z.string().email(),
+  nombre: z.string(),
+  contrasena: z.string().nullable(),
+  rol: z.string().default('usuario'),
+})
+
+/**
+ * Schema unificado que puede manejar ambos tipos
+ */
+export const BackendUserUnifiedSchema = z.union([
+  BackendCreateAccountEntitySchema,
+  BackendUserEntitySchema,
+  // Para casos donde viene solo el user data sin profile
+  z.object({
+    id: z.number(),
+    correo: z.string().email(),
+    nombre: z.string().nullable().optional(),
+    apellido: z.string().nullable().optional(),
+    rol: z.string().optional().default('usuario'),
+    confirmado: z.boolean().optional(),
+  })
+])
+
+/**
+ * Schema para AuthResponse del backend (signin/signup) - MÁS FLEXIBLE
  */
 export const BackendAuthResponseSchema = z.object({
   // Para signin - estructura actual
@@ -45,12 +75,45 @@ export const BackendAuthResponseSchema = z.object({
   
   // Nueva estructura que vamos a implementar
   access_token: z.string().optional(),
-  user: z.object({
-    id: z.number(),
-    correo: z.string().email(),
-    nombre: z.string(), // Profile entity has non-nullable fields
-    apellido: z.string(), // Profile entity has non-nullable fields
-  }).optional(),
+  
+  // User data más flexible
+  user: z.union([
+    // Estructura completa con profile
+    z.object({
+      id: z.number(),
+      correo: z.string().email(),
+      nombre: z.string().nullable().optional(),
+      apellido: z.string().nullable().optional(),
+      rol: z.string().optional().default('usuario'),
+      confirmado: z.boolean().optional(),
+      profile: z.object({
+        id: z.number(),
+        nombre: z.string().nullable(),
+        apellido: z.string().nullable(),
+        numero: z.string().nullable(),
+        estado: z.string().nullable(),
+        ciudad: z.string().nullable(),
+        fraccionamiento: z.string().nullable(),
+        calle: z.string().nullable(),
+        codigoPostal: z.string().nullable(),
+        imagen: z.string().optional(),
+      }).optional(),
+    }),
+    // Estructura simple sin profile
+    z.object({
+      id: z.number(),
+      correo: z.string().email(),
+      nombre: z.string().nullable().optional(),
+      apellido: z.string().nullable().optional(),
+    })
+  ]).optional(),
+  
+  // Para casos donde viene directamente como propiedades del response
+  correo: z.string().email().optional(),
+  nombre: z.string().nullable().optional(),
+  apellido: z.string().nullable().optional(),
+  rol: z.string().optional(),
+  confirmado: z.boolean().optional(),
 })
 
 /**
@@ -98,8 +161,8 @@ export const FrontendAuthResponseSchema = z.object({
   user: z.object({
     id: z.number(),
     correo: z.string().email(),
-    nombre: z.string(), // Profile entity has non-nullable fields
-    apellido: z.string(), // Profile entity has non-nullable fields
+    nombre: z.string().nullable(), // Puede ser null desde CreateAccount entity
+    apellido: z.string().nullable(), // Puede ser null desde CreateAccount entity
   }),
   // Para compatibilidad con signup temporal
   token: z.string().optional(),
@@ -113,19 +176,19 @@ export const FrontendAuthResponseSchema = z.object({
 export const FrontendUserProfileSchema = z.object({
   id: z.number(),
   correo: z.string().email(),
-  nombre: z.string(), // Profile entity has non-nullable fields
-  apellido: z.string(), // Profile entity has non-nullable fields
+  nombre: z.string().nullable(), // CreateAccount entity permite null
+  apellido: z.string().nullable(), // CreateAccount entity permite null  
   rol: z.string().optional().default('usuario'),
   profile: z.object({
     id: z.number(),
-    nombre: z.string(), // Profile entity has non-nullable fields
-    apellido: z.string(), // Profile entity has non-nullable fields
-    numero: z.string(), // Profile entity has non-nullable fields
-    estado: z.string(), // Profile entity has non-nullable fields
-    ciudad: z.string(), // Profile entity has non-nullable fields
-    fraccionamiento: z.string(), // Profile entity has non-nullable fields
-    calle: z.string(), // Profile entity has non-nullable fields
-    codigoPostal: z.string(), // Profile entity has non-nullable fields
+    nombre: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    apellido: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    numero: z.string().nullable(), // Profile entity permite null
+    estado: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    ciudad: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    fraccionamiento: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    calle: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
+    codigoPostal: z.string().nullable(), // Profile entity puede tener null desde CreateAccount
     imagen: z.string().optional(), // Has default value
     stripeCustomerId: z.string().nullable().optional(), // Only this one is nullable
   }).optional(),
@@ -140,8 +203,8 @@ export const FrontendOtpResponseSchema = z.object({
   user: z.object({
     id: z.number(),
     correo: z.string().email(),
-    nombre: z.string(), // Profile entity has non-nullable fields
-    apellido: z.string(), // Profile entity has non-nullable fields
+    nombre: z.string().nullable(), // CreateAccount entity permite null
+    apellido: z.string().nullable(), // CreateAccount entity permite null
   }).optional(),
 })
 
@@ -149,7 +212,9 @@ export const FrontendOtpResponseSchema = z.object({
 // 📝 TIPOS TYPESCRIPT
 // ============================================================
 
+export type BackendCreateAccountEntity = z.infer<typeof BackendCreateAccountEntitySchema>
 export type BackendUserEntity = z.infer<typeof BackendUserEntitySchema>
+export type BackendUserUnified = z.infer<typeof BackendUserUnifiedSchema>
 export type BackendAuthResponse = z.infer<typeof BackendAuthResponseSchema>
 export type BackendLoginRequest = z.infer<typeof BackendLoginRequestSchema>
 export type BackendRegisterRequest = z.infer<typeof BackendRegisterRequestSchema>

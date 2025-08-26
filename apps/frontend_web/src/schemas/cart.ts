@@ -1,6 +1,7 @@
 // schemas/cart.ts - Esquemas de validación para el carrito con Zod
 
 import { z } from 'zod'
+import { sanitizeImageUrl } from '@/utils/mappers'
 
 // ============================================================
 // 🗄️ BACKEND SCHEMAS (estructura real de la base de datos)
@@ -137,7 +138,7 @@ export const CartItemTransformSchema = BackendCartItemSchema.transform((backendI
   prodcutQuantity: backendItem.cantidad,
   unitPrice: backendItem.precio_unitario,
   isActive: backendItem.activo,
-  ProductImageUrl: backendItem.producto.images?.[0]?.url || '',
+  ProductImageUrl: sanitizeImageUrl(backendItem.producto.images?.[0]?.url),
   ProductImages: backendItem.producto.images || [],
   isSelected: true, // Default para UI
 }))

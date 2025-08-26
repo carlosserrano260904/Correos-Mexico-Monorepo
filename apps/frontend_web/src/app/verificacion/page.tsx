@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CarruselLogin from '@/components/CarruselLogin';
 import { authApiService } from '@/services/authApi';
-import { useAuth } from '@/hooks/useAuth'; 
+import { useAuth } from '@/hooks/useAuth';
+import { usePasswordRecovery } from '@/hooks/usePasswordRecovery'; 
 
 const VerificacionCodigo = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
+  const passwordRecovery = usePasswordRecovery();
   
   const [timer, setTimer] = useState(600); // 10 minutos como en el backend
   const [code, setCode] = useState(["", "", "", "", "", ""]); // 6 dígitos
@@ -23,6 +25,7 @@ const VerificacionCodigo = () => {
   useEffect(() => {
     const emailFromParams = searchParams.get('email');
     const isExisting = searchParams.get('existing') === 'true';
+    const isPasswordRecovery = searchParams.get('flow') === 'password-recovery';
     const tempData = authApiService.getTempSignupData();
     
     const userEmail = emailFromParams || tempData?.correo || '';
@@ -30,15 +33,19 @@ const VerificacionCodigo = () => {
     if (!userEmail) {
       setError('No se encontró información de registro. Vuelve a registrarte.');
       setTimeout(() => {
-        router.push('/registro');
+        router.push(isPasswordRecovery ? '/recuperar-contrasena' : '/registro');
       }, 3000);
       return;
     }
     
     setEmail(userEmail);
     
+    // If it's password recovery flow, initialize the hook
+    if (isPasswordRecovery && userEmail) {
+      passwordRecovery.sendOtp(userEmail);
+    }
     // If it's an existing user, automatically send OTP
-    if (isExisting && userEmail) {
+    else if (isExisting && userEmail) {
       console.log('🔄 Usuario existente detectado, enviando OTP...');
       // Send OTP for existing user
       const sendOtpForExistingUser = async () => {
@@ -116,30 +123,49 @@ const VerificacionCodigo = () => {
     }
 
     const codigoIngresado = code.join('');
-    console.log("Código ingresado:", codigoIngresado);
+    const isPasswordRecovery = searchParams.get('flow') === 'password-recovery';
 
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
-      console.log('Verificando código OTP...');
-      const result = await auth.verifyOtp({
-        correo: email,
-        token: codigoIngresado,
-      });
-
-      if (result.success) {
-        console.log('✅ Verificación exitosa');
-        setSuccess('¡Código verificado correctamente! Redirigiendo...');
+      if (isPasswordRecovery) {
+        // Use password recovery hook for password reset flow
+        const result = await passwordRecovery.verifyOtp(codigoIngresado);
         
-        // Redirect to home page after successful verification
-        setTimeout(() => {
-          router.push('/');
-        }, 1500);
+        if (result.success) {
+          setSuccess('¡Código verificado correctamente! Redirigiendo...');
+          
+          // Store email in sessionStorage as backup
+          sessionStorage.setItem('password_recovery_email', email);
+          
+          setTimeout(() => {
+            router.push(`/cambiar-contrasena?email=${encodeURIComponent(email)}&verified=true`);
+          }, 1500);
+        } else {
+          setError(result.error || 'Código inválido o expirado. Intenta de nuevo.');
+        }
       } else {
-        console.log('❌ Verificación fallida');
-        setError(result.error || 'Código inválido o expirado. Intenta de nuevo.');
+        // Regular signup/login flow
+        console.log('Verificando código OTP...');
+        const result = await auth.verifyOtp({
+          correo: email,
+          token: codigoIngresado,
+        });
+
+        if (result.success) {
+          console.log('✅ Verificación exitosa');
+          setSuccess('¡Código verificado correctamente! Redirigiendo...');
+          
+          // Redirect to home page after successful verification
+          setTimeout(() => {
+            router.push('/');
+          }, 1500);
+        } else {
+          console.log('❌ Verificación fallida');
+          setError(result.error || 'Código inválido o expirado. Intenta de nuevo.');
+        }
       }
       
     } catch (error) {

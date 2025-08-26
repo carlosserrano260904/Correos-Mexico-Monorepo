@@ -1,5 +1,151 @@
 // utils/mappers.ts - CORREGIDO PARA TU ESTRUCTURA REAL
 
+// ============================================================
+// 🔧 HELPERS PARA VALIDACIÓN DE EMAIL Y DATOS
+// ============================================================
+
+/**
+ * 🎯 Helper para debuggear errores de ZodError
+ */
+function debugZodError(error: any, data: unknown, context: string): void {
+  console.error(`❌ === ZodError en ${context} ===`);
+  console.error('Datos originales:', data);
+  
+  if (error && 'issues' in error) {
+    console.error('Problemas de validación:');
+    error.issues.forEach((issue: any, index: number) => {
+      console.error(`  ${index + 1}. ${issue.path.join('.')} - ${issue.message} (${issue.code})`);
+      if (issue.expected) console.error(`     Esperado: ${issue.expected}`);
+      if (issue.received) console.error(`     Recibido: ${issue.received}`);
+    });
+  }
+  
+  console.error('='.repeat(50));
+}
+
+/**
+ * 🎯 Función para hacer validation con mejor error handling
+ */
+function safeZodParse<T>(schema: any, data: unknown, context: string): T | null {
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    debugZodError(error, data, context);
+    return null;
+  }
+}
+
+/**
+ * 🖼️ Helper para limpiar y validar URLs de imágenes de S3
+ */
+function sanitizeImageUrl(url: string | undefined | null): string {
+  const defaultImage = 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
+  
+  if (!url || typeof url !== 'string') {
+    return defaultImage;
+  }
+  
+  try {
+    // Si la URL ya está bien formada, devolverla tal como está
+    new URL(url);
+    return url;
+  } catch (error) {
+    // Si la URL no es válida, intentar limpiarla
+    console.warn('⚠️ URL de imagen mal formada, intentando limpiar:', url);
+    
+    try {
+      // Separar la base de la URL y el path
+      const parts = url.split('/images/');
+      if (parts.length !== 2) {
+        console.warn('⚠️ URL no tiene formato esperado de S3, usando imagen por defecto');
+        return defaultImage;
+      }
+      
+      const [baseUrl, imagePath] = parts;
+      
+      // Limpiar el nombre del archivo de caracteres problemáticos
+      const cleanImagePath = imagePath
+        .replace(/\s+/g, '%20')  // Espacios -> %20
+        .replace(/#/g, '%23')    // # -> %23
+        .replace(/\$/g, '%24')   // $ -> %24
+        .replace(/&/g, '%26')    // & -> %26
+        .replace(/\+/g, '%2B')   // + -> %2B
+        .replace(/,/g, '%2C')    // , -> %2C
+        .replace(/:/g, '%3A')    // : -> %3A
+        .replace(/;/g, '%3B')    // ; -> %3B
+        .replace(/=/g, '%3D')    // = -> %3D
+        .replace(/\?/g, '%3F')   // ? -> %3F
+        .replace(/@/g, '%40');   // @ -> %40
+      
+      const cleanUrl = `${baseUrl}/images/${cleanImagePath}`;
+      
+      // Verificar que la URL limpia es válida
+      new URL(cleanUrl);
+      console.log('✅ URL de imagen limpia:', cleanUrl);
+      return cleanUrl;
+      
+    } catch (cleanError) {
+      console.error('❌ No se pudo limpiar la URL de imagen:', cleanError);
+      return defaultImage;
+    }
+  }
+}
+
+/**
+ * 🎯 Valida y normaliza un email, retornando un email válido o uno por defecto
+ */
+function validateAndNormalizeEmail(emailData: unknown, fallbackEmail: string = 'temp@temporary.com'): string {
+  // Si es null o undefined, usar fallback
+  if (!emailData) {
+    console.warn('⚠️ Email es null/undefined, usando fallback:', fallbackEmail);
+    return fallbackEmail;
+  }
+  
+  // Si es string, validar formato
+  if (typeof emailData === 'string') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(emailData)) {
+      return emailData;
+    } else {
+      console.warn('⚠️ Email inválido:', emailData, 'usando fallback:', fallbackEmail);
+      return fallbackEmail;
+    }
+  }
+  
+  // Si es objeto, buscar propiedades de email
+  if (typeof emailData === 'object') {
+    const obj = emailData as any;
+    const email = obj.correo || obj.email || obj.emailAddress;
+    return validateAndNormalizeEmail(email, fallbackEmail);
+  }
+  
+  console.warn('⚠️ Tipo de email no reconocido:', typeof emailData, emailData, 'usando fallback:', fallbackEmail);
+  return fallbackEmail;
+}
+
+/**
+ * 🎯 Extrae y valida datos de usuario desde cualquier estructura
+ */
+function extractUserData(userData: unknown): {
+  id: number;
+  correo: string;
+  nombre: string | null;
+  apellido: string | null;
+  rol?: string;
+  confirmado?: boolean;
+} {
+  const data = userData as any;
+  
+  return {
+    id: data.id || data.userId || 0,
+    correo: validateAndNormalizeEmail(data.correo || data.email),
+    nombre: data.nombre || data.name || null,
+    apellido: data.apellido || data.lastName || null,
+    rol: data.rol || data.role || 'usuario',
+    confirmado: data.confirmado || data.confirmed || false,
+  };
+}
+
 import { 
   BackendProductEntity,
   BackendProductEntitySchema,
@@ -16,6 +162,10 @@ import {
   BackendAuthResponseSchema,
   BackendUserEntity,
   BackendUserEntitySchema,
+  BackendUserUnified,
+  BackendUserUnifiedSchema,
+  BackendCreateAccountEntity,
+  BackendCreateAccountEntitySchema,
   FrontendAuthResponse,
   FrontendAuthResponseSchema,
   FrontendUserProfile,
@@ -64,6 +214,15 @@ import {
   FrontendProfileSchema,
 } from '@/schemas/profile'
 
+import {
+  BackendAddress,
+  BackendCreateAddressDto,
+  BackendAddressSchema,
+  BackendCreateAddressDtoSchema,
+  FrontendAddress,
+  FrontendAddressSchema,
+} from '@/schemas/address'
+
 /**
  * 🔄 Backend Entity -> Frontend Product - BASADO EN TU ENTIDAD REAL
  */
@@ -76,10 +235,11 @@ export function mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
     console.log('✅ Datos validados del backend:', validated)
     
     // ✅ USAR IMAGES ARRAY (tu estructura real) para obtener primera imagen
-    const imageUrl = validated.images?.[0]?.url || 
-      'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg'
+    const rawImageUrl = validated.images?.[0]?.url;
+    const imageUrl = sanitizeImageUrl(rawImageUrl);
     
-    console.log('🖼️ URL de imagen obtenida:', imageUrl)
+    console.log('🖼️ URL de imagen original:', rawImageUrl)
+    console.log('🖼️ URL de imagen sanitizada:', imageUrl)
     console.log('📊 Total de imágenes:', validated.images?.length || 0)
     
     // ✅ MAPEAR CAMPOS REALES + AGREGAR VALORES POR DEFECTO PARA UI
@@ -100,29 +260,32 @@ export function mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
       ProductSold: validated.vendidos,
       ProductSKU: validated.sku,
       
-      // === NUEVAS DIMENSIONES FÍSICAS ===
-      ProductHeight: validated.altura,
-      ProductLength: validated.largo,
-      ProductWidth: validated.ancho,
-      ProductWeight: validated.peso,
+      // === NUEVAS DIMENSIONES FÍSICAS (pueden no existir en BD) ===
+      ProductHeight: validated.altura || null,
+      ProductLength: validated.largo || null,
+      ProductWidth: validated.ancho || null,
+      ProductWeight: validated.peso || null,
       
       // === VENDEDOR ===
       ProductSellerId: validated.idPerfil,
       
       // === IMÁGENES ===
-      ProductImages: validated.images || [],
+      ProductImages: (validated.images || []).map(img => ({
+        ...img,
+        url: sanitizeImageUrl(img.url)
+      })),
       
       // === CAMPOS EXTRA PARA UI ===
       ProductCupons: [],
       
-      // === CAMPOS CALCULADOS PARA UI ===
-      ProductVolume: validated.altura && validated.largo && validated.ancho 
+      // === CAMPOS CALCULADOS PARA UI (safe calculation) ===
+      ProductVolume: (validated.altura && validated.largo && validated.ancho) 
         ? validated.altura * validated.largo * validated.ancho 
         : undefined,
-      ProductDimensions: validated.altura && validated.largo && validated.ancho
+      ProductDimensions: (validated.altura && validated.largo && validated.ancho)
         ? `${validated.altura} x ${validated.largo} x ${validated.ancho} cm`
         : undefined,
-      ProductWeightDisplay: validated.peso ? `${validated.peso} kg` : undefined,
+      ProductWeightDisplay: (validated.peso && validated.peso > 0) ? `${validated.peso} kg` : undefined,
     }
     
     console.log('✅ Producto mapeado para frontend:', frontendProduct)
@@ -180,11 +343,11 @@ export function mapFrontendToCreateDto(frontendProduct: Partial<FrontendProduct>
       vendidos: safeNumber(frontendProduct.ProductSold, 0),
       idPerfil: safeNumber(frontendProduct.ProductSellerId, 1), // Requerido en backend
       
-      // === DIMENSIONES FÍSICAS OPCIONALES ===
-      altura: frontendProduct.ProductHeight || undefined,
-      largo: frontendProduct.ProductLength || undefined,
-      ancho: frontendProduct.ProductWidth || undefined,
-      peso: frontendProduct.ProductWeight || undefined,
+      // === DIMENSIONES FÍSICAS OPCIONALES (solo incluir si tienen valores válidos) ===
+      ...(frontendProduct.ProductHeight && frontendProduct.ProductHeight > 0 ? { altura: frontendProduct.ProductHeight } : {}),
+      ...(frontendProduct.ProductLength && frontendProduct.ProductLength > 0 ? { largo: frontendProduct.ProductLength } : {}),
+      ...(frontendProduct.ProductWidth && frontendProduct.ProductWidth > 0 ? { ancho: frontendProduct.ProductWidth } : {}),
+      ...(frontendProduct.ProductWeight && frontendProduct.ProductWeight > 0 ? { peso: frontendProduct.ProductWeight } : {}),
     }
     
     console.log('✅ DTO creado para backend:', createDto)
@@ -297,7 +460,7 @@ export function mapFrontendToUpdateDto(frontendProduct: Partial<FrontendProduct>
       if (idPerfil !== undefined) updateDto.idPerfil = idPerfil
     }
     
-    // === DIMENSIONES FÍSICAS ===
+    // === DIMENSIONES FÍSICAS (solo incluir si existen en BD) ===
     if (frontendProduct.ProductHeight !== undefined) {
       const altura = safeNumber(frontendProduct.ProductHeight)
       if (altura !== undefined && altura > 0) updateDto.altura = altura
@@ -344,6 +507,11 @@ export function mapFrontendToUpdateDto(frontendProduct: Partial<FrontendProduct>
     throw new Error(`Error inesperado validando datos: ${String(error)}`)
   }
 }
+
+/**
+ * 🖼️ Función exportada para sanitizar URLs de imágenes (para usar en componentes y schemas)
+ */
+export { sanitizeImageUrl };
 
 /**
  * 🔄 Validar array de productos del backend
@@ -440,58 +608,113 @@ export function mapBackendAuthToFrontend(backendAuth: unknown): FrontendAuthResp
   console.log('🔍 Datos de auth del backend recibidos:', backendAuth)
   
   try {
-    // ✅ Validar que los datos coinciden con el schema del backend
-    const validated = BackendAuthResponseSchema.parse(backendAuth)
-    console.log('✅ Datos de auth validados del backend:', validated)
+    // ✅ Intentar validar con el schema del backend
+    let validated: BackendAuthResponse;
     
-    // ✅ Mapear a estructura del frontend, manejando ambas estructuras
+    try {
+      validated = BackendAuthResponseSchema.parse(backendAuth);
+      console.log('✅ Datos de auth validados del backend:', validated)
+    } catch (validationError) {
+      console.warn('⚠️ No se pudo validar con schema estricto, intentando validación flexible...');
+      console.warn('Error de validación:', validationError);
+      
+      // Fallback: crear un objeto válido con los datos que tengamos
+      const data = backendAuth as any;
+      validated = {
+        token: data.token || data.access_token,
+        userId: data.userId || data.id || data.user?.id,
+        id: data.id || data.user?.id,
+        access_token: data.access_token || data.token,
+        user: data.user,
+        correo: data.correo || data.email || data.user?.correo,
+        nombre: data.nombre || data.name || data.user?.nombre,
+        apellido: data.apellido || data.lastName || data.user?.apellido,
+        rol: data.rol || data.role || data.user?.rol,
+        confirmado: data.confirmado || data.confirmed || data.user?.confirmado
+      };
+      console.log('✅ Datos de auth normalizados:', validated);
+    }
+    
+    // ✅ Mapear a estructura del frontend, manejando todas las estructuras posibles
     let frontendAuth: FrontendAuthResponse
     
     if (validated.access_token && validated.user) {
       // Nueva estructura (signin/verifyOtp con access_token)
+      const userData = extractUserData(validated.user);
       frontendAuth = {
         access_token: validated.access_token,
-        user: validated.user,
+        user: {
+          id: userData.id,
+          correo: userData.correo,
+          nombre: userData.nombre,
+          apellido: userData.apellido,
+        },
         token: validated.token, // Para compatibilidad con signup temporal
-        userId: validated.userId, // Para compatibilidad
+        userId: validated.userId || userData.id, // Para compatibilidad
         needsVerification: false
       }
-    } else if (validated.token && validated.userId) {
-      // Estructura legacy (signin anterior)
+    } else if (validated.token && (validated.userId || validated.id)) {
+      // Estructura legacy o signup
+      const userId = validated.userId || validated.id!;
+      const isSignup = !validated.userId && validated.id; // Solo signup tiene "id" sin "userId"
+      
       frontendAuth = {
-        access_token: validated.token, // Mapear token a access_token
+        access_token: isSignup ? '' : validated.token, // No hay access_token real para signup
         user: {
-          id: validated.userId,
-          correo: '', // Se llenará después con getCurrentUser
-          nombre: 'Usuario', // Default value
-          apellido: '', // Default value
+          id: userId,
+          correo: validateAndNormalizeEmail(validated.correo, 'temp@temporary.com'),
+          nombre: validated.nombre || 'Usuario', // Default value
+          apellido: validated.apellido || null, // Default value
         },
         token: validated.token,
-        userId: validated.userId,
-        needsVerification: false
-      }
-    } else if (validated.token && validated.id) {
-      // Estructura de signup temporal
-      frontendAuth = {
-        access_token: '', // No hay access_token real aún
-        user: {
-          id: validated.id,
-          correo: 'temp@temporary.com', // Email temporal válido para pasar validación
-          nombre: 'Usuario', // Default value
-          apellido: '', // Default value
-        },
-        token: validated.token, // Token temporal para OTP
-        userId: validated.id,
-        needsVerification: true
+        userId: userId,
+        needsVerification: isSignup // Solo signup necesita verificación
       }
     } else {
-      throw new Error('Estructura de respuesta de auth no reconocida')
+      // Fallback con datos mínimos
+      console.warn('⚠️ Estructura de auth incompleta, usando fallback');
+      const fallbackUserData = extractUserData(validated);
+      frontendAuth = {
+        access_token: validated.access_token || validated.token || '',
+        user: {
+          id: fallbackUserData.id,
+          correo: fallbackUserData.correo,
+          nombre: fallbackUserData.nombre || 'Usuario',
+          apellido: fallbackUserData.apellido,
+        },
+        token: validated.token,
+        userId: fallbackUserData.id,
+        needsVerification: false
+      }
     }
     
     console.log('✅ Auth response mapeada para frontend:', frontendAuth)
     
-    // ✅ Validar resultado final
-    return FrontendAuthResponseSchema.parse(frontendAuth)
+    // ✅ Validar resultado final con mejor error handling
+    try {
+      return FrontendAuthResponseSchema.parse(frontendAuth)
+    } catch (finalValidationError) {
+      console.error('❌ Error en validación final de FrontendAuthResponse:');
+      debugZodError(finalValidationError, frontendAuth, 'FrontendAuthResponse');
+      
+      // Como último recurso, devolver un objeto mínimo válido
+      console.warn('🚨 Usando fallback de emergencia para AuthResponse');
+      const emergencyAuth: FrontendAuthResponse = {
+        access_token: frontendAuth.access_token || '',
+        user: {
+          id: frontendAuth.user?.id || 0,
+          correo: validateAndNormalizeEmail(frontendAuth.user?.correo, 'emergency@temp.com'),
+          nombre: frontendAuth.user?.nombre || null,
+          apellido: frontendAuth.user?.apellido || null,
+        },
+        token: frontendAuth.token,
+        userId: frontendAuth.userId,
+        needsVerification: frontendAuth.needsVerification || false
+      };
+      
+      console.log('🚨 AuthResponse de emergencia:', emergencyAuth);
+      return emergencyAuth;
+    }
     
   } catch (error) {
     console.error('❌ Error mapeando backend auth -> frontend:', error)
@@ -512,18 +735,52 @@ export function mapBackendUserToFrontend(backendUser: unknown): FrontendUserProf
   console.log('🔍 Datos de usuario del backend recibidos:', backendUser)
   
   try {
-    // ✅ Validar que los datos coinciden con el schema del backend
-    const validated = BackendUserEntitySchema.parse(backendUser)
-    console.log('✅ Datos de usuario validados del backend:', validated)
+    // ✅ Intentar validar con el schema unificado que maneja ambas estructuras
+    let validated: BackendUserUnified;
+    
+    try {
+      validated = BackendUserUnifiedSchema.parse(backendUser);
+      console.log('✅ Datos de usuario validados con schema unificado:', validated)
+    } catch (unifiedError) {
+      console.warn('⚠️ No se pudo validar con schema unificado, intentando validación flexible...');
+      console.warn('Error de schema unificado:', unifiedError);
+      
+      // Fallback: crear un objeto válido con los datos que tengamos
+      const data = backendUser as any;
+      validated = {
+        id: data.id || 0,
+        correo: data.correo || data.email || '',
+        nombre: data.nombre || data.name || null,
+        apellido: data.apellido || data.lastName || null,
+        rol: data.rol || data.role || 'usuario',
+        confirmado: data.confirmado || data.confirmed || false,
+      };
+      console.log('✅ Datos de usuario normalizados:', validated);
+    }
     
     // ✅ Mapear a estructura del frontend
-    const frontendUser: FrontendUserProfile = {
-      id: validated.profile?.id || validated.id,
-      correo: validated.correo,
-      nombre: validated.nombre,
-      apellido: validated.apellido,
-      rol: validated.rol,
-      profile: validated.profile
+    let frontendUser: FrontendUserProfile;
+    
+    if ('profile' in validated && validated.profile) {
+      // Caso CreateAccount con profile
+      frontendUser = {
+        id: validated.id,
+        correo: validated.correo,
+        nombre: validated.nombre || validated.profile.nombre || null,
+        apellido: validated.apellido || validated.profile.apellido || null,
+        rol: ('rol' in validated ? validated.rol : 'usuario') || 'usuario',
+        profile: validated.profile
+      };
+    } else {
+      // Caso User simple o sin profile
+      frontendUser = {
+        id: validated.id,
+        correo: validated.correo,
+        nombre: validated.nombre || null,
+        apellido: validated.apellido || null,
+        rol: ('rol' in validated ? validated.rol : 'usuario') || 'usuario',
+        profile: undefined
+      };
     }
     
     console.log('✅ Usuario mapeado para frontend:', frontendUser)
@@ -593,11 +850,35 @@ export function mapBackendProfileToFrontend(backendProfile: unknown): FrontendPr
   }
   
   try {
-    // ✅ Validar que los datos coinciden con el schema del backend
-    const validated = BackendProfileEntitySchema.parse(backendProfile)
-    console.log('✅ Datos del perfil validados del backend:', validated)
+    // ✅ Intentar validar con el schema del backend
+    let validated: any;
     
-    // ✅ Mapear a estructura del frontend
+    try {
+      validated = BackendProfileEntitySchema.parse(backendProfile);
+      console.log('✅ Datos del perfil validados del backend:', validated)
+    } catch (validationError) {
+      console.warn('⚠️ No se pudo validar con schema estricto, intentando validación flexible...');
+      console.warn('Error de validación:', validationError);
+      
+      // Fallback: normalizar datos de perfil
+      const data = backendProfile as any;
+      validated = {
+        id: data.id || 0,
+        nombre: data.nombre || data.name || null,
+        apellido: data.apellido || data.lastName || null,
+        numero: data.numero || data.phone || data.telefono || null,
+        estado: data.estado || data.state || null,
+        ciudad: data.ciudad || data.city || null,
+        fraccionamiento: data.fraccionamiento || data.neighborhood || null,
+        calle: data.calle || data.street || null,
+        codigoPostal: data.codigoPostal || data.zipCode || data.postalCode || null,
+        imagen: data.imagen || data.image || data.avatar || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
+        stripeCustomerId: data.stripeCustomerId || null,
+      };
+      console.log('✅ Datos del perfil normalizados:', validated);
+    }
+    
+    // ✅ Mapear a estructura del frontend con manejo seguro de nulls
     const frontendProfile: FrontendProfile = {
       id: validated.id,
       nombre: validated.nombre,
@@ -611,8 +892,14 @@ export function mapBackendProfileToFrontend(backendProfile: unknown): FrontendPr
       avatar: validated.imagen || 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
       
       // Computed fields (handle nulls gracefully)
-      direccionCompleta: `${validated.calle || ''}, ${validated.fraccionamiento || ''}, ${validated.ciudad || ''}, ${validated.estado || ''} ${validated.codigoPostal || ''}`.trim(),
-      nombreCompleto: `${validated.nombre || ''} ${validated.apellido || ''}`.trim(),
+      direccionCompleta: [
+        validated.calle,
+        validated.fraccionamiento,
+        validated.ciudad,
+        validated.estado,
+        validated.codigoPostal
+      ].filter(Boolean).join(', ') || 'Dirección no completada',
+      nombreCompleto: [validated.nombre, validated.apellido].filter(Boolean).join(' ') || 'Nombre no especificado',
     }
     
     console.log('✅ Perfil mapeado para frontend:', frontendProfile)
@@ -812,8 +1099,11 @@ export function mapBackendFavoritoToFrontend(backendFavorito: BackendFavorito): 
       ProductSKU: backendFavorito.producto.sku,
       
       // === IMÁGENES ===
-      ProductImageUrl: backendFavorito.producto.images?.[0]?.url || '',
-      ProductImages: backendFavorito.producto.images || [],
+      ProductImageUrl: sanitizeImageUrl(backendFavorito.producto.images?.[0]?.url),
+      ProductImages: (backendFavorito.producto.images || []).map(img => ({
+        ...img,
+        url: sanitizeImageUrl(img.url)
+      })),
     }
     
     // Validar resultado con Zod
@@ -992,4 +1282,367 @@ export function validateBackendCartItemsArray(items: unknown[]): FrontendCartIte
   
   console.log(`✅ ${validItems.length} items válidos de ${items.length} totales`)
   return validItems
+}
+
+// ============================================================
+// 🏠 ADDRESS MAPPERS
+// ============================================================
+
+// Definir el tipo que se usa en los componentes
+export interface UserAddressDeriveryProps {
+  Nombre: string;
+  Apellido: string;
+  Calle: string;
+  Numero: number;
+  CodigoPostal: string;
+  Estado: string;
+  Municipio: string;
+  Ciudad: string;
+  Colonia: string;
+  NumeroDeTelefono: string;
+  InstruccionesExtra: string;
+}
+
+/**
+ * 🔄 Backend Address -> Frontend Address
+ */
+export function mapBackendAddressToFrontend(backendAddress: unknown): FrontendAddress {
+  console.log('🔍 Mapeando dirección del backend a FrontendAddress:', backendAddress);
+  
+  try {
+    // Validar estructura del backend
+    const validated = BackendAddressSchema.parse(backendAddress);
+    console.log('✅ Dirección validada del backend:', validated);
+    
+    // Mapear a la estructura del frontend
+    const frontendAddress: FrontendAddress = {
+      AddressId: validated.id,
+      AddressName: validated.nombre,
+      Street: validated.calle,
+      Neighborhood: validated.colonia_fraccionamiento,
+      InteriorNumber: validated.numero_interior,
+      ExteriorNumber: validated.numero_exterior,
+      PhoneNumber: validated.numero_celular,
+      PostalCode: validated.codigo_postal,
+      State: validated.estado,
+      Municipality: validated.municipio,
+      AdditionalInfo: validated.mas_info,
+      UserId: validated.usuario?.id || 0,
+      isDefault: false,
+      isSelected: false,
+      FullAddress: [
+        validated.calle,
+        validated.numero_exterior ? `${validated.numero_exterior}` : '',
+        validated.colonia_fraccionamiento,
+        `${validated.municipio}, ${validated.estado} ${validated.codigo_postal}`
+      ].filter(Boolean).join(', '),
+    };
+    
+    console.log('✅ Dirección mapeada para frontend:', frontendAddress);
+    return FrontendAddressSchema.parse(frontendAddress);
+    
+  } catch (error) {
+    console.error('❌ Error mapeando dirección del backend:', error);
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues);
+    }
+    
+    throw new Error(`Error mapeando dirección: ${error}`);
+  }
+}
+
+/**
+ * 🔄 Frontend Address -> Backend CreateAddressDto
+ */
+export function mapFrontendAddressToCreateDto(
+  frontendAddress: Omit<FrontendAddress, 'AddressId' | 'isDefault' | 'isSelected' | 'FullAddress'>, 
+  usuarioId: number
+): BackendCreateAddressDto {
+  console.log('🔍 Mapeando FrontendAddress a backend create:', frontendAddress);
+  
+  try {
+    const backendDto = {
+      nombre: frontendAddress.AddressName,
+      calle: frontendAddress.Street,
+      colonia_fraccionamiento: frontendAddress.Neighborhood,
+      numero_interior: frontendAddress.InteriorNumber,
+      numero_exterior: frontendAddress.ExteriorNumber,
+      numero_celular: frontendAddress.PhoneNumber,
+      codigo_postal: frontendAddress.PostalCode,
+      estado: frontendAddress.State,
+      municipio: frontendAddress.Municipality,
+      mas_info: frontendAddress.AdditionalInfo || undefined,
+      usuarioId: usuarioId,
+    };
+    
+    console.log('✅ DTO creado para backend:', backendDto);
+    return BackendCreateAddressDtoSchema.parse(backendDto);
+    
+  } catch (error) {
+    console.error('❌ Error creando DTO de dirección:', error);
+    throw new Error(`Error preparando datos de dirección: ${error}`);
+  }
+}
+
+// ============================================================
+// 💳 PAYMENTS MAPPERS
+// ============================================================
+
+import {
+  BackendCard,
+  BackendTransaction,
+  BackendPaymentConfirmation,
+  FrontendCard,
+  FrontendTransaction,
+  FrontendPayment,
+  BackendCardSchema,
+  BackendTransactionSchema,
+  BackendPaymentConfirmationSchema,
+  FrontendCardSchema,
+  FrontendTransactionSchema,
+  FrontendPaymentSchema,
+} from '@/schemas/payments'
+
+/**
+ * 💳 Backend Card -> Frontend Card
+ */
+export function mapBackendCardToFrontend(backendCard: unknown): FrontendCard {
+  console.log('🔍 Mapeando tarjeta del backend a FrontendCard:', backendCard);
+  
+  try {
+    // Validar estructura del backend
+    const validated = BackendCardSchema.parse(backendCard);
+    console.log('✅ Tarjeta validada del backend:', validated);
+    
+    // Mapear a la estructura del frontend
+    const frontendCard: FrontendCard = {
+      CardId: validated.id,
+      StripeCardId: validated.stripeCardId,
+      Last4: validated.last4,
+      Brand: validated.brand,
+      ProfileId: validated.profileId,
+      isSelected: false,
+      isDefault: false,
+      
+      // Computed fields para UI
+      DisplayName: `${validated.brand.toUpperCase()} ***${validated.last4}`,
+      CardType: validated.brand.toLowerCase(),
+      MaskedNumber: `**** **** **** ${validated.last4}`,
+    };
+    
+    console.log('✅ Tarjeta mapeada para frontend:', frontendCard);
+    return FrontendCardSchema.parse(frontendCard);
+    
+  } catch (error) {
+    console.error('❌ Error mapeando tarjeta del backend:', error);
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues);
+    }
+    
+    throw new Error(`Error mapeando tarjeta: ${error}`);
+  }
+}
+
+/**
+ * 📜 Backend Transaction -> Frontend Transaction
+ */
+export function mapBackendTransactionToFrontend(backendTransaction: unknown): FrontendTransaction {
+  console.log('🔍 Mapeando transacción del backend a FrontendTransaction:', backendTransaction);
+  
+  try {
+    // Validar estructura del backend
+    const validated = BackendTransactionSchema.parse(backendTransaction);
+    console.log('✅ Transacción validada del backend:', validated);
+    
+    // Mapear items de la transacción
+    const items = (validated.contenidos || []).map(item => ({
+      ItemId: item.id,
+      ProductName: item.producto.nombre,
+      Price: item.precio,
+      Quantity: item.cantidad,
+      Subtotal: item.precio * item.cantidad,
+    }));
+    
+    // Mapear a la estructura del frontend
+    const frontendTransaction: FrontendTransaction = {
+      TransactionId: validated.id,
+      Total: validated.total,
+      Date: validated.diaTransaccion,
+      ProfileId: validated.profileId,
+      Items: items,
+      
+      // Computed fields para UI
+      FormattedDate: new Date(validated.diaTransaccion).toLocaleDateString('es-MX', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }),
+      FormattedTotal: `$${validated.total.toFixed(2)}`,
+      ItemsCount: items.reduce((total, item) => total + item.Quantity, 0),
+    };
+    
+    console.log('✅ Transacción mapeada para frontend:', frontendTransaction);
+    return FrontendTransactionSchema.parse(frontendTransaction);
+    
+  } catch (error) {
+    console.error('❌ Error mapeando transacción del backend:', error);
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues);
+    }
+    
+    throw new Error(`Error mapeando transacción: ${error}`);
+  }
+}
+
+/**
+ * 💰 Backend Payment Confirmation -> Frontend Payment
+ */
+export function mapBackendPaymentToFrontend(
+  backendPayment: unknown, 
+  cardUsed?: FrontendCard
+): FrontendPayment {
+  console.log('🔍 Mapeando confirmación de pago del backend:', backendPayment);
+  
+  try {
+    // Validar estructura del backend
+    const validated = BackendPaymentConfirmationSchema.parse(backendPayment);
+    console.log('✅ Pago validado del backend:', validated);
+    
+    // Mapear a la estructura del frontend
+    const frontendPayment: FrontendPayment = {
+      PaymentId: validated.paymentIntentId,
+      Status: validated.status,
+      Amount: 0, // El backend no devuelve el amount, habría que calcularlo
+      Currency: 'mxn',
+      ProfileId: validated.profile.id,
+      CreatedAt: new Date().toISOString(),
+      
+      // Datos opcionales
+      CardUsed: cardUsed,
+      
+      // Computed fields para UI
+      FormattedAmount: `$0.00 MXN`, // Placeholder, se actualizaría con el amount real
+      StatusMessage: validated.message,
+    };
+    
+    console.log('✅ Pago mapeado para frontend:', frontendPayment);
+    return FrontendPaymentSchema.parse(frontendPayment);
+    
+  } catch (error) {
+    console.error('❌ Error mapeando pago del backend:', error);
+    
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error('❌ Detalles de validación Zod:', (error as any).issues);
+    }
+    
+    throw new Error(`Error mapeando confirmación de pago: ${error}`);
+  }
+}
+
+/**
+ * 🔄 Mapear array de tarjetas del backend
+ */
+export function mapBackendCardsArrayToFrontend(backendCards: unknown[]): FrontendCard[] {
+  console.log('🔍 Mapeando array de tarjetas del backend:', backendCards);
+  
+  try {
+    const mappedCards = backendCards.map((card, index) => {
+      try {
+        return mapBackendCardToFrontend(card);
+      } catch (error) {
+        console.warn(`⚠️ Error mapeando tarjeta ${index}:`, error);
+        return null;
+      }
+    }).filter((card): card is FrontendCard => card !== null);
+    
+    console.log(`✅ ${mappedCards.length} tarjetas mapeadas de ${backendCards.length} totales`);
+    return mappedCards;
+    
+  } catch (error) {
+    console.error('❌ Error mapeando array de tarjetas:', error);
+    throw new Error(`Error mapeando tarjetas: ${error}`);
+  }
+}
+
+/**
+ * 🔄 Mapear array de transacciones del backend
+ */
+export function mapBackendTransactionsArrayToFrontend(backendTransactions: unknown[]): FrontendTransaction[] {
+  console.log('🔍 Mapeando array de transacciones del backend:', backendTransactions);
+  
+  try {
+    const mappedTransactions = backendTransactions.map((transaction, index) => {
+      try {
+        return mapBackendTransactionToFrontend(transaction);
+      } catch (error) {
+        console.warn(`⚠️ Error mapeando transacción ${index}:`, error);
+        return null;
+      }
+    }).filter((transaction): transaction is FrontendTransaction => transaction !== null);
+    
+    console.log(`✅ ${mappedTransactions.length} transacciones mapeadas de ${backendTransactions.length} totales`);
+    return mappedTransactions;
+    
+  } catch (error) {
+    console.error('❌ Error mapeando array de transacciones:', error);
+    throw new Error(`Error mapeando transacciones: ${error}`);
+  }
+}
+
+/**
+ * 💳 Utilidad: Formatear datos de formulario de tarjeta para Stripe
+ */
+export function formatCardDataForStripe(formData: {
+  NombreTarjeta: string;
+  NumeroTarjeta: string;
+  FechaExpiracion: string;
+  CodigoSeguridad: string;
+}) {
+  console.log('🔍 Formateando datos de tarjeta para Stripe');
+  
+  try {
+    // Limpiar número de tarjeta
+    const cleanCardNumber = formData.NumeroTarjeta.replace(/\s+/g, '');
+    
+    // Extraer mes y año de la fecha
+    const [month, year] = formData.FechaExpiracion.split('/');
+    const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+    
+    const stripeData = {
+      number: cleanCardNumber,
+      exp_month: parseInt(month),
+      exp_year: fullYear,
+      cvc: formData.CodigoSeguridad,
+      name: formData.NombreTarjeta,
+    };
+    
+    console.log('✅ Datos formateados para Stripe (CVV oculto):', {
+      ...stripeData,
+      cvc: '***',
+      number: `***${cleanCardNumber.slice(-4)}`
+    });
+    
+    return stripeData;
+    
+  } catch (error) {
+    console.error('❌ Error formateando datos para Stripe:', error);
+    throw new Error(`Error formateando datos de tarjeta: ${error}`);
+  }
+}
+
+/**
+ * 💰 Utilidad: Convertir datos de pago a formato legible
+ */
+export function formatPaymentForDisplay(payment: FrontendPayment) {
+  return {
+    id: payment.PaymentId,
+    amount: payment.FormattedAmount || `$${payment.Amount.toFixed(2)} ${payment.Currency.toUpperCase()}`,
+    status: payment.StatusMessage || payment.Status,
+    card: payment.CardUsed?.DisplayName || 'Tarjeta no especificada',
+    date: new Date(payment.CreatedAt).toLocaleDateString('es-MX'),
+    isSuccessful: payment.Status === 'success',
+  };
 }

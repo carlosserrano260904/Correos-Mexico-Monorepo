@@ -60,6 +60,11 @@ export interface ResendOtpRequest {
   correo: string;
 }
 
+export interface UpdatePasswordRequest {
+  correo: string;
+  contrasena: string;
+}
+
 // ===== AUTH API SERVICE =====
 class AuthApiService {
   private readonly baseUrl = '/auth';
@@ -528,6 +533,47 @@ class AuthApiService {
       }
       
       return { isHealthy: false, error: 'Unknown error' };
+    }
+  }
+
+  /**
+   * Update password after OTP verification
+   */
+  async updatePassword(data: UpdatePasswordRequest): Promise<string> {
+    try {
+      console.log('🔐 === ACTUALIZANDO CONTRASEÑA ===');
+      console.log('📧 Email:', data.correo);
+      
+      const response = await api.put<{ message: string }>(`${this.baseUrl}/update-password`, {
+        correo: data.correo,
+        contrasena: data.contrasena,
+      });
+      
+      console.log('✅ Contraseña actualizada exitosamente');
+      return response.data.message;
+      
+    } catch (error) {
+      console.error('❌ === ERROR ACTUALIZANDO CONTRASEÑA ===');
+      console.error('Error completo:', error);
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        console.error('📡 Detalles del error:');
+        console.error(`   Status: ${axiosError.response?.status}`);
+        console.error(`   Data:`, axiosError.response?.data);
+        
+        if (axiosError.response?.status === 401) {
+          throw new Error('Usuario no encontrado');
+        } else if (axiosError.response?.status === 400) {
+          const backendMessage = axiosError.response?.data?.message;
+          throw new Error(backendMessage || 'Datos inválidos para actualizar contraseña');
+        } else {
+          const backendMessage = axiosError.response?.data?.message;
+          throw new Error(backendMessage || 'Error del servidor al actualizar contraseña');
+        }
+      }
+      
+      throw new Error('Error al actualizar la contraseña. Por favor intenta de nuevo.');
     }
   }
 

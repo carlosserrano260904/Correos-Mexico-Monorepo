@@ -24,15 +24,20 @@ import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-
-const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
+import { useProducts } from "@/hooks/useProduct";
+import { useNavbar } from "@/hooks/useNavbar";
 
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
+    const { getAvailableCategories, getProductCountByCategory, searchProducts, loading: productsLoading } = useProducts();
     const auth = useAuth();
+    const navbar = useNavbar();
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const searchRef = React.useRef<HTMLDivElement>(null);
 
     // Función para manejar el acceso a favoritos
     const handleFavoritesAccess = () => {
@@ -52,10 +57,60 @@ export const Navbar = () => {
         // Si está autenticado, continúa con el comportamiento normal del dropdown
     };
 
+    // Función para manejar la búsqueda
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
+
+    // Resultados de búsqueda en tiempo real (limitados)
+    const searchResults = React.useMemo(() => {
+        if (!searchQuery.trim() || searchQuery.length < 2) return [];
+        return searchProducts(searchQuery).slice(0, 5); // Solo mostrar primeros 5 resultados
+    }, [searchQuery, searchProducts]);
+
     // Marcar como montado solo en el cliente
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    // Cerrar sugerencias al hacer clic fuera
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowSearchResults(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Mostrar sugerencias cuando hay query
+    useEffect(() => {
+        setShowSearchResults(searchQuery.length >= 2);
+    }, [searchQuery]);
+
+
+    // ✅ Memoizar datos ANTES de cualquier return condicional
+    const totalFavorites = React.useMemo(() => getTotalFavorites(), [Favorites]);
+    const totalCartItems = React.useMemo(() => getTotalItems(), [CartItems]);
+    const cartSubtotal = React.useMemo(() => getSubtotal(), [CartItems]);
+    const favoritesList = React.useMemo(() => Favorites, [Favorites]);
+    const cartItemsList = React.useMemo(() => CartItems, [CartItems]);
+    
+    // ✅ Obtener categorías dinámicas de la API
+    const categories = React.useMemo(() => {
+        const availableCategories = getAvailableCategories();
+        return availableCategories.length > 0 
+            ? availableCategories 
+            : ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"]; // Fallback
+    }, [getAvailableCategories]);
+
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('es-MX', {
@@ -125,13 +180,6 @@ export const Navbar = () => {
         );
     }
 
-    // Solo obtener datos después del montaje
-    const totalFavorites = getTotalFavorites();
-    const totalCartItems = getTotalItems();
-    const cartSubtotal = getSubtotal();
-    const favoritesList = Favorites;
-    const cartItemsList = CartItems;
-
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-4 py-2">
             {/* Logo */}
@@ -149,33 +197,112 @@ export const Navbar = () => {
                     <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoMenu className="w-5 h-5 text-gray-600" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[300px] max-h-[450px] overflow-y-auto">
-                        {categories.map((category, index) => (
-                            <DropdownMenuItem key={index} className="first:mb-6 last:mt-6 [&:not(:first-child):not(:last-child)]:my-6">
-                                <Link href={`./categories?category=${encodeURIComponent(category)}`}>
-                                    {category}
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
+                    <DropdownMenuContent align="start" className="w-[350px] max-h-[450px] overflow-y-auto">
+                        {productsLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                                <span className="ml-2 text-sm text-gray-600">Cargando categorías...</span>
+                            </div>
+                        ) : categories.length > 0 ? (
+                            <>
+                                <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-b">
+                                    Categorías Disponibles ({categories.length})
+                                </div>
+                                {categories.map((category, index) => {
+                                    const productCount = getProductCountByCategory(category);
+                                    return (
+                                        <DropdownMenuItem key={category} className="p-0">
+                                            <Link 
+                                                href={`./categories?category=${encodeURIComponent(category)}`}
+                                                className="flex items-center justify-between w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+                                            >
+                                                <span className="font-medium">{category}</span>
+                                                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                                    {productCount}
+                                                </span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )
+                                })}
+                                {categories.length === 0 && (
+                                    <div className="px-3 py-4 text-center text-gray-500">
+                                        <div className="text-sm">No hay productos disponibles</div>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="px-3 py-4 text-center text-gray-500">
+                                <div className="text-sm">No hay categorías disponibles</div>
+                                <div className="text-xs text-gray-400 mt-1">Los productos se están cargando...</div>
+                            </div>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
 
             {/* Barra de búsqueda */}
-            <div className="flex-1 w-full me-4 ms-1">
-                <div className="relative">
+            <div ref={searchRef} className="flex-1 w-full me-4 ms-1 relative">
+                <form onSubmit={handleSearch} className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <IoSearchOutline className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar un producto..."
-                        className="block w-full pl-10 pr-3 py-2 rounded-4xl min-h-[51px] bg-[#F3F4F6] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pink-500 focus:border-pink-500"
+                        className="block w-full pl-10 pr-12 py-2 rounded-4xl min-h-[51px] bg-[#F3F4F6] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pink-500 focus:border-pink-500"
+                        autoComplete="off"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <IoMicOutline className="w-5 h-5 stroke-[6]" />
+                    <button
+                        type="submit"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-pink-500 transition-colors"
+                    >
+                        <IoMicOutline className="w-5 h-5" />
+                    </button>
+                </form>
+                
+                {/* Dropdown de sugerencias de búsqueda */}
+                {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                        <div className="p-2 border-b bg-gray-50">
+                            <span className="text-xs font-medium text-gray-600">Productos encontrados ({searchResults.length})</span>
+                        </div>
+                        {searchResults.map((product) => (
+                            <Link
+                                key={product.ProductID}
+                                href={`/producto/${product.ProductID}`}
+                                className="flex items-center p-3 hover:bg-gray-50 transition-colors border-b last:border-b-0"
+                                onClick={() => {
+                                    setSearchQuery("");
+                                    setShowSearchResults(false);
+                                }} // Limpiar búsqueda al hacer clic
+                            >
+                                <img
+                                    src={product.ProductImageUrl}
+                                    alt={product.ProductName}
+                                    className="w-10 h-10 rounded object-cover flex-shrink-0"
+                                />
+                                <div className="ml-3 flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-gray-900 truncate">
+                                        {product.ProductName}
+                                    </div>
+                                    <div className="text-xs text-gray-500 truncate">
+                                        {product.ProductCategory} • {formatPrice(product.productPrice)}
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                        <div className="p-2 bg-gray-50 border-t">
+                            <button
+                                onClick={handleSearch}
+                                className="text-xs text-pink-600 hover:text-pink-700 font-medium"
+                            >
+                                Ver todos los resultados →
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Íconos de la derecha */}
@@ -307,13 +434,19 @@ export const Navbar = () => {
                                         {CartItems.slice(0, 3).map((item) => (
                                             <div key={item.ProductID} className="flex items-stretch">
                                                 <div className="basis-1/4">
-                                                    <img 
-                                                        src={item.ProductImageUrl} 
-                                                        alt={item.ProductName} 
-                                                        width={60} 
-                                                        height={60} 
-                                                        className="w-full h-full rounded-lg object-cover" 
-                                                    />
+                                                    {item.ProductImageUrl ? (
+                                                        <img 
+                                                            src={item.ProductImageUrl} 
+                                                            alt={item.ProductName} 
+                                                            width={60} 
+                                                            height={60} 
+                                                            className="w-full h-full rounded-lg object-cover" 
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center">
+                                                            <span className="text-gray-400 text-xs">Sin imagen</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="basis-2/3 ms-3 flex flex-col justify-between text-sm">
                                                     <div className="font-medium line-clamp-2">{item.ProductName}</div>
@@ -377,9 +510,9 @@ export const Navbar = () => {
                 ) : auth.isAuthenticated ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
-                            {auth.getAvatarUrl() ? (
+                            {navbar.avatarUrl && navbar.avatarUrl !== 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg' ? (
                                 <img 
-                                    src={auth.getAvatarUrl()!} 
+                                    src={navbar.avatarUrl} 
                                     alt="Avatar" 
                                     className="w-6 h-6 rounded-full object-cover"
                                 />
@@ -392,24 +525,24 @@ export const Navbar = () => {
                                 {/* Header con info del usuario */}
                                 <div className="flex items-center mb-4">
                                     <div className="w-12 h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-3">
-                                        {auth.getAvatarUrl() ? (
+                                        {navbar.avatarUrl && navbar.avatarUrl !== 'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg' ? (
                                             <img 
-                                                src={auth.getAvatarUrl()!} 
+                                                src={navbar.avatarUrl} 
                                                 alt="Avatar" 
                                                 className="w-full h-full rounded-full object-cover"
                                             />
                                         ) : (
                                             <span className="text-lg">
-                                                {auth.getUserName()?.charAt(0)?.toUpperCase() || 'U'}
+                                                {navbar.getInitials()}
                                             </span>
                                         )}
                                     </div>
                                     <div className="flex-col">
-                                        <div className="font-semibold text-base">
-                                            {auth.getFullName() || 'Usuario'}
+                                        <div className="font-semibold text-base" title={`Nombre completo: ${navbar.displayName}`}>
+                                            {navbar.displayName}
                                         </div>
-                                        <div className="text-sm text-gray-500">
-                                            {auth.getUserEmail()}
+                                        <div className="text-sm text-gray-500" title={`Teléfono: ${navbar.displayPhone}`}>
+                                            {navbar.displayPhone}
                                         </div>
                                     </div>
                                 </div>

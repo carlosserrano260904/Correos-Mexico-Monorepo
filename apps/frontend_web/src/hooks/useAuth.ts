@@ -42,6 +42,9 @@ export const useAuth = () => {
     // Utilities
     clearError,
     checkAuthStatus,
+    forceRefreshProfile,
+    debugAuthState,
+    clearCorruptedData,
   } = useAuthStore();
 
   // Check auth status on mount only (no dependencies to avoid infinite loops)
@@ -138,6 +141,9 @@ export const useAuth = () => {
     
     // Utilities
     clearError,
+    forceRefreshProfile,
+    debugAuthState,
+    clearCorruptedData,
     
     // Helper functions
     getUserId: () => user?.id,
@@ -146,7 +152,8 @@ export const useAuth = () => {
     getFullName: () => {
       const firstName = user?.nombre || profile?.nombre;
       const lastName = user?.apellido || profile?.apellido;
-      return [firstName, lastName].filter(Boolean).join(' ');
+      const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+      return fullName || null; // Return null if no name is available
     },
     hasProfile: () => !!profile,
     getAvatarUrl: () => profile?.avatar,

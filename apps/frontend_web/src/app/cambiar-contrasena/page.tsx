@@ -1,48 +1,104 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaLock } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import CarruselLogin from '@/components/CarruselLogin';
+import { usePasswordRecovery } from '@/hooks/usePasswordRecovery';
+import { authApiService } from '@/services/authApi';
 
 const CambiarContrasena = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const passwordRecovery = usePasswordRecovery();
 
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmarContrasena, setConfirmarContrasena] = useState('');
+  const [email, setEmail] = useState('');
+  const [verified, setVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mensajeExito, setMensajeExito] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Get email and verification status from URL params
+  useEffect(() => {
+    const emailFromParams = searchParams.get('email');
+    const isVerified = searchParams.get('verified') === 'true';
+    const emailFromSession = sessionStorage.getItem('password_recovery_email');
+    
+    // Use email from URL params or fallback to sessionStorage
+    const emailToUse = emailFromParams || emailFromSession;
+    
+    if (!emailToUse || !isVerified) {
+      console.log('❌ Cambiar contraseña - Datos faltantes:', { 
+        emailFromParams, 
+        emailFromSession, 
+        isVerified 
+      });
+      router.push('/recuperar-contrasena');
+      return;
+    }
+    
+    setEmail(emailToUse);
+    setVerified(isVerified);
+    
+    console.log('🔍 Cambiar contraseña - Email:', emailToUse);
+    console.log('🔍 Cambiar contraseña - Verified:', isVerified);
+  }, [searchParams, router]);
 
   const handleGoToLogin = () => {
     router.push('/login');
   };
 
-  const handleGuardar = (e: React.FormEvent) => {
+  const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!nuevaContrasena || !confirmarContrasena) {
-      setError('Por favor llena ambos campos.');
-      setMensajeExito('');
       return;
     }
 
     if (nuevaContrasena.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
-      setMensajeExito('');
       return;
     }
 
     if (nuevaContrasena !== confirmarContrasena) {
-      setError('Las contraseñas no coinciden.');
-      setMensajeExito('');
       return;
     }
 
-    setError('');
-    setMensajeExito('¡Contraseña cambiada con éxito!');
-    
+    if (!email || !verified) {
+      console.log('❌ Cambiar contraseña - Email o verificación faltante:', { email, verified });
+      setError('Información de verificación no encontrada. Vuelve a intentar el proceso.');
+      return;
+    }
 
+    console.log('✅ Cambiar contraseña - Actualizando con email:', email);
+    
+    // Use authApiService directly with the email from URL params
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      const message = await authApiService.updatePassword({
+        correo: email,
+        contrasena: nuevaContrasena
+      });
+      
+      setSuccess(message || 'Contraseña actualizada exitosamente');
+      
+      // Clean up session storage
+      sessionStorage.removeItem('password_recovery_email');
+      
+      setTimeout(() => {
+        router.push('/login?message=password-updated');
+      }, 2000);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error al actualizar contraseña');
+      console.error('Error updating password:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,15 +159,27 @@ const CambiarContrasena = () => {
               />
             </div>
 
-            {/* Mensajes de error o éxito */}
+            {/* Validation errors */}
+            {!nuevaContrasena && confirmarContrasena && (
+              <p className="text-red-500 text-sm text-center">Por favor llena ambos campos.</p>
+            )}
+            {nuevaContrasena && nuevaContrasena.length < 6 && (
+              <p className="text-red-500 text-sm text-center">La contraseña debe tener al menos 6 caracteres.</p>
+            )}
+            {nuevaContrasena && confirmarContrasena && nuevaContrasena !== confirmarContrasena && (
+              <p className="text-red-500 text-sm text-center">Las contraseñas no coinciden.</p>
+            )}
+            
+            {/* API messages */}
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            {mensajeExito && <p className="text-green-600 text-sm text-center">{mensajeExito}</p>}
+            {success && <p className="text-green-600 text-sm text-center">{success}</p>}
 
             <button
               type="submit"
-              className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mt-3 sm:mt-4 text-sm"
+              disabled={loading || !email || !verified}
+              className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mt-3 sm:mt-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Guardar contraseña
+              {loading ? 'Guardando...' : 'Guardar contraseña'}
             </button>
           </form>
         </div>

@@ -7,7 +7,7 @@ import type { FrontendAddress } from '@/schemas/address';
 import { UserAddressDeriveryProps } from "@/types/interface";
 
 export default function DeliveryAdress() {
-    // 🔐 Obtener usuario autenticado
+    // 🔐 Obtener usuario autenticado con un store
     const { user } = useAuthStore();
     
     // 🏠 Hook para obtener dirección predeterminada

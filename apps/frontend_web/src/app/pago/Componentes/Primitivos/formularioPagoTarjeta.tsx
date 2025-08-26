@@ -72,11 +72,8 @@ export default function FormularioPagoTarjeta({ onCardCreated }: FormularioPagoT
             // 2. Enviar el token (no los datos directos) al backend
             
             // Por ahora, vamos a simular el proceso esperando que el backend maneje Stripe
-            const cardRequest: AddCardRequest = {
-                stripeCustomerId: user.stripeCustomerId || `cus_${user.id}`, // Placeholder si no existe
-                token: `tok_${Date.now()}`, // Placeholder - en producción sería token de Stripe
-                profileId: user.id,
-            };
+            // TEMPORALMENTE - objeto vacío para ver qué espera el backend
+            const cardRequest = {};
 
             console.log('🔄 Enviando solicitud al backend...');
             const result = await addCard(cardRequest);

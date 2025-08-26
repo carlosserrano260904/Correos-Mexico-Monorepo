@@ -11,14 +11,19 @@ import { z } from 'zod'
  */
 export const BackendCardSchema = z.object({
   id: z.number(),
-  stripeCardId: z.string(),
+  stripeCardId: z.string().optional(),
+  ipeCardId: z.string().optional(), // Para manejar el typo en algunos registros
   last4: z.string(),
   brand: z.string(), // visa, mastercard, amex, etc.
   profile: z.object({
     id: z.number(),
   }).optional(),
   profileId: z.number(),
-})
+}).transform((data) => ({
+  ...data,
+  // Normalizar el campo stripeCardId
+  stripeCardId: data.stripeCardId || data.ipeCardId || '',
+}))
 
 /**
  * Schema para CreateCardDto del backend

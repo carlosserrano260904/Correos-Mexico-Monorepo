@@ -133,6 +133,8 @@ class PaymentsApiService {
         profileId: cardData.profileId,
       };
       
+      console.log('🔄 Haciendo petición a:', `${this.baseUrl}`);
+      console.log('🔄 Con datos:', backendData);
       const response = await api.post<BackendCard>(`${this.baseUrl}`, backendData);
       
       console.log('📡 Tarjeta creada (backend):');
@@ -153,6 +155,10 @@ class PaymentsApiService {
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
+        console.error('Response data:', axiosError.response?.data);
+        console.error('Response status:', axiosError.response?.status);
+        console.error('Response headers:', axiosError.response?.headers);
+        
         const backendMessage = axiosError.response?.data?.message;
         
         if (axiosError.response?.status === 400) {

@@ -8,15 +8,15 @@ export class PagosController {
   constructor(private readonly pagosService: PagosService) {}
 
   @Post('confirmar')
-  @ApiOperation({ summary: 'Confirmar un pago y vaciar el carrito' })
+  @ApiOperation({ summary: 'Confirmar un pago y crear factura' })
   @ApiResponse({ status: 201, description: 'Pago confirmado correctamente' })
   @ApiResponse({ status: 400, description: 'Error en la confirmación del pago' })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        profileId:     { type: 'string', example: '89' },
-        total:         { type: 'number', example: 1234.56 },
+        profileId:     { type: 'string', example: '2' },
+        total:         { type: 'number', example: 6600 },
         stripeCardId:  { type: 'string', example: 'pm_1Pxxxx', nullable: true },
         modo:          { type: 'string', enum: ['real', 'dummy'], example: 'dummy', nullable: true },
       },
@@ -27,7 +27,6 @@ export class PagosController {
     try {
       return await this.pagosService.confirmarPago(body.profileId, body.total, body.stripeCardId, body.modo);
     } catch (e: any) {
-      // En lugar de 500 opaco, arrojamos 400 con el motivo
       throw new BadRequestException(e?.message || 'No se pudo procesar el pago');
     }
   }

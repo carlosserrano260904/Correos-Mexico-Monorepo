@@ -65,6 +65,7 @@ describe('ConductoresService', () => {
           disponibilidad: true,
           licenciaVigente: true,
         },
+        relations: ['oficina'], 
       });
       expect(result).toEqual([{
         nombreCompleto: mockConductor.nombreCompleto,
@@ -74,6 +75,8 @@ describe('ConductoresService', () => {
         telefono: mockConductor.telefono,
         correo: mockConductor.correo,
         sucursal: mockConductor.oficina.clave_cuo,
+        disponibilidad: mockConductor.disponibilidad,   
+        licenciaVigente: mockConductor.licenciaVigente,   
       }]);
     });
   });
@@ -86,7 +89,7 @@ describe('ConductoresService', () => {
       
       expect(repository.find).toHaveBeenCalledWith({
         where: { oficina: { clave_cuo: '00304' } },
-        relations: ['oficina'],
+        relations: ['oficina'], // ✅ Ya está correcto aquí
         order: { disponibilidad: 'DESC' },
       });
       expect(result).toEqual([{
@@ -97,6 +100,8 @@ describe('ConductoresService', () => {
         telefono: mockConductor.telefono,
         correo: mockConductor.correo,
         sucursal: mockConductor.oficina.clave_cuo,
+        disponibilidad: mockConductor.disponibilidad,
+        licenciaVigente: mockConductor.licenciaVigente,
       }]);
     });
   });

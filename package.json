@@ -105,6 +105,6 @@
     "@types/react": "^19.1.8",
     "@types/react-native-vector-icons": "^6.4.18",
     "concurrently": "^9.2.0",
-    "turbo": "^2.5.5"
+    "turbo": "^2.5.6"
   }
 }

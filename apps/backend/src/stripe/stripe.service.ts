@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Stripe from 'stripe';
-import { Repository } from 'typeorm';
 import { Card } from 'src/cards/entities/card.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
+import Stripe from 'stripe';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class StripeService {
   private stripe = new Stripe(
     process.env.STRIPE_SECRET_KEY ?? (() => { throw new Error('STRIPE_SECRET_KEY no definida'); })(),
     {
-      apiVersion: '2025-07-30.basil',
+      apiVersion: '2025-08-27.basil',
     }
   );
 

@@ -4,8 +4,7 @@ import { Favorito } from "../../favoritos/entities/favorito.entity";
 import { Carrito } from "../../carrito/entities/carrito.entity";
 import { ProductImage } from "./product-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { Review } from "src/review/entities/review.entity"; // <- usa SIEMPRE esta misma ruta
-import { Float } from "react-native/Libraries/Types/CodegenTypes";
+import { Review } from "src/review/entities/review.entity"; 
 
 @Entity("productos")
 export class Product {
@@ -23,19 +22,19 @@ export class Product {
 
   @ApiProperty({example: "120 cm"})
   @Column({type: "float4", nullable: true})
-  altura: Float | null;
+  altura: number | null; 
 
   @ApiProperty({example: "120 cm"})
   @Column({type: "float4", nullable: true})
-  largo: Float | null;
+  largo: number | null; 
 
   @ApiProperty({example: "120 cm"})
   @Column({type: "float4", nullable: true})
-  ancho: Float | null;
+  ancho: number | null; 
 
   @ApiProperty({example: "2kg"})
   @Column({type: "float4", nullable: true})
-  peso: Float | null;
+  peso: number | null; 
 
   @ApiProperty({ example: 1299.9, type: Number })
   @Column({

@@ -1,0 +1,5 @@
+packages:
+  - "apps/backend"
+  - "apps/correos-movil"
+  - "apps/*"
+  - "packages/*"

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "apps/backend/package.json",
+        "apps/backend/tsconfig.json",
+        "apps/backend/src/**",
+        "apps/correos-movil/package.json",
+        "apps/correos-movil/tsconfig.json",
+        "apps/correos-movil/app.json",
+        "apps/correos-movil/app.config.js",
+        "apps/correos-movil/src/**",
+        "apps/correos-movil/assets/**"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "!.dist/**/node_modules/**",
+        "apps/correos-movil/.expo/**",
+        "apps/correos-movil/web-build/**",
+        "apps/correos-movil/dist/**",
+        "!.apps/correos-movil/dist/**/node_modules/**"
+      ]
+    },
+    "start": {
+      "dependsOn": ["^start"],
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

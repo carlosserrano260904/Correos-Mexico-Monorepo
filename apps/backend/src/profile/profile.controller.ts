@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import type { memoryStorage } from 'multer';
 
 import { ProfileService } from './profile.service';
 import { UploadImageService } from 'src/upload-image/upload-image.service';

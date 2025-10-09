@@ -7,8 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "build:backend": "cd apps/backend && npm run build",
-    "start:backend:prod": "cd apps/backend && npm run start:prod"
+    "build:backend": "cd apps/backend && pnpm run build",
+    "start:backend:prod": "cd apps/backend && pnpm run start:prod"
     
   },
   "devDependencies": {

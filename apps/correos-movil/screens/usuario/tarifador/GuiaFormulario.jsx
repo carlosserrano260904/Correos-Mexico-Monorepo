@@ -12,9 +12,8 @@ import {
   ActivityIndicator
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { fromByteArray } from 'base64-js';
 
 const GuiaFormulario = ({ route, navigation }) => {
   // Recibe los datos del tarifador
@@ -115,7 +114,7 @@ const GuiaFormulario = ({ route, navigation }) => {
         throw new Error('URL de API no configurada');
       }
 
-      console.log('Enviando request a:', `${API_URL}/api/guias/generar-pdf-nacional`);
+      console.log('Enviando request a:', `${API_URL}/guias/generar-pdf-nacional`);
       
       const response = await fetch(`${API_URL}/api/guias/generar-pdf-nacional`, {
         method: "POST",
@@ -136,37 +135,39 @@ const GuiaFormulario = ({ route, navigation }) => {
       }
 
       // Obtener el PDF como blob
+      const pdfBlob = await response.blob();
+      console.log('PDF blob size:', pdfBlob.size);
 
-      const pdfArrayBuffer = await response.arrayBuffer();
-      console.log('PDF ArrayBuffer size:', pdfArrayBuffer.byteLength);
-
-      const uint8Array = new Uint8Array(pdfArrayBuffer);
-
-      const base64data = fromByteArray(uint8Array);
-      console.log('Base64 data generado, longitud:', base64data.length);
-
-      /*const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
-      console.log('PDF blob size:', pdfBlob.size);*/
-
-      const fileName = `guia-${Date.now()}.pdf`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
       // Convertir blob a base64 para guardarlo
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64data = reader.result.split(',')[1];
+          const fileName = `guia-${Date.now()}.pdf`;
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          
+          await FileSystem.writeAsStringAsync(fileUri, base64data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
 
-      await FileSystem.writeAsStringAsync(fileUri, base64data, {
-      encoding: 'base64'
-      });
+          console.log('PDF guardado en:', fileUri);
 
-      console.log('PDF guardado en:', fileUri);
+          // Compartir el archivo
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(fileUri);
+          }
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, { mimeType: 'application/pdf' });
-      }
-
-      Alert.alert(
-      "Éxito", 
-      "PDF generado y listo para compartir.",
-      [{ text: "OK", onPress: () => navigation.goBack() }]
-      );
+          Alert.alert(
+            "Éxito", 
+            "PDF generado y guardado correctamente",
+            [{ text: "OK", onPress: () => navigation.goBack() }]
+          );
+        } catch (saveError) {
+          console.error('Error al guardar PDF:', saveError);
+          Alert.alert("Error", "PDF generado pero no se pudo guardar");
+        }
+      };
+      reader.readAsDataURL(pdfBlob);
 
     } catch (err) {
       console.error('Error completo:', err);

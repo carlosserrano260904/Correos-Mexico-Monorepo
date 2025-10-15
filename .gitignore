@@ -126,6 +126,3 @@ prisma/migrations/
 
 # === Key cloud storage ===
 apps/backend/keys/*.json
-
-!icons/
-!icons/*

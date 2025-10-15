@@ -57,7 +57,12 @@ export default function AgregarTarjetaScreen() {
         paymentMethodId: paymentMethod.id,
         profileId: profileId, // 👈 este dato es crucial
       });
-  setIsSaving(false);
+    setIsSaving(false);
+
+    // Redirección a la pantalla MisTarjetasScreen.
+    navigation.navigate('MisTarjetasScreen');
+    Alert.alert('Tarjeta añadida correctamente');
+
   navigation.goBack();
     } catch (err: any) {
       const backendMsg = err?.response?.data?.message || err.message || 'No se pudo guardar la tarjeta.';

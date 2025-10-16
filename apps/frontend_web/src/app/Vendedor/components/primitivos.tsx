@@ -826,3 +826,78 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
     </p>
   );
 
+  export const Descuento = ({ 
+    DescuentoID, 
+    DescuentoName, 
+    TimesUsed, 
+    DescuentoStatus, 
+    DiscountAmount, 
+    EndDate 
+  }: { 
+    DescuentoID: number,
+    DescuentoName: string,
+    TimesUsed: number,
+    DescuentoStatus: number,
+    DiscountAmount: number,
+    EndDate: string
+  }) => {
+    return (
+      <TableRow key={DescuentoID}>
+        <TableCell>{DescuentoName}</TableCell>
+        <TableCell>${DiscountAmount}</TableCell>
+        <TableCell>{TimesUsed}</TableCell>
+        <TableCell>
+          <p className={`w-max rounded-lg px-[6px] ${
+            DescuentoStatus === 1 ? 'bg-green-100 text-green-800' : 
+            DescuentoStatus === 2 ? 'bg-yellow-100 text-yellow-800' : 
+            'bg-red-100 text-red-800'
+          }`}>
+            {DescuentoStatus === 1 ? 'Activo' : DescuentoStatus === 2 ? 'Pendiente' : 'Inactivo'}
+          </p>
+        </TableCell>
+        <TableCell>{EndDate}</TableCell>
+        <TableCell>
+          <Sheet>
+            <SheetTrigger><FaInfo /></SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Descuento #{DescuentoID}</SheetTitle>
+                <SheetDescription>
+                  Detalles del descuento
+                </SheetDescription>
+              </SheetHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Nombre</Label>
+                  <p>{DescuentoName}</p>
+                </div>
+                <div>
+                  <Label>Monto de descuento</Label>
+                  <p>${DiscountAmount}</p>
+                </div>
+                <div>
+                  <Label>Veces usado</Label>
+                  <p>{TimesUsed}</p>
+                </div>
+                <div>
+                  <Label>Fecha de vencimiento</Label>
+                  <p>{EndDate}</p>
+                </div>
+                <div>
+                  <Label>Estado</Label>
+                  <p className={`w-max rounded-lg px-[6px] ${
+                    DescuentoStatus === 1 ? 'bg-green-100 text-green-800' : 
+                    DescuentoStatus === 2 ? 'bg-yellow-100 text-yellow-800' : 
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {DescuentoStatus === 1 ? 'Activo' : DescuentoStatus === 2 ? 'Pendiente' : 'Inactivo'}
+                  </p>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </TableCell>
+      </TableRow>
+    )
+  };
+

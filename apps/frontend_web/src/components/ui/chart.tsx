@@ -27,6 +27,13 @@ const ChartContext = React.createContext<ChartContextProps | null>(null)
 function useChart() {
   const context = React.useContext(ChartContext)
 
+  if (typeof window === 'undefined') {
+    // Return a default context during SSR
+    return {
+      config: {} as ChartConfig
+    }
+  }
+
   if (!context) {
     throw new Error("useChart must be used within a <ChartContainer />")
   }

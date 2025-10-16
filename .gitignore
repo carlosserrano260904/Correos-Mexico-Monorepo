@@ -87,3 +87,4 @@ prisma/migrations/
 
 # === Key cloud storage ===
 apps/backend/keys/*.json
+.vercel

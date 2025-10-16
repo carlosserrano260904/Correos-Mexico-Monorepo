@@ -1,7 +1,7 @@
 'use client'
 
 import { ProductosProps } from '@/types' 
-import { Carousel, CarouselContent } from "./ui/carousel"
+import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel"
 import { ColectionCard, ProductCard } from "./primitivos"
 import { useProducts } from "@/hooks/useProduct"
 
@@ -24,8 +24,8 @@ export const CarrouselProducts = ({entradas, className, title}: Data) =>{
       <Carousel>
         <CarouselContent className="mx-4">
           {entradas.map((card) => (
+            <CarouselItem key={card.ProductID}>
               <ProductCard
-                key={card.ProductID}
                 ProductColors={card.Color ? [card.Color] : []}
                 ProductID={card.ProductID}
                 ProductImage={card.ProductImageUrl || 'https://via.placeholder.com/300x300?text=No+Image'}
@@ -33,6 +33,7 @@ export const CarrouselProducts = ({entradas, className, title}: Data) =>{
                 ProductPrice={card.productPrice}
                 onClick={() => handleProductClick(card.ProductID)}
               />
+            </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>
@@ -56,12 +57,13 @@ export const CarrouselColection = ({entradas, className, title}: Data) =>{
       <Carousel>
         <CarouselContent className="mx-4">
           {entradas.map((card) => (
+            <CarouselItem key={card.ProductID}>
               <ColectionCard
-                key={card.ProductID}
                 ProductImage={card.ProductImageUrl || 'https://via.placeholder.com/300x300?text=No+Image'}
                 ProductName={card.ProductName}
                 onClick={() => handleProductClick(card.ProductID)}
               />
+            </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>

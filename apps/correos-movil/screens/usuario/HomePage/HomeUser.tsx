@@ -595,11 +595,11 @@ const styles = StyleSheet.create({
     height: moderateScale(60),
     backgroundColor: "#DE1484",
     position: "absolute",
-    bottom: moderateScale(128),
-    right: moderateScale(12),
+    bottom: moderateScale(100),
+    right: moderateScale(16),
     borderRadius: 100,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   // Estilos para el carrusel personalizado
   carouselContainer: {

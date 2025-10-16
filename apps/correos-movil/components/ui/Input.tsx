@@ -1,9 +1,10 @@
-import { View, TextInput, StyleSheet, TextInputProps } from "react-native";
+import { View, TextInput, StyleSheet, type TextInputProps } from "react-native";
+import { COLORS } from "../../utils/theme";
 
 /**
  * Props for the `Input` component.
  */
-export type InputProps = TextInputProps & {
+type InputProps = TextInputProps & {
   /**
    * Optional icon to display inside the input.
    * Can be any React node, for example an icon from `lucide-react-native`.
@@ -84,7 +85,7 @@ export function Input({
             : undefined,
           style,
         ]}
-        placeholderTextColor={placeholderTextColor || "#9CA3AF"}
+        placeholderTextColor={placeholderTextColor || COLORS.foregroundMuted}
         {...props}
       />
       {icon && iconPosition === "right" && (
@@ -115,14 +116,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   input: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: COLORS.border,
     height: 48,
     width: "100%",
     borderRadius: 8,
     borderCurve: "continuous",
-    color: "#374151",
+    color: COLORS.foreground,
     paddingHorizontal: 15,
   },
   inputWithLeftIcon: {

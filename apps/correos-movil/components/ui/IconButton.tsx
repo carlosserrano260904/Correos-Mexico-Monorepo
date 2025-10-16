@@ -1,25 +1,25 @@
-import { StyleProp, ViewStyle } from "react-native";
-import { StyleSheet, Pressable, PressableProps } from "react-native";
+import { Pressable, type PressableProps, StyleSheet } from "react-native";
+import { COLORS, SIZES } from "../../utils/theme";
 
 const backgroundColors: Record<string, string> = {
-  default: "#DE1484",
-  secondary: "#F9FAFB",
+  default: COLORS.brand,
+  secondary: COLORS.surface,
   outline: "transparent",
 };
 
 const borderColors: Record<string, string> = {
   default: "transparent",
   secondary: "transparent",
-  outline: "#DE1484",
+  outline: COLORS.brand,
 };
 
 const sizeStyles: Record<string, number> = {
-  small: 36,
-  default: 48,
-  large: 60,
+  small: SIZES.button.small,
+  default: SIZES.button.default,
+  large: SIZES.button.large,
 };
 
-export type IconButtonProps = PressableProps & {
+type IconButtonProps = PressableProps & {
   /**
    * Variant of the button
    * - `"default"`: solid primary color

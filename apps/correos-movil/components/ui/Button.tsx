@@ -1,38 +1,38 @@
-import { StyleProp } from "react-native";
-import { TextStyle } from "react-native";
-import { StyleSheet, Text, Pressable, PressableProps } from "react-native";
+import { Pressable, type PressableProps, Text, StyleSheet } from "react-native";
+import type { StyleProp, TextStyle } from "react-native";
+import { COLORS, SIZES } from "../../utils/theme";
 
 const backgroundColors: Record<string, string> = {
-  default: "#DE1484",
-  secondary: "#F9FAFB",
+  default: COLORS.brand,
+  secondary: COLORS.surface,
   outline: "transparent",
 };
 const textColors: Record<string, string> = {
-  default: "#FFFFFF",
-  secondary: "#374151",
-  outline: "#DE1484",
+  default: COLORS.white,
+  secondary: COLORS.foreground,
+  outline: COLORS.brand,
 };
 const borderColors: Record<string, string> = {
   default: "transparent",
   secondary: "transparent",
-  outline: "#DE1484",
+  outline: COLORS.brand,
 };
 const sizeStyles: Record<string, Record<string, number>> = {
-  small: { height: 36, paddingHorizontal: 12 },
-  default: { height: 48, paddingHorizontal: 16 },
-  large: { height: 60, paddingHorizontal: 20 },
+  small: { height: SIZES.button.small, paddingHorizontal: 12 },
+  default: { height: SIZES.button.default, paddingHorizontal: 16 },
+  large: { height: SIZES.button.large, paddingHorizontal: 20 },
 };
 
 /**
  * Font sizes for each button size
  */
 const fontSizes: Record<string, number> = {
-  small: 14,
-  default: 16,
-  large: 18,
+  small: SIZES.fontSize.small,
+  default: SIZES.fontSize.default,
+  large: SIZES.fontSize.large,
 };
 
-export type ButtonProps = PressableProps & {
+type ButtonProps = PressableProps & {
   /**
    * Variant of the button
    * - `"default"`: solid primary color

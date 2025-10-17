@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { useMyAuth } from '../../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -132,6 +133,7 @@ export default function HomeUser() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
+  const insets = useSafeAreaInsets();
 
   const handleSignOut = async () => {
         try {
@@ -231,9 +233,9 @@ export default function HomeUser() {
   };
 
   return (
-    <View>
+    <>
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerContainer}>
+        <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
           <View>
             <TouchableOpacity onPress={handleSignOut}>
               <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
@@ -407,7 +409,7 @@ export default function HomeUser() {
       <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
         <Headset color={"#fff"} size={moderateScale(24)} />
       </TouchableOpacity>
-    </View>
+    </>
   )
   
 }
@@ -417,7 +419,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: moderateScale(40),
     marginHorizontal: moderateScale(12)
   },
   correosImage: {
@@ -595,11 +596,11 @@ const styles = StyleSheet.create({
     height: moderateScale(60),
     backgroundColor: "#DE1484",
     position: "absolute",
-    bottom: moderateScale(128),
-    right: moderateScale(12),
+    bottom: moderateScale(100),
+    right: moderateScale(16),
     borderRadius: 100,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   // Estilos para el carrusel personalizado
   carouselContainer: {

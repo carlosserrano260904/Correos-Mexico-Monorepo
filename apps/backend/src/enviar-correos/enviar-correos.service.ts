@@ -27,7 +27,7 @@ export class EnviarCorreosService {
 
   async enviarConfirmacion(user: IEmail): Promise<void> {
     const mailOptions = {
-      from: '"Correos México" <correosdemexico@unipolidgo.edu.mx>',
+      from: '"Correos México" <correosdemexicoclic@gmail.com>',
       to: user.correo,
       subject: 'Confirma tu cuenta - Correos México',
       html: `
@@ -49,7 +49,7 @@ export class EnviarCorreosService {
 
   async enviarAdvertenciaEliminacion(user: IEmail): Promise<void> {
     const mailOptions = {
-      from: '"Correos México" <correosdemexico@unipolidgo.edu.mx>',
+      from: '"Correos México" <correosdemexicoclic@gmail.com>',
       to: user.correo,
       subject: 'Tu cuenta será eliminada pronto',
       html: `

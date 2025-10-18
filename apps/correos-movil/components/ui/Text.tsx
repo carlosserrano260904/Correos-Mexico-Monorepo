@@ -1,7 +1,7 @@
 import { type TextStyle, type TextProps, Text as RNText } from "react-native";
 import { COLORS, SIZES } from "../../utils/theme";
 
-type ThemedTextProps = TextProps & {
+export type ThemedTextProps = TextProps & {
   /**
    * Color variant of the text.
    * - `"default"`: standard text color

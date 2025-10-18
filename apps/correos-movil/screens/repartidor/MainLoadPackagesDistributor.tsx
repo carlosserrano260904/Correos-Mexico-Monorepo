@@ -14,6 +14,7 @@ import { useFocusEffect, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import PackageCard from "../../components/DistributorComponents/PackageCard";
 
+
 const screenWidth = Dimensions.get('screen').width
 const screenHeight = Dimensions.get('screen').height
 
@@ -485,7 +486,7 @@ export default function MainLoadPackagesDistributor({navigation}: any) {
             optimizedIntermediates={optimizedIntermediates} 
             routePoints={routePoints}
             packages={packages}/>,
-        
+
         second: () => <PackageCard packages={packages} optimizedIntermediates={optimizedIntermediates} />,
     });
     

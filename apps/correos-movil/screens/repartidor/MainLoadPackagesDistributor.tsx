@@ -12,8 +12,7 @@ import * as Location from 'expo-location';
 import { LatLng } from "react-native-maps";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import PackageCard from "../../components/DistributorComponents/PackageCard";
-
+import PackageCard from "../../components/DistributorComponents/PackageCard";   
 
 const screenWidth = Dimensions.get('screen').width
 const screenHeight = Dimensions.get('screen').height

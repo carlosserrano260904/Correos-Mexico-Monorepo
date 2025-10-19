@@ -1,7 +1,7 @@
 import React, { use, useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from "react-native";
 import Constants from "expo-constants";
-import { moderateScale, s } from "react-native-size-matters";
+import { moderateScale } from "react-native-size-matters";
 import { LogOut } from "lucide-react-native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { ProgressBar } from "react-native-paper";
@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import { LatLng } from "react-native-maps";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import { is } from "zod/v4/locales";
+import PackageCard from "../../components/DistributorComponents/PackageCard";
 
 const screenWidth = Dimensions.get('screen').width
 const screenHeight = Dimensions.get('screen').height
@@ -486,7 +486,7 @@ export default function MainLoadPackagesDistributor({navigation}: any) {
             routePoints={routePoints}
             packages={packages}/>,
         
-        second: () => <ListViewDistributor />,
+        second: () => <PackageCard packages={packages} optimizedIntermediates={optimizedIntermediates} />,
     });
     
 return (

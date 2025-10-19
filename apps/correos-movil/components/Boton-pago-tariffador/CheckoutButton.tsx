@@ -69,6 +69,12 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
     return cleaned.length >= 2 ? cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) : cleaned;
   };
 
+  const handleCardholderNameChange = (text) => {
+    // Esta regex reemplaza cualquier cosa que NO sea una letra (incluyendo acentos/ñ) o un espacio.
+    const cleanedText = text.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+    setCardholderName(cleanedText);
+  };
+  
   // Función para obtener método de pago de prueba (funcionalidad original)
   const getTestPaymentMethod = () => {
     const testCards = {
@@ -82,24 +88,76 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
     return testCards[clean] || 'pm_card_visa';
   };
 
-  // Validación de datos de tarjeta (funcionalidad original)
+// Validación de datos de tarjeta  
   const validateCardData = () => {
-    if (!cardNumber || cardNumber.replace(/\s/g, '').length < 13) {
-      Alert.alert('Error', 'Número de tarjeta inválido');
+    // 1. Validación de Número de Tarjeta
+    const cleanedCardNumber = cardNumber.replace(/\s/g, '');
+    // Comprobamos que la CANTIDAD DE DÍGITOS sea válida 
+    // en caso de tener tarjetas con menos o mas digitos pues usar ese if --
+    // --> if (cleanedCardNumber.length < 13 || cleanedCardNumber.length > 19)
+    if (cleanedCardNumber.length !== 16 || !cleanedCardNumber) {
+      Alert.alert('Error', 'Número de tarjeta inválido. Debe tener entre 16 dígitos.');
       return false;
     }
+
+    // 2. Validación de CVC
+    if (!cvc || cvc.length !== 3) {
+      Alert.alert('Error', 'CVC inválido. Debe tener 3 dígitos.');
+      return false;
+    }
+
+    // 3. Validación de Nombre del Titular  
+    const trimmedName = cardholderName.trim();
+    if (!trimmedName) {
+      Alert.alert('Error', 'Nombre del titular requerido.');
+      return false;
+    }
+    // Verificamos que haya al menos un espacio (asumiendo nombre y apellido)
+    // y que no sean solo espacios.
+    const nameParts = trimmedName.split(' ');
+    if (nameParts.length < 2 || nameParts.some(part => part.length === 0)) {
+       Alert.alert('Error', 'Ingresa el nombre completo (nombre y apellido) como aparece en la tarjeta.');
+       return false;
+    }
+
+    // 4. Validación de Fecha de Expiración  
     if (!expiryDate || expiryDate.length !== 5) {
-      Alert.alert('Error', 'Fecha de expiración inválida');
+      Alert.alert('Error', 'Fecha de expiración inválida. Usa el formato MM/YY.');
       return false;
     }
-    if (!cvc || cvc.length < 3) {
-      Alert.alert('Error', 'CVC inválido');
+
+    try {
+      const [monthStr, yearStr] = expiryDate.split('/');
+      const month = parseInt(monthStr, 10);
+      const year = parseInt(yearStr, 10) + 2000; // Convierte '25' a 2025
+
+      // Validar mes (01-12)
+      if (month < 1 || month > 12) {
+        Alert.alert('Error', 'Fecha de expiración inválida. El mes debe estar entre 01 y 12.');
+        return false;
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; 
+
+      if (year < currentYear) {
+        Alert.alert('Error', 'La tarjeta ha expirado. Revisa la fecha.');
+        return false;
+      }
+
+      if (year === currentYear && month < currentMonth) {
+        Alert.alert('Error', 'La tarjeta ha expirado. Revisa la fecha.');
+        return false;
+      }
+
+    } catch (e) {
+      // Captura cualquier error si el split('/') o parseInt() fallan
+      Alert.alert('Error', 'Formato de fecha de expiración incorrecto.');
       return false;
     }
-    if (!cardholderName.trim()) {
-      Alert.alert('Error', 'Nombre del titular requerido');
-      return false;
-    }
+
+    // Si todo está bien
     return true;
   };
 
@@ -119,6 +177,8 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
       throw err;
     }
   };
+
+
 
   // Crear método de pago (funcionalidad original)
   const createPaymentMethod = async () => {
@@ -412,7 +472,7 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
                 style={styles.input}
                 placeholder="Nombre del titular"
                 value={cardholderName}
-                onChangeText={setCardholderName}
+                onChangeText={handleCardholderNameChange}
                 autoCapitalize="words"
                 editable={!loading}
               />
@@ -444,7 +504,7 @@ const CheckoutButton = ({ amount, email, profileId, onPaymentSuccess, onPaymentE
                   value={cvc}
                   onChangeText={setCvc}
                   keyboardType="numeric"
-                  maxLength={4}
+                  maxLength={3}
                   secureTextEntry
                   editable={!loading}
                 />

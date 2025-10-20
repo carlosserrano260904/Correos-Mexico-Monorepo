@@ -1,7 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "types": ["react-native", "react-native-reanimated", "react-native-snap-carousel", "react-native-color-palette"],
+    "types": ["react-native"],
     "strict": true,
     "jsx": "react-native"
   }

@@ -13,6 +13,9 @@ import QRScannerScreen from '../screens/repartidor/QRScannerScreen';
 import ReceivePackage from '../screens/repartidor/ReceivePackage';
 import RoutesView from '../screens/repartidor/RoutesView';
 import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
+import MainLoadPackagesDistributor from '../screens/repartidor/MainLoadPackagesDistributor';
+import MapRouteView from '../screens/repartidor/MapRouteView';
+import ListViewDistributor from '../screens/repartidor/ListViewDistributor';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -31,6 +34,9 @@ export default function DistributorNavigator() {
             <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{ headerShown: false }} />
             <Stack.Screen name="RoutesView" component={RoutesView} options={{ headerShown: false }} />
             <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="MainLoadPackagesDistributor" component={MainLoadPackagesDistributor} options={{ headerShown: false }} />
+            <Stack.Screen name="MapRouteView" component={MapRouteView} options={{ headerShown: false }} />
+            <Stack.Screen name="ListViewDistributor" component={ListViewDistributor} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }   

@@ -63,7 +63,6 @@ export default function AgregarTarjetaScreen() {
     navigation.navigate('MisTarjetasScreen');
     Alert.alert('Tarjeta añadida correctamente');
 
-  navigation.goBack();
     } catch (err: any) {
       const backendMsg = err?.response?.data?.message || err.message || 'No se pudo guardar la tarjeta.';
       console.error('Error al agregar tarjeta:', backendMsg);

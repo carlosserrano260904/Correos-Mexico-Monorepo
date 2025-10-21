@@ -11,3 +11,4 @@ export {
   FloatingButton,
 } from "./Product";
 export { Badge } from "./Badge";
+export { Card, CardContent, CardFooter, CardHeader } from "./Card";

@@ -1,7 +1,6 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
   type ViewStyle,
   type StyleProp,
@@ -14,7 +13,6 @@ const backgroundColors: Record<string, string> = {
   secondary: COLORS.surface,
   borderless: COLORS.surface,
 };
-
 const borderColors: Record<string, string> = {
   default: COLORS.border,
   secondary: COLORS.border,
@@ -22,11 +20,47 @@ const borderColors: Record<string, string> = {
 };
 
 type CardProps = ViewProps & {
+  /**
+   * Content to render inside the card.
+   */
   children: React.ReactNode;
+
+  /**
+   * Variant of the card
+   * - `"default"`: white background with border
+   * - `"secondary"`: neutral surface background with border
+   * - `"borderless"`: neutral surface background without border
+   * @default "default"
+   */
   type?: "default" | "secondary" | "borderless";
-  style?: StyleProp<ViewStyle>;
 };
 
+/**
+ * Card component
+ *
+ * A flexible container used to group related content and actions.
+ * It supports multiple visual variants and structured subcomponents
+ * for headers, content areas, and footers.
+ *
+ * @example
+ * ```tsx
+ * import { Card, CardHeader, CardContent, CardFooter } from "./Card";
+ * import { Text, View } from "react-native";
+ *
+ * export function Example() {
+ *   return (
+ *     <Card style={{ marginBottom: 24 }} type="borderless">
+ *       <CardHeader>
+ *         <Text color="title" size="large">Overview</Text>
+ *         <Text size="small" color="muted">
+ *           Summary of your current progress
+ *         </Text>
+ *       </CardHeader>
+ *     </Card>
+ *   );
+ * }
+ * ```
+ */
 export function Card({
   children,
   type = "default",
@@ -53,6 +87,12 @@ export function Card({
   );
 }
 
+/**
+ * CardHeader
+ *
+ * Used to display the header content inside a card, such as
+ * a title and an optional subtitle.
+ */
 export function CardHeader({
   children,
   style,
@@ -63,6 +103,12 @@ export function CardHeader({
   return <View style={[styles.header, style]}>{children}</View>;
 }
 
+/**
+ * CardContent
+ *
+ * Container for the main content of the card, such as forms,
+ * text, images, or other components.
+ */
 export function CardContent({
   children,
   style,
@@ -73,6 +119,12 @@ export function CardContent({
   return <View style={[styles.content, style]}>{children}</View>;
 }
 
+/**
+ * CardFooter
+ *
+ * Used for footer elements inside a card, like secondary text,
+ * actions, or buttons.
+ */
 export function CardFooter({
   children,
   style,

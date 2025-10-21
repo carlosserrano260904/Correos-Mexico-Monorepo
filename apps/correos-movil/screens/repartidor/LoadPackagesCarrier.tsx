@@ -19,7 +19,7 @@ export default function LoadPackagesCarrier() {
     const [ datosExtra, setDatosExtra ] = React.useState<string>("");
     const { placas } = route.params as { placas: string };
     const [paquetesTotal, setPaquetesTotal] = React.useState(0);
-    const [paquetes, setPaquetes] = React.useState<Package[]>([]);
+    const [paquetes, setPaquetes] = React.useState< typeof Package[]>([]);
 
     const [nombreVehiculo, setNombreVehiculo] = React.useState<string>('Cargando...');
 
@@ -93,13 +93,13 @@ export default function LoadPackagesCarrier() {
         };
 
         if (unidadId) {
-        fetchNombre();
-        fetchPaquetes();
+            fetchNombre();
+            fetchPaquetes();
         }
 
     }, [unidadId]);
 
-    const renderPackageItem = ({ item }: { item: Package }) => {
+    const renderPackageItem = ({ item }: { item: typeof Package }) => {
     
         return (
           <View

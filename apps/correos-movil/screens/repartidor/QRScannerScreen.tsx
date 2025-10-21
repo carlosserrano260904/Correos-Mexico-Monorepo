@@ -100,8 +100,8 @@ export default function QRScannerScreen() {
         }
 
       } catch (err) {
-        console.error('Error al obtener unidad:', err);
-        Alert.alert('Error', 'No se pudo obtener la unidad');
+        console.error('Error al encontrar unidad:', err);
+        Alert.alert('Error', 'No se pudo encontrar la unidad');
         setScanned(false);
       }
     }

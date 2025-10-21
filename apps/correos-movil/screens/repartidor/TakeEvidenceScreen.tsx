@@ -102,7 +102,7 @@ export default function TakeEvidenceScreen() {
       setShowSuccess(true);
 
       setTimeout(() => {
-        navigation.navigate('PackagesList');
+        navigation.navigate('MainLoadPackagesDistributor');
       }, 2500); // 2.5 segundos visible
 
     } catch (err) {

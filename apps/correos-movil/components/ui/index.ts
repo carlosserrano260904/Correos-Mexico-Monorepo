@@ -10,3 +10,4 @@ export {
   ProductPrice,
   FloatingButton,
 } from "./Product";
+export { Badge } from "./Badge";

@@ -238,131 +238,134 @@ const Carrito: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
-      <StatusBar style="dark" />
+    <>
       <Header />
-
-      <ScrollView style={{ paddingHorizontal: 16, marginBottom: cart.length > 0 ? 150 : 20 }}>
-        {loading ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
-        ) : cart.length === 0 ? (
-          <View style={{ alignItems: 'center', marginVertical: 40 }}>
-            <Text style={{ fontSize: 48, color: '#D1D5DB', marginBottom: 8 }}>🛒</Text>
-            <Text style={{ color: '#6B7280' }}>Tu carrito está vacío</Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8 }}>
-              Añade productos a tu carrito para verlos aquí
-            </Text>
-          </View>
-        ) : (
-          <FlatList data={cart} keyExtractor={(it) => it.id} renderItem={renderItem} scrollEnabled={false} />
-        )}
-      </ScrollView>
-
-      {cart.length > 0 && (
-        <View style={styles.checkoutBox}>
-          {/* Subtotal */}
-          <View style={styles.row}>
-            <Text style={{ color: '#666' }}>Subtotal:</Text>
-            <Text style={{ fontWeight: 'bold' }}>{formatMXN(subtotal)}</Text>
-          </View>
-
-          {/* Fila cupón */}
-          {appliedCoupon ? (
-            <>
-              <View style={styles.row}>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={{ color: '#10B981', fontWeight: '600' }}>
-                    Cupón: {appliedCoupon.titulo} ({appliedCoupon.porcentaje}%)
-                  </Text>
-                  {subtotal < (appliedCoupon.compraMinima || 0) && (
-                    <Text style={{ color: '#F59E0B', fontSize: 12 }}>
-                      Agrega {formatMXN((appliedCoupon.compraMinima || 0) - subtotal)} para alcanzar el mínimo.
+      
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+        <StatusBar style="dark" />
+  
+        <ScrollView style={{ paddingHorizontal: 16, marginBottom: cart.length > 0 ? 150 : 20 }}>
+          {loading ? (
+            <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+          ) : cart.length === 0 ? (
+            <View style={{ alignItems: 'center', marginVertical: 40 }}>
+              <Text style={{ fontSize: 48, color: '#D1D5DB', marginBottom: 8 }}>🛒</Text>
+              <Text style={{ color: '#6B7280' }}>Tu carrito está vacío</Text>
+              <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8 }}>
+                Añade productos a tu carrito para verlos aquí
+              </Text>
+            </View>
+          ) : (
+            <FlatList data={cart} keyExtractor={(it) => it.id} renderItem={renderItem} scrollEnabled={false} />
+          )}
+        </ScrollView>
+  
+        {cart.length > 0 && (
+          <View style={styles.checkoutBox}>
+            {/* Subtotal */}
+            <View style={styles.row}>
+              <Text style={{ color: '#666' }}>Subtotal:</Text>
+              <Text style={{ fontWeight: 'bold' }}>{formatMXN(subtotal)}</Text>
+            </View>
+  
+            {/* Fila cupón */}
+            {appliedCoupon ? (
+              <>
+                <View style={styles.row}>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={{ color: '#10B981', fontWeight: '600' }}>
+                      Cupón: {appliedCoupon.titulo} ({appliedCoupon.porcentaje}%)
                     </Text>
-                  )}
+                    {subtotal < (appliedCoupon.compraMinima || 0) && (
+                      <Text style={{ color: '#F59E0B', fontSize: 12 }}>
+                        Agrega {formatMXN((appliedCoupon.compraMinima || 0) - subtotal)} para alcanzar el mínimo.
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={{ fontWeight: 'bold', color: '#10B981' }}>
+                    - {formatMXN(discount)}
+                  </Text>
                 </View>
-                <Text style={{ fontWeight: 'bold', color: '#10B981' }}>
-                  - {formatMXN(discount)}
-                </Text>
-              </View>
-
-              <TouchableOpacity onPress={() => setAppliedCoupon(null)} style={{ alignSelf: 'flex-start', marginBottom: 6 }}>
-                <Text style={{ color: '#EF4444', fontSize: 12, textDecorationLine: 'underline' }}>
-                  Quitar cupón
+  
+                <TouchableOpacity onPress={() => setAppliedCoupon(null)} style={{ alignSelf: 'flex-start', marginBottom: 6 }}>
+                  <Text style={{ color: '#EF4444', fontSize: 12, textDecorationLine: 'underline' }}>
+                    Quitar cupón
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('MisCuponesScreen'); // cambia si tu ruta tiene otro name
+                }}
+                style={{ marginBottom: 6 }}
+              >
+                <Text style={{ color: Colors.primary, fontWeight: '600' }}>
+                  ¿Tienes un cupón? Selecciona uno
                 </Text>
               </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                // @ts-ignore
-                navigation.navigate('MisCuponesScreen'); // cambia si tu ruta tiene otro name
-              }}
-              style={{ marginBottom: 6 }}
-            >
-              <Text style={{ color: Colors.primary, fontWeight: '600' }}>
-                ¿Tienes un cupón? Selecciona uno
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Envío */}
-          <View style={styles.row}>
-            <Text style={{ color: '#666' }}>Envío:</Text>
-            {subtotal >= 199 ? (
-              <Text style={{ fontWeight: 'bold', color: '#10B981' }}>Gratis</Text>
-            ) : (
-              <>
-                <Text style={{ fontWeight: 'bold', color: '#EF4444' }}>
-                  {formatMXN(shippingCost)}
-                </Text>
-              </>
             )}
+  
+            {/* Envío */}
+            <View style={styles.row}>
+              <Text style={{ color: '#666' }}>Envío:</Text>
+              {subtotal >= 199 ? (
+                <Text style={{ fontWeight: 'bold', color: '#10B981' }}>Gratis</Text>
+              ) : (
+                <>
+                  <Text style={{ fontWeight: 'bold', color: '#EF4444' }}>
+                    {formatMXN(shippingCost)}
+                  </Text>
+                </>
+              )}
+            </View>
+            {subtotal < 199 && (
+              <Text style={{ color: '#F59E0B', fontSize: 12, marginBottom: 6 }}>
+                Agrega {formatMXN(199 - subtotal)} más para obtener envío gratis
+              </Text>
+            )}
+  
+            {/* Total */}
+            <View style={styles.totalRow}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Total:</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.primary }}>
+                {formatMXN(total)}
+              </Text>
+            </View>
+  
+            {/* Proceder */}
+            <TouchableOpacity
+              style={styles.checkoutBtn}
+              onPress={async () => {
+                try {
+                  setLoading(true);
+                  const userId = await AsyncStorage.getItem('userId');
+                  if (!userId) throw new Error('Sin usuario');
+  
+                  await AsyncStorage.setItem(
+                    'resumen_carrito',
+                    JSON.stringify({ subtotal, discount, total, coupon: appliedCoupon })
+                  );
+  
+                  // @ts-ignore
+                  navigation.navigate('Checkout');
+                } catch {
+                  Alert.alert('Error', 'No se pudo proceder al pago.');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Proceder al pago</Text>}
+            </TouchableOpacity>
           </View>
-          {subtotal < 199 && (
-            <Text style={{ color: '#F59E0B', fontSize: 12, marginBottom: 6 }}>
-              Agrega {formatMXN(199 - subtotal)} más para obtener envío gratis
-            </Text>
-          )}
-
-          {/* Total */}
-          <View style={styles.totalRow}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Total:</Text>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.primary }}>
-              {formatMXN(total)}
-            </Text>
-          </View>
-
-          {/* Proceder */}
-          <TouchableOpacity
-            style={styles.checkoutBtn}
-            onPress={async () => {
-              try {
-                setLoading(true);
-                const userId = await AsyncStorage.getItem('userId');
-                if (!userId) throw new Error('Sin usuario');
-
-                await AsyncStorage.setItem(
-                  'resumen_carrito',
-                  JSON.stringify({ subtotal, discount, total, coupon: appliedCoupon })
-                );
-
-                // @ts-ignore
-                navigation.navigate('Checkout');
-              } catch {
-                Alert.alert('Error', 'No se pudo proceder al pago.');
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading}
-          >
-            {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Proceder al pago</Text>}
-          </TouchableOpacity>
-        </View>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </>
   );
 };
 

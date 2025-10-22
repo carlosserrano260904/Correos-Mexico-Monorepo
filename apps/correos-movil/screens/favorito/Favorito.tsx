@@ -191,31 +191,34 @@ const FavoritosScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
-      <StatusBar style="dark" />
+    <>
       <CustomHeader />
-
-      {loading ? (
-        <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      ) : favorites.length === 0 ? (
-        <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 20 }}>
-          <Heart size={48} color="#D1D5DB" />
-          <Text style={{ color: '#6B7280', fontSize: 17, marginTop: 8 }}>No tienes productos favoritos</Text>
-          <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8, textAlign: 'center' }}>
-            Los productos que marques como favoritos aparecerán aquí
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-          data={favorites}
-          keyExtractor={item => String(item.id)}
-          renderItem={renderItem}
-        />
-      )}
-    </SafeAreaView>
+      
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+        <StatusBar style="dark" />
+  
+        {loading ? (
+          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : favorites.length === 0 ? (
+          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 20 }}>
+            <Heart size={48} color="#D1D5DB" />
+            <Text style={{ color: '#6B7280', fontSize: 17, marginTop: 8 }}>No tienes productos favoritos</Text>
+            <Text style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8, textAlign: 'center' }}>
+              Los productos que marques como favoritos aparecerán aquí
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+            data={favorites}
+            keyExtractor={item => String(item.id)}
+            renderItem={renderItem}
+          />
+        )}
+      </SafeAreaView>
+    </>
   );
 };
 

@@ -1,27 +1,11 @@
 import { Text, View, StyleSheet } from "react-native";
 import type { StyleProp, TextStyle, ViewStyle } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme";
-
-const backgroundColors: Record<string, string> = {
-  default: COLORS.brand,
-  secondary: COLORS.surface,
-  outline: "transparent",
-  subtle: `${COLORS.brand}15`,
-};
-
-const textColors: Record<string, string> = {
-  default: COLORS.white,
-  secondary: COLORS.foreground,
-  outline: COLORS.brand,
-  subtle: COLORS.brand,
-};
-
-const borderColors: Record<string, string> = {
-  default: "transparent",
-  secondary: "transparent",
-  outline: COLORS.brand,
-  subtle: "transparent",
-};
+import {
+  buttonBackgroundColors,
+  buttonBorderColors,
+  buttonTextColors,
+  SIZES,
+} from "../../utils/theme";
 
 type BadgeProps = {
   /**
@@ -69,9 +53,9 @@ export function Badge({
   style,
   textStyles,
 }: BadgeProps) {
-  const bgColor = backgroundColors[type];
-  const txtColor = textColors[type];
-  const borderColor = borderColors[type];
+  const bgColor = buttonBackgroundColors[type];
+  const txtColor = buttonTextColors[type];
+  const borderColor = buttonBorderColors[type];
 
   return (
     <View

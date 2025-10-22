@@ -1,9 +1,6 @@
 import { View, TextInput, StyleSheet, type TextInputProps } from "react-native";
 import { COLORS } from "../../utils/theme";
 
-/**
- * Props for the `Input` component.
- */
 type InputProps = TextInputProps & {
   /**
    * Optional icon to display inside the input.

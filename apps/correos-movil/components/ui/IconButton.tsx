@@ -1,17 +1,9 @@
 import { Pressable, type PressableProps, StyleSheet } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme";
-
-const backgroundColors: Record<string, string> = {
-  default: COLORS.brand,
-  secondary: COLORS.surface,
-  outline: "transparent",
-};
-
-const borderColors: Record<string, string> = {
-  default: "transparent",
-  secondary: "transparent",
-  outline: COLORS.brand,
-};
+import {
+  buttonBackgroundColors,
+  buttonBorderColors,
+  SIZES,
+} from "../../utils/theme";
 
 const sizeStyles: Record<string, number> = {
   small: SIZES.button.small,
@@ -83,8 +75,8 @@ export function IconButton({
   style,
   ...props
 }: IconButtonProps) {
-  const bgColor = backgroundColors[type];
-  const borderColor = borderColors[type];
+  const bgColor = buttonBackgroundColors[type];
+  const borderColor = buttonBorderColors[type];
   const buttonSize = sizeStyles[size];
 
   return (

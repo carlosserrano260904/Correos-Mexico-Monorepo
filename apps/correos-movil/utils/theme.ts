@@ -35,3 +35,24 @@ export const SIZES = {
     xl: 24,
   },
 } as const;
+
+export const buttonBackgroundColors: Record<string, string> = {
+  default: COLORS.brand,
+  secondary: COLORS.surface,
+  outline: "transparent",
+  subtle: `${COLORS.brand}15`,
+};
+
+export const buttonTextColors: Record<string, string> = {
+  default: COLORS.white,
+  secondary: COLORS.foreground,
+  outline: COLORS.brand,
+  subtle: COLORS.brand,
+};
+
+export const buttonBorderColors: Record<string, string> = {
+  default: "transparent",
+  secondary: "transparent",
+  outline: COLORS.brand,
+  subtle: "transparent",
+};

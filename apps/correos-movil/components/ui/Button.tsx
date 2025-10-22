@@ -1,31 +1,18 @@
 import { Pressable, type PressableProps, Text, StyleSheet } from "react-native";
 import type { StyleProp, TextStyle } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme";
+import {
+  buttonBackgroundColors,
+  buttonBorderColors,
+  buttonTextColors,
+  SIZES,
+} from "../../utils/theme";
 
-const backgroundColors: Record<string, string> = {
-  default: COLORS.brand,
-  secondary: COLORS.surface,
-  outline: "transparent",
-};
-const textColors: Record<string, string> = {
-  default: COLORS.white,
-  secondary: COLORS.foreground,
-  outline: COLORS.brand,
-};
-const borderColors: Record<string, string> = {
-  default: "transparent",
-  secondary: "transparent",
-  outline: COLORS.brand,
-};
 const sizeStyles: Record<string, Record<string, number>> = {
   small: { height: SIZES.button.small, paddingHorizontal: 12 },
   default: { height: SIZES.button.default, paddingHorizontal: 16 },
   large: { height: SIZES.button.large, paddingHorizontal: 20 },
 };
 
-/**
- * Font sizes for each button size
- */
 const fontSizes: Record<string, number> = {
   small: SIZES.fontSize.small,
   default: SIZES.fontSize.default,
@@ -97,9 +84,9 @@ export function Button({
   textStyles,
   ...props
 }: ButtonProps) {
-  const bgColor = backgroundColors[type];
-  const txtColor = textColors[type];
-  const borderColor = borderColors[type];
+  const bgColor = buttonBackgroundColors[type];
+  const txtColor = buttonTextColors[type];
+  const borderColor = buttonBorderColors[type];
   const btnSize = sizeStyles[size];
   const fontSize = fontSizes[size];
 

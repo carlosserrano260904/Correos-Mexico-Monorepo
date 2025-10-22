@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../../../components/ui';
 
 export default function CotizacionesScreen({ navigation }) {
   return (
@@ -20,8 +21,8 @@ export default function CotizacionesScreen({ navigation }) {
             <View style={[styles.iconContainer, styles.orangeGradient]}>
               <Text style={styles.iconText}>📊</Text>
             </View>
-            <Text style={styles.cardTitle}>Tarifador</Text>
-            <Text style={styles.cardSubtitle}>Cotizar un envío</Text>
+            <Text size='large' color='title' fontWeight="500">Tarifador</Text>
+            <Text size='small' align='center' style={{ marginTop: 6 }}>Cotizar un envío</Text>
           </View>
         </TouchableOpacity>
 
@@ -34,8 +35,8 @@ export default function CotizacionesScreen({ navigation }) {
             <View style={[styles.iconContainer, styles.pinkGradient]}>
               <Text style={styles.iconText}>📍</Text>
             </View>
-            <Text style={styles.cardTitle}>Ubicaciones</Text>
-            <Text style={styles.cardSubtitle}>Encontrar sucursales</Text>
+            <Text size='large' color='title' fontWeight="500">Ubicaciones</Text>
+            <Text size='small' align='center' style={{ marginTop: 6 }}>Encontrar sucursales</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   cardContent: {
-    padding: 32,
+    padding: 28,
     alignItems: 'center',
   },
   iconContainer: {
@@ -107,16 +108,6 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 32,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  cardSubtitle: {
-    fontSize: 16,
-    color: '#6b7280',
   },
   logoContainer: {
     alignItems: 'center',

@@ -8,6 +8,7 @@ import ProductCategoryList from '../../../components/Products/ProductCategory';
 import { RootStackParamList } from '../../../schemas/schemas';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IconButton } from '../../../components/ui';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -243,21 +244,22 @@ export default function HomeUser() {
           </View>
 
           <View style={styles.iconsHeaderContainer}>
-            <TouchableOpacity style={styles.iconsHeader}>
-              <Text style={styles.textLenguage}>ES</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconsHeader}
+            <IconButton
+              round
+              type='secondary'
+              size='large'
               onPress={() => navigation.navigate('Favorito')}
             >
               <Heart color={"#DE1484"} size={moderateScale(24)} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconsHeader}
+            </IconButton>
+            <IconButton
+              round
+              type='secondary'
+              size='large'
               onPress={() => navigation.navigate('Carrito')}
             >
               <ShoppingBag color={"#DE1484"} size={moderateScale(24)} />
-            </TouchableOpacity>
+            </IconButton>
           </View>
         </View>
 
@@ -427,7 +429,8 @@ const styles = StyleSheet.create({
   },
   iconsHeaderContainer: {
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
+    gap: moderateScale(6)
   },
   iconsHeader: {
     width: moderateScale(52),

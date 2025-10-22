@@ -26,4 +26,12 @@ export const SIZES = {
     large: 18,
     xl: 24,
   },
+  borderRadius: {
+    none: 0,
+    small: 4,
+    default: 8,
+    medium: 12,
+    large: 16,
+    xl: 24,
+  },
 } as const;

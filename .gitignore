@@ -116,11 +116,6 @@ coverage/
 .pnp.*
 .pnpm-debug.log
 
-# === Optional lockfiles ===
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
 # === Ignore generated Prisma (if using) ===
 prisma/migrations/
 

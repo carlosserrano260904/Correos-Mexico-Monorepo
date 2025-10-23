@@ -31,7 +31,7 @@ export default function ReceivePackage() {
             <Text style={styles.receiveText}>¿Quien recibe?</Text>
           </View>
           <View>
-            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TomarEvidencia', { package: packageData, destinatario: packageData.destinatario })}>
+            <TouchableOpacity style={styles.receiveItemContainer} onPress={() =>  navigation.navigate('TakeEvidencePhoto', { package: packageData, destinatario: packageData.destinatario })}>
               <Text style={styles.receiveItemText} numberOfLines={1} ellipsizeMode='tail'>{packageData.destinatario}</Text>
               <ChevronRight size={moderateScale(24)}/>
             </TouchableOpacity>

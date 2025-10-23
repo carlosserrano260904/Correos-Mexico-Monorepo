@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../schemas/schemas';
-
 import FailedDeliveryScreen from '../screens/repartidor/FailedDeliveryScreen';
 import LoadPackages from '../screens/repartidor/LoadPackages';
 import LoadPackagesCarrier from '../screens/repartidor/LoadPackagesCarrier';
@@ -16,6 +15,7 @@ import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
 import MainLoadPackagesDistributor from '../screens/repartidor/MainLoadPackagesDistributor';
 import MapRouteView from '../screens/repartidor/MapRouteView';
 import ListViewDistributor from '../screens/repartidor/ListViewDistributor';
+import TakeEvidencePhotoScreen from '../screens/repartidor/TakeEvidencePhotoScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,6 +37,7 @@ export default function DistributorNavigator() {
             <Stack.Screen name="MainLoadPackagesDistributor" component={MainLoadPackagesDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="MapRouteView" component={MapRouteView} options={{ headerShown: false }} />
             <Stack.Screen name="ListViewDistributor" component={ListViewDistributor} options={{ headerShown: false }} />
+            <Stack.Screen name="TakeEvidencePhoto" component={TakeEvidencePhotoScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }   

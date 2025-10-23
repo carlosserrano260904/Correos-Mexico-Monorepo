@@ -45,7 +45,7 @@ export default function NameOfReceivePerson() {
                 return;
               }
 
-              navigation.navigate('TomarEvidencia', {
+              navigation.navigate('TakeEvidencePhoto', {
                 package: packageData,
                 destinatario: `${parentesco}: ${nombre.trim()}`,
               });

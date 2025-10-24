@@ -617,11 +617,11 @@ const styles = StyleSheet.create({
   carouselImage: {
     width: '90%',
     height: '100%',
-    resizeMode: 'contain',
-    borderRadius: moderateScale(8),
+    resizeMode: 'cover',
+    borderRadius: moderateScale(10),
     alignSelf: 'center',
-
-  },
+    overflow: 'hidden',
+},
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',

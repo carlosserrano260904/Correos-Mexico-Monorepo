@@ -1,14 +1,34 @@
-import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, UseGuards, NotFoundException, Req } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { Repository } from 'typeorm';
 
 @Controller('cards')
 export class CardsController {
-  constructor(private readonly cardsService: CardsService) { }
+  constructor(
+    private readonly cardsService: CardsService,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
+  ) { }
 
-  @Post()
-  addCard(@Body() dto: CreateCardDto) {
-    return this.cardsService.addCard(dto);
+  @UseGuards(JwtAuthGuard)
+  @Post('add')
+  async addCard(@Req() req, @Body() dto: CreateCardDto) {
+    const profile = await this.profileRepository.findOne({
+      where: { id: req.user.id },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Perfil no encontrado');
+    }
+
+    return this.cardsService.addCard(
+      profile,
+      dto.token,
+    );
   }
 
   @Get()

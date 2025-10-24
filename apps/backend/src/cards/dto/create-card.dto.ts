@@ -1,6 +1,7 @@
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateCardDto {
-  stripeCustomerId: string;
+  @IsString()
+  @IsNotEmpty({ message: 'El token de Stripe es obligatorio' })
   token: string;
-  profileId: number;
 }

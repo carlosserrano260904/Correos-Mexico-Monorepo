@@ -613,11 +613,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: screenHeight * 0.22,
   },
+  // Ajustes para la imagen del carrusel
   carouselImage: {
-    width: '100%',
+    width: '90%',
     height: '100%',
-    resizeMode: 'cover',
-    borderRadius: moderateScale(8),
+    resizeMode: 'contain',
+    borderRadius: moderateScale(12),
+    alignSelf: 'center',
   },
   pagination: {
     flexDirection: 'row',

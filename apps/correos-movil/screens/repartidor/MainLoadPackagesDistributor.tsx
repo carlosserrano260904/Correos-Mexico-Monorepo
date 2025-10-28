@@ -1,4 +1,4 @@
-import React, { use, useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from "react-native";
 import Constants from "expo-constants";
 import { moderateScale } from "react-native-size-matters";
@@ -7,10 +7,9 @@ import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { ProgressBar } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapRouteView from "./MapRouteView";
-import ListViewDistributor from "./ListViewDistributor";
 import * as Location from 'expo-location';
 import { LatLng } from "react-native-maps";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import axios from "axios";
 import PackageCard from "../../components/DistributorComponents/PackageCard";
 

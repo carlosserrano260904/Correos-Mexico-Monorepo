@@ -6,7 +6,6 @@ import { CameraType, CameraView, Camera } from "expo-camera";
 import { Aperture, Package2, CircleX } from "lucide-react-native";
 import Constants from "expo-constants";
 import { RootStackParamList } from "../../schemas/schemas";
-import { set } from "zod";
 
 // Define la ruta de navegación para este componente y sus parámetros
 type TakeEvidenceRouteProp = RouteProp<RootStackParamList, 'TomarEvidencia'>;

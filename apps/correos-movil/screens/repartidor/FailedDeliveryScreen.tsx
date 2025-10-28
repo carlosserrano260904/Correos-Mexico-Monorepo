@@ -70,7 +70,7 @@ export default function FailedDeliveryScreen() {
       }
 
       Alert.alert('Éxito', 'El paquete ha sido marcado como entrega fallida.', [
-        { text: 'OK', onPress: () => navigation.navigate('PackagesList') },
+        { text: 'OK', onPress: () => navigation.navigate('MainLoadPackagesDistributor' as never) },
       ]);
     } catch (error: any) {
       console.error(error);

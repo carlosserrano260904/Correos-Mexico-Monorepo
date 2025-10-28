@@ -5,7 +5,6 @@ import { moderateScale } from 'react-native-size-matters';
 import { RootStackParamList } from '../../schemas/schemas';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import axios from 'axios';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;

@@ -16,14 +16,16 @@ export const AWSProvider: Provider = {
     const region = config.get<string>('AWS_REGION');
     const accessKeyId = config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = config.get<string>('AWS_SECRET_ACCESS_KEY');
+    const endpoint = config.get<string>('AWS_S3_ENDPOINT');
 
-    if (!region || !accessKeyId || !secretAccessKey) {
+    if (!region || !accessKeyId || !secretAccessKey || !endpoint) {
       throw new InternalServerErrorException(
         'Env vars faltantes para S3: ' +
           [
             !region && 'AWS_REGION',
             !accessKeyId && 'AWS_ACCESS_KEY_ID',
             !secretAccessKey && 'AWS_SECRET_ACCESS_KEY',
+            !endpoint && 'AWS_S3_ENDPOINT',
           ]
             .filter(Boolean)
             .join(', ')
@@ -32,6 +34,7 @@ export const AWSProvider: Provider = {
 
     return new S3Client({
       region,
+      endpoint,
       credentials: { accessKeyId, secretAccessKey },
     });
   },

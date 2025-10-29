@@ -14,8 +14,9 @@ export class  UploadImageService {
     const region = this.config.get<string>('AWS_REGION');
     const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY');
+    const endpoint = config.get<string>('AWS_S3_ENDPOINT');
 
-    if (!bucket || !region || !accessKeyId || !secretAccessKey) {
+    if (!bucket || !region || !accessKeyId || !secretAccessKey || !endpoint) {
       throw new Error(
         'Faltan variables de entorno requeridas: ' +
           [
@@ -23,6 +24,7 @@ export class  UploadImageService {
             !region && 'AWS_REGION',
             !accessKeyId && 'AWS_ACCESS_KEY_ID',
             !secretAccessKey && 'AWS_SECRET_ACCESS_KEY',
+            !endpoint && 'AWS_S3_ENDPOINT',
           ]
             .filter(Boolean)
             .join(', ')
@@ -33,6 +35,7 @@ export class  UploadImageService {
     this.region = region;
     this.s3 = new S3Client({
       region,
+      endpoint,
       credentials: {
         accessKeyId,
         secretAccessKey,
@@ -70,8 +73,7 @@ export class  UploadImageService {
 
     await this.s3.send(cmd);
 
-    const publicUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
-    return publicUrl;
+    return `https://correos-storage.emmanuelbayona.dev/${key}`;
   }
 
   async uploadEvidenceDistributor(file: Express.Multer.File): Promise<string> {
@@ -85,7 +87,6 @@ export class  UploadImageService {
 
     await this.s3.send(cmd);
 
-    const publicUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
-    return publicUrl;
+    return `https://correos-storage.emmanuelbayona.dev/${key}`;
   }
 }

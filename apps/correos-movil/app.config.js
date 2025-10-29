@@ -6,6 +6,7 @@ module.exports = ({ config }) => ({
     name: "Correos de Mexico",
     slug: "correos-de-mexico",
     version: "1.0.1",
+    assetBundlePatterns: ["**/*"],
     orientation: "portrait",
     icon: "./assets/icons_correos_mexico/square_correos_clic_Logo.png",
     userInterfaceStyle: "light",

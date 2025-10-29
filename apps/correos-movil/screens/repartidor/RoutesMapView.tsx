@@ -4,10 +4,6 @@ import MapView, { Marker, Polyline, LatLng } from 'react-native-maps';
 import { Check, X, Store } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { moderateScale } from 'react-native-size-matters';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faXmark, faHeart as solidHeart, faPlus as plus, faMinus as minus, faAngleRight} from '@fortawesome/free-solid-svg-icons';
-
-const carImage = require('../../assets/icon_maps/flecha-gps.png');
 
 interface Package {
   id: string;

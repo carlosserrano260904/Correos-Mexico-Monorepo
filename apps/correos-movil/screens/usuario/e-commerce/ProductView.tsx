@@ -3,7 +3,8 @@ import * as ImagePicker from 'expo-image-picker';
 import type { ImagePickerAsset } from 'expo-image-picker';
 import {
   View, Text, StyleSheet, Dimensions, Image, TouchableOpacity,
-  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform, TextInput
+  ScrollView, ActivityIndicator, Modal, KeyboardAvoidingView, Platform, TextInput,
+  NativeScrollEvent, NativeSyntheticEvent
 } from "react-native";
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -42,6 +43,96 @@ type BackendProduct = {
   color?: string[] | string;
   reviews?: BackendReview[];
 };
+
+// Componente de Carrusel Simple
+const SimpleImageCarousel = ({ images, onImagePress }: { images: string[], onImagePress?: (index: number) => void }) => {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / screenWidth);
+    setCurrentIndex(newIndex);
+  };
+
+  const carouselImages = images?.length ? images : [DEFAULT_IMAGE];
+
+  return (
+    <View style={carouselStyles.container}>
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {carouselImages.map((image, index) => (
+          <TouchableOpacity 
+            key={index} 
+            style={carouselStyles.slide}
+            onPress={() => onImagePress && onImagePress(index)}
+            activeOpacity={0.9}
+          >
+            <Image 
+              source={{ uri: image }} 
+              style={carouselStyles.image}
+              resizeMode="cover"
+              defaultSource={placeholderImage}
+            />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      
+      {/* Indicadores de página */}
+      {carouselImages.length > 1 && (
+        <View style={carouselStyles.indicatorContainer}>
+          {carouselImages.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                carouselStyles.indicator,
+                index === currentIndex && carouselStyles.activeIndicator
+              ]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const carouselStyles = StyleSheet.create({
+  container: {
+    height: verticalScale(350),
+    position: 'relative',
+  },
+  slide: {
+    width: screenWidth,
+    height: verticalScale(350),
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  indicatorContainer: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 16,
+    alignSelf: 'center',
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    marginHorizontal: 4,
+  },
+  activeIndicator: {
+    backgroundColor: '#fff',
+    width: 16,
+  },
+});
 
 function ProductView() {
   const navigation = useNavigation<any>();
@@ -155,7 +246,6 @@ function ProductView() {
           marca: data.marca,
           slug: data.slug,
           vendedor: data.vendedor,
-
           reviews,
         };
 
@@ -268,22 +358,6 @@ function ProductView() {
     } catch { }
   };
 
-  const progress = useSharedValue<number>(0);
-  const baseOptions = { vertical: false, width: screenWidth, height: verticalScale(350) } as const;
-  const ref = React.useRef<ICarouselInstance>(null);
-  const onPressPagination = (index: number) => ref.current?.scrollTo({ count: index - progress.value, animated: true });
-
-  const carouselImageData =
-    product?.images?.length
-      ? product.images.map((u, i) => ({ id: `img-${i}`, image: { uri: u } }))
-      : [{ id: '1', image: placeholderImage }, { id: '2', image: placeholderImage }, { id: '3', image: placeholderImage }];
-
-  const renderItem = ({ item }: { item: { id: string; image: any } }) => (
-    <Animated.View style={styles.itemContainer}>
-      <Image source={item.image} style={styles.image} resizeMode="cover" />
-    </Animated.View>
-  );
-
   const renderStars = (n: number) => (
     <Text style={{ color: '#DE1484', fontWeight: '700' }}>{'★'.repeat(n)}{'☆'.repeat(5 - n)}</Text>
   );
@@ -334,25 +408,13 @@ function ProductView() {
         contentContainerStyle={{ paddingBottom: moderateScale(40) }}
       >
         <View style={styles.carouselContainer}>
-          <Carousel
-            ref={ref}
-            {...baseOptions}
-            loop
-            onProgressChange={progress}
-            style={styles.carousel}
-            data={carouselImageData}
-            renderItem={renderItem}
+          {/* ✅ CARRUSEL SIMPLE REEMPLAZADO */}
+          <SimpleImageCarousel 
+            images={product.images} 
+            onImagePress={(index) => openLightbox(product.images, index)}
           />
-          <Pagination.Basic<{ image: any }>
-            progress={progress}
-            data={carouselImageData}
-            size={scale(8)}
-            dotStyle={styles.dotStyle}
-            activeDotStyle={styles.activeDotStyle}
-            containerStyle={styles.paginationContainer}
-            horizontal
-            onPress={onPressPagination}
-          />
+          
+          {/* Botones superpuestos */}
           <TouchableOpacity style={styles.xmarkerContainer} onPress={() => navigation.goBack()}>
             <FontAwesomeIcon icon={faXmark} size={moderateScale(20)} color="black" />
           </TouchableOpacity>
@@ -378,8 +440,6 @@ function ProductView() {
               <Text style={styles.infoLabel}>Descripción:</Text>
               <Text style={styles.description}>{product.description || 'Descripción no disponible.'}</Text>
             </View>
-
-            
 
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>Marca:</Text>
@@ -511,12 +571,9 @@ function ProductView() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
   carouselContainer: { borderRadius: moderateScale(20), overflow: 'hidden' },
-  carousel: { width: screenWidth, position: 'relative' },
   centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', padding: moderateScale(20) },
   loadingText: { marginTop: moderateScale(10), fontSize: moderateScale(16), color: '#333' },
   errorText: { color: 'red', fontSize: moderateScale(16), textAlign: 'center', marginBottom: moderateScale(10) },
-  itemContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: '100%' },
 
   xmarkerContainer: {
     position: 'absolute', zIndex: 10, top: moderateScale(40), left: moderateScale(12),
@@ -531,9 +588,6 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4,
   },
   cartContainer: { right: moderateScale(70) },
-  dotStyle: { borderRadius: 100, backgroundColor: '#FFFFFF' },
-  activeDotStyle: { borderRadius: 100, backgroundColor: '#DE1484' },
-  paginationContainer: { position: 'absolute', bottom: moderateScale(10), alignSelf: 'center', zIndex: 10, gap: moderateScale(5) },
   contentContainer: { paddingHorizontal: moderateScale(16), paddingVertical: moderateScale(20) },
   productNameContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: moderateScale(16) },
   productName: { flex: 1, fontWeight: '500', fontSize: moderateScale(18), color: '#333' },
@@ -595,6 +649,7 @@ const styles = StyleSheet.create({
   lightboxIndex: { position: 'absolute', bottom: 24, color: 'white', fontWeight: '600' },
 });
 
+// ... (el componente ReviewForm permanece igual...)
 function ReviewForm({
   productId,
   profileId,

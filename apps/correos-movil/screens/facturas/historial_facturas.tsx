@@ -76,6 +76,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
   ProfileUser: undefined;
+  Tabs: undefined;
   // ...other routes if needed
 };
 
@@ -224,7 +225,13 @@ const onRefresh = async () => {
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
         <TouchableOpacity
           style={headerStyles.backButton}
-          onPress={() => navigation.navigate('ProfileUser')}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+              return;
+            }
+            navigation.navigate("Tabs")
+          }}
           accessibilityLabel="Regresar"
           accessibilityHint="Regresa a la pantalla anterior"
         >
@@ -357,37 +364,40 @@ const onRefresh = async () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <>
       <CustomHeader />
-
-      <View style={styles.content}>
-        <SearchBar searchQuery={searchQuery} onSearch={setSearchQuery} />
-        <FilterButtons />
-        <RefreshButton />
-
-        {loading ? (
-          <LoadingState />
-        ) : filteredInvoices.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <FlatList
-            data={filteredInvoices}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderInvoiceItem}
-            contentContainerStyle={styles.invoicesList}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[Colors.primary]}
-              />
-            }
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
-    </SafeAreaView>
+      
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+  
+        <View style={styles.content}>
+          <SearchBar searchQuery={searchQuery} onSearch={setSearchQuery} />
+          <FilterButtons />
+          <RefreshButton />
+  
+          {loading ? (
+            <LoadingState />
+          ) : filteredInvoices.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <FlatList
+              data={filteredInvoices}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderInvoiceItem}
+              contentContainerStyle={styles.invoicesList}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[Colors.primary]}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </>
   );
 };
 

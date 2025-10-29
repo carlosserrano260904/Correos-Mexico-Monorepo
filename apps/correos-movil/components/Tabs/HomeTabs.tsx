@@ -43,15 +43,15 @@ const HomeTabs = () => {
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    position: 'absolute',
-    backgroundColor: '#F3F4F6',
+    position: "absolute",
+    backgroundColor: "#F3F4F6",
     borderRadius: 100,
-    marginVertical: moderateScale(52),
-    marginHorizontal: moderateScale(12),
-    height: moderateScale(60),
+    marginVertical: moderateScale(16),
+    marginHorizontal: moderateScale(16),
+    height: moderateScale(64),
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: moderateScale(10)
+    paddingTop: moderateScale(12),
   },
 });
 

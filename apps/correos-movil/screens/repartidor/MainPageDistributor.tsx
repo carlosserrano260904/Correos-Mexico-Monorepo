@@ -26,7 +26,7 @@ export default function MainPageDistributor() {
                 if(activo === 'true'){
                     navigation.reset({
                     index: 0,
-                    routes: [{ name: 'PackagesList' }],
+                    routes: [{ name: 'MainLoadPackagesDistributor' }],
                 });
             }
             }

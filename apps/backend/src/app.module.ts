@@ -43,6 +43,7 @@ import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.modu
 import { CategoriesModule } from './categories/categories.module';
 import { ReviewModule } from './review/review.module';
 import {PDFGeneratorModule} from './guias_trazabilidad/infrastructure/pdf-generator/pdf-generator.module';
+import { AdminModule } from './admin/admin.module';
 
 
 @Module({
@@ -91,6 +92,7 @@ import {PDFGeneratorModule} from './guias_trazabilidad/infrastructure/pdf-genera
     CategoriesModule,
     ReviewModule,
     PDFGeneratorModule,
+    AdminModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

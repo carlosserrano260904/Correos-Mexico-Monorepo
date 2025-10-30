@@ -40,7 +40,7 @@ export default function AgregarTarjetaScreen() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [cardError, setCardError] = useState<string | null>(null);
 
-  // --- Lógica de validación (la misma que ya funcionaba) ---
+  // --- Lógica de validación ---
   const validateName = (name: string): boolean => {
     const trimmedName = name.trim();
     // La imagen dice "opcional", así que solo validamos si no está vacío
@@ -63,7 +63,7 @@ export default function AgregarTarjetaScreen() {
     }
   };
 
-  // --- Lógica de `handleAddCard` (la misma que ya funcionaba) ---
+  // --- Lógica de `handleAddCard` ---
   const handleAddCard = async () => {
     setNameError(null);
 
@@ -83,7 +83,7 @@ export default function AgregarTarjetaScreen() {
       return;
     }
 
-    // --- Lógica de Stripe (sin cambios, ya funcionaba) ---
+    // --- Lógica de Stripe ---
     setIsSaving(true);
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -137,7 +137,7 @@ export default function AgregarTarjetaScreen() {
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
-        {/* --- Modal (usando <Text> personalizado) --- */}
+        {/* --- Modal --- */}
         <Modal visible={isSaving} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
@@ -159,7 +159,7 @@ export default function AgregarTarjetaScreen() {
           </Text>
         </View>
 
-        {/* --- Vista Previa de Tarjeta (Nuevo) --- */}
+        {/* --- Vista Previa de Tarjeta --- */}
         <View style={styles.cardPreview}>
           <Text size="xl" style={styles.cardPreviewText}>
             •••• •••• •••• ••••
@@ -168,7 +168,7 @@ export default function AgregarTarjetaScreen() {
 
         {/* --- Formulario --- */}
         <View style={styles.formContainer}>
-          {/* --- Campo de Nombre (Usando <Input>) --- */}
+          {/* --- Campo de Nombre --- */}
           <View style={styles.inputGroup}>
             <Text color="title" fontWeight="500" style={styles.label}>
               Nombre en la tarjeta (opcional)
@@ -188,7 +188,7 @@ export default function AgregarTarjetaScreen() {
             )}
           </View>
 
-          {/* --- Campo de Tarjeta de Stripe (Usando <CardField>) --- */}
+          {/* --- Campo de Tarjeta de Stripe --- */}
           <View style={styles.inputGroup}>
             <Text color="title" fontWeight="500" style={styles.label}>
               Datos de la Tarjeta
@@ -197,13 +197,13 @@ export default function AgregarTarjetaScreen() {
               postalCodeEnabled={false}
               placeholders={{ number: '4242 4242 4242 4242' }}
               cardStyle={[
-                styles.cardFieldBase, // Estilos base
-                cardError ? styles.inputError : null, // Estilo de error
+                styles.cardFieldBase,
+                cardError ? styles.inputError : null,
               ]}
-              style={styles.cardFieldContainer} // Contenedor
+              style={styles.cardFieldContainer}
               onCardChange={(details) => {
                 setCardDetails(details);
-                // Lógica de error (la misma que ya tenías)
+                // Lógica de error
                 if (details.error) {
                   if (details.error.code === 'InvalidNumber') {
                     setCardError('El número de tarjeta es inválido.');
@@ -226,7 +226,7 @@ export default function AgregarTarjetaScreen() {
             )}
           </View>
 
-          {/* --- Botón (Usando <Button>) --- */}
+          {/* --- Botón --- */}
           <Button
             type="default"
             size="default"
@@ -237,7 +237,7 @@ export default function AgregarTarjetaScreen() {
             Añadir tarjeta
           </Button>
 
-          {/* --- Texto de Footer (Usando <Text>) --- */}
+          {/* --- Texto de Footer --- */}
           <Text size="small" color="muted" align="center" style={styles.footerText}>
             Cifrado seguro. No compartimos tus datos con terceros
           </Text>
@@ -247,7 +247,7 @@ export default function AgregarTarjetaScreen() {
   );
 }
 
-// --- Estilos Nuevos (basados en tu theme) ---
+// --- Estilos Nuevos ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   cardPreview: {
-    backgroundColor: COLORS.brand, // Color principal
+    backgroundColor: COLORS.brand,
     borderRadius: SIZES.borderRadius.large,
     height: 180,
     justifyContent: 'flex-end',
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 24, // Más espacio entre campos
+    marginBottom: 24,
   },
   label: {
     marginBottom: 8,
@@ -297,19 +297,17 @@ const styles = StyleSheet.create({
   footerText: {
     paddingHorizontal: 16,
   },
-  // Estilo para el <CardField> de Stripe
   cardFieldContainer: {
     width: '100%',
-    height: 48, // Misma altura que tu <Input>
+    height: 48,
   },
   cardFieldBase: {
-    backgroundColor: COLORS.surface, // Mismo fondo que tu <Input>
-    borderColor: COLORS.border, // Mismo borde
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
     borderWidth: 1,
-    borderRadius: SIZES.borderRadius.default, // Mismo borde
-    textColor: COLORS.foreground, // Mismo color de texto
+    borderRadius: SIZES.borderRadius.default,
+    textColor: COLORS.foreground,
   },
-  // Estilos de Modal (adaptados)
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -331,9 +329,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: SIZES.fontSize.default,
   },
-  // Estilos de Error (adaptados)
   inputError: {
-    borderColor: '#D32F2F', // Borde rojo
+    borderColor: '#D32F2F',
     borderWidth: 1,
   },
   errorText: {

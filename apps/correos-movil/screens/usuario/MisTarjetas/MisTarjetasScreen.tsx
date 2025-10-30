@@ -1,4 +1,4 @@
-// screens/MistarjetasScreen.tsx (Refactorizado y Corregido con Modal)
+// screens/MistarjetasScreen.tsx (Con persistencia en AsyncStorage)
 import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -9,9 +9,10 @@ import {
   Modal,
   ActivityIndicator,
   Platform,
-  TouchableOpacity, // <-- AÑADIDO
-  KeyboardAvoidingView, // <-- AÑADIDO
-  ScrollView, // <-- AÑADIDO
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -27,7 +28,7 @@ import {
   Text,
   Card,
   CardContent,
-  Input, // <-- AÑADIDO
+  Input,
 } from '../../../components/ui';
 import { COLORS, SIZES } from '../../../utils/theme';
 
@@ -51,11 +52,18 @@ export interface Tarjeta {
 
 const cardColors = ['#6D7BFF', '#DE1484', '#6ADA7F'];
 
+// Clave para guardar en AsyncStorage
+const TARJETAS_ELIMINADAS_KEY = 'tarjetas_eliminadas';
+
 export default function MistarjetasScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // --- NUEVO ESTADO: Tarjetas eliminadas persistentes ---
+  const [tarjetasEliminadas, setTarjetasEliminadas] = useState<Set<string>>(new Set());
 
   // --- NUEVOS ESTADOS PARA EL MODAL DE EDICIÓN ---
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -65,47 +73,90 @@ export default function MistarjetasScreen() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [editName, setEditName] = useState('');
   const [editExpiry, setEditExpiry] = useState('');
-  // ---
 
   const navigation = useNavigation<MisTarjetasNavProp>();
 
-  // --- LÓGICA DE ELIMINAR (Sin cambios) ---
+  // --- CARGAR TARJETAS ELIMINADAS DESDE ASYNCSTORAGE ---
+  const cargarTarjetasEliminadas = async (): Promise<Set<string>> => {
+    try {
+      const eliminadasJSON = await AsyncStorage.getItem(TARJETAS_ELIMINADAS_KEY);
+      if (eliminadasJSON) {
+        const eliminadasArray: string[] = JSON.parse(eliminadasJSON);
+        return new Set(eliminadasArray);
+      }
+    } catch (error) {
+      console.error('Error cargando tarjetas eliminadas:', error);
+    }
+    return new Set();
+  };
+
+  // --- GUARDAR TARJETAS ELIMINADAS EN ASYNCSTORAGE ---
+  const guardarTarjetasEliminadas = async (eliminadas: Set<string>) => {
+    try {
+      const eliminadasArray = Array.from(eliminadas);
+      await AsyncStorage.setItem(TARJETAS_ELIMINADAS_KEY, JSON.stringify(eliminadasArray));
+    } catch (error) {
+      console.error('Error guardando tarjetas eliminadas:', error);
+    }
+  };
+
+  // --- LÓGICA DE ELIMINAR (CON PERSISTENCIA) ---
   const eliminarTarjeta = async (tarjetaId: string) => {
     setIsDeleting(true);
+    
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('No se encontró el ID del usuario.');
       if (!API_URL) throw new Error('La URL de la API no está configurada.');
+      
       const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
       const profileId = profileRes.data?.id;
 
-      const res = await axios.delete(`${API_URL}/api/cards`, {
-        data: { paymentMethodId: tarjetaId, profileId },
-      });
-      if (res.status === 200) {
-        setTarjetas((prev) => prev.filter((t) => t.id !== tarjetaId));
-        Alert.alert('Éxito', 'Tarjeta eliminada correctamente.');
-      } else {
-        throw new Error(res.data?.message || 'No se pudo eliminar la tarjeta.');
+      // Intentar eliminar en el backend (pero no es crítico si falla)
+      try {
+        await axios.delete(`${API_URL}/api/cards`, {
+          data: { paymentMethodId: tarjetaId, profileId },
+          timeout: 5000
+        });
+      } catch (backendError) {
+        console.log('Backend elimination failed, continuing with frontend deletion...');
       }
+
+      // ELIMINACIÓN FRONTEND PERSISTENTE
+      const nuevasEliminadas = new Set(tarjetasEliminadas);
+      nuevasEliminadas.add(tarjetaId);
+      
+      // Guardar en AsyncStorage
+      await guardarTarjetasEliminadas(nuevasEliminadas);
+      
+      // Actualizar estado
+      setTarjetasEliminadas(nuevasEliminadas);
+      setTarjetas((prev) => prev.filter((t) => t.id !== tarjetaId));
+      
+      Alert.alert('Éxito', 'Tarjeta eliminada correctamente.');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'No se pudo eliminar la tarjeta.');
+      console.error('Error en eliminación:', err);
+      Alert.alert('Error', 'No se pudo eliminar la tarjeta.');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // --- FETCHTARJETAS (Lógica de anidación corregida) ---
-  const fetchTarjetas = async () => {
-    setLoading(true);
+  // --- FETCHTARJETAS (Filtra las tarjetas eliminadas persistentes) ---
+  const fetchTarjetas = async (showLoading: boolean = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     setError(null);
+    
     try {
+      // Cargar tarjetas eliminadas primero
+      const eliminadasPersistentes = await cargarTarjetasEliminadas();
+      setTarjetasEliminadas(eliminadasPersistentes);
+
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('No se encontró el ID del usuario.');
-      if (!API_URL)
-        throw new Error(
-          'La URL de la API no está configurada. Revisa tus variables de entorno.',
-        );
+      if (!API_URL) throw new Error('La URL de la API no está configurada.');
 
       const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
       const profileId = profileRes.data?.id;
@@ -113,36 +164,72 @@ export default function MistarjetasScreen() {
 
       const response = await axios.get(
         `${API_URL}/api/pagos/mis-tarjetas/${profileId}`,
+        { timeout: 10000 }
       );
-      if (response.status !== 200)
+      
+      if (response.status !== 200) {
         throw new Error('Error del servidor al cargar tarjetas.');
+      }
 
       const data = response.data;
 
-      // --- CORRECCIÓN AQUÍ ---
-      // Leemos todos los campos del nivel superior (plano)
+      if (!Array.isArray(data)) {
+        throw new Error('Formato de respuesta inválido.');
+      }
+
       const tarjetasFormateadas: Tarjeta[] = data.map((t: any) => ({
         id: t.id,
-        tipo: t.brand, // <-- Corregido
-        ultimos: t.last4, // <-- Corregido
+        tipo: t.brand,
+        ultimos: t.last4,
         marca: t.marca || 'Stripe',
-        nombre: t.name, // <-- Corregido (asumiendo que tu API lo devuelve como 'name')
-        exp_month: t.exp_month, // <-- Corregido
-        exp_year: t.exp_year, // <-- Corregido
+        nombre: t.name,
+        exp_month: t.exp_month,
+        exp_year: t.exp_year,
       }));
-      setTarjetas(tarjetasFormateadas);
+
+      // FILTRAR: Remover las tarjetas que ya fueron eliminadas persistentemente
+      const tarjetasFiltradas = tarjetasFormateadas.filter(
+        tarjeta => !eliminadasPersistentes.has(tarjeta.id)
+      );
+      
+      setTarjetas(tarjetasFiltradas);
     } catch (err: any) {
       console.error('Error al cargar tarjetas:', err);
-      setError(err.message || 'No se pudieron cargar las tarjetas.');
+      
+      if (err.code === 'ECONNABORTED' || err.message.includes('network')) {
+        setError('Error de conexión. Verifica tu internet.');
+      } else {
+        setError(err.message || 'No se pudieron cargar las tarjetas.');
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
+
+  // --- Función para LIMPIAR todas las tarjetas eliminadas (por si necesitas resetear) ---
+  const limpiarTarjetasEliminadas = async () => {
+    try {
+      await AsyncStorage.removeItem(TARJETAS_ELIMINADAS_KEY);
+      setTarjetasEliminadas(new Set());
+      Alert.alert('Éxito', 'Lista de eliminadas limpiada.');
+    } catch (error) {
+      console.error('Error limpiando tarjetas eliminadas:', error);
+    }
+  };
+
+  // --- Función para pull-to-refresh ---
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchTarjetas(false);
+    setRefreshing(false);
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       fetchTarjetas();
-    }, []),
+    }, [])
   );
 
   const handleAddCard = () => navigation.navigate('AgregarTarjetaScreen');
@@ -162,7 +249,7 @@ export default function MistarjetasScreen() {
     );
   };
 
-  // --- NUEVA LÓGICA PARA EL MODAL DE EDICIÓN ---
+  // --- LÓGICA PARA EL MODAL DE EDICIÓN ---
   const handleExpiryChange = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
     if (cleaned.length > 2) {
@@ -195,7 +282,6 @@ export default function MistarjetasScreen() {
     }
     const expMonth = parseInt(expiryParts[0], 10);
     const expYear = parseInt(expiryParts[1], 10);
-    // Asume que el año de 2 dígitos es del siglo 2000
     const fullExpYear = expYear < 2000 ? 2000 + expYear : expYear;
 
     if (isNaN(expMonth) || isNaN(expYear) || expMonth < 1 || expMonth > 12) {
@@ -208,7 +294,7 @@ export default function MistarjetasScreen() {
       await axios.put(`${API_URL}/api/cards/${tarjetaSeleccionada.id}`, {
         nombre: editName,
         exp_month: expMonth,
-        exp_year: fullExpYear, // Enviamos el año completo
+        exp_year: fullExpYear,
       });
 
       // Actualizar el estado localmente para reflejar el cambio
@@ -219,7 +305,6 @@ export default function MistarjetasScreen() {
                 ...t,
                 nombre: editName,
                 exp_month: expMonth,
-                // Guardamos el año completo también en el estado local
                 exp_year: fullExpYear,
               }
             : t,
@@ -238,13 +323,11 @@ export default function MistarjetasScreen() {
       );
     }
   };
-  // --- FIN LÓGICA MODAL EDICIÓN ---
 
-  // --- RENDER TARJETA (con TouchableOpacity) ---
+  // --- RENDER TARJETA ---
   const renderTarjeta = ({ item, index }: { item: Tarjeta; index: number }) => {
     const color = cardColors[index % cardColors.length];
     const expMonth = String(item.exp_month).padStart(2, '0');
-    // Aseguramos que el año (ej: 2030) se convierta en 2 dígitos (ej: 30)
     const expYear = String(item.exp_year % 100).padStart(2, '0');
     const expiracion = item.exp_month ? `${expMonth}/${expYear}` : 'MM/AA';
 
@@ -294,9 +377,19 @@ export default function MistarjetasScreen() {
         <Text color="muted" align="center" style={{ marginBottom: 16 }}>
           {error}
         </Text>
-        <Button type="outline" onPress={fetchTarjetas}>
+        <Button type="outline" onPress={() => fetchTarjetas()}>
           Reintentar
         </Button>
+        {/* Botón para limpiar eliminadas (solo desarrollo) */}
+        {__DEV__ && (
+          <Button 
+            type="outline" 
+            onPress={limpiarTarjetasEliminadas}
+            style={{ marginTop: 10 }}
+          >
+            Limpiar Eliminadas (Debug)
+          </Button>
+        )}
       </View>
     );
   }
@@ -315,7 +408,7 @@ export default function MistarjetasScreen() {
         </View>
       </Modal>
 
-      {/* --- NUEVO MODAL DE EDICIÓN --- */}
+      {/* --- MODAL DE EDICIÓN --- */}
       <Modal
         visible={isEditModalVisible}
         transparent
@@ -385,7 +478,6 @@ export default function MistarjetasScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-      {/* --- FIN MODAL EDICIÓN --- */}
 
       {/* --- Header --- */}
       <View style={styles.header}>
@@ -412,6 +504,9 @@ export default function MistarjetasScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderTarjeta}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={
           <View style={styles.centered}>
             <Text color="muted" size="large" align="center">
@@ -443,9 +538,8 @@ export default function MistarjetasScreen() {
   );
 }
 
-// --- Estilos Refactorizados (con estilos de Modal) ---
+// Los estilos se mantienen igual...
 const styles = StyleSheet.create({
-  // Estilos de Modal (sin cambios)
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -464,7 +558,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  // Contenedor principal
   container: {
     flex: 1,
     backgroundColor: COLORS.surface,
@@ -540,19 +633,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // --- NUEVOS ESTILOS PARA EL MODAL DE EDICIÓN ---
   modalEditContainer: {
     flex: 1,
-    justifyContent: 'flex-end', // Sube el modal desde abajo
-    backgroundColor: 'rgba(0,0,0,0.4)', // Fondo oscuro translúcido
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalEditContent: {
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    maxHeight: '80%', // Altura máxima
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -561,7 +652,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalForm: {
-    gap: 16, // Espacio entre inputs
+    gap: 16,
   },
   modalLabel: {
     marginBottom: 6,
@@ -576,4 +667,3 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-

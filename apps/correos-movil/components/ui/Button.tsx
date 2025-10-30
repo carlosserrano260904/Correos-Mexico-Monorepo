@@ -5,7 +5,7 @@ import {
   buttonBorderColors,
   buttonTextColors,
   SIZES,
-} from "../../utils/theme.ts";
+} from "../../utils/theme";
 
 const sizeStyles: Record<string, Record<string, number>> = {
   small: { height: SIZES.button.small, paddingHorizontal: 12 },

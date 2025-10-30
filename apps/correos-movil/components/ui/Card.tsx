@@ -6,7 +6,7 @@ import {
   type StyleProp,
   type ViewProps,
 } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme.ts";
+import { COLORS, SIZES } from "../../utils/theme";
 
 const backgroundColors: Record<string, string> = {
   default: COLORS.white,

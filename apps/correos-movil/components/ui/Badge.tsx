@@ -5,7 +5,7 @@ import {
   buttonBorderColors,
   buttonTextColors,
   SIZES,
-} from "../../utils/theme.ts";
+} from "../../utils/theme";
 
 type BadgeProps = {
   /**

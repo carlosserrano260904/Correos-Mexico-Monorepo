@@ -1,5 +1,5 @@
 import { View, TextInput, StyleSheet, type TextInputProps } from "react-native";
-import { COLORS } from "../../utils/theme.ts";
+import { COLORS } from "../../utils/theme";
 
 type InputProps = TextInputProps & {
   /**

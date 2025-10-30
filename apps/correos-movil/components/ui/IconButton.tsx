@@ -3,7 +3,7 @@ import {
   buttonBackgroundColors,
   buttonBorderColors,
   SIZES,
-} from "../../utils/theme.ts";
+} from "../../utils/theme";
 
 const sizeStyles: Record<string, number> = {
   small: SIZES.button.small,

@@ -1,5 +1,5 @@
 import { type TextStyle, type TextProps, Text as RNText } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme.ts";
+import { COLORS, SIZES } from "../../utils/theme";
 
 export type ThemedTextProps = TextProps & {
   /**

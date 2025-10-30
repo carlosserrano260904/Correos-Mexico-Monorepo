@@ -1,6 +1,6 @@
 import { DimensionValue, View } from "react-native";
 import { StyleSheet } from "react-native";
-import { COLORS, SIZES } from "../../utils/theme.ts";
+import { COLORS, SIZES } from "../../utils/theme";
 import { Image } from "react-native";
 import { Text, ThemedTextProps } from "./Text";
 import { Pressable, PressableProps, ImageProps } from "react-native";

@@ -13,8 +13,9 @@ import {
     TouchableWithoutFeedback,
     View,
     BackHandler,
+    Modal,
+    FlatList,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { actualizarDireccionAPI, agregarDireccionAPI, eliminarDireccionAPI, obtenerDirecciones } from '../../../api/direcciones';
 import { DireccionesSchema } from '../../../schemas/schemas';
 import { obtenerDatosPorCodigoPostal } from '../../../api/postal';
@@ -23,8 +24,6 @@ import AppHeader from '../../../components/common/AppHeader';
 import Loader from '../../../components/common/Loader';
 
 const PINK = '#E6007E';
-
-
 
 export interface Direccion {
     id?: number;
@@ -49,7 +48,6 @@ interface ListaDireccionesProps {
     direccionSeleccionada: number | null;
     setDireccionSeleccionada: (id: number) => void;
     modoSeleccion: boolean;
-
 }
 
 function adaptarDireccion(apiDir: (typeof DireccionesSchema._type)): Direccion {
@@ -84,18 +82,12 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
 
         try {
             await AsyncStorage.setItem('direccionSeleccionadaId', String(direccion.id));
-            // console.log('Dirección guardada en AsyncStorage:', direccion.id);
-            //Alert.alert('Dirección seleccionada');
             navigation.goBack();
-            // para usar en la vista que quieras el id
-            // const id = await AsyncStorage.getItem('direccionSeleccionadaId');
-
         } catch (error) {
             console.error('Error al guardar dirección:', error);
             Alert.alert('Error', 'No se pudo guardar la dirección seleccionada');
         }
     };
-
 
     return (
         <>
@@ -109,13 +101,11 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
                 ) : (
                     direcciones.map((dir, index) => (
                         <View key={index} style={styles.card}>
-                            {/* ✅ Título + Checkbox de selección */}
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <Text style={styles.cardTitle}>
                                     {dir.direccion} {dir.numeroexterior}
                                 </Text>
 
-                                {/* 🔘 Radio button si está en modo selección */}
                                 {modoSeleccion && (
                                     <TouchableOpacity
                                         onPress={() => setDireccionSeleccionada(dir.id!)}
@@ -191,7 +181,6 @@ function ListaDirecciones({ direcciones, onAgregarNueva, onEditar, onEliminar, n
     );
 }
 
-
 export default function AgregarDomicilio({ navigation, route }: { navigation: any, route: any }) {
     const [direcciones, setDirecciones] = useState<Direccion[]>([]);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -202,18 +191,22 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
     const [codigoPostalValido, setCodigoPostalValido] = useState(true);
     const modoSeleccion = route?.params?.modoSeleccion || false;
 
+    // NUEVOS ESTADOS PARA EL MODAL DE COLONIAS
+    const [modalColoniasVisible, setModalColoniasVisible] = useState(false);
+    const [coloniaBuscada, setColoniaBuscada] = useState('');
+    const [coloniasFiltradas, setColoniasFiltradas] = useState<string[]>([]);
+
     const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const backAction = () => {
             if (mostrarFormulario) {
-                // 👉 si está en el formulario, volver a la lista
                 setMostrarFormulario(false);
                 setEditIndex(null);
-                return true; // 🔴 evita que cierre la pantalla
+                return true;
             }
-            return false; // 🔴 permite el comportamiento normal (salir de la pantalla)
+            return false;
         };
 
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -236,6 +229,104 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
         colonia: '',
         estado: '',
     });
+
+    // FUNCIÓN PARA FILTRAR COLONIAS
+    useEffect(() => {
+        if (coloniaBuscada) {
+            const filtered = coloniasDisponibles.filter(colonia =>
+                colonia.toLowerCase().includes(coloniaBuscada.toLowerCase())
+            );
+            setColoniasFiltradas(filtered);
+        } else {
+            setColoniasFiltradas(coloniasDisponibles);
+        }
+    }, [coloniaBuscada, coloniasDisponibles]);
+
+    // COMPONENTE DEL MODAL DE COLONIAS
+    const ModalColonias = () => (
+        <Modal
+            visible={modalColoniasVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setModalColoniasVisible(false)}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    {/* Header del Modal */}
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Selecciona una colonia</Text>
+                        <TouchableOpacity 
+                            onPress={() => setModalColoniasVisible(false)}
+                            style={styles.closeButton}
+                        >
+                            <Ionicons name="close" size={24} color="#333" />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Barra de búsqueda */}
+                    <View style={styles.searchContainer}>
+                        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Buscar colonia..."
+                            value={coloniaBuscada}
+                            onChangeText={setColoniaBuscada}
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+
+                    {/* Lista de colonias */}
+                    <FlatList
+                        data={coloniasFiltradas}
+                        keyExtractor={(item, index) => index.toString()}
+                        style={styles.coloniasList}
+                        showsVerticalScrollIndicator={false}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={[
+                                    styles.coloniaItem,
+                                    formData.colonia === item && styles.coloniaItemSelected
+                                ]}
+                                onPress={() => {
+                                    handleChange('colonia', item);
+                                    setModalColoniasVisible(false);
+                                    setColoniaBuscada('');
+                                }}
+                            >
+                                <Text style={[
+                                    styles.coloniaText,
+                                    formData.colonia === item && styles.coloniaTextSelected
+                                ]}>
+                                    {item}
+                                </Text>
+                                {formData.colonia === item && (
+                                    <Ionicons name="checkmark" size={20} color={PINK} />
+                                )}
+                            </TouchableOpacity>
+                        )}
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Ionicons name="location-outline" size={40} color="#ccc" />
+                                <Text style={styles.emptyStateText}>
+                                    {coloniasDisponibles.length === 0 
+                                        ? 'No hay colonias disponibles' 
+                                        : 'No se encontraron colonias'
+                                    }
+                                </Text>
+                            </View>
+                        }
+                    />
+
+                    {/* Contador de resultados */}
+                    <View style={styles.resultsCounter}>
+                        <Text style={styles.resultsText}>
+                            {coloniasFiltradas.length} de {coloniasDisponibles.length} colonias
+                        </Text>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
 
     const guardarDatos = async () => {
         if (!formData.nombre || !formData.telefono || !formData.direccion || !formData.codigoPostal || !formData.municipio || !formData.colonia || !formData.estado) {
@@ -317,10 +408,9 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
             Alert.alert('Error', 'No se pudo eliminar la dirección');
         }
     };
+    
     function isNombreValido(nombre: string): boolean {
         if (nombre.length < 3) return false;
-
-
         const letras = nombre.toLowerCase().replace(/\s/g, '');
         return !/^([a-zA-Z])\1+$/.test(letras);
     }
@@ -328,10 +418,12 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
     if (loading) {
         return <Loader message="Cargando tus direcciones..." />;
     }
+    
     if (mostrarFormulario) {
         return (
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-
+                <ModalColonias />
+                
                 <ScrollView
                     contentContainerStyle={styles.content}
                     keyboardShouldPersistTaps="handled"
@@ -534,7 +626,6 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
                                                         setCodigoPostalValido(false);
                                                     }
                                                 } catch (error) {
-
                                                     Alert.alert('Error', 'No se pudo buscar el código postal');
                                                 }
                                             }
@@ -546,33 +637,46 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
                                 )}
                             </View>
 
+                            {/* NUEVO SELECTOR DE COLONIAS */}
                             <View style={styles.inputContainer}>
                                 <Text style={styles.label}>Colonia *</Text>
-                                <View style={[
-                                    styles.input,
-                                    formData.codigoPostal.length === 0
-                                        ? null
-                                        : codigoPostalValido
-                                            ? styles.inputValido
-                                            : styles.inputInvalido,
-
-                                ]}>
-                                    <Picker
-                                        selectedValue={formData.colonia}
-                                        onValueChange={(itemValue: string) => handleChange('colonia', itemValue)}
-                                    >
-                                        {formData.colonia === '' && (
-                                            <Picker.Item label="Selecciona una colonia" value="" />
-                                        )}
-                                        {!coloniasDisponibles.includes(formData.colonia) &&
-                                            formData.colonia !== '' && (
-                                                <Picker.Item label={formData.colonia} value={formData.colonia} />
-                                            )}
-                                        {coloniasDisponibles.map((colonia, index) => (
-                                            <Picker.Item key={index} label={colonia} value={colonia} />
-                                        ))}
-                                    </Picker>
-                                </View>
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.coloniaSelector,
+                                        formData.colonia ? styles.inputValido : styles.inputInvalido,
+                                        !codigoPostalValido && styles.inputInvalido
+                                    ]}
+                                    onPress={() => {
+                                        if (coloniasDisponibles.length > 0) {
+                                            setModalColoniasVisible(true);
+                                        }
+                                    }}
+                                    disabled={coloniasDisponibles.length === 0}
+                                >
+                                    <Text style={[
+                                        styles.coloniaSelectorText,
+                                        !formData.colonia && styles.placeholderText
+                                    ]}>
+                                        {formData.colonia || 'Selecciona una colonia'}
+                                    </Text>
+                                    <Ionicons 
+                                        name="chevron-down" 
+                                        size={20} 
+                                        color={coloniasDisponibles.length === 0 ? '#ccc' : '#666'} 
+                                    />
+                                </TouchableOpacity>
+                                
+                                {coloniasDisponibles.length === 0 && formData.codigoPostal.length === 5 && (
+                                    <Text style={styles.helperText}>
+                                        Ingresa un código postal válido para ver las colonias
+                                    </Text>
+                                )}
+                                
+                                {coloniasDisponibles.length > 0 && (
+                                    <Text style={styles.helperText}>
+                                        {coloniasDisponibles.length} colonias disponibles
+                                    </Text>
+                                )}
                             </View>
 
                             <View style={styles.inputContainer}>
@@ -650,7 +754,6 @@ export default function AgregarDomicilio({ navigation, route }: { navigation: an
         />
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -759,4 +862,124 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
+    // NUEVOS ESTILOS PARA EL MODAL DE COLONIAS
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '80%',
+        paddingBottom: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    closeButton: {
+        padding: 4,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        margin: 20,
+        marginBottom: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 12,
+        paddingHorizontal: 15,
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    searchInput: {
+        flex: 1,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: '#333',
+    },
+    coloniasList: {
+        maxHeight: 300,
+        marginHorizontal: 20,
+    },
+    coloniaItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    coloniaItemSelected: {
+        backgroundColor: '#fce4f1',
+        borderRadius: 8,
+    },
+    coloniaText: {
+        fontSize: 16,
+        color: '#333',
+        flex: 1,
+    },
+    coloniaTextSelected: {
+        color: PINK,
+        fontWeight: '600',
+    },
+    emptyState: {
+        alignItems: 'center',
+        padding: 40,
+    },
+    emptyStateText: {
+        marginTop: 10,
+        color: '#666',
+        textAlign: 'center',
+    },
+    resultsCounter: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    resultsText: {
+        fontSize: 12,
+        color: '#666',
+        textAlign: 'center',
+    },
+
+    // ESTILOS PARA EL SELECTOR DE COLONIA EN EL FORMULARIO
+    coloniaSelector: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 15,
+        marginBottom: 8,
+        borderColor: '#ddd',
+        borderWidth: 1,
+    },
+    coloniaSelectorText: {
+        fontSize: 16,
+        color: '#333',
+        flex: 1,
+    },
+    placeholderText: {
+        color: '#999',
+    },
+    helperText: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 4,
+    },
 });

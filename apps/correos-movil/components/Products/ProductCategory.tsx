@@ -24,18 +24,18 @@ const formatPrice = (price: number): string => {
 };
 
 export interface Articulo {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    image: { url: string };
-    precio: number;
-    categoria: string;
-    color: string;
+  id: number;
+  nombre: string;
+  descripcion: string;
+  image: { url: string };
+  precio: number;
+  categoria: string;
+  color: string;
 }
 
 interface ProductCategoryListProps {
-    products: Articulo[];
-    categoria: string;
+  products: Articulo[];
+  categoria: string;
 }
 
 const ColorDisplay: React.FC<{ colores: string[] }> = ({ colores }) => {
@@ -69,6 +69,7 @@ const ProductoCard: React.FC<{
   const nav = useNavigation<any>();
   const idNum = articulo.id;
   const isLiked = favoritos.hasOwnProperty(idNum);
+
   let colorArray: string[] = [];
   if (typeof articulo.color === 'string' && articulo.color.length > 0) {
     colorArray = articulo.color.split(',');
@@ -87,32 +88,43 @@ const ProductoCard: React.FC<{
       </TouchableOpacity>
 
       <View style={styles.estadoProducto}>
-        <ColorDisplay colores={colores} />
-        <View style={styles.iconosAccion}>
-          <TouchableOpacity onPress={() => toggleFavorito(idNum)}>
-            <Heart size={24} color={isLiked ? '#ffffffff' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.botonIcono}
+          onPress={() => toggleFavorito(idNum)}
+        >
+          <Heart
+            size={20}
+            color={isLiked ? '#de1484' : '#555'}
+            fill={isLiked ? '#de1484' : 'none'}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.botonIcono}>
           <ShoppingBag
-            size={24}
-            color={isInCart ? '#ffffffff' : 'gray'}
+            size={20}
+            color={isInCart ? '#de1484' : '#555'}
             fill={isInCart ? '#de1484' : 'none'}
           />
-        </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.datosProducto}>
         <Text numberOfLines={1} ellipsizeMode="tail" style={styles.textoNombre}>
           {articulo.nombre}
         </Text>
+        
         <Text style={styles.textoPrecio}>
-          MXN $ {formatPrice(articulo.precio || 0)}
+          ${formatPrice(articulo.precio || 0)} MXN
         </Text>
       </View>
     </View>
   );
 };
 
-export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ products, categoria }) => {
+export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({
+  products,
+  categoria,
+}) => {
   const { userId } = useMyAuth();
   const [favoritos, setFavoritos] = useState<Record<number, number>>({});
   const [cartItems, setCartItems] = useState<Record<number, boolean>>({});
@@ -126,9 +138,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
         setFavoritos({});
         return;
       }
-      if (!response.ok) {
-        throw new Error('Failed to fetch favorites from the server.');
-      }
+      if (!response.ok) throw new Error('Failed to fetch favorites');
       const data = await response.json();
       const favoritosMap = (Array.isArray(data) ? data : []).reduce(
         (acc, fav) => {
@@ -137,7 +147,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
           }
           return acc;
         },
-        {} as Record<number, number>,
+        {} as Record<number, number>
       );
       setFavoritos(favoritosMap);
     } catch (err) {
@@ -146,10 +156,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
   };
 
   const toggleFavorito = async (productoId: number) => {
-    if (!userId) {
-      console.log('Usuario no loggeado, no se puede marcar como favorito.');
-      return;
-    }
+    if (!userId) return console.log('Usuario no loggeado');
 
     const esFavorito = favoritos.hasOwnProperty(productoId);
     const originalFavoritos = { ...favoritos };
@@ -161,32 +168,22 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
         delete newState[productoId];
         return newState;
       });
-
       try {
-        const url = `${IP}/api/favoritos/${favoritoId}`;
-        const response = await fetch(url, { method: 'DELETE' });
-        if (!response.ok) {
-          console.error('Error al eliminar el favorito, revirtiendo estado.');
-          setFavoritos(originalFavoritos);
-        }
-      } catch (error) {
-        console.error('Error de red al eliminar favorito, revirtiendo estado:', error);
+        const response = await fetch(`${IP}/api/favoritos/${favoritoId}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) setFavoritos(originalFavoritos);
+      } catch {
         setFavoritos(originalFavoritos);
       }
     } else {
       try {
-        const url = `${IP}/api/favoritos`;
-        const response = await fetch(url, {
+        const response = await fetch(`${IP}/api/favoritos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ profileId: userId, productId: productoId }),
         });
-
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`Error al agregar favorito - Status: ${response.status}, Body: ${errorBody}`);
-        }
-
+        if (!response.ok) throw new Error('Error al agregar favorito');
         const nuevoFavorito = await response.json();
         setFavoritos(prev => ({ ...prev, [productoId]: nuevoFavorito.id }));
       } catch (error) {
@@ -201,25 +198,16 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
 
   useEffect(() => {
     if (!userId) return;
-
     fetch(`${IP}/api/carrito/${userId}`)
-      .then(r => {
-        if (r.status === 404) {
-          return [];
-        }
-        if (!r.ok) throw new Error('Error al obtener el carrito');
-        return r.json();
-      })
+      .then(r => (r.status === 404 ? [] : r.json()))
       .then((data: Array<{ producto: { id: number } }>) => {
         if (Array.isArray(data)) {
           const cartMap = data.reduce(
             (acc, item) => {
-              if (item && item.producto && item.producto.id) {
-                acc[item.producto.id] = true;
-              }
+              if (item?.producto?.id) acc[item.producto.id] = true;
               return acc;
             },
-            {} as Record<number, boolean>,
+            {} as Record<number, boolean>
           );
           setCartItems(cartMap);
         }
@@ -251,25 +239,66 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({ produc
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+
   tarjetaProducto: {
-    width: 160,
-    margin: 5,
-    backgroundColor: 'white',
-    borderRadius: 10,
+    width: 180,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    marginVertical: 8,
   },
-  imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
+
+  imagenProductoCard: {
+    width: '100%',
+    height: 160,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+
   estadoProducto: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 8,
+    gap: 8,
   },
-  iconosAccion: { flexDirection: 'row', gap: 10 },
-  datosProducto: { padding: 8 },
-  textoNombre: { fontSize: 14, marginBottom: 4 },
-  textoPrecio: { fontSize: 16, fontWeight: 'bold' },
+
+  botonIcono: {
+    backgroundColor: '#ffffffcc',
+    borderRadius: 50,
+    padding: 6,
+    marginLeft: 5,
+  },
+
+  datosProducto: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+
+  textoNombre: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#222',
+  },
+
+  textoDescripcion: {
+    fontSize: 13,
+    color: '#777',
+    marginTop: 2,
+  },
+
+  textoPrecio: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#de1484',
+    marginTop: 4,
+  },
+
   contenedorColores: { flexDirection: 'row', alignItems: 'center' },
   circuloColor: { width: 14, height: 14, borderRadius: 7, marginRight: 4 },
   contadorRestante: {
@@ -280,6 +309,7 @@ const styles = StyleSheet.create({
     minWidth: 24,
   },
   textoContador: { fontSize: 10, fontWeight: '600', color: '#666' },
+
   listContentContainer: {
     paddingBottom: 10,
     paddingHorizontal: 10,

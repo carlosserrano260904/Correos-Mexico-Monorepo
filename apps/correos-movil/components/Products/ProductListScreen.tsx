@@ -96,19 +96,34 @@ const ProductoCard: React.FC<{
         />
       </TouchableOpacity>
 
+      {/* ICONOS FLOTANTES - COMO LA OTRA CARD */}
       <View style={styles.estadoProducto}>
-        <ColorDisplay colores={colores} />
-        <View style={styles.iconosAccion}>
-          <TouchableOpacity onPress={() => toggleFavorito(idNum)}>
-            <Heart size={24} color={isLiked ? '#ffffffff' : 'gray'} fill={isLiked ? '#de1484' : 'none'} />
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.botonIcono}
+          onPress={() => toggleFavorito(idNum)}
+        >
+          <Heart
+            size={20}
+            color={isLiked ? '#de1484' : '#555'}
+            fill={isLiked ? '#de1484' : 'none'}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.botonIcono}>
           <ShoppingBag
-            size={24}
-            color={isInCart ? '#ffffffff' : 'gray'}
+            size={20}
+            color={isInCart ? '#de1484' : '#555'}
             fill={isInCart ? '#de1484' : 'none'}
           />
-        </View>
+        </TouchableOpacity>
       </View>
+
+      {/* COLORES DEBAJO DE LA IMAGEN */}
+      {colores.length > 0 && (
+        <View style={styles.contenedorColoresInferior}>
+          <ColorDisplay colores={colores} />
+        </View>
+      )}
 
       <View style={styles.datosProducto}>
         <Text numberOfLines={1} ellipsizeMode="tail" style={styles.textoNombre}>
@@ -296,27 +311,76 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  
+  // NUEVOS ESTILOS MODERNOS COMO LA OTRA CARD
   tarjetaProducto: {
     flex: 1,
-    margin: 5,
-    backgroundColor: 'white',
-    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    marginVertical: 8,
     maxWidth: '48%',
   },
-  imagenProductoCard: { width: '100%', height: 150, backgroundColor: '#f0f0f0' },
-  estadoProducto: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 8,
+
+  imagenProductoCard: { 
+    width: '100%', 
+    height: 160, 
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
-  iconosAccion: { flexDirection: 'row', gap: 10 },
-  datosProducto: { padding: 8 },
-  textoNombre: { fontSize: 14, marginBottom: 4 },
-  textoPrecio: { fontSize: 16, fontWeight: 'bold' },
+
+  // ICONOS FLOTANTES EN LA ESQUINA SUPERIOR DERECHA
+  estadoProducto: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  botonIcono: {
+    backgroundColor: '#ffffffcc',
+    borderRadius: 50,
+    padding: 6,
+    marginLeft: 5,
+  },
+
+  // COLORES DEBAJO DE LA IMAGEN
+  contenedorColoresInferior: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+
+  datosProducto: { 
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+
+  textoNombre: { 
+    fontSize: 15, 
+    fontWeight: '600', 
+    color: '#222',
+    marginBottom: 4,
+  },
+
+  textoPrecio: { 
+    fontSize: 15, 
+    fontWeight: 'bold', 
+    color: '#de1484',
+  },
+
+  // ESTILOS PARA COLORES (se mantienen igual)
   contenedorColores: { flexDirection: 'row', alignItems: 'center' },
   circuloColor: { width: 14, height: 14, borderRadius: 7, marginRight: 4 },
   contadorRestante: {
@@ -327,6 +391,7 @@ const styles = StyleSheet.create({
     minWidth: 24,
   },
   textoContador: { fontSize: 10, fontWeight: '600', color: '#666' },
+
   listContentContainer: {
     paddingBottom: 20,
     paddingHorizontal: 10,

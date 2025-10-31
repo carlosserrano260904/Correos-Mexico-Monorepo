@@ -11,18 +11,18 @@ import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entit
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Card } from '../../cards/entities/card.entity';
 import { Review } from 'src/review/entities/review.entity';
-@Entity()
+@Entity('profile')
 export class Profile {
   @ApiProperty({ example: 7 })
   @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty({ example: 'Ana' })
-  @Column({ type: 'varchar', length: 30 })
+  @Column({ type: 'varchar', length: 30 , nullable: false})
   nombre: string;
 
   @ApiProperty({ example: 'López' })
-  @Column({ type: 'varchar', length: 30 })
+  @Column({ type: 'varchar', length: 30 , nullable: false})
   apellido: string;
 
   @ApiProperty({ example: '6181234567' })
@@ -33,23 +33,23 @@ export class Profile {
   facturas: Factura[];
 
   @ApiProperty({ example: 'Durango' })
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar' , nullable: false })
   estado: string;
 
   @ApiProperty({ example: 'Durango' })
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar' , nullable: false })
   ciudad: string;
 
   @ApiProperty({ example: 'Centro' })
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar' , nullable: false })
   fraccionamiento: string;
 
   @ApiProperty({ example: 'Av. Principal 123' })
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar' , nullable: false })
   calle: string;
 
   @ApiProperty({ example: '34000' })
-  @Column({ type: 'varchar', length: 5 })
+  @Column({ type: 'varchar', length: 5 , nullable: false })
   codigoPostal: string;
 
   @ApiProperty({
@@ -60,6 +60,7 @@ export class Profile {
     type: 'text',
     default:
       'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg',
+    nullable: false,
   })
   imagen: string;
 

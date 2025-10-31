@@ -2,18 +2,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../usuarios/entities/user.entity';
+import { Usuarios } from '../usuarios/entities/user.entity';
 
 @Injectable()
 export class AdminService {
   
   constructor(
-    @InjectRepository(User)
-    private readonly usuarioRepository: Repository<User>,
+    @InjectRepository(Usuarios)
+    private readonly usuarioRepository: Repository<Usuarios>,
   ) {}
 
   async findAllUsers() { //Encontrar todos los usuarios
     return this.usuarioRepository.find();
+  }
+
+  async FindById(id: number) { //Encontrar usuario por ID
+    const usuario = await this.usuarioRepository.findOneBy({id: id})
+
+    if(!usuario){
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
+
+    return usuario;
   }
 
   async updateUserRole(id: number, rol: string) { //Actualizar el rol de un usuario

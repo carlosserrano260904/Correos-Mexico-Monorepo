@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Not, Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { Usuarios } from './entities/user.entity';
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 

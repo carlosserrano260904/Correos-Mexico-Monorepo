@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
+import { Usuarios } from './entities/user.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('users')
@@ -11,14 +11,14 @@ export class UserController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios', type: [User] })
+  @ApiResponse({ status: 200, description: 'Lista de usuarios', type: [Usuarios] })
   findAll() {
     return this.userService.findAll();
   }
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario creado', type: User })
+  @ApiResponse({ status: 201, description: 'Usuario creado', type: Usuarios })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }

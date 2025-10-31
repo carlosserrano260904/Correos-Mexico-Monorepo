@@ -5,6 +5,10 @@ module.exports = ({ config }) => {
     ...config,
     expo: {
       ...config.expo,
+      plugins: [
+        ...(config.expo?.plugins || []),
+        'expo-font'
+      ],
       extra: {
         IP_LOCAL: process.env.IP_LOCAL
       }

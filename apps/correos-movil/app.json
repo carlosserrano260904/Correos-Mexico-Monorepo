@@ -20,7 +20,8 @@
         "foregroundImage": "assets/icons_correos_mexico/square_correos_clic_Logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.correosmovil"
     },
     "web": {
       "favicon": "assets/icons_correos_mexico/square_correos_clic_Logo.png"

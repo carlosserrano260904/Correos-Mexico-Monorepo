@@ -4,6 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
+  "type": "commonjs",
   "license": "UNLICENSED",
   "scripts": {
     "seed:products": "ts-node -r tsconfig-paths/register src/seeds/seed-products.ts",

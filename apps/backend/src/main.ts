@@ -22,8 +22,14 @@ async function bootstrap() {
     // Configuración del CORS
     app.use(
       cors({
-        origin: ['http://localhost:4200', 'https://midominio.com', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH', 'OPTIONS'],
+        origin: [
+          'http://localhost:4200',
+          'https://midominio.com',
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'http://localhost:3002',
+        ],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
       }),
@@ -33,10 +39,10 @@ async function bootstrap() {
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
-        transform: true
-      })
-    )
-    
+        transform: true,
+      }),
+    );
+
     //await app.listen(3000);
     await app.listen(process.env.PORT || 3000, '0.0.0.0');
     console.log('Servidor prendido en el puerto: ', process.env.PORT || 3000);

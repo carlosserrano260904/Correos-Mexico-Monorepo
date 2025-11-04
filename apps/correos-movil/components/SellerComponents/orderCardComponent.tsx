@@ -29,6 +29,7 @@ export default function OrderCardComponent({
         minimumFractionDigits: 2,
     });
     
+    // Se formatea la fecha a string y version español
     const formattedDate = dateOrder.toLocaleDateString('es-Es');
 
     return(

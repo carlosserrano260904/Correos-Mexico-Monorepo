@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "declaration": true,
     "removeComments": true,

@@ -26,11 +26,11 @@ export class CreateAccount {
   @Column({ type: 'varchar', nullable: true })
   token: string | null;
 
-  @Column({ 
-    type: 'timestamp', 
-    nullable: true, 
+  @Column({
+    type: 'timestamp',
+    nullable: true,
     name: 'token_created_at',
-    default: () => 'CURRENT_TIMESTAMP' // Valor por defecto
+    default: () => 'CURRENT_TIMESTAMP'
   })
   tokenCreatedAt: Date | null;
 
@@ -46,4 +46,8 @@ export class CreateAccount {
   @OneToOne(() => Profile, { cascade: true })
   @JoinColumn()
   profile: Profile;
+  
+  // --- Columna añadida para el borrado lógico ---
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 }

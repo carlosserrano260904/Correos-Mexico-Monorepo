@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Not, Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User } from './entities/user.entity'; // Esta entidad no la usamos aquí
 import { CreateAccount } from 'src/create-account/entities/create-account.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
@@ -14,10 +14,28 @@ export class UserService {
     private readonly repo: Repository<CreateAccount>,
   ) { }
 
+  // --- Método NUEVO AÑADIDO ---
+  async findByProfileId(profileIdToFind: number): Promise<CreateAccount | null> {
+    return this.repo.findOne({
+      where: { profile: { id: profileIdToFind } },
+      relations: ['profile']
+    });
+  }
+
+  // --- Método NUEVO AÑADIDO ---
+  async deactivateUser(userId: number): Promise<any> {
+    return this.repo.update(
+      { id: userId },     // Busca por ID principal
+      { isActive: false } // Actualiza la columna
+    );
+  }
+
+  // --- (Resto de métodos originales) ---
+
   async create(data: Partial<CreateAccount> & { profile?: Profile }) {
     const user = this.repo.create({
       ...data,
-      tokenCreatedAt: new Date() // Establecer fecha de creación del token
+      tokenCreatedAt: new Date()
     });
     return this.repo.save(user);
   }
@@ -57,7 +75,6 @@ export class UserService {
       },
       { password, confirmado: true }
     );
-
     if (result.affected === 0) {
       this.logger.warn(`No se encontró usuario para actualizar: ${email}`);
     }
@@ -77,17 +94,16 @@ export class UserService {
         },
         {
           token: data.token,
-          tokenCreatedAt: data.tokenCreatedAt, 
+          tokenCreatedAt: data.tokenCreatedAt,
           confirmado: data.confirmado
         }
       );
-
       if (result.affected === 0) {
         this.logger.warn(`No se pudo actualizar OTP para: ${email}`);
       }
       return result;
     } catch (error) {
-      this.logger.error(`Error al actualizar OTP: ${error.message}`);
+      this.logger.error(`Error al actualizar OTP: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -100,16 +116,16 @@ export class UserService {
       },
       { confirmado }
     );
-
     if (result.affected === 0) {
       this.logger.warn(`No se pudo actualizar estado de confirmación para: ${email}`);
     }
     return result;
   }
 
-  async cleanExpiredTokens(): Promise<number> {
+  // --- 👇 CORRECCIÓN: Cambiado a Promise<void> ---
+  async cleanExpiredTokens(): Promise<void> {
     try {
-      const expirationTime = new Date(Date.now() + (360- 10) * 60 * 1000); // 10 minutos atrás (compensación de UTC -6)
+      const expirationTime = new Date(Date.now() + (360 - 10) * 60 * 1000); // 10 minutos atrás (compensación de UTC -6)
       const result = await this.repo.createQueryBuilder()
         .update(CreateAccount)
         .set({
@@ -122,19 +138,21 @@ export class UserService {
 
       const cleanedCount = result.affected || 0;
       this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
-      return cleanedCount;
+      // No hay 'return'
     } catch (error) {
-      this.logger.error(`Error limpiando tokens expirados: ${error.message}`);
+      this.logger.error(`Error limpiando tokens expirados: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  async cleanUnverifiedUsers(): Promise<number> {
+  // --- 👇 CORRECCIÓN: Cambiado a Promise<void> ---
+  async cleanUnverifiedUsers(): Promise<void> {
     try {
       const expirationTime = new Date(Date.now() - 18 * 60 * 60 * 1000); // 24 horas (compensación de UTC -6)
 
       const result = await this.repo.createQueryBuilder()
         .delete()
+        .from(CreateAccount) // Especificar la entidad aquí
         .where("confirmado = false")
         .andWhere("token_created_at < :expirationTime", { expirationTime })
         .andWhere("token_created_at IS NOT NULL")
@@ -142,9 +160,9 @@ export class UserService {
 
       const deletedCount = result.affected || 0;
       this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
-      return deletedCount;
+      // No hay 'return'
     } catch (error) {
-      this.logger.error(`Error limpiando usuarios no verificados: ${error.message}`);
+      this.logger.error(`Error limpiando usuarios no verificados: ${(error as Error).message}`);
       throw error;
     }
   }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm run build",
+  "buildCommand": "cd ../.. && pnpm run build --filter=backend",
   "builds": [
     {
       "src": "dist/main.js",

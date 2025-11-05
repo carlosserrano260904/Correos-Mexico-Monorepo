@@ -23,7 +23,6 @@
     "@react-navigation/stack": "^7.4.8",
     "@stripe/stripe-react-native": "0.50.3",
     "axios": "^1.12.2",
-    "base64-js": "^1.5.1",
     "dotenv": "^17.2.2",
     "expo": "~54.0.10",
     "expo-auth-session": "^7.0.8",

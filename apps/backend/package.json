@@ -40,7 +40,6 @@
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/typeorm": "^11.0.0",
     "@react-pdf/renderer": "^4.3.1",
-    "@types/uuid": "^11.0.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
@@ -62,8 +61,7 @@
     "stripe": "^18.3.0",
     "tsconfig-paths": "^4.2.0",
     "turbo": "^2.5.5",
-    "typeorm": "^0.3.25",
-    "uuid": "^13.0.0"
+    "typeorm": "^0.3.25"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

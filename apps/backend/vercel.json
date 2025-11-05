@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm run build --filter=backend --no-cache",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "dist/main.js",

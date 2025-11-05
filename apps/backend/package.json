@@ -61,8 +61,7 @@
     "stripe": "^18.3.0",
     "tsconfig-paths": "^4.2.0",
     "turbo": "^2.5.5",
-    "typeorm": "^0.3.25",
-    "uuid": "^13.0.0"
+    "typeorm": "^0.3.25"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

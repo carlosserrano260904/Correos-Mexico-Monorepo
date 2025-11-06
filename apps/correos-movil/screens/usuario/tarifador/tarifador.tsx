@@ -1,23 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Alert,
-  ActivityIndicator,
-  Modal,
-  FlatList,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions
-} from "react-native"
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Alert, ActivityIndicator, Modal, FlatList, Animated, KeyboardAvoidingView, Platform, Dimensions} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Constants from 'expo-constants';
 import { useNavigation } from '@react-navigation/native';
@@ -80,6 +64,7 @@ const TarificadorMexpost = () => {
     fetchProfileId();
   }, []);
 
+  {/* SE SUPONE QUE SIRVE ESTE CODIGO SOLO QUE LO VAMOS A UTILIZAR DESPUES
   useEffect(() => {
     if (!showCountryModal) return
     fetch(`http://${IP}:3000/api/shipping-rates/paises-internacionales`)
@@ -87,8 +72,37 @@ const TarificadorMexpost = () => {
       .then(data => setPaises(data))
       .catch(() => setPaises([]))
   }, [showCountryModal])
+  */}
 
-  //Funcion para validad los C.P y calculo de distancia
+  useEffect(() => {
+    if (!showCountryModal) return;
+
+    // --- 👇 1. Pega tus datos falsos aquí ---
+    const MOCK_PAISES = [
+      { id: 1, name: "Estados Unidos" },
+      { id: 2, name: "Canadá" },
+      { id: 3, name: "Argentina" },
+      { id: 4, name: "Brasil" },
+      { id: 5, name: "España" },
+      { id: 6, name: "Francia" },
+      { id: 7, name: "Japón" },
+      { id: 8, name: "Alemania" },
+      { id: 9, name: "Reino Unido" },
+      { id: 10, name: "China" },
+    ];
+
+    // --- 👇 2. Reemplaza el 'fetch' con esta simulación ---
+    console.log("Mock: Cargando lista de países...");
+    
+    // Simula una pequeña espera (0.5 segundos)
+    setTimeout(() => {
+      setPaises(MOCK_PAISES);
+      console.log("Mock: Países cargados.");
+    }, 500);
+  }, [showCountryModal]);
+
+  {/* SE SUPONE QUE SI SIRVE ESTE CODIGO SOLO QUE LO VAMOS A UTILIZAR DESPUES
+  //Funcion para validad los C.P y calculo de distancia nacional
   const handleSearchNacional = async () => {
     if (!codigoOrigen || !codigoDestino) {
       Alert.alert("Error", "Por favor ingresa ambos códigos postales");
@@ -123,7 +137,48 @@ const TarificadorMexpost = () => {
       setLoading(false);
     }
   };
+  */}
 
+  const handleSearchNacional = async () => {
+    if (!codigoOrigen || !codigoDestino) {
+      Alert.alert("Error", "Por favor ingresa ambos códigos postales");
+      return;
+    }
+    if (codigoOrigen.length !== 5 || codigoDestino.length !== 5) {
+      Alert.alert("Error", "Los códigos postales deben tener 5 dígitos");
+      return;
+    }
+    setLoading(true);
+
+    //  datos falsos 
+    const MOCK_DATOS_ENVIO = {
+      ciudadOrigen: "Victoria de Durango, Durango.",
+      ciudadDestino: "Jesús María, Aguascalientes.",
+      servicio: "Estándar",
+      zona: {
+        nombre: "B"
+      }
+    };
+    try {
+      //Simula una espera de 1 segundo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      //Establece los datos falsos como si vinieran del backend
+      setDatosEnvio(MOCK_DATOS_ENVIO);
+      
+      //Muestra la sección de resultados
+      setShowResults(true);
+
+    } catch (err) {
+      console.error("Error en la simulación:", err);
+      Alert.alert("Error", "Ocurrió un error en la simulación");
+    } finally {
+      // Oculta el spinner de carga
+      setLoading(false);
+    }
+  };
+
+  {/* SE SUPONE QUE SI SIRVE ESTE CODIGO SOLO QUE LO VAMOS A UTILIZAR DESPUES
   // Cambia handleSearchInternacional para que solo busque y muestre zona/desc. después de cerrar el modal
   const handleSearchInternacional = async () => {
     if (!paisDestino || !paisDestino.name) {
@@ -148,6 +203,40 @@ const TarificadorMexpost = () => {
       setLoading(false)
     }
   }
+  */}
+
+  const handleSearchInternacional = async () => {
+    if (!paisDestino || !paisDestino.name) {
+      Alert.alert("Error", "Selecciona un país válido")
+      return
+    }
+    setLoading(true)
+
+    // --- 1. Tus datos falsos ---
+    const MOCK_INFO_PAIS = {
+      descripcionZona: "América del Norte (Resto)"
+    };
+
+    // --- 2. Tu simulación ---
+    try {
+      // 1. Simula una espera de 1 segundo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 2. Guarda los datos falsos
+      setInfoPais(MOCK_INFO_PAIS); 
+      
+      // 3. Muestra la sección de "Cotizar Envío"
+      setShowResults(true); 
+      
+      // 4. Cierra el modal de países
+      setShowCountryModal(false); 
+
+    } catch (err) {
+      console.error("Error en la simulación (Internacional):", err);
+    } finally {
+      setLoading(false);
+    }
+  };  
 
   const handleSearch = () => {
     if (activeTab === "Nacional") handleSearchNacional()
@@ -252,7 +341,7 @@ const TarificadorMexpost = () => {
     } else if (showResults) {
       setShowResults(false);
     } else {
-      navigation.goBack(); // ← regresa si ya no hay nada que cerrar
+      navigation.goBack(); // regresa si ya no hay nada que cerrar
     }
   };
 
@@ -337,9 +426,13 @@ const TarificadorMexpost = () => {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.title}>
-            Tarificador de envíos{"\n"}
-            <Text style={styles.subtitle}>MEXPOST</Text>
+          <Text style={styles.title}>Tarificador</Text>
+        </View>
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.mainTitle}>Tarificador de Envíos MEXPOST</Text>
+          <Text style={styles.subtitle}>
+            Cotiza los precios de tus envíos de forma fácil con nuestro tarificador.
           </Text>
         </View>
 
@@ -372,38 +465,48 @@ const TarificadorMexpost = () => {
           <View style={[styles.formContainer, showQuote && styles.formContainerWithBorder]}>
             {activeTab === "Nacional" ? (
               <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Código postal de origen"
-                  placeholderTextColor="#999"
-                  value={codigoOrigen}
-                  onChangeText={setCodigoOrigen}
-                  keyboardType="numeric"
-                  maxLength={5}
-                  editable={!showQuote && !loading}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Código postal de destino"
-                  placeholderTextColor="#999"
-                  value={codigoDestino}
-                  onChangeText={setCodigoDestino}
-                  keyboardType="numeric"
-                  maxLength={5}
-                  editable={!showQuote && !loading}
-                />
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Código postal de origen</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ingresa 5 dígitos"
+                    placeholderTextColor="#999"
+                    value={codigoOrigen}
+                    onChangeText={setCodigoOrigen}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    editable={!showQuote && !loading}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Código postal de destino</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ingresa 5 dígitos"
+                    placeholderTextColor="#999"
+                    value={codigoDestino}
+                    onChangeText={setCodigoDestino}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    editable={!showQuote && !loading}
+                  />
+                </View>
               </>
             ) : (
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowCountryModal(true)}
-                disabled={showQuote || loading}
-              >
-                <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
-                  {paisDestino?.name || "Selecciona un país"}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
-              </TouchableOpacity>
+
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>País de destino</Text>
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowCountryModal(true)}
+                  disabled={showQuote || loading}
+                >
+                  <Text style={[styles.inputText, paisDestino ? styles.inputTextFilled : styles.inputTextPlaceholder]}>
+                    {paisDestino?.name || "Selecciona un país"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#999" style={styles.inputIcon} />
+                </TouchableOpacity>
+              </View>
             )}
 
             {activeTab === "Nacional" && !showResults && (
@@ -412,7 +515,14 @@ const TarificadorMexpost = () => {
                 onPress={handleSearch}
                 disabled={loading}
               >
-                {loading ? <ActivityIndicator color="#DE1484" /> : <Text style={styles.searchButtonText}>Buscar</Text>}
+                {loading ? (
+                  <ActivityIndicator color={styles.activeTab.backgroundColor} /> 
+                ) : (
+                  <>
+                    <Ionicons name="search" size={20} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.searchButtonText}>Realizar búsqueda</Text>
+                  </>
+                )}
               </TouchableOpacity>
             )}
           </View>
@@ -420,32 +530,47 @@ const TarificadorMexpost = () => {
           {/* Results Section */}
           {showResults && (
             <View style={styles.resultsContainer}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Datos de envío</Text>
-                <TouchableOpacity onPress={handleLimpiar}>
-                  <Text style={styles.limpiarButton}>Nueva consulta</Text>
-                </TouchableOpacity>
-              </View>
-
               {activeTab === "Nacional" && datosEnvio && (
-                <View style={styles.infoContainer}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Origen:</Text>
-                    <Text style={styles.infoValue}>{datosEnvio.ciudadOrigen}</Text>
+                <View style={styles.resultsCard}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Resultados</Text>
+                    <TouchableOpacity style={styles.limpiarButton} onPress={handleLimpiar}>
+                      <Ionicons name="close-circle-outline" size={18} color="#fff" />
+                      <Text style={styles.limpiarButtonText}>Limpiar</Text>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Destino:</Text>
-                    <Text style={styles.infoValue}>{datosEnvio.ciudadDestino}</Text>
+
+                  {/* Origen */}
+                  <View style={styles.resultsInfoRow}>
+                    <Text style={styles.resultsInfoLabel}>Origen</Text>
+                    <Text style={styles.resultsInfoValue}>{datosEnvio.ciudadOrigen}</Text>
                   </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Zona:</Text>
-                    <Text style={styles.infoValue}>
-                      {datosEnvio.zona?.nombre}
-                    </Text>
+                  
+                  {/* Destino */}
+                  <View style={styles.resultsInfoRow}>
+                    <Text style={styles.resultsInfoLabel}>Destino</Text>
+                    <Text style={styles.resultsInfoValue}>{datosEnvio.ciudadDestino}</Text>
                   </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Servicio:</Text>
-                    <Text style={styles.infoValue}>{datosEnvio.servicio || "Estándar"}</Text>
+
+                  {/* Servicio */}
+                  <View style={styles.resultsInfoRow}>
+                    <Text style={styles.resultsInfoLabel}>Servicio</Text>
+                    <Text style={styles.resultsInfoValue}>{datosEnvio.servicio || "Estándar"}</Text>
+                  </View>
+                  
+                  {/* Pills (Zona e IVA) */}
+                  <View style={styles.pillsContainer}>
+                    <View style={[styles.pill, styles.pillZona]}>
+                      <Text style={[styles.pillText, styles.pillTextZona]}>
+                        Zona "{datosEnvio.zona?.nombre}"
+                      </Text>
+                    </View>
+                    <View style={[styles.pill, styles.pillIva]}>
+                      {/* El IVA no viene en datosEnvio, lo pongo como en el Figma */}
+                      <Text style={[styles.pillText, styles.pillTextIva]}>
+                        IVA: 0.16
+                      </Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -465,9 +590,12 @@ const TarificadorMexpost = () => {
 
               {!showQuote && (
                 <View style={styles.dimensionsSection}>
-                  <Text style={styles.sectionTitle}>Dimensiones y peso</Text>
+                  <Text style={styles.sectionTitle}>Cotizar Envío</Text>
 
-                  <View style={styles.inputContainer}>
+                  {/* Grid de 2x2 para inputs */}
+                  <View style={styles.inputGrid}>
+                    <View style={styles.inputGridItem}>
+                    <Text style={styles.inputLabel}>Peso en kilogramos</Text>
                     <TextInput
                       ref={pesoRef}
                       style={styles.input}
@@ -491,7 +619,8 @@ const TarificadorMexpost = () => {
                     )}
                   </View>
 
-                  <View style={styles.inputContainer}>
+                  <View style={styles.inputGridItem}>
+                    <Text style={styles.inputLabel}>Altura en centímetros</Text>
                     <TextInput
                       ref={altoRef}
                       style={styles.input}
@@ -513,9 +642,12 @@ const TarificadorMexpost = () => {
                     {alto !== "" && (
                       <Text style={styles.unitLabel}>cm</Text>
                     )}
-                  </View>
+                  </View> 
+                </View> 
 
-                  <View style={styles.inputContainer}>
+                <View style={styles.inputGrid}>
+                  <View style={styles.inputGridItem}>
+                    <Text style={styles.inputLabel}>Ancho en centímetros</Text>
                     <TextInput
                       ref={anchoRef}
                       style={styles.input}
@@ -527,7 +659,7 @@ const TarificadorMexpost = () => {
                           Alert.alert("Límite excedido", `El ancho máximo permitido es ${max_ancho} cm. Pruebe con un valor menor.`);
                           return;
                         }
-                        setAncho(val.replace(/[^0-9.]/g, ""));
+                         setAncho(val.replace(/[^0-9.]/g, ""));
                       }}
                       keyboardType="decimal-pad"
                       returnKeyType="next"
@@ -539,7 +671,8 @@ const TarificadorMexpost = () => {
                     )}
                   </View>
 
-                  <View style={styles.inputContainer}>
+                  <View style={styles.inputGridItem}>
+                    <Text style={styles.inputLabel}>Largo en centímetros</Text>
                     <TextInput
                       ref={largoRef}
                       style={styles.input}
@@ -560,18 +693,22 @@ const TarificadorMexpost = () => {
                       <Text style={styles.unitLabel}>cm</Text>
                     )}
                   </View>
+                </View>
 
-                  <TouchableOpacity
+                <TouchableOpacity
                     style={[styles.searchButton, loadingQuote && styles.disabledButton]}
                     onPress={activeTab === "Internacional" ? handleCotizarInternacional : handleCotizarNacional}
                     disabled={loadingQuote}
                   >
                     {loadingQuote ? (
-                      <ActivityIndicator color="#e91e63" />
+                      <ActivityIndicator color={styles.activeTab.backgroundColor} />
                     ) : (
-                      <Text style={styles.searchButtonText}>Cotizar</Text>
+                      <>
+                        <Ionicons name="wallet-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={styles.searchButtonText}>Realizar cotización</Text>
+                      </>
                     )}
-                  </TouchableOpacity>
+                  </TouchableOpacity>  
                 </View>
               )}
 
@@ -746,91 +883,95 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  backButton: {
-    marginTop: 5,
-    marginRight: 15,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#000",
-    lineHeight: 34,
-  },
-  subtitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#000",
-  },
   scrollView: {
     flex: 1,
   },
   scrollViewContent: {
     flexGrow: 1,
     paddingBottom: Platform.OS === 'android' ? 30 : 20,
+    paddingHorizontal: 20, 
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center", 
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+    backgroundColor: "#fff",
+  },
+  backButton: {
+    marginRight: 15,
+    padding: 5, 
+  },
+  title: {
+    fontSize: 20, 
+    fontWeight: "600",
+    color: "#000",
+    textAlign: "center",
+    flex: 1,
+    marginRight: 44,
+  },
+  titleContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  mainTitle: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 8,
+    marginHorizontal: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    lineHeight: 22,
+    marginHorizontal: 10,
   },
   tabContainer: {
     flexDirection: "row",
-    marginHorizontal: 20,
-    marginTop: 15,
-    marginBottom: 20,
-    backgroundColor: "#fff",
-  },
-  tabContainerWithBorder: {
-    borderWidth: 2,
-    borderColor: "#f0f0f0",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    backgroundColor: "#ffffffff",
+    borderRadius: 30,
+    padding: 4,
+    marginBottom: 25,
+    marginHorizontal: 10,
   },
   tab: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 12, 
     alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
+    borderRadius: 30, 
   },
   activeTab: {
-    borderBottomColor: "#000",
+    backgroundColor: "#E6007E", 
+    shadowColor: "#E6007E",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   tabText: {
     fontSize: 16,
-    color: "#999",
-    fontWeight: "500",
+    color: "#666",
+    fontWeight: "600",
   },
   activeTabText: {
-    color: "#000",
-    fontWeight: "600",
+    color: "#fff",
+    fontWeight: "bold",
   },
   formContainer: {
     paddingHorizontal: 20,
     backgroundColor: "#fff",
     marginBottom: 20,
   },
-  formContainerWithBorder: {
-    borderWidth: 2,
-    borderColor: "#f0f0f0",
-    borderRadius: 8,
-    marginHorizontal: 20,
-    padding: 10,
-    marginBottom: 15,
-  },
   input: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff", 
+    borderWidth: 1,
+    borderColor: "#f7f7f7ff", 
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    marginBottom: 15,
     color: "#000",
     flexDirection: "row",
     alignItems: "center",
@@ -858,33 +999,50 @@ const styles = StyleSheet.create({
     right: 25,
     top: "40%",
     transform: [{ translateY: -10 }],
-    color: "#e91e63",
+    color: "#E6007E",
     fontWeight: "bold",
     fontSize: 16,
   },
+  inputWrapper: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8, 
+  },
   searchButton: {
-    backgroundColor: "#e91e63",
-    borderRadius: 25,
+    backgroundColor: "#E6007E",
+    borderRadius: 30,
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 20, 
     marginBottom: 20,
     justifyContent: "center",
     minHeight: 52,
+    flexDirection: "row", 
+    shadowColor: "#E6007E",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
   disabledButton: {
     backgroundColor: "#fff",
     borderWidth: 2,
-    borderColor: "#e91e63",
+    borderColor: "#E6007E",
+    flexDirection: "row", 
+    justifyContent: "center",
   },
   searchButtonText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16, 
+    fontWeight: "bold", 
   },
   resultsContainer: {
-    paddingHorizontal: 20,
-    backgroundColor: "#fff",
+    paddingHorizontal: 20, 
+    backgroundColor: "#ffffffff",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -893,14 +1051,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     color: "#000",
-  },
-  limpiarButton: {
-    color: "#e91e63",
-    fontSize: 16,
-    fontWeight: "600",
   },
   infoContainer: {
     marginBottom: 25,
@@ -935,7 +1088,7 @@ const styles = StyleSheet.create({
   },
   detallesContainer: {
     marginBottom: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#ffffffff",
     borderRadius: 12,
     padding: 16,
   },
@@ -964,9 +1117,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 16,
     borderTopWidth: 2,
-    borderTopColor: "#e91e63",
+    borderTopColor: "#E6007E",
     borderBottomWidth: 2,
-    borderBottomColor: "#e91e63",
+    borderBottomColor: "#E6007E",
     marginTop: 10,
     marginBottom: 20,
     backgroundColor: "#fdf2f8",
@@ -980,7 +1133,7 @@ const styles = StyleSheet.create({
   costoTotalValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#e91e63",
+    color: "#E6007E",
   },
   paymentButtonContainer: {
     marginTop: 15,
@@ -989,18 +1142,18 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Platform.OS === 'android' ? 50 : 20,
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(0,0,0,0.5)", 
     justifyContent: "flex-end",
   },
   modalContainer: {
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderTopLeftRadius: 20, 
+    borderTopRightRadius: 20,
     paddingBottom: 20,
     width: '100%',
-    height: '95%',
+    height: '90%', 
     overflow: 'hidden',
   },
   modalHeader: {
@@ -1016,12 +1169,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
   },
-  modalShadow: {
+  modalShadow: { 
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 16,
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   modalCloseButton: {
     padding: 5,
@@ -1038,7 +1190,7 @@ const styles = StyleSheet.create({
   countryItemSelected: {
     backgroundColor: "#fde7f3",
     borderLeftWidth: 4,
-    borderLeftColor: "#e91e63",
+    borderLeftColor: "#E6007E",
   },
   countryText: {
     fontSize: 16,
@@ -1047,37 +1199,118 @@ const styles = StyleSheet.create({
   },
   countryTextSelected: {
     fontWeight: "bold",
-    color: "#e91e63",
+    color: "#E6007E",
   },
   floatingButtonContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 20,
+    paddingVertical: 10, 
+    paddingBottom: 30, 
     backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
   },
   floatingButton: {
-    backgroundColor: "#e91e63",
+    backgroundColor: "#E6007E",
     borderRadius: 30,
-    paddingVertical: 14,
+    paddingVertical: 16, 
     paddingHorizontal: 40,
+    width: '90%', 
+    alignItems: 'center',
     elevation: 5,
-    shadowColor: "#e91e63",
+    shadowColor: "#E6007E",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
-    borderWidth: 2,
-    borderColor: "#e91e63",
   },
   floatingButtonText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16, 
+    fontWeight: "bold",
   },
   floatingButtonDisabled: {
-    backgroundColor: "#e91e63",
-    borderColor: "#e91e63",
-    opacity: 0.5,
+    backgroundColor: "#f0f0f0",
+    opacity: 1,
   },
-})
+  resultsCard: {
+    backgroundColor: '#ffffffff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 30, 
+  },
+  limpiarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E6007E', 
+    borderRadius: 10,        
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    shadowColor: "#E6007E",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  limpiarButtonText: {
+    color: '#fff',             
+    marginLeft: 6,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  resultsInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ffffffff',
+  },
+  resultsInfoLabel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  resultsInfoValue: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  pillsContainer: {
+    flexDirection: 'row',
+    marginTop: 16,
+    justifyContent: 'center',
+  },
+  pill: {
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 40,
+    marginHorizontal: 4, 
+  },
+  pillText: {
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  pillZona: {
+    backgroundColor: '#E6E9FF', 
+  },
+  pillTextZona: {
+    color: '#495BCC', 
+  },
+  pillIva: {
+    backgroundColor: '#F0F0F0',
+  },
+  pillTextIva: {
+    color: '#666', 
+  },
+  inputGrid: {
+    flexDirection: 'row',
+    marginTop: 15,
+  },
+  inputGridItem: {
+    flex: 1,
+    marginHorizontal: 4,
+    marginBottom: 10,
+  },
+});
 
 export default TarificadorMexpost

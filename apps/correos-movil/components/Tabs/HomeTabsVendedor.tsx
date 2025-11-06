@@ -5,8 +5,10 @@ import Correomex from '../../screens/usuario/correos-mex-page/correos-principal'
 import { Home, Package2, SendHorizonal, Tag } from "lucide-react-native";
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
-import PaginaPrincipalVendedor from '../../screens/vendedor/PaginaPrincipalVendedor';
 import MainScreenSeller from '../../screens/vendedor/MainScreenSeller';
+import ProductsScreenSeller from '../../screens/vendedor/ProductsScreenSeller';
+import CouponsScreenSeller from '../../screens/vendedor/CouponsScreenSeller';
+import OrdersScreenSeller from '../../screens/vendedor/OrdersScreenSeller';
 
 const Tab = createBottomTabNavigator();
 
@@ -23,10 +25,10 @@ const HomeTabs = () => {
                         strokeWidth: focused ? moderateScale(2.5) : moderateScale(2),
                     };
 
-                    if (route.name === 'Correo-mex') return <Tag {...iconProps} />;
+                    if (route.name === 'CouponsScreenSeller') return <Tag {...iconProps} />;
                     else if (route.name === 'HomeSeller') return <Home {...iconProps} />;
-                    else if (route.name === 'PaginaPrincipalVendedor') return <Package2 {...iconProps} />;
-                    else if (route.name === 'Perfil') return <SendHorizonal {...iconProps} />;
+                    else if (route.name === 'ProductsScreenSeller') return <Package2 {...iconProps} />;
+                    else if (route.name === 'OrdersScreenSeller') return <SendHorizonal {...iconProps} />;
 
                     return null;
                 },
@@ -35,10 +37,10 @@ const HomeTabs = () => {
                 tabBarStyle: styles.tabBarStyle,
             })}
         >
-            <Tab.Screen name="Correo-mex" component={Correomex} />
+            <Tab.Screen name="CouponsScreenSeller" component={CouponsScreenSeller} />
             <Tab.Screen name="HomeSeller" component={MainScreenSeller} />
-            <Tab.Screen name="PaginaPrincipalVendedor" component={PaginaPrincipalVendedor} />
-            <Tab.Screen name="Perfil" component={ProfileUser} />
+            <Tab.Screen name="ProductsScreenSeller" component={ProductsScreenSeller} />
+            <Tab.Screen name="OrdersScreenSeller" component={OrdersScreenSeller} />
 
         </Tab.Navigator>
     );

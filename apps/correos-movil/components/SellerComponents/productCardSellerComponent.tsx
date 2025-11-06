@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, {useState} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { SquarePen, Pause } from 'lucide-react-native';
 import StatesComponent from './statesComponent';
 import CircularProgress from './circularProgress';
+import ModalSellerComponent from './modalSellerComponent';
 
 export default function ProductCardSellerComponent({
     // Pide el estatus en el que se encuentra el producto
@@ -34,6 +35,10 @@ export default function ProductCardSellerComponent({
     onPressCardProduct: any,
 }) {
 
+    // Define si se va a mostrar de pausar producto
+        const [showPauseProductModal, setShowPauseProductModal] = useState(false)
+        // Define si se va a mostrar el modal de editar cupon
+        const [showEditProductModal, setShowEditProductModal] = useState(false)
     // Formatea el precio del producto para que sea mas facil del leer para el usuario
     const formattedPrice = priceProduct.toLocaleString('en-US', {
         style: 'decimal',
@@ -57,10 +62,10 @@ export default function ProductCardSellerComponent({
                     <Text style={styles.stockText}>Stock: <Text style={styles.stockTextStrong}>{stock}</Text></Text>
                 </View>
                 <View style={styles.buttonsContainer}> 
-                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={onPressEditProduct}>
+                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowEditProductModal(true)}>
                             <SquarePen  size={moderateScale(18)} color={'#9CA3AF'}/>
                         </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={onPressPauseProduct}>
+                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowPauseProductModal(true)}>
                             <Pause size={moderateScale(18)} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                 </View>
@@ -69,6 +74,34 @@ export default function ProductCardSellerComponent({
                 <CircularProgress percentage={Math.round((100 / stock) * (stock - soldProducts))}/>
                 <Text style={styles.percentageText} numberOfLines={1} ellipsizeMode={'tail'}>Porcentaje en stock</Text>
             </View>
+
+            <Modal
+                animationType='fade'
+                transparent={false}
+                visible={showPauseProductModal}
+                backdropColor={'#0000005e'}
+                onRequestClose={() => setShowPauseProductModal(!showPauseProductModal)}
+            >
+                <ModalSellerComponent 
+                    onPressNormalButton={() => console.log('Presione el boton normal')}
+                    onPressCancelButton={() => setShowPauseProductModal(!showPauseProductModal)}
+                    type={'quitar-producto'}
+                />
+            </Modal>
+
+            <Modal
+                animationType='fade'
+                transparent={false}
+                visible={showEditProductModal}
+                backdropColor={'#0000005e'}
+                onRequestClose={() => setShowEditProductModal(!showEditProductModal)}
+            >
+                <ModalSellerComponent 
+                    onPressNormalButton={() => console.log('Presione el boton normal')}
+                    onPressCancelButton={() => setShowEditProductModal(!showEditProductModal)}
+                    type={'actualizar-producto'}
+                />
+            </Modal>
         </TouchableOpacity>
     );
 }

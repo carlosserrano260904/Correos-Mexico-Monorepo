@@ -25,10 +25,7 @@ export class CardsController {
       throw new NotFoundException('Perfil no encontrado');
     }
 
-    return this.cardsService.addCard(
-      profile,
-      dto.token,
-    );
+    return this.cardsService.addCard(profile, dto,);
   }
 
   @Get()

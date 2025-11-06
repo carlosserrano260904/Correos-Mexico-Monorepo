@@ -32,42 +32,49 @@ export class CardsService {
     });
   }
 
-  async addCard(profile: Profile, token: string) {
-    try {
-      // Verificar datos del perfil
-      if (!profile.stripeCustomerId) {
-        throw new NotFoundException('Stripe Customer ID no encontrado para este perfil');
-      }
+  async addCard(profile: Profile, dto: CreateCardDto) {
+  try {
+    const { token, cardholderName } = dto;
 
-      this.logger.debug(`Agregando tarjeta para Stripe Customer: ${profile.stripeCustomerId}`);
-
-      // Crear la fuente (tarjeta) en Stripe
-      const card = await this.stripe.customers.createSource(profile.stripeCustomerId, {
-        source: token,
-      }) as Stripe.Card;
-
-      this.logger.debug(`Tarjeta creada en Stripe: ${card.id} (${card.brand}) ****${card.last4}`);
-
-      // Guardar la tarjeta en la base de datos
-      const newCard = this.cardRepository.create({
-        stripeCardId: card.id,
-        last4: card.last4!,
-        brand: card.brand,
-        profileId: profile.id,
-      });
-
-      const savedCard = await this.cardRepository.save(newCard);
-
-      this.logger.debug(`Tarjeta guardada en DB con ID: ${savedCard.id}`);
-
-      // Devolver la tarjeta guardada
-      return savedCard;
-
-    } catch (error) {
-      this.logger.error('Error al agregar tarjeta:', error);
-      throw new InternalServerErrorException('No se pudo agregar la tarjeta')
+    if (!profile.stripeCustomerId) {
+      throw new NotFoundException('Stripe Customer ID no encontrado para este perfil');
     }
+
+    this.logger.debug(`Agregando tarjeta para Stripe Customer: ${profile.stripeCustomerId}`);
+
+    // Crear la fuente en Stripe
+    const card = await this.stripe.customers.createSource(
+      profile.stripeCustomerId,
+      {
+        source: token,
+        // Opcional: incluir cardholderName
+        // metadata: { cardholderName }
+      }
+    ) as Stripe.Card;
+
+    this.logger.debug(
+      `Tarjeta creada en Stripe: ${card.id} (${card.brand}) ****${card.last4}`
+    );
+
+    const newCard = this.cardRepository.create({
+      stripeCardId: card.id,
+      last4: card.last4!,
+      brand: card.brand,
+      profileId: profile.id,
+      // name: cardholderName,   // <- si tu entidad tiene este campo
+    });
+
+    const savedCard = await this.cardRepository.save(newCard);
+
+    this.logger.debug(`Tarjeta guardada en DB con ID: ${savedCard.id}`);
+
+    return savedCard;
+
+  } catch (error) {
+    this.logger.error('Error al agregar tarjeta:', error);
+    throw new InternalServerErrorException('No se pudo agregar la tarjeta');
   }
+}
 
   async getCards(profileId: number) {
     return this.cardRepository.find({ where: { profileId } });

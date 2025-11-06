@@ -3,14 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn
 } from 'typeorm';
-import { Transaction } from 'src/transactions/entities/transaction.entity';
-import { Favorito } from 'src/favoritos/entities/favorito.entity';
+import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Favorito } from '../../favoritos/entities/favorito.entity';
 import { Factura } from '../../facturas/factura.entity';
-import { Carrito } from 'src/carrito/entities/carrito.entity';
+import { Carrito } from '../../carrito/entities/carrito.entity';
 import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
-import { CreateAccount } from 'src/create-account/entities/create-account.entity';
+import { CreateAccount } from '../../create-account/entities/create-account.entity';
 import { Card } from '../../cards/entities/card.entity';
-import { Review } from 'src/review/entities/review.entity';
+import { Review } from '../../review/entities/review.entity';
 @Entity()
 export class Profile {
   @ApiProperty({ example: 7 })

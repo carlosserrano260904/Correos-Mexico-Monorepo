@@ -4,7 +4,7 @@ import { Favorito } from "../../favoritos/entities/favorito.entity";
 import { Carrito } from "../../carrito/entities/carrito.entity";
 import { ProductImage } from "./product-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { Review } from "src/review/entities/review.entity"; 
+import { Review } from "../../review/entities/review.entity"; 
 
 @Entity("productos")
 export class Product {

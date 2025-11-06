@@ -22,9 +22,7 @@ function RootNavigation() {
     <NavigationContainer>
       {!isAuthenticated ? (
         <AuthNavigator />
-      ) : userRol === 'vendedor' ? (
-        <VendedorNavigator />
-      ) : userRol === 'usuario' ? (
+      ) : userRol === 'usuario' || userRol === 'vendedor' ? (
         <AppNavigator />
       ) : userRol === 'repartidor' ? (
         <DistributorNavigator />

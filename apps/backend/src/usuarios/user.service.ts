@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Not, Repository } from 'typeorm';
 import { Usuarios } from './entities/user.entity';
@@ -156,6 +156,15 @@ export class UserService {
         tokenCreatedAt: LessThan(expirationTime)
       }
     });
+  }
+
+  async updateUserRole(id: number, rol: string) { //Actualizar el rol de un usuario
+    const usuario = await this.repo.findOneBy({ id });
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
+    usuario.rol = rol;
+    return this.repo.save(usuario);
   }
 
 }

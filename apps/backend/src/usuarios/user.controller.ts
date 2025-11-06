@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { Usuarios } from './entities/user.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -22,4 +31,31 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
+
+  @Get(':id') //Endpoint para obtener un usuario api/users/:id
+  @ApiOperation({ summary: 'Obtener un usuario por ID' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado', type: Usuarios })
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    // Obtiene el 'id' de la URL y lo convierte a número
+    return this.userService.findById(id); //Pasa id al servicio para buscar el usuario
+  }
+
+  @Patch('role/:id') // api/users/:id/role
+    async updateUserRole(
+      @Param('id', ParseIntPipe) id: number, // Obtiene el 'id' de la URL y lo convierte a número
+      @Body() updateUserRoleDto: UpdateUserRoleDto, // Obtiene los datos del body (ej. { "rol": "vendedor" })
+    ) {
+      const { rol } = updateUserRoleDto;
+      return this.userService.updateUserRole(id, rol);
+    }
+
+  @Patch(':id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ) {
+    const { rol } = updateUserRoleDto;
+    return this.userService.updateUserRole(id, rol);
+  }
+
 }

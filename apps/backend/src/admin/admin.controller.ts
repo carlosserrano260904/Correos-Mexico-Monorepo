@@ -7,7 +7,8 @@ import {
   Body, 
   ParseIntPipe, 
   HttpCode,
-  HttpStatus
+  HttpStatus,
+  Post
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -40,12 +41,22 @@ export class AdminController {
     return this.adminService.updateUserRole(id, rol);
   }
 
-  //Endpoint para eliminar un usuario.
-  @Delete('users/delete/:id') // api/admin/users/delete/:id
+  //Endpoint para eliminar un usuario falta ajustar a otro endpoint.
+  /*@Delete('users/delete/:id') // api/admin/users/delete/:id
   @HttpCode(HttpStatus.NO_CONTENT) // Devuelve un código 204 (Sin Contenido) si tiene éxito
   async deleteUser(
     @Param('id', ParseIntPipe) id: number, // Obtiene el 'id' de la URL
   ) {
     return this.adminService.deleteUser(id);
+  }*/
+
+  //Endpoint para crear usuarios
+  @Post('users') // api/admin/users
+  async createUser(
+    @Body() createUserDto: any, // DTO para crear usuario (definir según necesidades)
+  ) {
+    // Lógica para crear un usuario (falta implementar en el servicio)
+    return; // Retornar el usuario creado o algún mensaje
   }
+
 }

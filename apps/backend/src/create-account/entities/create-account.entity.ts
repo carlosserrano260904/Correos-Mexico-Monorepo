@@ -1,9 +1,11 @@
+// Archivo: apps/backend/src/create-account/entities/create-account.entity.ts
+
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Favorito } from 'src/favoritos/entities/favorito.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 
-@Entity('usuarios')
+@Entity('usuarios') // Mapea a la tabla 'usuarios'
 export class CreateAccount {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,7 +20,7 @@ export class CreateAccount {
   correo: string;
 
   @Column({ type: 'varchar', nullable: true, name: 'contrasena' })
-  password: string;
+  password: string; // La clase usa 'password', la DB usa 'contrasena'
 
   @Column({ type: 'boolean', default: false })
   confirmado: boolean;
@@ -26,11 +28,11 @@ export class CreateAccount {
   @Column({ type: 'varchar', nullable: true })
   token: string | null;
 
-  @Column({ 
-    type: 'timestamp', 
-    nullable: true, 
+  @Column({
+    type: 'timestamp',
+    nullable: true,
     name: 'token_created_at',
-    default: () => 'CURRENT_TIMESTAMP' // Valor por defecto
+    default: () => 'CURRENT_TIMESTAMP'
   })
   tokenCreatedAt: Date | null;
 
@@ -46,4 +48,8 @@ export class CreateAccount {
   @OneToOne(() => Profile, { cascade: true })
   @JoinColumn()
   profile: Profile;
+  
+  // --- Columna añadida para el borrado lógico ---
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 }

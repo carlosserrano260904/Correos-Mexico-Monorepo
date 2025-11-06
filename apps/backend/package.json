@@ -62,7 +62,6 @@
     "tsconfig-paths": "^4.2.0",
     "turbo": "^2.5.5",
     "typeorm": "^0.3.25"
-    "typeorm": "^0.3.25",
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

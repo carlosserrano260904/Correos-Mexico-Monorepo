@@ -226,9 +226,6 @@ importers:
       tsc-alias:
         specifier: ^1.8.16
         version: 1.8.16
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -6546,7 +6543,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qrcode-terminal@0.11.0:
@@ -11654,11 +11650,6 @@ snapshots:
 
   '@types/tough-cookie@4.0.5': {}
 
-<<<<<<< HEAD
-=======
-  '@types/uuid@8.3.4': {}
-
->>>>>>> 221116ee070ca5309a6b4efe5cd934afe4e303bb
   '@types/uuid@9.0.8': {}
 
   '@types/validator@13.15.3': {}

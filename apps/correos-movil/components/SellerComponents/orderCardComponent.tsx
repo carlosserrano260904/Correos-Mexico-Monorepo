@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { Calendar } from 'lucide-react-native';
 import StatesOrdersComponent from './statesOrdersComponent';
-import { number } from 'zod';
 
 
 export default function OrderCardComponent({

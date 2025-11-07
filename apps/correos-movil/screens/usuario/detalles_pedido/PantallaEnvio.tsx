@@ -11,10 +11,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronLeft, ArrowRight } from 'lucide-react-native';
+import { obtenerDirecciones } from '../../../api/direcciones';
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,24 +77,77 @@ const PantallaEnvio = () => {
   const [loadingMapa, setLoadingMapa] = useState(false);
   const [metodoEnvioSeleccionado, setMetodoEnvioSeleccionado] = useState<string | null>(null);
   const [direccionSeleccionada, setDireccionSeleccionada] = useState<any>(null);
+  const [cargandoDireccion, setCargandoDireccion] = useState(false);
 
   const handleBack = useCallback(() => {
     navigation.navigate('Carrito');
   }, [navigation]);
 
+  const cargarDireccionPorId = useCallback(async (direccionId: string) => {
+    try {
+      setCargandoDireccion(true);
+      console.log('🔄 Cargando dirección por ID:', direccionId);
+      
+      const usuarioId = await AsyncStorage.getItem('userId');
+      console.log('👤 Usuario ID:', usuarioId);
+      
+      if (usuarioId) {
+        const todasDirecciones = await obtenerDirecciones(parseInt(usuarioId));
+        console.log('📋 Todas las direcciones:', todasDirecciones);
+        
+        const direccionEncontrada = todasDirecciones.find((d: any) => d.id === parseInt(direccionId));
+        
+        if (direccionEncontrada) {
+          setDireccionSeleccionada(direccionEncontrada);
+          await AsyncStorage.setItem('direccionSeleccionada', JSON.stringify(direccionEncontrada));
+          console.log('✅ Dirección encontrada:', direccionEncontrada);
+        } else {
+          console.log('❌ Dirección no encontrada con ID:', direccionId);
+          setDireccionSeleccionada(null);
+        }
+      } else {
+        console.log('❌ No hay usuario ID');
+        setDireccionSeleccionada(null);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando dirección:', error);
+      setDireccionSeleccionada(null);
+    } finally {
+      setCargandoDireccion(false);
+    }
+  }, []);
+
   const cargarSeleccionPrevia = useCallback(async () => {
     try {
+      console.log('🔍 Cargando selección previa...');
+      
       const metodoGuardado = await AsyncStorage.getItem('modoEnvio');
       const direccionGuardada = await AsyncStorage.getItem('direccionSeleccionada');
+      const direccionIdGuardado = await AsyncStorage.getItem('direccionSeleccionadaId');
+      
+      console.log('📦 Método guardado:', metodoGuardado);
+      console.log('🏠 Dirección guardada:', direccionGuardada);
+      console.log('🆔 ID dirección guardado:', direccionIdGuardado);
       
       if (metodoGuardado) {
         setMetodoEnvioSeleccionado(metodoGuardado);
       }
-      if (direccionGuardada) {
-        setDireccionSeleccionada(JSON.parse(direccionGuardada));
+
+      if (direccionGuardada && direccionGuardada !== 'null') {
+        try {
+          const direccionParsed = JSON.parse(direccionGuardada);
+          setDireccionSeleccionada(direccionParsed);
+          console.log('✅ Dirección cargada exitosamente:', direccionParsed);
+        } catch (parseError) {
+          console.error('❌ Error parseando dirección:', parseError);
+          setDireccionSeleccionada(null);
+        }
+      } else {
+        console.log('ℹ️ No hay dirección guardada en AsyncStorage');
+        setDireccionSeleccionada(null);
       }
     } catch (error) {
-      console.error('Error al cargar selección previa:', error);
+      console.error('❌ Error al cargar selección previa:', error);
     }
   }, []);
 
@@ -101,7 +155,10 @@ const PantallaEnvio = () => {
     try {
       setLoadingMapa(true);
       await AsyncStorage.setItem('modoEnvio', 'puntoRecogida');
+      await AsyncStorage.removeItem('direccionSeleccionada');
+      await AsyncStorage.removeItem('direccionSeleccionadaId');
       setMetodoEnvioSeleccionado('puntoRecogida');
+      setDireccionSeleccionada(null);
       navigation.navigate('MapaPuntosRecogida');
     } finally {
       setLoadingMapa(false);
@@ -109,26 +166,56 @@ const PantallaEnvio = () => {
   }, [navigation]);
 
   const irADomicilio = useCallback(async () => {
-    await AsyncStorage.setItem('modoEnvio', 'domicilio');
-    setMetodoEnvioSeleccionado('domicilio');
-    navigation.navigate('Direcciones', { modoSeleccion: true });
+    try {
+      await AsyncStorage.setItem('modoEnvio', 'domicilio');
+      setMetodoEnvioSeleccionado('domicilio');
+      
+      navigation.navigate('Direcciones', { 
+        modoSeleccion: true
+      });
+    } catch (error) {
+      console.error('❌ Error navegando a direcciones:', error);
+    }
   }, [navigation]);
 
   const irAPantallaPago = useCallback(() => {
-    if (metodoEnvioSeleccionado) {
+    if (metodoEnvioSeleccionado && puedeAvanzar) {
+      console.log('🚀 Navegando a pantalla de pago...');
       navigation.navigate('Pago' as never);
+    } else {
+      console.log('❌ No se puede avanzar - condiciones:', {
+        metodoEnvioSeleccionado,
+        direccionSeleccionada,
+        puedeAvanzar
+      });
     }
-  }, [metodoEnvioSeleccionado, navigation]);
+  }, [metodoEnvioSeleccionado, direccionSeleccionada, navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🎯 PantallaEnvio recibió foco - recargando datos...');
+      
+      const recargarDatos = async () => {
+        await cargarSeleccionPrevia();
+        
+        const direccionId = await AsyncStorage.getItem('direccionSeleccionadaId');
+        const direccionGuardada = await AsyncStorage.getItem('direccionSeleccionada');
+        
+        console.log('🔍 Verificando dirección - ID:', direccionId, 'Dirección:', direccionGuardada);
+        
+        if (direccionId && (!direccionGuardada || direccionGuardada === 'null')) {
+          console.log('🔄 ID de dirección encontrado pero no la dirección - cargando...');
+          await cargarDireccionPorId(direccionId);
+        }
+      };
+      
+      recargarDatos();
+    }, [cargarSeleccionPrevia, cargarDireccionPorId])
+  );
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      cargarSeleccionPrevia();
-    });
-    
     cargarSeleccionPrevia();
-    
-    return unsubscribe;
-  }, [navigation, cargarSeleccionPrevia]);
+  }, [cargarSeleccionPrevia]);
 
   const tieneDireccionValida = metodoEnvioSeleccionado === 'domicilio' && direccionSeleccionada;
   const tienePuntoRecogida = metodoEnvioSeleccionado === 'puntoRecogida';
@@ -136,10 +223,25 @@ const PantallaEnvio = () => {
     ((metodoEnvioSeleccionado === 'domicilio' && direccionSeleccionada) || 
      (metodoEnvioSeleccionado === 'puntoRecogida'));
 
+  console.log('📊 Estado actual:', {
+    metodoEnvioSeleccionado,
+    direccionSeleccionada: direccionSeleccionada ? 'SÍ' : 'NO',
+    tieneDireccionValida,
+    puedeAvanzar,
+    cargandoDireccion
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <ChevronLeft size={24} color={Colors.dark} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Método de Envío</Text>
+        <View style={styles.placeholder} />
+      </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>Selecciona método de envío</Text>
@@ -170,25 +272,23 @@ const PantallaEnvio = () => {
           />
         </View>
 
-        {/* Información de la selección actual */}
-        {tieneDireccionValida && (
-          <View style={styles.selectionInfo}>
-            <Text style={styles.selectionTitle}>Dirección seleccionada:</Text>
-            <Text style={styles.selectionText}>
-              {direccionSeleccionada.calle}, {direccionSeleccionada.ciudad}
-            </Text>
+        {cargandoDireccion && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={Colors.primary} />
+            <Text style={styles.loadingText}>Cargando dirección seleccionada…</Text>
           </View>
         )}
 
-        {tienePuntoRecogida && (
-          <View style={styles.selectionInfo}>
-            <Text style={styles.selectionTitle}>Método seleccionado:</Text>
-            <Text style={styles.selectionText}>Recogida en punto Correos de México</Text>
+        {metodoEnvioSeleccionado === 'domicilio' && !direccionSeleccionada && !cargandoDireccion && (
+          <View style={styles.infoMessage}>
+            <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
+            <Text style={styles.infoText}>
+              Has seleccionado envío a domicilio. Por favor, selecciona una dirección para continuar.
+            </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Botón dinámico */}
       <View style={styles.footer}>
         {puedeAvanzar ? (
           <TouchableOpacity 
@@ -281,6 +381,26 @@ const styles = StyleSheet.create({
   selectionText: {
     fontSize: 14,
     color: Colors.gray,
+    marginBottom: 2,
+  },
+  selectionSubtext: {
+    fontSize: 12,
+    color: Colors.gray,
+    opacity: 0.8,
+  },
+  infoMessage: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1565C0',
   },
   footer: {
     padding: 20,

@@ -35,7 +35,14 @@ import FormularioVendedor from '../screens/vendedor/FormularioVendedor';
 import CheckoutTabs from '../screens/usuario/detalles_pedido/CheckoutTabs';
 import HistorialFacturas from '../screens/facturas/historial_facturas';
 import GuiaFormulario from '../screens/usuario/tarifador/GuiaFormulario';
-import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor';
+import ComoEnviar from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviar';
+import ComoEnviarPaquetes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetes';
+import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarCarta';
+import ComoEnviarPaquetesyEmbalajes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetesyEmbalajes';
+import ComoEnviarArticulosProhibidos from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarArticulosProhibidos';
+import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor'; 
+// Esta cosa da error <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -77,7 +84,13 @@ export default function AppNavigator() {
             <Stack.Screen name="Checkout" component={CheckoutTabs} options={{headerShown: false}}/>
             <Stack.Screen name="GuiaFormulario" component ={GuiaFormulario} options={{ title: 'Datos para la guia'}} />
             <Stack.Screen name="HistorialDeFacturas" component={HistorialFacturas}/>
-            <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
+            <Stack.Screen name="ComoEnviar" component={ComoEnviar} />
+            <Stack.Screen name="ComoEnviarCartas" component={ComoEnviarCartas} />
+            <Stack.Screen name="ComoEnviarPaquetes" component={ComoEnviarPaquetes} />
+            <Stack.Screen name="ComoEnviarPaquetesyEmbalajes" component={ComoEnviarPaquetesyEmbalajes} />
+            <Stack.Screen name="ComoEnviarArticulosProhibidos" component={ComoEnviarArticulosProhibidos} />
+
+
         </Stack.Navigator>
     );
 }

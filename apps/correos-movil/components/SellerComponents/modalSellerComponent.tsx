@@ -4,7 +4,7 @@ import { RadioButton } from "react-native-paper";
 import { moderateScale } from "react-native-size-matters";
 import { CircleSlash, Pause, SquarePen, ChevronDown } from "lucide-react-native";
 import ButtonSellerComponent from "./buttonSellerComponent";
-import ImagenesInput from "./ImagesInpuntComponent";
+import ImagenesInput from "./imagesInputComponent";
 
 const screenWidht = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height;

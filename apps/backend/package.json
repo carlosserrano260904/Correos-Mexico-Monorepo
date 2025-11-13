@@ -49,6 +49,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.9.1",
+    "module-alias": "^2.2.3",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
@@ -111,6 +112,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "_moduleAliases": {
+      "src": "dist"
+    }
   }
 }

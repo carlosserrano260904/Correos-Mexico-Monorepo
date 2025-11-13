@@ -6,7 +6,7 @@ import { Product } from "./entities/product.entity";
 import { ProductImage } from "./entities/product-image.entity";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
-import { UploadImageService } from "src/upload-image/upload-image.service";
+import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Injectable()
 export class ProductsService {

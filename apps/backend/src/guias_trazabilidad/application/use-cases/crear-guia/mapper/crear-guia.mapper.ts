@@ -5,10 +5,10 @@ import {
     EmbalajeVO,
     ValorDeclaradoVO,
     ContactoVO
-} from 'src/guias_trazabilidad/business-logic/value-objects/index';
-import { GuiaDomainEntity } from 'src/guias_trazabilidad/business-logic/guia.domain-entity-root';
+} from '../../../../../guias_trazabilidad/business-logic/value-objects/index';
+import { GuiaDomainEntity } from '../../../../../guias_trazabilidad/business-logic/guia.domain-entity-root';
 import { BadRequestException } from '@nestjs/common';
-import { CoordenadasReadModel } from 'src/guias_trazabilidad/application/read-models/geocoding-response.read-model';
+import { CoordenadasReadModel } from '../../../../../guias_trazabilidad/application/read-models/geocoding-response.read-model';
 
 export function mapperCrearGuia(command: CrearGuiaCommand, coordRemitente: CoordenadasReadModel, coordDestinatario: CoordenadasReadModel): GuiaDomainEntity {
 

@@ -1,4 +1,4 @@
-import { Result } from 'src/utils/result';
+import { Result } from '../../../utils/result';
 
 /**
  * Este fichero es el mock de los repositorios de la base de datos

@@ -1,7 +1,8 @@
 // apps/backend/src/carrito/carrito.entity.ts
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn } from 'typeorm';
-import { Profile } from '../../profile/entities/profile.entity';
-import { Product } from '../../products/entities/product.entity';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, JoinColumn } from 'typeorm';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { Product } from 'src/products/entities/product.entity';
+import { ProductVariant } from 'src/products/entities/productVariant.entity';
 
 
 @Entity('carrito')
@@ -12,8 +13,12 @@ export class Carrito {
   @ManyToOne(() => Profile, u => u.carrito, { onDelete: 'CASCADE' })
   usuario: Profile;
 
-  @ManyToOne(() => Product, p => p.carrito, { onDelete: 'CASCADE' })
-  producto: Product;
+  @Column({ type: 'uuid', name: 'productVariantId' })
+  productVariantId: string;
+
+  @ManyToOne(() => ProductVariant, (variant) => variant.carritoItems, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'productVariantId' })
+  productVariant: ProductVariant;
 
   @Column({ type: 'int', nullable: false })
   cantidad: number;

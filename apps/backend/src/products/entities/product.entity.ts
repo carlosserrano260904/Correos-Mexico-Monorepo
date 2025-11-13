@@ -114,9 +114,6 @@ export class Product {
   @OneToMany(() => Favorito, (favorito) => favorito.producto)
   favoritos: Favorito[];
 
-  @OneToMany(() => Carrito, (carrito) => carrito.producto)
-  carrito: Carrito[];
-
   @ApiProperty({
     type: () => [Review],
     example: [

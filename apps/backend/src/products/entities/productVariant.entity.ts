@@ -3,6 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Product } from "./product.entity";
 import { ProductImage } from "./productImage.entity";
 import { ProductAttributeValue } from "./productAttributeValue.entity";
+import { Carrito } from "src/carrito/entities/carrito.entity";
 
 @Entity("productVariant")
 export class ProductVariant{
@@ -51,4 +52,7 @@ export class ProductVariant{
 
     @OneToMany(() => ProductAttributeValue, (attrubutevalue) => attrubutevalue.variant ,)
     attributeValues: ProductAttributeValue;
+
+    @OneToMany(() => Carrito, (carrito) => carrito.productVariant)
+    carritoItems: Carrito[];
 }

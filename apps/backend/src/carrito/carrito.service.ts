@@ -4,8 +4,8 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Carrito } from './entities/carrito.entity';
-import { Profile } from '../profile/entities/profile.entity';
-import { Product } from '../products/entities/product.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { ProductVariant } from 'src/products/entities/productVariant.entity';
 
 @Injectable()
 export class CarritoService {
@@ -16,14 +16,14 @@ export class CarritoService {
     @InjectRepository(Profile)
     private profileRepo: Repository<Profile>,
 
-    @InjectRepository(Product)
-    private productRepo: Repository<Product>
+    @InjectRepository(ProductVariant)
+    private productVariantRepo: Repository<ProductVariant>
   ) {}
   
   async obtenerCarrito(profileId: number) {
     const productos = await this.carritoRepo.find({
       where: { usuario: { id: profileId }, activo: true },
-      relations: ['producto','producto.images'],
+      relations: ['productVariant','productVariant.images','productvariant.product'],
     });
 
     if (!productos.length) {
@@ -33,31 +33,43 @@ export class CarritoService {
     return productos;
   }
 
-  async agregarProducto(profileId: number, productId: number, cantidad: number) {
+  async agregarVariante(profileId: number, productVariantId: string, cantidad: number) {
     const usuario = await this.profileRepo.findOneBy({ id: profileId });
-    const producto = await this.productRepo.findOneBy({ id: productId });
+    if(!usuario){
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    const variante = await this.productVariantRepo.findOneBy({ id: productVariantId });
 
-    if (!usuario || !producto) {
-      throw new NotFoundException('Usuario o producto no encontrado');
+    if (!variante) {
+      throw new NotFoundException('Variante de producto no encontrada');
+    }
+
+    if(variante.inventoryQuantity < cantidad){
+      throw new BadRequestException('No hay suficiente stock para esta variante.')
     }
 
     const existente = await this.carritoRepo.findOne({
       where: {
         usuario: { id: profileId },
-        producto: { id: productId },
+        productVariant: { id: productVariantId },
       },
     });
 
     if (existente) {
-      existente.cantidad += cantidad;
+      const nuevaCantidadTotal = existente.cantidad + cantidad;
+      if(variante.inventoryQuantity < nuevaCantidadTotal){
+        throw new BadRequestException('No hay suficiente stock para la cantidad total.');
+      }
+      existente.cantidad = nuevaCantidadTotal;
       return this.carritoRepo.save(existente);
     }
 
     const item = this.carritoRepo.create({
       usuario,
-      producto,
+      productVariant: variante,
+      productVariantId: variante.id,
       cantidad,
-      precio_unitario: producto.precio,
+      precio_unitario: variante.price,
       activo: true,
     });
 
@@ -69,9 +81,13 @@ export class CarritoService {
       throw new BadRequestException('La cantidad mínima debe ser 1');
     }
 
-    const item = await this.carritoRepo.findOneBy({ id });
+    const item = await this.carritoRepo.findOne({ where: {id}, relations: ['productVariant']});
     if (!item) {
       throw new NotFoundException('Producto en carrito no encontrado');
+    }
+
+    if(item.productVariant.inventoryQuantity <nuevaCantidad ){
+      throw new BadRequestException('No hay suficiente stock para la cantidad solicitada');
     }
 
     item.cantidad = nuevaCantidad;
@@ -96,7 +112,7 @@ export class CarritoService {
       return acc + item.cantidad * Number(item.precio_unitario);
     }, 0);
 
-    return { subtotal };
+    return { subtotal: parseFloat(subtotal.toFixed(2)) };
   }
 
   async procederAlPago(profileId: number) {

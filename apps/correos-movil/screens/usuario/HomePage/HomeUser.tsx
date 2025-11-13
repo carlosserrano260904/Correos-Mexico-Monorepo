@@ -144,19 +144,10 @@ export default function HomeUser() {
     };
 
   const categoriesData = [
-    { name: 'Ropa, moda y calzado', image: require("../../../assets/icons_correos_mexico/ropaModaCalzado-icon.png") },
-    { name: 'Joyería y bisuteria', image: require("../../../assets/icons_correos_mexico/joyeriaBisuteria-icon.png") },
-    { name: 'Juegos y juguetes', image: require("../../../assets/icons_correos_mexico/juegosJuguetes-icon.png") },
-    { name: 'Hogar y decoración', image: require("../../../assets/icons_correos_mexico/hogarDecoracion-icon.png") },
-    { name: 'Belleza y cuidado personal', image: require("../../../assets/icons_correos_mexico/bellezaCuidadoPersonal-icon.png") },
-    { name: 'Artesanías mexicanas', image: require("../../../assets/icons_correos_mexico/artesaniasMexicanas-icon.png") },
-    { name: 'FONART', image: require("../../../assets/icons_correos_mexico/Fonart-icon.png") },
-    { name: 'Original', image: require("../../../assets/icons_correos_mexico/Original-icon.png") },
-    { name: 'Jóvenes construyendo el futuro', image: require("../../../assets/icons_correos_mexico/jovenesConstruyendoFuturo-icon.png") },
-    { name: 'Hecho en Tamaulipas', image: require("../../../assets/icons_correos_mexico/hechoTamaulipas-icon.png") },
-    { name: 'SEDECO Michoacán', image: require("../../../assets/icons_correos_mexico/sedecoMichoacan-icon.png") },
-    { name: 'Filatelia mexicana', image: require("../../../assets/icons_correos_mexico/filateliaMexicana-icon.png") },
-    { name: 'Sabores artesanales', image: require("../../../assets/icons_correos_mexico/saboresArtesanales-icon.png") },
+    { name: 'Cotizar un envio', image: require("../../../assets/icons_correos_mexico/cotizarEnvio-icon.png") },
+    { name: 'MEXPOST', image: require("../../../assets/icons_correos_mexico/mexpost-icon.png") },
+    { name: 'Servicios para empresas', image: require("../../../assets/icons_correos_mexico/serviciosEmpresas-icon.png") },
+    { name: 'Envios internacionales', image: require("../../../assets/icons_correos_mexico/enviosInternacionales-icon.png") },
   ];
 
   const navigation = useNavigation<NavigationProp>();
@@ -232,51 +223,45 @@ export default function HomeUser() {
     });
   };
 
+
+  // HEADER ROSA
+
   return (
     <>
+
       <ScrollView style={{ backgroundColor: "white", width: screenWidth, position: "relative" }} showsVerticalScrollIndicator={false}>
-        <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-          <View>
-            <TouchableOpacity onPress={handleSignOut}>
-              <Image style={styles.correosImage} source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")} />
+
+
+        <View style={[styles.headerPinkContainer, { paddingTop: insets.top + moderateScale(8) }]}>
+          <Text style={styles.headerTitle}>Correos de México</Text>
+
+          <View style={styles.trackingSection}>
+            <View style={styles.trackingLeft}>
+              <Image
+                source={require("../../../assets/icons_correos_mexico/correos_clic_Logo.png")}
+                style={styles.trackingLogo}
+              />
+              <Text style={styles.trackingText}>Seguimiento de envío</Text>
+            </View>
+
+            <TouchableOpacity style={styles.trackingBell}>
+              <Image
+                source={require("../../../assets/icons_correos_mexico/bell-icon.png")}
+                style={{ width: moderateScale(20), height: moderateScale(20), tintColor: "#fff" }}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.iconsHeaderContainer}>
-            <TouchableOpacity style={styles.iconsHeader}>
-              <Text style={styles.textLenguage}>ES</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconsHeader}
-              onPress={() => navigation.navigate('Favorito')}
-            >
-              <Heart color={"#DE1484"} size={moderateScale(24)} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconsHeader}
-              onPress={() => navigation.navigate('Carrito')}
-            >
-              <ShoppingBag color={"#DE1484"} size={moderateScale(24)} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.searchBarContainer}>
-          <View style={styles.searchWrapper}>
-            <Search color="#888" size={moderateScale(20)} style={styles.searchIcon} />
+          <View style={styles.trackingInputContainer}>
             <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar un producto..."
-              placeholderTextColor="#888"
-              value={searchText}
-              onChangeText={setSearchText}
-              onSubmitEditing={handleSearchSubmit}
-              returnKeyType="search"
+              placeholder="Ingresa tu número de guía..."
+              placeholderTextColor="#fff9"
+              style={styles.trackingInput}
             />
           </View>
         </View>
 
-        <CorreosClicButton />
 
         <View style={styles.carouselContainer}>
           <ScrollView
@@ -310,7 +295,7 @@ export default function HomeUser() {
 
         <View style={styles.categoriesContainer}>
           <Text style={styles.textCategories}>Categorías</Text>
-          <ScrollView style={styles.modulesCategoriesContainer} horizontal={true} showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: moderateScale(16) }}>
             {categoriesData.map((category, index) => (
               <TouchableOpacity
                 key={index}
@@ -342,24 +327,6 @@ export default function HomeUser() {
           </View>
         </View>
 
-        <View style={styles.vendedorFonartContainer}>
-          <View style={styles.textVendedorFonartContainer}>
-            <Text style={styles.textVendedorFonart}>Vendedor destacado FONART</Text>
-            <TouchableOpacity onPress={() => handleNavigateToProducts('FONART')}>
-              <Text style={styles.seeAll}>Ver todo</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#DE1484" />
-            ) : error ? (
-              <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-            ) : (
-              <ProductCategoryList products={products} categoria={'FONART'} />
-            )}
-          </View>
-        </View>
 
         <View style={styles.carouselContainer}>
           <ScrollView
@@ -386,24 +353,41 @@ export default function HomeUser() {
           </View>
         </View>
 
-        <View style={styles.featuredProductContainer}>
-          <View style={styles.textFeaturedProductContainer}>
-            <Text style={styles.textFeaturedProduct}>Productos destacados</Text>
-            <TouchableOpacity onPress={() => handleNavigateToProducts('Productos destacados')}>
-              <Text style={styles.seeAll}>Ver todo</Text>
+        <Text style={styles.locationTitle}>Ubicaciones y Horarios</Text>
+        <View style={styles.locationContainer}>
+
+          <View style={styles.selectGroup}>
+            <Text style={styles.selectLabel}>Estado</Text>
+            <TouchableOpacity style={styles.selectBox}>
+              <Text style={styles.selectPlaceholder}>Selecciona tu estado</Text>
+              <Image
+                source={require("../../../assets/icons_correos_mexico/arrow-down.png")}
+                style={styles.selectArrow}
+              />
             </TouchableOpacity>
           </View>
 
-          <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#DE1484" />
-            ) : error ? (
-              <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-            ) : (
-              <ProductCategoryList products={products} categoria={'Productos destacados'} />
-            )}
+          <View style={styles.selectGroup}>
+            <Text style={styles.selectLabel}>Municipio</Text>
+            <TouchableOpacity style={styles.selectBox}>
+              <Text style={styles.selectPlaceholder}>Selecciona tu municipio</Text>
+              <Image
+                source={require("../../../assets/icons_correos_mexico/arrow-down.png")}
+                style={styles.selectArrow}
+              />
+            </TouchableOpacity>
           </View>
+
+          <TouchableOpacity style={styles.searchButton}>
+            <Search color="#fff" size={moderateScale(18)} />
+            <Text style={styles.searchButtonText}>Buscar oficinas</Text>
+          </TouchableOpacity>
         </View>
+
+
+
+
+
       </ScrollView>
 
       <TouchableOpacity onPress={() => navigation.navigate('ChatBot')} style={styles.customerServiceContainer}>
@@ -467,8 +451,9 @@ const styles = StyleSheet.create({
   },
   correosClicButtonContainer: {
     marginVertical: moderateScale(20),
-    paddingHorizontal: moderateScale(12),
-  },
+    width: '90%',
+    alignSelf: 'center',
+},
   correosClicButton: {
     backgroundColor: "#fce4f1",
     width: "100%",
@@ -508,15 +493,13 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     marginVertical: moderateScale(20),
     flexDirection: "column",
+    width: '90%',
+    alignSelf: 'center',
   },
   textCategories: {
-    paddingLeft: moderateScale(12),
     fontWeight: 700,
     fontSize: moderateScale(20),
     marginBottom: moderateScale(12)
-  },
-  modulesCategoriesContainer: {
-    paddingHorizontal: moderateScale(12),
   },
   categoriesImage: {
     width: moderateScale(72),
@@ -538,16 +521,17 @@ const styles = StyleSheet.create({
     marginTop: moderateScale(4)
   },
   vendedorContainer: {
-    marginHorizontal: moderateScale(12),
     flexDirection: "column",
     marginBottom: moderateScale(20),
+    width: '90%',
+    alignSelf: 'center',
   },
   textVendedorContainer: {
     flexDirection: "column"
   },
   textVendedor: {
     fontWeight: 700,
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(16),
     marginBottom: moderateScale(12)
   },
   textTitleVendedor: {
@@ -556,9 +540,10 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(4)
   },
   vendedorFonartContainer: {
-    flexDirection: "column",
-    marginHorizontal: moderateScale(12),
-    marginBottom: moderateScale(20)
+  flexDirection: "column",
+  marginBottom: moderateScale(20),
+  width: '90%',
+  alignSelf: 'center',
   },
   textVendedorFonartContainer: {
     flexDirection: "row",
@@ -575,12 +560,7 @@ const styles = StyleSheet.create({
     fontWeight: 400,
     color: "#DE1484"
   },
-  featuredProductContainer: {
-    marginHorizontal: moderateScale(12),
-    marginTop: moderateScale(20),
-    flexDirection: "column",
-    marginBottom: moderateScale(120),
-  },
+
   textFeaturedProductContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -605,6 +585,7 @@ const styles = StyleSheet.create({
   // Estilos para el carrusel personalizado
   carouselContainer: {
     marginVertical: moderateScale(10),
+    marginTop: moderateScale(24),
   },
   carousel: {
     height: screenHeight * 0.22,
@@ -639,4 +620,144 @@ const styles = StyleSheet.create({
   paginationDotActive: {
     backgroundColor: '#DE1484',
   },
+
+  headerPinkContainer: {
+  backgroundColor: "#DE1484",
+  borderBottomLeftRadius: moderateScale(32),
+  borderBottomRightRadius: moderateScale(32),
+  paddingHorizontal: moderateScale(16),
+  paddingBottom: moderateScale(24),
+},
+
+headerTitle: {
+  fontSize: moderateScale(26),
+  fontWeight: "800",
+  color: "#fff",
+  textAlign: "center",
+  marginBottom: moderateScale(16),
+},
+
+trackingSection: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  backgroundColor: "rgba(255,255,255,0.1)",
+  borderRadius: moderateScale(12),
+  paddingHorizontal: moderateScale(12),
+  paddingVertical: moderateScale(10),
+  marginBottom: moderateScale(14),
+},
+
+trackingLeft: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+trackingLogo: {
+  width: moderateScale(28),
+  height: moderateScale(28),
+  marginRight: moderateScale(8),
+  tintColor: "#fff",
+},
+
+trackingText: {
+  fontSize: moderateScale(16),
+  fontWeight: "600",
+  color: "#fff",
+},
+
+trackingBell: {
+  backgroundColor: "rgba(255,255,255,0.15)",
+  width: moderateScale(32),
+  height: moderateScale(32),
+  borderRadius: moderateScale(16),
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+trackingInputContainer: {
+  backgroundColor: "rgba(255,255,255,0.15)",
+  borderRadius: moderateScale(16),
+  paddingHorizontal: moderateScale(14),
+  height: moderateScale(44),
+  justifyContent: "center",
+},
+
+trackingInput: {
+  color: "#fff",
+  fontSize: moderateScale(15),
+},
+
+locationContainer: {
+  width: "90%",
+  alignSelf: "center",
+  backgroundColor: "#fff",
+  borderRadius: moderateScale(16),
+  padding: moderateScale(16),
+  marginBottom: moderateScale(150),
+  marginTop: moderateScale(6), 
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 3,
+  elevation: 2,
+},
+
+locationTitle: {
+  width: "90%", // 🔹 ancho controlado
+  alignSelf: "center", // 🔹 centrado
+  fontWeight: "800",
+  fontSize: moderateScale(18),
+  marginBottom: moderateScale(12),
+  marginTop: moderateScale(20),
+  color: "#121212",
+},
+
+selectGroup: {
+  marginBottom: moderateScale(14),
+},
+selectLabel: {
+  fontWeight: "600",
+  fontSize: moderateScale(14),
+  marginBottom: moderateScale(6),
+  color: "#121212",
+},
+selectBox: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  borderWidth: 1,
+  borderColor: "#E5E7EB",
+  borderRadius: moderateScale(12),
+  height: moderateScale(48),
+  paddingHorizontal: moderateScale(14),
+  backgroundColor: "#F9FAFB",
+},
+selectPlaceholder: {
+  color: "#9CA3AF",
+  fontSize: moderateScale(14),
+},
+selectArrow: {
+  width: moderateScale(14),
+  height: moderateScale(14),
+  tintColor: "#9CA3AF",
+},
+searchButton: {
+  backgroundColor: "#DE1484",
+  borderRadius: moderateScale(30),
+  height: moderateScale(48),
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "row",
+  marginTop: moderateScale(6),
+},
+searchButtonText: {
+  color: "#fff",
+  fontWeight: "600",
+  fontSize: moderateScale(15),
+  marginLeft: moderateScale(6),
+},
+
+
+
 });

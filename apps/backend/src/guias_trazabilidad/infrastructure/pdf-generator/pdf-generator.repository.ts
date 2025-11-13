@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../utils/result';
 import { PDFGeneratorRepositoryInterface } from '../../application/ports/outbound/pdf-generator.repository.interface';
 import { plantillaGuiaInternacional } from './plantillas/guia-plantilla-internacional';
 import { GuiaDomainEntity } from '../../../guias_trazabilidad/business-logic/guia.domain-entity-root';

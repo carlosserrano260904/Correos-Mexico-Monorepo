@@ -20,4 +20,7 @@ export class Card {
 
   @Column()
   profileId: number;
+
+  @Column({ type: 'varchar', length: 150, nullable: false })
+cardholderName: string;
 }

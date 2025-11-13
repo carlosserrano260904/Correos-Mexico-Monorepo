@@ -1,8 +1,9 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AssociateCardDto } from './dto/associate-card.dto';
 
-@ApiTags('Pagos (Stripe)¿')
+@ApiTags('Pagos (Stripe)')
 @Controller('pagos')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) { }
@@ -37,14 +38,13 @@ export class StripeController {
     },
   })
   @ApiResponse({ status: 201, description: 'Tarjeta asociada correctamente' })
-  async associateCard(
-    @Body() body: { customerId: string; paymentMethodId: string; profileId: number }
-  ) {
-    return this.stripeService.associateCardAndSave(
-      body.customerId,
-      body.paymentMethodId,
-      body.profileId
-    );
+  async associateCard(@Body() body: AssociateCardDto) {
+  return this.stripeService.associateCardAndSave(
+    body.customerId,
+    body.paymentMethodId,
+    body.profileId,
+    body.cardholderName,
+  );
   }
 
   @Post('realizar')

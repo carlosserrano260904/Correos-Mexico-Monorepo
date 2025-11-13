@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Card } from '../cards/entities/card.entity';
 import { Profile } from '../profile/entities/profile.entity';
@@ -49,7 +49,7 @@ export class StripeService {
     });
   }
 
-  async saveCardToDatabase(paymentMethod: Stripe.PaymentMethod, profileId: number) {
+  async saveCardToDatabase(paymentMethod: Stripe.PaymentMethod, profileId: number, cardholderName: string) {
     const profile = await this.profileRepo.findOne({ where: { id: profileId } });
     if (!profile) throw new Error('Perfil no encontrado');
 
@@ -59,12 +59,16 @@ export class StripeService {
       brand: paymentMethod.card?.brand ?? '',
       profile,
       profileId,
+      cardholderName, // Nuevo campo para el nombre
     });
 
     return await this.cardRepo.save(card);
   }
 
-  async associateCardAndSave(customerId: string, paymentMethodId: string, profileId: number) {
+  async associateCardAndSave(customerId: string, paymentMethodId: string, profileId: number, cardholderName: string) {
+    if (!cardholderName || cardholderName.trim() === '') {
+    throw new BadRequestException('El nombre del titular es requerido');
+  }
     // 1. Asociar tarjeta al cliente en Stripe
     await this.attachPaymentMethod(customerId, paymentMethodId);
 
@@ -72,7 +76,7 @@ export class StripeService {
     const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodId);
 
     // 3. Guardar en base de datos
-    return await this.saveCardToDatabase(paymentMethod, profileId);
+    return await this.saveCardToDatabase(paymentMethod, profileId, cardholderName);
   }
 
 }

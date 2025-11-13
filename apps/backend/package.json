@@ -112,9 +112,6 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "_moduleAliases": {
-      "src": "dist"
-    }
+    "testEnvironment": "node"
   }
 }

@@ -1,4 +1,3 @@
-import 'module-alias/register';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -6,7 +5,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import cors from 'cors';
+import { addAlias } from 'module-alias';
+import { join } from 'path';
 
+addAlias('src', join(__dirname));
 let cachedServer: any;
 const IS_VERCEL = process.env.VERCEL === '1';
 

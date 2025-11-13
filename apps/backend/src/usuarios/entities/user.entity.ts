@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { GiftedCouponEntity } from 'src/coupons/entities/gifted-coupon.entity';
 
 @Entity()
 export class User {
@@ -22,4 +23,8 @@ export class User {
   @Column({ type: 'varchar', default: 'usuario' })
   @ApiProperty({ example: 'usuario' })
   rol: string;
+
+  @OneToMany(() => GiftedCouponEntity, (gift) => gift.user)
+  giftedCoupons: GiftedCouponEntity[];
+
 }

@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "seed:products": "ts-node -r tsconfig-paths/register src/seeds/seed-products.ts",
-    "build": "nest build && tsc-alias -p tsconfig.build.json",
+    "build": "nest build && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch --preserveWatchOutput",
@@ -49,7 +49,6 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.9.1",
-    "module-alias": "^2.2.3",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",

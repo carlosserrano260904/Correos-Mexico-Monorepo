@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "seed:products": "ts-node -r tsconfig-paths/register src/seeds/seed-products.ts",
-    "build": "nest build && tsc-alias",
+    "build": "nest build && tsc-alias -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch --preserveWatchOutput",

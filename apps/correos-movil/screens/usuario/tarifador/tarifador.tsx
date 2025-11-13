@@ -33,6 +33,8 @@ const TarificadorMexpost = () => {
   const [loadingQuote, setLoadingQuote] = useState(false)
   const [datosEnvio, setDatosEnvio] = useState(null)
   const [cotizacionData, setCotizacionData] = useState(null)
+  const [incluirAcuse, setIncluirAcuse] = useState(false);
+  const [incluirSeguro, setIncluirSeguro] = useState(false);
   const costo = cotizacionData?.costoTotal || 0;
   const email = 'cliente@example.com';
   const [profileId, setProfileId] = useState(null);
@@ -55,7 +57,7 @@ const TarificadorMexpost = () => {
 
         const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
         const profileId = profileRes.data?.id;
-        setProfileId(profileId); // ✅ Guardamos solo el profileId
+        setProfileId(profileId); 
       } catch (err) {
         console.error('Error al cargar el profileId:', err);
       }
@@ -77,7 +79,7 @@ const TarificadorMexpost = () => {
   useEffect(() => {
     if (!showCountryModal) return;
 
-    // --- 👇 1. Pega tus datos falsos aquí ---
+    // --- 1. Pega tus datos falsos aquí ---
     const MOCK_PAISES = [
       { id: 1, name: "Estados Unidos" },
       { id: 2, name: "Canadá" },
@@ -91,7 +93,7 @@ const TarificadorMexpost = () => {
       { id: 10, name: "China" },
     ];
 
-    // --- 👇 2. Reemplaza el 'fetch' con esta simulación ---
+    // --- 2. Reemplaza el 'fetch' con esta simulación ---
     console.log("Mock: Cargando lista de países...");
     
     // Simula una pequeña espera (0.5 segundos)
@@ -249,6 +251,76 @@ const TarificadorMexpost = () => {
       Alert.alert("Error", "Por favor completa todas las dimensiones y peso")
       return
     }
+    setLoadingQuote(true);
+
+    // --- 1. DATOS MOCK DE COTIZACIÓN (Basados en tu Figma) ---
+    const MOCK_COTIZACION = {
+      pesoFisico: peso || 3.0,     // Usamos el peso que escribiste
+      pesoVolumetrico: 5.25,     // Este valor vendría del backend
+      tarifaSinIVA: 184.62,      // De tu figma
+      iva: 29.54,                // De tu figma (la segunda tarifa)
+      
+      // TODO: El backend debería enviar esto, pero tu JSX los simula
+      // costoAcuse: 50.00,
+      // costoSeguro: 80.00,
+    };
+
+    // --- 2. SIMULACIÓN DE FETCH ---
+    try {
+      // Simulamos una espera de 1.5 segundos
+      await new Promise(resolve => setTimeout(resolve, 1500)); 
+      
+      // Establecemos los datos falsos
+      setCotizacionData(MOCK_COTIZACION); 
+      
+      // ¡Mostramos la pantalla de cotización!
+      setShowQuote(true);                   
+
+    } catch (err) {
+      console.error("Error en simulación de cotización:", err);
+    } finally {
+      setLoadingQuote(false);
+    }
+  };
+
+  const handleCotizarInternacional = async () => {
+    if (!peso || !alto || !ancho || !largo) {
+      Alert.alert("Campos vacíos", "Es necesario completar todas las dimensiones y peso.")
+      return
+    }
+    if (!paisDestino || !paisDestino.name) {
+      Alert.alert("Error", "Selecciona un país válido")
+      return
+    }
+    setLoadingQuote(true);
+
+    // --- 1. DATOS MOCK (Valores diferentes para que notes el cambio) ---
+    const MOCK_COTIZACION_INT = {
+      pesoFisico: peso || 5.0,
+      pesoVolumetrico: 7.8,
+      tarifaSinIVA: 450.70, // Un precio internacional
+      iva: 72.11,
+    };
+
+    // --- 2. SIMULACIÓN DE FETCH ---
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500)); 
+      setCotizacionData(MOCK_COTIZACION_INT); 
+      setShowQuote(true);                     
+    } catch (err) {
+      console.error("Error en simulación de cotización int:", err);
+    } finally {
+      setLoadingQuote(false);
+    }
+  };
+
+
+  {/* SE SUPONE QUE ESTOS DOS SI SIRVEN SOLO QUE LO VAMOS A UTILIZAR DESPUES
+  const handleCotizarNacional = async () => {
+    if (!peso || !alto || !ancho || !largo) {
+      Alert.alert("Error", "Por favor completa todas las dimensiones y peso")
+      return
+    }
     setLoadingQuote(true)
     try {
       const response = await fetch(`http://${IP}:3000/api/shipping-rates/cotizar`, {
@@ -310,6 +382,7 @@ const TarificadorMexpost = () => {
       setLoadingQuote(false)
     }
   }
+ */}
 
   const handleLimpiar = () => {
     setCodigoOrigen("")
@@ -333,6 +406,8 @@ const TarificadorMexpost = () => {
     setAncho("")
     setLargo("")
     setCotizacionData(null)
+    setIncluirAcuse(false); 
+    setIncluirSeguro(false);
   }
 
   const handleBack = () => {
@@ -527,7 +602,7 @@ const TarificadorMexpost = () => {
             )}
           </View>
 
-          {/* Results Section */}
+           {/* Results Section */}
           {showResults && (
             <View style={styles.resultsContainer}>
               {activeTab === "Nacional" && datosEnvio && (
@@ -566,7 +641,7 @@ const TarificadorMexpost = () => {
                       </Text>
                     </View>
                     <View style={[styles.pill, styles.pillIva]}>
-                      {/* El IVA no viene en datosEnvio, lo pongo como en el Figma */}
+                      {/* El IVA no viene en datosEnvio */}
                       <Text style={[styles.pillText, styles.pillTextIva]}>
                         IVA: 0.16
                       </Text>
@@ -714,108 +789,108 @@ const TarificadorMexpost = () => {
 
               {showQuote && cotizacionData && (
                 <View style={styles.quoteSection}>
-                  <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Detalles del servicio</Text>
-                    <TouchableOpacity onPress={handleNuevaConsulta}>
-                      <Text style={styles.limpiarButton}>Nueva consulta</Text>
-                    </TouchableOpacity>
-                  </View>
+                  
+                  {/* --- 1. LÓGICA DE CÁLCULO (Auto-ejecutable) --- */}
+                  {/* Usamos una función que se ejecuta sola para calcular el total antes de renderizar */}
+                  {(() => {
+                    
+                    // --- SIMULACIÓN DE COSTOS (Quitar cuando el backend funcione) ---
+                    // TODO: Reemplazar '50' y '80' con los campos reales, ej: cotizacionData.costoAcuse
+                    const COSTO_ACUSE_SIMULADO = 50.00; 
+                    const COSTO_SEGURO_SIMULADO = 80.00;
 
-                  <View style={styles.detallesContainer}>
-                    <View style={styles.detalleRow}>
-                      <Text style={styles.detalleLabel}>Tipo de envío:</Text>
-                      <Text style={styles.detalleValue}>{activeTab}</Text>
-                    </View>
+                    // --- Costos Base ---
+                    // (Tu código tenía lógica para Nacional/Internacional, la simplifico 
+                    // para que coincida con el Figma, que solo muestra MXN)
+                    const tarifaBase = cotizacionData.tarifaSinIVA || 0;
+                    const ivaBase = cotizacionData.iva || 0;
+                    
+                    // --- Cálculo Dinámico ---
+                    let costoTotalCalculado = tarifaBase + ivaBase;
+                    if (incluirAcuse) {
+                      costoTotalCalculado += COSTO_ACUSE_SIMULADO;
+                    }
+                    if (incluirSeguro) {
+                      costoTotalCalculado += COSTO_SEGURO_SIMULADO;
+                    }
 
-                    <View style={styles.detalleRow}>
-                      <Text style={styles.detalleLabel}>Peso físico:</Text>
-                      <Text style={styles.detalleValue}>
-                        {cotizacionData.pesoFisico} kg
-                      </Text>
-                    </View>
-
-                    <View style={styles.detalleRow}>
-                      <Text style={styles.detalleLabel}>Peso volumétrico:</Text>
-                      <Text style={styles.detalleValue}>
-                        {cotizacionData.pesoVolumetrico} kg
-                      </Text>
-                    </View>
-
-                    {activeTab === "Nacional" ? (
+                    // --- 2. RENDERIZADO DEL JSX (Lo que se va a mostrar) ---
+                    return (
                       <>
-                        <View style={styles.detalleRow}>
-                          <Text style={styles.detalleLabel}>Tarifa sin IVA:</Text>
-                          <Text style={styles.detalleValue}>
-                            MXN {cotizacionData.tarifaSinIVA || "N/A"}
-                          </Text>
+                        {/* --- Header: "Cotización" y "Nueva" --- */}
+                        <View style={styles.sectionHeaderTitle}>
+                          <Text style={styles.sectionTitle}>Cotización</Text>
+                          <TouchableOpacity style={styles.limpiarButton} onPress={handleNuevaConsulta}>
+                            <Ionicons name="add" size={20} color="#fff" />
+                            <Text style={styles.limpiarButtonText}>Nueva</Text>
+                          </TouchableOpacity>
                         </View>
-                        <View style={styles.detalleRow}>
-                          <Text style={styles.detalleLabel}>IVA:</Text>
-                          <Text style={styles.detalleValue}>
-                            MXN {cotizacionData.iva || "N/A"}
-                          </Text>
+
+                        {/* --- Contenedor de Detalles --- */}
+                        <View style={styles.detallesContainer}>
+                          <View style={styles.detalleRow}>
+                            <Text style={styles.detalleLabel}>Peso físico:</Text>
+                            <Text style={styles.detalleValue}>{cotizacionData.pesoFisico} kilogramos</Text>
+                          </View>
+                          <View style={styles.detalleRow}>
+                            <Text style={styles.detalleLabel}>Volúmen:</Text>
+                            <Text style={styles.detalleValue}>{cotizacionData.pesoVolumetrico} kilogramos</Text>
+                          </View>
+
+                          {/* Filas Seleccionables (Checkboxes) */}
+                          <TouchableOpacity style={styles.detalleRowCheckbox} onPress={() => setIncluirAcuse(!incluirAcuse)}>
+                            <Text style={styles.detalleLabel}>Acuse de recibo</Text>
+                            <View style={styles.checkbox}>
+                              {incluirAcuse && <Ionicons name="checkmark" size={18} color="#E6007E" />}
+                            </View>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity style={styles.detalleRowCheckbox} onPress={() => setIncluirSeguro(!incluirSeguro)}>
+                            <Text style={styles.detalleLabel}>Seguro</Text>
+                            <View style={styles.checkbox}>
+                              {incluirSeguro && <Ionicons name="checkmark" size={18} color="#E6007E" />}
+                            </View>
+                          </TouchableOpacity>
+                          
+                          <View style={styles.detalleRow}>
+                            {/* En el Figma dice "Tarifa", pero "Tarifa Base" es más claro */}
+                            <Text style={styles.detalleLabel}>Tarifa Base:</Text>
+                            <Text style={styles.detalleValue}>MXN ${tarifaBase.toFixed(2)}</Text>
+                          </View>
+                          <View style={styles.detalleRow}>
+                            <Text style={styles.detalleLabel}>IVA:</Text>
+                            <Text style={styles.detalleValue}>MXN ${ivaBase.toFixed(2)}</Text>
+                          </View>
+
+                          {/* --- Costos Opcionales (solo si se seleccionan) --- */}
+                          {incluirAcuse && (
+                            <View style={styles.detalleRowOpcional}>
+                              <Text style={styles.detalleLabelOpcional}>+ Acuse de recibo:</Text>
+                              <Text style={styles.detalleValueOpcional}>MXN ${COSTO_ACUSE_SIMULADO.toFixed(2)}</Text>
+                            </View>
+                          )}
+                          {incluirSeguro && (
+                            <View style={styles.detalleRowOpcional}>
+                              <Text style={styles.detalleLabelOpcional}>+ Seguro:</Text>
+                              <Text style={styles.detalleValueOpcional}>MXN ${COSTO_SEGURO_SIMULADO.toFixed(2)}</Text>
+                            </View>
+                          )}
+
+                          {/* --- Costo Total (Calculado) --- */}
+                          <View style={styles.costoTotalContainer}>
+                            <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
+                            <Text style={styles.costoTotalValue}>
+                              MXN ${costoTotalCalculado.toFixed(2)}
+                            </Text>
+                          </View>
                         </View>
                       </>
-                    ) : (
-                      <>
-                        <View style={styles.detalleRow}>
-                          <Text style={styles.detalleLabel}>Precio base:</Text>
-                          <Text style={styles.detalleValue}>
-                            USD {cotizacionData.precioBase?.toFixed(2) || "N/A"}
-                          </Text>
-                        </View>
-                        <View style={styles.detalleRow}>
-                          <Text style={styles.detalleLabel}>IVA:</Text>
-                          <Text style={styles.detalleValue}>
-                            USD {cotizacionData.iva?.toFixed(2) || "N/A"}
-                          </Text>
-                        </View>
-                      </>
-                    )}
-                  </View>
-
-                  {/* Costo total y botón de pago */}
-                  <View style={styles.costoTotalContainer}>
-                    <Text style={styles.costoTotalLabel}>Costo del envío:</Text>
-                    <Text style={styles.costoTotalValue}>
-                      {activeTab === "Nacional" 
-                        ? `MXN ${costo || 'N/A'}` 
-                        : `USD ${cotizacionData.total || "N/A"}`
-                      }
-                    </Text>
-                  </View>
-
-                  <View style={styles.paymentButtonContainer}>
-                    <CheckoutButton
-                      amount={activeTab === "Nacional" ? costo : cotizacionData.total}
-                      email={email}
-                      profileId={profileId || 115}
-                      onPaymentSuccess={(paymentResult) => {
-                        console.log('Pago exitoso:', paymentResult);
-                        navigation.navigate('GuiaFormulario', {
-                          datosTarifador: {
-                            codigoOrigen,
-                            codigoDestino,
-                            peso,
-                            alto,
-                            ancho,
-                            largo,
-                            costo: activeTab === "Nacional" ? costo : cotizacionData.total,
-                            tipoEnvio: activeTab,
-                          }
-                        });
-                      }}
-                      onPaymentError={(error) => {
-                        console.error('Error en pago:', error);
-                        Alert.alert('Error', 'Hubo un problema con el pago');
-                      }}
-                    />
-                  </View>
+                    )
+                  })()}
                 </View>
               )}
             </View>
           )}
-
           {/* Espaciado adicional para Android */}
           <View style={styles.bottomSpacer} />
         </ScrollView>
@@ -965,9 +1040,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    backgroundColor: "#fff", 
+    backgroundColor: "#F9FAFB", 
     borderWidth: 1,
-    borderColor: "#f7f7f7ff", 
+    borderColor: "#E5E7EB", 
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -998,7 +1073,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 25,
     top: "40%",
-    transform: [{ translateY: -10 }],
+    transform: [{ translateY: 10 }],
     color: "#E6007E",
     fontWeight: "bold",
     fontSize: 16,
@@ -1049,6 +1124,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+    backgroundColor: "#F3F4F6",
+  },
+    sectionHeaderTitle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 25,
@@ -1081,16 +1163,19 @@ const styles = StyleSheet.create({
   dimensionsSection: {
     marginTop: 25,
     marginBottom: 30,
+    backgroundColor: "#ffffffff",
   },
   quoteSection: {
-    marginTop: 20,
     paddingBottom: 30,
+    backgroundColor: '#F3F4F6', 
+    borderRadius: 16,      
+    padding: 16,
   },
   detallesContainer: {
-    marginBottom: 20,
-    backgroundColor: "#ffffffff",
-    borderRadius: 12,
-    padding: 16,
+    marginBottom: 0,
+    backgroundColor: '#F3F4F6', 
+    borderRadius: 0,       
+    padding: 0,
   },
   detalleRow: {
     flexDirection: "row",
@@ -1111,19 +1196,13 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   costoTotalContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderTopWidth: 2,
-    borderTopColor: "#E6007E",
-    borderBottomWidth: 2,
-    borderBottomColor: "#E6007E",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
     marginTop: 10,
-    marginBottom: 20,
-    backgroundColor: "#fdf2f8",
-    borderRadius: 12,
+    borderTopWidth: 2,
+    borderTopColor: '#f0f0f0',
   },
   costoTotalLabel: {
     fontSize: 18,
@@ -1134,13 +1213,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#E6007E",
-  },
-  paymentButtonContainer: {
-    marginTop: 15,
-    marginBottom: Platform.OS === 'android' ? 25 : 15,
-  },
-  bottomSpacer: {
-    height: Platform.OS === 'android' ? 50 : 20,
   },
   modalOverlay: {
     flex: 1,
@@ -1233,7 +1305,7 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   resultsCard: {
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#F3F4F6',
     borderRadius: 16,
     padding: 16,
     marginBottom: 30, 
@@ -1243,8 +1315,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#E6007E', 
-    borderRadius: 10,        
-    paddingVertical: 8,
+    borderRadius: 30,         
+    paddingVertical: 10,
     paddingHorizontal: 16,
     shadowColor: "#E6007E",
     shadowOffset: { width: 0, height: 2 },
@@ -1254,7 +1326,7 @@ const styles = StyleSheet.create({
   },
   limpiarButtonText: {
     color: '#fff',             
-    marginLeft: 6,
+    marginLeft: 4,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -1263,7 +1335,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ffffffff',
+    borderBottomColor: '#F3F4F6',
   },
   resultsInfoLabel: {
     fontSize: 16,
@@ -1291,16 +1363,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   pillZona: {
-    backgroundColor: '#E6E9FF', 
+    backgroundColor: '#E6E9FF',
+    borderColor: '#495BCC', 
+    borderWidth: 1,
   },
   pillTextZona: {
     color: '#495BCC', 
   },
   pillIva: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F3F4F6',
+    borderColor: '#6B7280',
+    borderWidth: 1,
   },
   pillTextIva: {
-    color: '#666', 
+    color: '#6B7280', 
   },
   inputGrid: {
     flexDirection: 'row',
@@ -1310,6 +1386,46 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 4,
     marginBottom: 10,
+  },
+  detalleRowCheckbox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  divisor: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 8,
+  },
+  detalleRowOpcional: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8, 
+  },
+  detalleLabelOpcional: {
+    fontSize: 15,
+    color: '#666', 
+  },
+  detalleValueOpcional: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    textAlign: 'right',
   },
 });
 

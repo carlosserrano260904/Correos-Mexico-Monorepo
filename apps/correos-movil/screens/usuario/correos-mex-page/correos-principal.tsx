@@ -23,7 +23,8 @@ const imageData = [
   { 
     id: '2', 
     name: 'Item 2', 
-    image: require('../../../assets/tramites.png') 
+    image: require('../../../assets/tramites.png'),
+    screen: 'AtencionClientePrincipal'
   },
   { 
     id: '3', 

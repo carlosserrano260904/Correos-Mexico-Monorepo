@@ -21,6 +21,11 @@ export class Card {
   @Column()
   profileId: number;
 
-  @Column({ type: 'varchar', length: 150, nullable: false })
+  @Column({ 
+    type: 'varchar',
+    length: 150,
+    nullable: false,
+    default: 'Desconocido', // Solución temporal para evitares con el valor nullable: false
+  })
 cardholderName: string;
 }

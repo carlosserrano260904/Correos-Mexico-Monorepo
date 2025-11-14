@@ -33,7 +33,7 @@ export class Product {
   slug: string;
 
   @ApiProperty({ example: "Tenis deportivos para correr" })
-  @Column({ type: "text", length: 120, nullable:true })
+  @Column({ type: "varchar", length: 120, nullable:true })
   description: string;
 
   // @ApiProperty({example: "120 cm"})

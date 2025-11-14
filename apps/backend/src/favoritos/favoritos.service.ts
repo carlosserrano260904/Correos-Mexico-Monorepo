@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -29,7 +30,9 @@ export class FavoritosService {
   async findByUsuario(profileId: number): Promise<Favorito[]> {
     const favoritos = await this.favoritoRepo.find({
       where: { usuario: { id: profileId } },
-      relations: ['producto','producto.images'],
+      // CORRECCIÓN: 'producto.images' ya no existe directo.
+      // Cargamos variantes e imagenes de variantes para mostrar algo.
+      relations: ['producto', 'producto.variants', 'producto.variants.images'],
     });
 
     if (!favoritos.length) {
@@ -45,7 +48,10 @@ export class FavoritosService {
       throw new NotFoundException(`Usuario con id ${profileId} no existe`);
     }
 
-    const producto = await this.productRepo.findOneBy({ id: productId });
+    // CORRECCIÓN: Convertir ID a String
+    const producto = await this.productRepo.findOneBy({
+      id: String(productId),
+    });
     if (!producto) {
       throw new NotFoundException(`Producto con id ${productId} no existe`);
     }
@@ -53,9 +59,10 @@ export class FavoritosService {
     const yaExiste = await this.favoritoRepo.findOne({
       where: {
         usuario: { id: profileId },
-        producto: { id: productId },
+        // CORRECCIÓN: Convertir ID a String
+        producto: { id: String(productId) },
       },
-      relations: ['usuario', 'producto'], 
+      relations: ['usuario', 'producto'],
     });
 
     if (yaExiste) {
@@ -77,18 +84,35 @@ export class FavoritosService {
 
   async addToCarritoDesdeFavorito(profileId: number, productId: number) {
     const usuario = await this.profileRepo.findOneBy({ id: profileId });
-    const producto = await this.productRepo.findOneBy({ id: productId });
+
+    // CORRECCIÓN: Cargamos las variantes para poder meter una al carrito
+    const producto = await this.productRepo.findOne({
+      where: { id: String(productId) }, // ID a String
+      relations: ['variants'],
+    });
 
     if (!usuario || !producto) {
       throw new NotFoundException('Usuario o producto no existe');
     }
 
+    // --- LÓGICA DE ADAPTACIÓN ---
+    // El carrito necesita una VARIANTE, pero favoritos tiene PRODUCTO.
+    // Tomamos la primera variante disponible.
+    const variant = producto.variants?.[0];
+
+    if (!variant) {
+      throw new BadRequestException(
+        'Este producto no tiene variantes disponibles para agregar al carrito.',
+      );
+    }
+
+    // Buscamos si esa VARIANTE ya está en el carrito
     const existente = await this.carritoRepo.findOne({
       where: {
         usuario: { id: profileId },
-        producto: { id: productId },
+        productVariant: { id: variant.id }, // Usamos la variante
       },
-      relations: ['usuario', 'producto'],
+      relations: ['usuario', 'productVariant'],
     });
 
     if (existente) {
@@ -96,11 +120,13 @@ export class FavoritosService {
       return this.carritoRepo.save(existente);
     }
 
+    // Creamos el item usando la VARIANTE
     const item = this.carritoRepo.create({
       usuario,
-      producto,
+      productVariant: variant, // <--- Conectamos la variante
+      productVariantId: variant.id,
       cantidad: 1,
-      precio_unitario: producto.precio,
+      precio_unitario: variant.price, // <--- Precio viene de la variante
       activo: true,
     });
 

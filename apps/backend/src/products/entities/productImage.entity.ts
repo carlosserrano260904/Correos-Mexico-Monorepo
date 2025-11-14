@@ -9,7 +9,7 @@ export class ProductImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', name: 'variantId' })
+  @Column({ type: 'varchar', name: 'variantId' , nullable:true})
   variantId: string;
 
   @ApiProperty({ example: 'https://bucket.s3.region.amazonaws.com/images/uuid.jpg' })
@@ -23,10 +23,6 @@ export class ProductImage {
   @ManyToOne(() => ProductVariant, (variant) => variant.images, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'variantId' })
   variant: ProductVariant;
-
-  @ApiProperty({ example: 12 })
-  @Column()
-  variants: string;
 
   @Column({ type: 'integer', nullable: true, name: 'sortOrder' })
   sortOrder: number;

@@ -7,6 +7,7 @@ import { Profile } from '../profile/entities/profile.entity';
 import { Misdireccione } from '../misdirecciones/entities/misdireccione.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
+import { ProductVariant } from 'src/products/entities/productVariant.entity'; // <--- IMPORTANTE
 
 @Injectable()
 export class PedidosService {
@@ -17,8 +18,10 @@ export class PedidosService {
     private readonly pedidoProductoRepository: Repository<PedidoProducto>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-
-  ) { }
+    // Necesitamos el repo de variantes para sacar el precio
+    @InjectRepository(ProductVariant)
+    private readonly variantRepository: Repository<ProductVariant>,
+  ) {}
 
   async create(createPedidoDto: CreatePedidoDto) {
     await this.pedidoRepository.manager.transaction(async (manager) => {
@@ -61,20 +64,31 @@ export class PedidosService {
       const detalles: PedidoProducto[] = [];
 
       for (const item of createPedidoDto.productos) {
-        const producto = await manager.findOne(Product, {
-          where: { id: item.producto_id },
+        // --- CAMBIO CRÍTICO: Buscamos Variante, no Producto ---
+        // Asumimos que 'item.producto_id' ahora trae el UUID de la variante
+        // (Tendrás que ajustar tu DTO para que acepte string en lugar de number)
+        
+        const variante = await manager.findOne(ProductVariant, {
+          where: { id: String(item.producto_id) }, // ID a String
+          relations: ['product'], // Cargamos el padre para asignarlo al pedido
         });
-        if (!producto) {
+
+        if (!variante) {
           throw new NotFoundException(
-            `El producto con ID ${item.producto_id} no existe`,
+            `La variante con ID ${item.producto_id} no existe`,
           );
         }
 
-        const subtotal = producto.precio * item.cantidad;
+        // Usamos el precio de la VARIANTE
+        const subtotal = variante.price * item.cantidad;
         total += subtotal;
 
         const detalle = new PedidoProducto();
-        detalle.producto = producto;
+        
+        // Aquí seguimos asignando al producto PADRE para no romper la entidad PedidoProducto
+        detalle.producto = variante.product; 
+        // (Idealmente deberías guardar también el variantId en PedidoProducto, pero si no puedes tocar la entidad, ni modo)
+        
         detalle.cantidad = item.cantidad;
         detalle.pedido = pedido;
 
@@ -95,24 +109,44 @@ export class PedidosService {
   }
 
   async findAll() {
-  return this.pedidoRepository.find({
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+    return this.pedidoRepository.find({
+      relations: [
+        'productos',
+        'productos.producto',
+        //Cargamos variantes e imágenes anidadas
+        'productos.producto.variants', 
+        'productos.producto.variants.images',
+        'direccion',
+      ],
+      order: { fecha: 'DESC' },
+    });
+  }
 
   async findByUser(profileId: number) {
-  return this.pedidoRepository.find({
-    where: { profile: { id: profileId } },
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+    return this.pedidoRepository.find({
+      where: { profile: { id: profileId } },
+      relations: [
+        'productos',
+        'productos.producto',
+        'productos.producto.variants',
+        'productos.producto.variants.images',
+        'direccion',
+      ],
+      order: { fecha: 'DESC' },
+    });
+  }
 
   async findOne(id: number) {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
-      relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
+      relations: [
+        'productos',
+        'productos.producto',
+        // CORRECCIÓN
+        'productos.producto.variants',
+        'productos.producto.variants.images',
+        'direccion',
+      ],
     });
 
     if (!pedido) {
@@ -121,16 +155,6 @@ export class PedidosService {
 
     return pedido;
   }
-
-  //async update(id: number, updatePedidoDto: UpdatePedidoDto) {
-  //  const pedido = await this.pedidoRepository.findOneBy({ id });
-  //  if (!pedido) {
-  //    throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
-  //  }
-
-  //  pedido.status = updatePedidoDto.status;
-  //  return await this.pedidoRepository.save(pedido);
-  //}
 
   async remove(id: number) {
     const pedido = await this.pedidoRepository.findOne({

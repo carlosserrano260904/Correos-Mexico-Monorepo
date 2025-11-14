@@ -15,7 +15,7 @@ import { Carrito } from 'src/carrito/entities/carrito.entity';
 
 const DEFAULT_IMAGE =
   'https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg';
-const SELLER_ID_PRUEBA = 'f1g2h3i4-j5k6-7890-l1m2-n3o4p5q6r7s8'; // UUID de vendedor de prueba
+  const SELLER_ID_PRUEBA = 'e52b9f8d-4b7a-4e1c-9d3f-8a6b5c2d1e0f'; // UUID de vendedor de prueba
 
 // Categorías (excluye la #9)
 const categoryNames = [
@@ -103,21 +103,51 @@ async function bootstrap() {
 
   //LIMPIAR TABLAS (En orden inverso de dependencias)
   console.log('Limpiando base de datos.');
-  await attrValueRepo.delete({});
-  await imageRepo.delete({});
-  await variantRepo.delete({});
-  await reviewRepo.delete({});
-  await favoritoRepo.delete({});
-  await carritoRepo.delete({});
-  await productRepo.delete({});
-  await categoryRepo.delete({}); // Borrar esto borrará la tabla M:M
-  await attrDefRepo.delete({});
+// 1. Borrar tablas dependientes (Hojas) usando QueryBuilder
+  await attrValueRepo.createQueryBuilder().delete().execute();
+  await imageRepo.createQueryBuilder().delete().execute();
+  await variantRepo.createQueryBuilder().delete().execute();
+  
+  // 2. Borrar tablas externas
+  await reviewRepo.createQueryBuilder().delete().execute();
+  await favoritoRepo.createQueryBuilder().delete().execute();
+  await carritoRepo.createQueryBuilder().delete().execute();
+  
+  // 3. Borrar Tabla de Productos
+  await productRepo.createQueryBuilder().delete().execute();
+  
+  // 4. Borrar Catálogos y Tabla Pivote (Con protección anti-errores)
+  try {
+    // Intentamos borrar la tabla intermedia. Si no existe, no pasa nada.
+    // Asegúrate que el nombre 'categoryAttributeMap' coincida con tu base de datos
+    // (A veces TypeORM la crea como 'category_attribute_map' o camelCase, prueba ambos si falla)
+    await ds.query('DELETE FROM categoryAttributeMap'); 
+  } catch (error) {
+    // Si falla (ej. tabla no existe), lo ignoramos y seguimos
+    console.log('Nota: La tabla intermedia no existía o ya estaba vacía.');
+  }
+
+  // Borramos las categorías y atributos
+  try {
+      await ds.query('DELETE FROM product_category');
+      await ds.query('DELETE FROM attribute_definition');
+  } catch (error) {
+      console.log('Nota: Categorías/Atributos no existían.');
+  }
   console.log('Base de datos limpia.');
 
   // INICIAR TRANSACCIÓN
   const queryRunner = ds.createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
+
+  await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS "categoryAttributeMap" (
+        "categoryId" uuid NOT NULL,
+        "attributeId" uuid NOT NULL,
+        CONSTRAINT "PK_categoryAttributeMap" PRIMARY KEY ("categoryId", "attributeId")
+      )
+    `);
 
   try {
     console.log('Creando pre-requisitos (Atributos y Categorías)...');
@@ -130,16 +160,35 @@ async function bootstrap() {
       attrDefRepo.create({ name: 'Marca', type: 'text', isVariantOption: false }), // 'Marca' no define variantes
     );
 
-    //CREAR CATEGORÍAS (DENTRO DE LA TRANSACCIÓN)
+    const tables = await queryRunner.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `);
+    console.log('Tablas existentes:', tables.map(t => t.table_name));
+
+    // --- CREAR CATEGORÍAS ---
     const categoriesMap = new Map<string, ProductCategory>();
+    
     for (const name of categoryNames) {
+      // 1. Crear y guardar la categoría SOLA
       const category = await queryRunner.manager.save(
         categoryRepo.create({
           name,
           slug: slugify(name),
-          attributes: [attrColor, attrMarca], // Asignamos atributos a la categoría
         }),
       );
+
+      // 2. Insertar la relación manualmente con SQL
+      // Esto conecta la categoría con los atributos "Color" y "Marca"
+      // Intentamos con el nombre 'categoryAttributeMap' que definiste en la entidad
+      // 2. Insertar la relación manualmente con SQL
+      // Probamos directamente con el nombre snake_case que es el default de Postgres/TypeORM
+      await queryRunner.query(
+        `INSERT INTO "categoryAttributeMap" ("categoryId", "attributeId") VALUES ($1, $2), ($1, $3)`,
+        [category.id, attrColor.id, attrMarca.id]
+      );
+
       categoriesMap.set(name, category);
     }
     console.log(`${categoryNames.length} categorías creadas.`);
@@ -183,22 +232,24 @@ async function bootstrap() {
         );
         const variant = await queryRunner.manager.save(
           variantRepo.create({
-            product: product, // ¡Conexión al producto!
-            title: title, // La variante puede tener el mismo título
+            product: product,
+            title: title,
             price: randomPrecio(),
             inventoryQuantity: randomInventario(),
             sku: newSku,
-            // 'peso', 'altura', etc. ahora están en la variante
-            weight: null, 
+            weight: null,
+            createdAt: new Date(), 
           }),
         );
         
-        //Crear la entidad PRODUCT_IMAGE
+        // Crear la entidad PRODUCT_IMAGE
         await queryRunner.manager.save(
           imageRepo.create({
             url: DEFAULT_IMAGE,
             sortOrder: 0,
-            variant: variant, // ¡Conexión a la VARIANTE!
+            // Pasamos AMBOS para asegurar que TypeORM lo entienda
+            variant: variant, 
+            variantId: variant.id,
           }),
         );
 

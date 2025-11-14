@@ -42,7 +42,7 @@ export class TransactionsService {
 
         for (const contentItem of createTransactionDto.contenidos) {
           const product = await transactionEntityManager.findOneBy(Product, {
-            id: contentItem.productId,
+            id: String(contentItem.productId),
           });
           if (!product) {
             throw new NotFoundException(

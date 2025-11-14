@@ -47,7 +47,7 @@ export class ProductVariant{
     @Column({type: "timestamp"})
     createdAt : Date;
 
-    @OneToMany(()=> ProductImage, (image) => image.variants)
+    @OneToMany(()=> ProductImage, (image) => image.variant)
     images: ProductImage[];
 
     @OneToMany(() => ProductAttributeValue, (attrubutevalue) => attrubutevalue.variant ,)

@@ -26,30 +26,35 @@ export class CarritoController {
     return this.carritoService.obtenerCarrito(profileId);
   }
 
-  @Post()
+@Post()
   @ApiOperation({
-    summary: 'Agregar producto al carrito',
-    description:
-      'Agrega un producto al carrito del usuario. Si el producto ya existe, puede incrementarse la cantidad.',
+    summary: 'Agregar variante al carrito',
+    description: 'Agrega una variante de producto (talla/color) al carrito.',
   })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         profileId: { type: 'number', example: 12 },
-        productId: { type: 'number', example: 45 },
+        // CAMBIO 1: Ahora es un UUID string
+        productVariantId: { 
+          type: 'string', 
+          format: 'uuid', 
+          example: 'a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8' 
+        },
         cantidad: { type: 'number', example: 2, minimum: 1 },
       },
-      required: ['profileId', 'productId', 'cantidad'],
+      required: ['profileId', 'productVariantId', 'cantidad'],
     },
   })
   @ApiResponse({ status: 201, description: 'Producto agregado al carrito.' })
   agregarProducto(
-    @Body() body: { profileId: number; productId: number; cantidad: number },
+    // CAMBIO 2: Definimos el tipo correcto aquí
+    @Body() body: { profileId: number; productVariantId: string; cantidad: number },
   ) {
-    return this.carritoService.agregarProducto(
+    return this.carritoService.agregarVariante( //Renombramos el método en el servicio
       body.profileId,
-      body.productId,
+      body.productVariantId, // CAMBIO 3: Usamos la propiedad correcta
       body.cantidad,
     );
   }

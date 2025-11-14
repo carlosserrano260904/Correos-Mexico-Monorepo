@@ -1,11 +1,11 @@
-import { IsInt, IsNumber, IsPositive, IsBoolean } from 'class-validator';
+import { IsInt, IsNumber, IsPositive, IsBoolean, IsUUID } from 'class-validator';
 
 export class CreateCarritoDto {
   @IsInt()
   profileId: number;
 
-  @IsInt()
-  productId: number;
+  @IsUUID() // Validamos que sea un UUID v4
+  productVariantId: string;
 
   @IsInt()
   @IsPositive()

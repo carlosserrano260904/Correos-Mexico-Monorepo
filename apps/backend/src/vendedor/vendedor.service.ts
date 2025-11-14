@@ -40,14 +40,17 @@ export class VendedorService {
     }
 
     async obtenerPedidosAsignados(profileId: number): Promise<PedidoAsignadoDto[]> {
-        console.log('🔍 Obteniendo pedidos para profileId:', profileId);
+        console.log('🔍 Obteniendo pedidos para sellerId:', profileId);
+
+        const sellerIdString = String(profileId);
 
         // Obtener pedidos que contengan productos del vendedor y que no estén pendientes
         const pedidos = await this.pedidoRepository
             .createQueryBuilder('pedido')
             .leftJoinAndSelect('pedido.productos', 'pedidoProducto')
             .leftJoinAndSelect('pedidoProducto.producto', 'producto')
-            .where('producto.idPerfil = :profileId', { profileId })
+            .leftJoinAndSelect('producto.variants', 'variant')
+            .where('producto.sellerId = :profileId', { profileId: sellerIdString })
             .andWhere('pedido.status != :status', { status: 'pendiente' })
             .orderBy('pedido.fecha', 'DESC')
             .getMany();
@@ -59,7 +62,7 @@ export class VendedorService {
         for (const pedido of pedidos) {
             // Filtrar solo los productos que pertenecen al vendedor
             const productosVendedor = pedido.productos.filter(
-                pp => pp.producto.idPerfil === profileId
+                pp => pp.producto && pp.producto.sellerId === sellerIdString
             );
 
             if (productosVendedor.length === 0) continue;
@@ -85,12 +88,16 @@ export class VendedorService {
             }
 
             // Mapear productos del vendedor
-            const productos: ProductoPedidoDto[] = productosVendedor.map(pp => ({
-                sku: pp.producto.sku,
-                nombre: pp.producto.nombre,
+            const productos: ProductoPedidoDto[] = productosVendedor.map(pp => {
+                const variant = pp.producto.variants?.[0];
+
+                return{
+                sku: variant?.sku,
+                nombre: pp.producto.title,
                 cantidad: pp.cantidad,
                 estado: primeraGuia?.situacion_actual || 'Sin información'
-            }));
+                };
+            });
 
             pedidosAsignados.push({
                 id: pedido.id,

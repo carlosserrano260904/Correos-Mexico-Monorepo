@@ -25,7 +25,7 @@ export class ProductAttributeValue{
     @JoinColumn({name: 'attributeId'})
     attributeDefinition: AttributeDefinition;
 
-    @Column({type: "text", length: 120})
+    @Column({type: "varchar", nullable: true})
     value: string;
 
     @ManyToOne(() => ProductVariant, (variant) => variant.attributeValues, {nullable:true})

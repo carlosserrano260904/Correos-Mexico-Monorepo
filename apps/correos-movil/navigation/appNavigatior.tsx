@@ -37,10 +37,15 @@ import HistorialFacturas from '../screens/facturas/historial_facturas';
 import GuiaFormulario from '../screens/usuario/tarifador/GuiaFormulario';
 import ComoEnviar from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviar';
 import ComoEnviarPaquetes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetes';
-import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarCarta';
+import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar//ComoEnviarCarta';
 import ComoEnviarPaquetesyEmbalajes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetesyEmbalajes';
 import ComoEnviarArticulosProhibidos from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarArticulosProhibidos';
 import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor'; 
+import TarificadorNacional from '../screens/usuario/correos-mex-page/Cotizar-envio/tarifador';
+import ServiciosEmpresas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/serviciosParaEmpresas';
+import tarifasParaEnviosDeCartas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosDeCartas';
+import tarifasParaEnviosDePaquetes from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosDePaquetes';
+import tarifasParaEnviosImpresos from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosImpresos';
 // Esta cosa da error <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
 
 
@@ -89,7 +94,11 @@ export default function AppNavigator() {
             <Stack.Screen name="ComoEnviarPaquetes" component={ComoEnviarPaquetes} />
             <Stack.Screen name="ComoEnviarPaquetesyEmbalajes" component={ComoEnviarPaquetesyEmbalajes} />
             <Stack.Screen name="ComoEnviarArticulosProhibidos" component={ComoEnviarArticulosProhibidos} />
-
+            <Stack.Screen name="TarificadorNacional" component={TarificadorNacional} />
+            <Stack.Screen name="ServiciosEmpresas" component={ServiciosEmpresas} />
+            <Stack.Screen name="tarifasParaEnviosDeCartas" component={tarifasParaEnviosDeCartas} />
+            <Stack.Screen name="tarifasParaEnviosDePaquetes" component={tarifasParaEnviosDePaquetes} />
+            <Stack.Screen name="tarifasParaEnviosImpresos" component={tarifasParaEnviosImpresos} />
 
         </Stack.Navigator>
     );

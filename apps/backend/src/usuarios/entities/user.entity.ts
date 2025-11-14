@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { GiftedCouponEntity } from 'src/coupons/entities/gifted-coupon.entity';
+import { GiftedCouponEntity } from '../../coupons/entities/gifted-coupon.entity';
 
 @Entity()
 export class User {

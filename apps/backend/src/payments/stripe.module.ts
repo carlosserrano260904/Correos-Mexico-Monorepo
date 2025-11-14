@@ -9,6 +9,6 @@ import { Profile } from '../profile/entities/profile.entity';
   imports: [TypeOrmModule.forFeature([Card, Profile])],
   controllers: [StripeController],
   providers: [StripeService],
-  exports: [StripeService], // ✅ ¡Esto es lo que faltaba!
+  exports: [StripeService],
 })
 export class StripeModule {}

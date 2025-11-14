@@ -24,12 +24,12 @@ const imageData = [
     id: '2', 
     name: 'Item 2', 
     image: require('../../../assets/tramites.png'),
-    screen: 'AtencionClientePrincipal'
   },
   { 
     id: '3', 
     name: 'Item 3', 
-    image: require('../../../assets/reclamaciones.png') 
+    image: require('../../../assets/reclamaciones.png'),
+    screen: 'AtencionClientePrincipal'
   },
 ];
 
@@ -246,6 +246,9 @@ export default function HomeUser() {
   const handleCarouselItemPress = (item: any) => {
     if (item.screen === 'ComoEnviar') {
       navigation.navigate('ComoEnviar' as never);
+    }
+    if (item.screen === 'AtencionClientePrincipal') {
+      navigation.navigate('AtencionClientePrincipal' as never);
     }
   };
 

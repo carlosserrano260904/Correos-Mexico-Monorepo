@@ -1,17 +1,25 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { UserService } from '../usuarios/user.service';
+import { Repository } from 'typeorm';
+import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
+import { Profile } from '../profile/entities/profile.entity';
 import { ProveedoresService } from '../proveedores/proveedores.service';
+import { UserService } from '../usuarios/user.service';
+import { AuthDto } from './dto/auth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { OAuthDto } from './dto/oauth.dto';
-import { AuthDto } from './dto/auth.dto';
-import { UpdatePasswordDto, EmailOtpDto, VerifyOtpDto } from './dto/update-password.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Profile } from '../profile/entities/profile.entity';
-import { Repository } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
+import {
+  EmailOtpDto,
+  UpdatePasswordDto,
+  VerifyOtpDto,
+} from './dto/update-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,23 +32,25 @@ export class AuthService {
     private usuariosService: UserService,
     private proveedoresService: ProveedoresService,
     private readonly enviarCorreosService: EnviarCorreosService,
-  ) { }
+  ) {}
 
   async signup(dto: CreateUserDto) {
     const hash = await bcrypt.hash(dto.contrasena, 10);
     const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-    
+
     if (userExists) {
       throw new UnauthorizedException('El correo ya está en uso');
     }
 
     // Creación de cliente en Stripe
     const Stripe = require('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-06-30.basil',
+    });
     const customer = await stripe.customers.create({
       name: dto.nombre || dto.correo.split('@')[0],
     });
-    
+
     // Creación de perfil
     const profile = this.profileRepository.create({
       nombre: dto.nombre || dto.correo.split('@')[0],
@@ -64,17 +74,19 @@ export class AuthService {
     });
 
     // Generar y enviar token de verificación
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
     await this.usuariosService.updateOTP(dto.correo, {
       token: verificationToken,
-      tokenCreatedAt: new Date() 
+      tokenCreatedAt: new Date(),
     });
 
     // Enviar email de confirmación
     await this.enviarCorreosService.enviarConfirmacion({
       correo: user.correo,
       token: verificationToken,
-      nombre: user.nombre
+      nombre: user.nombre,
     });
 
     // Generar token JWT
@@ -98,7 +110,9 @@ export class AuthService {
     if (!proveedor) {
       // Crear cliente en Stripe
       const Stripe = require('stripe');
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' });
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2025-06-30.basil',
+      });
       const customer = await stripe.customers.create({
         name: dto.nombre || dto.correo.split('@')[0],
       });
@@ -144,8 +158,7 @@ export class AuthService {
 
   async signin(dto: AuthDto) {
     const user = await this.usuariosService.findByCorreo(dto.correo);
-  
-    
+
     if (!user || !user.password) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
@@ -154,7 +167,9 @@ export class AuthService {
     }
 
     if (!user.profile) {
-      throw new InternalServerErrorException('El perfil no está vinculado al usuario');
+      throw new InternalServerErrorException(
+        'El perfil no está vinculado al usuario',
+      );
     }
 
     const valid = await bcrypt.compare(dto.contrasena, user.password);
@@ -164,7 +179,7 @@ export class AuthService {
 
     const token = await this.jwtService.signAsync({
       profileId: user.profile.id,
-      rol: user.rol || 'usuario'
+      rol: user.rol || 'usuario',
     });
 
     return { token, userId: user.profile.id };
@@ -195,13 +210,13 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000);
     await this.usuariosService.updateOTP(dto.correo, {
       token: otp.toString(),
-      tokenCreatedAt: new Date()
+      tokenCreatedAt: new Date(),
     });
 
     await this.enviarCorreosService.enviarConfirmacion({
       correo: user.correo,
       token: otp.toString(),
-      nombre: user.nombre
+      nombre: user.nombre,
     });
 
     return { message: 'OTP enviado correctamente' };
@@ -216,8 +231,10 @@ export class AuthService {
     // Verificar expiración (10 minutos)
     if (user.tokenCreatedAt) {
       const now = new Date();
-      const tokenExpiration = new Date(user.tokenCreatedAt.getTime() + 10 * 60 * 1000);
-      
+      const tokenExpiration = new Date(
+        user.tokenCreatedAt.getTime() + 10 * 60 * 1000,
+      );
+
       if (now > tokenExpiration) {
         await this.cleanSingleExpiredToken(user.correo);
         throw new UnauthorizedException('El token ha expirado');
@@ -228,18 +245,22 @@ export class AuthService {
       await this.usuariosService.updateOTP(user.correo, {
         token: null,
         tokenCreatedAt: null,
-        confirmado: true
+        confirmado: true,
       });
       return { isOtpVerified: true };
     }
-    
-    return { isOtpVerified: false };
+
+    // Vi que el frontend solo checa si la respuesta es 'ok' (status 200).
+    // Si el token estaba mal, yo regresaba 'false' pero con status 200,
+    // así que la app pensaba que estaba bien.
+    // Ahora lanzo un error 401 para que el frontend sí lo cache.
+    throw new UnauthorizedException('Token no valido');
   }
 
   private async cleanSingleExpiredToken(email: string) {
     await this.usuariosService.updateOTP(email, {
       token: null,
-      tokenCreatedAt: null
+      tokenCreatedAt: null,
     });
   }
 
@@ -257,12 +278,11 @@ export class AuthService {
   //@Cron(CronExpression.EVERY_HOUR) // Destruir registros relacionados a usuarios no verificados
   async handleCleanUnverifiedUsers() {
     this.logger.log('Iniciando limpieza de usuarios no verificados...');
-    
+
     try {
       // Eliminar usuarios no verificados después de 24 horas
       const deletedCount = await this.usuariosService.cleanUnverifiedUsers();
       this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
-
     } catch (error) {
       this.logger.error('Error en limpieza de usuarios no verificados:', error.stack);
     }

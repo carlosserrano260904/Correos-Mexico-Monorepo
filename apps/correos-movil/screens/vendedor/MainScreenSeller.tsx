@@ -4,11 +4,13 @@ import { moderateScale } from 'react-native-size-matters';
 import { Home } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ResumeCardComponent from '../../components/SellerComponents/resumeCardComponent';
 import CouponCardCompnent from '../../components/SellerComponents/couponCardComponent';
 import TopButtonSellerComponent from '../../components/SellerComponents/topButtonSellerComponent';
 
-const screenWidht = Dimensions.get('screen').width;
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
 
 export default function MainScreenSeller() {
     // Define la navegacion
@@ -26,87 +28,89 @@ export default function MainScreenSeller() {
     });
 
     return (
-        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.topContainer}>
-                <Image style={styles.photo} source={logo}/>
-                <TopButtonSellerComponent icon={<Home size={moderateScale(18)} color={'#6B7280'}/>} text='Regresar al inicio' onPressTopButton={() => navigation.navigate('Tabs' as never)}/>
-            </View>
-            <View style={styles.nameContainer}>
-                <Text style={styles.name}>¡Hola, Juan!</Text>
-                <Text style={styles.description}>Conoce el resumen de tus ventas a continuación.</Text>
-            </View>
-            <View style={styles.cardsWrapper}>
-                <ResumeCardComponent type={'activos'} amount={69}/>
-                <ResumeCardComponent type={'pausados'} amount={3}/>
-                <ResumeCardComponent type={'vendidos'} amount={23}/>
-                <ResumeCardComponent type={'sin-stock'} amount={1}/>
-            </View>
-            <LinearGradient
-                colors={['#F155AC', '#DE1484']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.salesCardContainer}
-            >
-                <Text style={styles.saleText}>Ventas del Mes</Text>
-                <Text style={styles.salesTextStrong}>${formattedTotalSales}</Text>
-                <Text style={styles.salesPercentageText}><Text style={styles.salesPercentage}>15%</Text> más que el mes pasado.</Text>
-            </LinearGradient>
-            <View style={styles.couponsCardsContainer}>
-                <View style={styles.topCouponsCards}>
-                    <Text style={styles.topTextCoupons}>Cupones recientes</Text>
-                    <TouchableOpacity>
-                        <Text style={styles.topButtonTextCoupons}>Administrar</Text>
-                    </TouchableOpacity>
+        <SafeAreaView style = {{flex: 1, backgroundColor: '#fff'}}>
+            <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+                <View style={styles.topContainer}>
+                    <Image style={styles.photo} source={logo}/>
+                    <TopButtonSellerComponent icon={<Home size={screenWidth * 0.047} color={'#6B7280'}/>} text='Regresar al inicio' onPressTopButton={() => navigation.navigate('Tabs' as never)}/>
                 </View>
-                <View style={styles.couponsContainer}>
-                    <CouponCardCompnent 
-                        onPressCoupon={() => console.log("Presionando la card del cupon")}
-                        stateCoupon={'pausado'}
-                        nameCoupon={'HASK45'}
-                        usageCoupon={7}
-                        typeOfDiscount={'porcentaje'}
-                        discount={30}
-                        onPressEditCoupon={() => console.log("Editar cupon")}
-                        onPressPauseCoupon={() => console.log("Pausar cupon")}
-                        colorCoupon={'#f27a24ff'}
-                    />
-                    <CouponCardCompnent 
-                        onPressCoupon={() => console.log("Presionando la card del cupon")}
-                        stateCoupon={'expirado'}
-                        nameCoupon={'HASK85'}
-                        usageCoupon={21}
-                        typeOfDiscount={'cantidad'}
-                        discount={1500}
-                        onPressEditCoupon={() => console.log("Editar cupon")}
-                        onPressPauseCoupon={() => console.log("Pausar cupon")}
-                        colorCoupon={'#0b0984ff'}
-                    />
-                    <CouponCardCompnent 
-                        onPressCoupon={() => console.log("Presionando la card del cupon")}
-                        stateCoupon={'activo'}
-                        nameCoupon={'HASJ98'}
-                        usageCoupon={90}
-                        typeOfDiscount={'cantidad'}
-                        discount={700}
-                        onPressEditCoupon={() => console.log("Editar cupon")}
-                        onPressPauseCoupon={() => console.log("Pausar cupon")}
-                        colorCoupon={'#ee2424ff'}
-                    />
+                <View style={styles.nameContainer}>
+                    <Text style={styles.name}>¡Hola, Juan!</Text>
+                    <Text style={styles.description}>Conoce el resumen de tus ventas a continuación.</Text>
+                </View>
+                <View style={styles.cardsWrapper}>
+                    <ResumeCardComponent type={'activos'} amount={69}/>
+                    <ResumeCardComponent type={'pausados'} amount={3}/>
+                    <ResumeCardComponent type={'vendidos'} amount={23}/>
+                    <ResumeCardComponent type={'sin-stock'} amount={1}/>
+                </View>
+                <LinearGradient
+                    colors={['#F155AC', '#DE1484']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={styles.salesCardContainer}
+                >
+                    <Text style={styles.saleText}>Ventas del Mes</Text>
+                    <Text style={styles.salesTextStrong}>${formattedTotalSales}</Text>
+                    <Text style={styles.salesPercentageText}><Text style={styles.salesPercentage}>15%</Text> más que el mes pasado.</Text>
+                </LinearGradient>
+                <View style={styles.couponsCardsContainer}>
+                    <View style={styles.topCouponsCards}>
+                        <Text style={styles.topTextCoupons}>Cupones recientes</Text>
+                        <TouchableOpacity>
+                            <Text style={styles.topButtonTextCoupons}>Administrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.couponsContainer}>
+                        <CouponCardCompnent 
+                            onPressCoupon={() => console.log("Presionando la card del cupon")}
+                            stateCoupon={'pausado'}
+                            nameCoupon={'HASK45'}
+                            usageCoupon={7}
+                            typeOfDiscount={'porcentaje'}
+                            discount={30}
+                            onPressEditCoupon={() => console.log("Editar cupon")}
+                            onPressPauseCoupon={() => console.log("Pausar cupon")}
+                            colorCoupon={'#f27a24ff'}
+                        />
+                        <CouponCardCompnent 
+                            onPressCoupon={() => console.log("Presionando la card del cupon")}
+                            stateCoupon={'expirado'}
+                            nameCoupon={'HASK85'}
+                            usageCoupon={21}
+                            typeOfDiscount={'cantidad'}
+                            discount={1500}
+                            onPressEditCoupon={() => console.log("Editar cupon")}
+                            onPressPauseCoupon={() => console.log("Pausar cupon")}
+                            colorCoupon={'#0b0984ff'}
+                        />
+                        <CouponCardCompnent 
+                            onPressCoupon={() => console.log("Presionando la card del cupon")}
+                            stateCoupon={'activo'}
+                            nameCoupon={'HASJ98'}
+                            usageCoupon={90}
+                            typeOfDiscount={'cantidad'}
+                            discount={700}
+                            onPressEditCoupon={() => console.log("Editar cupon")}
+                            onPressPauseCoupon={() => console.log("Pausar cupon")}
+                            colorCoupon={'#ee2424ff'}
+                        />
+                    </View>
+                    
                 </View>
                 
-            </View>
-            
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: moderateScale(40),
-        paddingHorizontal: moderateScale(20), 
+        paddingTop: screenHeight * 0.025,
+        paddingHorizontal: screenWidth * 0.052, 
         backgroundColor: '#fff',
-        gap: moderateScale(20),
-        paddingBottom: moderateScale(128)
+        gap: screenHeight * 0.025,
+        paddingBottom: screenHeight * 0.14
     },
     cardsWrapper: {
         flexDirection: 'row',
@@ -119,58 +123,58 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     photo: {
-        width: screenWidht * 0.15,
-        height: screenWidht * 0.14
+        width: screenWidth * 0.15,
+        height: screenWidth * 0.14
     },
     nameContainer: {
         flexDirection: 'column',
-        gap: moderateScale(8)
+        gap: screenHeight * 0.01
     },
     name: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(32),
+        fontSize: screenHeight * 0.038,
         color: '#111827'
     },
     description: {
         fontFamily: 'system-ui',
         fontWeight: 400,
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.019,
         color: '#4B5563',
     },
     salesCardContainer: {
         flexDirection: 'column',
-        gap: moderateScale(8),
+        gap: screenHeight * 0.01,
         borderRadius: moderateScale(12),
-        padding: moderateScale(16)
+        padding: screenWidth * 0.042
     },
     saleText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.019,
         color: '#ffffff'
     },
     salesTextStrong: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(32),
+        fontSize: screenHeight * 0.038,
         color: '#ffffff'
     },
     salesPercentage: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.0165,
         color: '#ffffff'
     },
     salesPercentageText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.0165,
         color: '#ffffff'
     },
     couponsCardsContainer: {
         flexDirection: 'column',
-        gap: moderateScale(12)
+        gap: screenHeight * 0.015
     },
     topCouponsCards: {
         flexDirection: 'row',
@@ -178,18 +182,18 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     couponsContainer: {
-        gap: moderateScale(12)
+        gap: screenHeight * 0.015
     },
     topButtonTextCoupons: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.0165,
         color: '#DE1484'
     },
     topTextCoupons: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(20),
+        fontSize: screenHeight * 0.024,
         color: '#000000'
     }
     

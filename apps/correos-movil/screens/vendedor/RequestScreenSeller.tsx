@@ -2,48 +2,52 @@ import React, {useEffect, useState} from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { moderateScale } from 'react-native-size-matters';
+import { BadgePlus } from 'lucide-react-native';
+import TopButtonSellerComponent from '../../components/SellerComponents/topButtonSellerComponent';
+import RequestCardComponent from '../../components/SellerComponents/requestCardComponent';
+import ProductCardSellerComponent from '../../components/SellerComponents/productCardSellerComponent';
 import FilterTabs from '../../components/SellerComponents/filterTabsComponent';
-import OrderCardComponent from '../../components/SellerComponents/orderCardComponent';
 
 const screenWidth = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height
 
-// Define el tipo para los pedidos
-type Order = {
+// Define el tipo para las solicitudes
+type Request = {
     id: number;
     status: string;
     nombre: string;
     fecha: string;
-    productosDistintos: number;
-    total: number;
+    numeroImagenes: number;
+    precio: number;
 };
 
-export default function OrdersScreenSeller() {
+export default function RequestScreenSeller() {
 
     // Imagen logo
     const logo = require('../../assets/icons_correos_mexico/correos_clic_Logo.png')
-        
-    // Array de ejemplo para los pedidos
-    const [pedidos, setPedidos] = useState<Order[]>([])
-    // Define el array de pedidos filtrados, como default son todos los pedidos
-    const [filtradas, setFiltradas] = useState(pedidos);
-    // Define si se se estan cargando los pedidos
-    const [loadingOrders, setLoadingOrders] = useState(true)
-        
-    // Funcion para renderizar la card de los pedidos
-    const renderOrders = ({item}: {item: typeof pedidos[number]}) => {
+
+    // Array de ejemplo para las solicitudes
+    const [solicitudes, setSolicitudes] = useState<Request[]>([])
+    // Define el array de solicitudes filtradas, como default son todas las solicitudes
+    const [filtradas, setFiltradas] = useState(solicitudes);
+    // Define si se se estan cargando las solicitudes
+    const [loadingRequests, setLoadingRequests] = useState(true)
+
+    // Funcion para renderizar la card de las solicitudes
+    const renderRequests = ({item}: {item: typeof solicitudes[number]}) => {
         return (
-            <OrderCardComponent
-                statusOrder={item.status.toLowerCase() as 'pendiente' | 'enviado' | 'entregado' | 'cancelado'}
-                nameOrder={item.nombre}
-                dateOrder={new Date(item.fecha + 'T00:00:00')}
-                numberDistinct={item.productosDistintos}
-                totalOrder={item.total}
-                onPressOrder={() => console.log('Presione el boton de orden')}
+            <RequestCardComponent 
+                statusRequest={item.status.toLowerCase() as 'en-revision' | 'aprobado' | 'rechazado' | 'observaciones'}
+                nameRequest={item.nombre}
+                dateRequest={new Date(item.fecha + 'T00:00:00')}
+                numberImages={item.numeroImagenes}
+                priceRequest={item.precio}
+                onPressRequest={() => console.log('Presione la solicitud ' + item.id)}
             />
-        );      
-    }
+        );
         
+    }
+
     // Estructura de la categoria
     type CategoryItem = { label: string; value: string}
     // Funcion para obtener las categorias de filtrado
@@ -65,13 +69,18 @@ export default function OrdersScreenSeller() {
         const formatted = Array.from(uniqueValues).map(val => {
             let label = val;
 
-            label = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+            // Si el valor es en-revison, se cambia su label a En revision
+            if (val === 'en-revision') label = 'En revision';
+            // Si no el laber va a ser la primera letra mayuscula y lo demas en minuscula
+            else label = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
 
             // Si el label es En revison se queda igual
             if (label === 'En revision') label = 'En revisión';
+            else if(label === 'Aprobado') label = 'Aprobadas'
+            else if (label === 'Rechazado') label = 'Rechazadas'
             // Agrega "s" al final
             else if (!label.endsWith('s')) label += 's';
-            
+
             // Regresa la estructura de la categoria
             return {
                 label,   // lo que se muestra
@@ -81,22 +90,23 @@ export default function OrdersScreenSeller() {
 
         return formatted;
     }
-        
+
     // Define las categorias que se van a filtrar por los productos dando la palabra clave del valor a buscar
-    const categorias = getFormattedCategories(pedidos, 'status');
-        
+    const categorias = getFormattedCategories(solicitudes, 'status');
+
     useEffect(() => {
-        const ordersEndpoint = [
-            { id: 1, nombre: 'OKSDOF8978', status: 'pendiente', fecha: '2025-10-23', productosDistintos: 2, total: 324.23 },
-            { id: 2, nombre: 'OKSDOF8979', status: 'enviado', fecha: '2025-10-22', productosDistintos: 1, total: 554.24 },
-            { id: 3, nombre: 'OKSDOF8956', status: 'entregado', fecha: '2025-09-10', productosDistintos: 5, total: 5646 },
-            { id: 4, nombre: 'OKSDOF8923', status: 'cancelado', fecha: '2025-06-21', productosDistintos: 1, total: 878.99 },
+        const requestsEndpoint = [
+            { id: 1, nombre: 'SIDFIO89456', status: 'en-revision', precio: 2000.90, fecha: '2025-10-10', numeroImagenes: 5, },
+            { id: 2, nombre: 'SIDFIO89445', status: 'aprobado', precio: 465.23, fecha: '2025-10-17', numeroImagenes: 5, },
+            { id: 3, nombre: 'SIDFIO89446', status: 'observaciones', precio: 8798, fecha: '2025-04-11', numeroImagenes: 5, },
+            { id: 4, nombre: 'SIDFIO89231', status: 'rechazado', precio: 1158.33, fecha: '2024-12-10', numeroImagenes: 5, },
         ]
-        
-        setPedidos(ordersEndpoint)
-        setLoadingOrders(false)
+
+        setSolicitudes(requestsEndpoint)
+        setLoadingRequests(false)
     }, [])
 
+    console.log(filtradas)
     return(
         <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
             <ScrollView contentContainerStyle={styles.container}> 
@@ -104,36 +114,37 @@ export default function OrdersScreenSeller() {
                     <Image style={styles.photo} source={logo}/>
                 </View>
                 <View style={styles.tabsContainer}>
-                    <Text style={styles.textTab}>Mis Pedidos</Text>
+                    <Text style={styles.textTab}>Mis Solicitudes</Text>
                     <FilterTabs 
                         categories={categorias}
-                        data={pedidos}
+                        data={solicitudes}
                         onFilter={setFiltradas}
                         categoryKey='status'
-                        nameAll='Todos'
+                        nameAll='Todas'
                     />
                 </View>
                 <View>
-                    {loadingOrders ? (
+                    {loadingRequests ? (
                         <View style={styles.loadingContainer}>
-                            <Text style={styles.loadingText}>No hay pedidos disponibles</Text>
+                            <Text style={styles.loadingText}>No hay solicitudes disponibles</Text>
                         </View>
                     ) : (
                         <FlatList 
-                            data={filtradas}
-                            keyExtractor={(item) => item.id.toString()}
-                            renderItem={renderOrders}
-                            scrollEnabled={false}
-                            contentContainerStyle={styles.productsContainer}
-                        />
+                        data={filtradas}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderRequests}
+                        scrollEnabled={false}
+                        contentContainerStyle={styles.productsContainer}
+                    />
                     )}
-                                    
-                </View>     
+                    
+                </View>
+                
             </ScrollView>
         </SafeAreaView>
     )
 }
-                
+
 const styles = StyleSheet.create({
     container: {
         paddingTop: screenHeight * 0.025,
@@ -173,5 +184,6 @@ const styles = StyleSheet.create({
         fontFamily: 'system-ui',
         fontWeight: 500,
         color: '#9CA3AF'
-    }        
+    }
+
 })

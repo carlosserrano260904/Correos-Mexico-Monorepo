@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
+
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
 
 export default function StatesCouponsComponent({
     // Pide el estado del cupón
@@ -30,22 +33,22 @@ export default function StatesCouponsComponent({
 
 const styles = StyleSheet.create({
     container: {
-        gap: moderateScale(6),
+        gap: screenWidth * 0.016,
         borderRadius: moderateScale(100),
-        paddingHorizontal: moderateScale(12),
-        paddingVertical: moderateScale(4),
+        paddingHorizontal: screenWidth * 0.032,
+        paddingVertical: screenHeight * 0.005,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
     },
     dot: {
-        width: moderateScale(6),
-        height: moderateScale(6),
+        width: screenWidth * 0.016,
+        height: screenWidth * 0.016,
         borderRadius: moderateScale(100),
     },
     text: {
-        fontSize: moderateScale(12),
+        fontSize: screenHeight * 0.014,
         fontFamily: 'system-ui',
     },
 

@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { CircleDashed, Send, CircleCheckBig, X, Ban } from 'lucide-react-native';
+
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
 
 export default function StatesOrdersComponent({
     // Pide el estado del pedido
@@ -18,11 +21,11 @@ export default function StatesOrdersComponent({
     return (
         <View style={[styles.container, { backgroundColor: bgColor }]}>
             {
-                type === 'pendiente' ? (<CircleDashed size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'enviado' ? (<Send size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'entregado' ? (<CircleCheckBig size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'cancelado' ? (<X size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                (<Ban size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />)
+                type === 'pendiente' ? (<CircleDashed size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'enviado' ? (<Send size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'entregado' ? (<CircleCheckBig size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'cancelado' ? (<X size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                (<Ban size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />)
             }
             {
                 type === 'pendiente' ? (<Text style={[styles.text, {color: textColor}]}>Pendiente</Text>) :
@@ -38,22 +41,17 @@ export default function StatesOrdersComponent({
     
     const styles = StyleSheet.create({
         container: {
-            gap: moderateScale(6),
+            gap: screenWidth * 0.016,
             borderRadius: moderateScale(100),
-            paddingHorizontal: moderateScale(12),
-            paddingVertical: moderateScale(4),
+            paddingHorizontal: screenWidth * 0.032,
+            paddingVertical: screenHeight * 0.005,
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'row',
             alignSelf: 'flex-start',
         },
-        dot: {
-            width: moderateScale(6),
-            height: moderateScale(6),
-            borderRadius: moderateScale(100),
-        },
         text: {
-            fontSize: moderateScale(12),
+            fontSize: screenHeight * 0.014,
             fontFamily: 'system-ui',
         },
     

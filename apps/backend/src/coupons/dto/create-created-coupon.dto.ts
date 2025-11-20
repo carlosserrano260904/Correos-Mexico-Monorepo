@@ -1,19 +1,31 @@
-import { IsInt, IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsUUID, IsInt, IsString, IsNumber, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { CouponDiscountType } from '../entities/created-coupon.entity';
 
 export class CreateCreatedCouponDto {
-  /** ID del producto al que se le asigna el cupón */
-  @IsInt()
-  product_id: number;
+  @IsUUID()
+  product_id?: string;
 
-  /** Código único del cupón (por ejemplo, “DESC10”) */
+  @IsInt()
+  seller_id?: number;
+
   @IsString()
   code: string;
 
-  /** Porcentaje de descuento que aplica el cupón */
-  @IsNumber()
-  discount_percentage: number;
+  @IsEnum(CouponDiscountType)
+  type_discount: CouponDiscountType;
 
-  /** Fecha de expiración del cupón */
+  @IsNumber()
+  amount: number;
+
+  @IsOptional()
   @IsDateString()
-  expires_at: Date;
+  start_at?: string;
+
+  @IsOptional()
+  @IsDateString()
+  expires_at?: string;
+
+  @IsOptional()
+  @IsString()
+  color?: string;
 }

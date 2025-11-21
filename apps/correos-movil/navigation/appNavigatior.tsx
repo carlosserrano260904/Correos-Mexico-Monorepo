@@ -55,6 +55,9 @@ import AtencionClientePrincipal from '../screens/usuario/correos-mex-page/atenci
 import ComoEnviarAtencion from '../screens/usuario/correos-mex-page/atencion-cliente/ComoEnviar';
 import Contacto from '../screens/usuario/correos-mex-page/atencion-cliente/Contacto';
 import PreguntasFrecuentes from '../screens/usuario/correos-mex-page/atencion-cliente/PreguntasFrecuentes';
+import PropagandaComercial from '../screens/usuario/HomePage/PropagandaComercial';
+import TarifaScreen from '../screens/usuario/HomePage/TarifaScreen';
+
 // Esta cosa da error <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
 
 
@@ -117,6 +120,8 @@ export default function AppNavigator() {
             <Stack.Screen name="ComoEnviarAtencion" component={ComoEnviarAtencion} />
             <Stack.Screen name="Contacto" component={Contacto} />
             <Stack.Screen name="PreguntasFrecuentes" component={PreguntasFrecuentes} />
+            <Stack.Screen name="PropagandaComercial" component={PropagandaComercial} />
+            <Stack.Screen name="TarifaScreen" component={TarifaScreen}/>
 
         </Stack.Navigator>
     );

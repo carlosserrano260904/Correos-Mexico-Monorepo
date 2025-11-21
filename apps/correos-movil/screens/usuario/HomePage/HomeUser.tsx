@@ -9,6 +9,7 @@ import { RootStackParamList } from '../../../schemas/schemas';
 import { useMyAuth } from '../../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;

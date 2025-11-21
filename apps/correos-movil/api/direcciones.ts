@@ -1,5 +1,6 @@
 import { DireccionesSchemaDB, DireccionesType } from "../schemas/schemas";
 import { Direccion } from "../screens/usuario/Direcciones/Direcciones"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function obtenerDirecciones(obtenerusuarioId: number): Promise<DireccionesType> {
   
@@ -10,7 +11,7 @@ export async function obtenerDirecciones(obtenerusuarioId: number): Promise<Dire
   console.log('Respuesta cruda:', JSON.stringify(json, null, 2));
 
   if (Array.isArray(json)) {
-    const direcciones = DireccionesSchemaDB.parse(json); // Validar como array
+    const direcciones = DireccionesSchemaDB.parse(json);
     return direcciones;
   }
 
@@ -75,5 +76,58 @@ export async function actualizarDireccionAPI(id: number, direccion: Direccion): 
 
   if (!res.ok) {
     throw new Error('No se pudo actualizar la dirección');
+  }
+}
+
+// ✅ NUEVA FUNCIÓN: Guardar dirección seleccionada COMPLETA
+export async function guardarDireccionSeleccionada(direccion: any): Promise<void> {
+  try {
+    if (!direccion || !direccion.id) {
+      throw new Error('Dirección inválida');
+    }
+
+    // ✅ GUARDAR DIRECCIÓN COMPLETA
+    await AsyncStorage.setItem('direccionSeleccionada', JSON.stringify(direccion));
+    await AsyncStorage.setItem('direccionSeleccionadaId', direccion.id.toString());
+    
+    console.log('💾 Dirección COMPLETA guardada:', {
+      id: direccion.id,
+      calle: direccion.calle,
+      colonia: direccion.colonia_fraccionamiento
+    });
+  } catch (error) {
+    console.error('❌ Error guardando dirección seleccionada:', error);
+    throw error;
+  }
+}
+
+// ✅ FUNCIÓN: Obtener dirección seleccionada
+export async function obtenerDireccionSeleccionada(): Promise<any | null> {
+  try {
+    const direccionGuardada = await AsyncStorage.getItem('direccionSeleccionada');
+    
+    if (direccionGuardada && direccionGuardada !== 'null') {
+      const direccion = JSON.parse(direccionGuardada);
+      console.log('📦 Dirección seleccionada obtenida:', direccion);
+      return direccion;
+    }
+    
+    console.log('ℹ️ No hay dirección seleccionada guardada');
+    return null;
+  } catch (error) {
+    console.error('❌ Error obteniendo dirección seleccionada:', error);
+    return null;
+  }
+}
+
+// ✅ FUNCIÓN: Limpiar dirección seleccionada
+export async function limpiarDireccionSeleccionada(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem('direccionSeleccionada');
+    await AsyncStorage.removeItem('direccionSeleccionadaId');
+    console.log('🧹 Dirección seleccionada limpiada');
+  } catch (error) {
+    console.error('❌ Error limpiando dirección seleccionada:', error);
+    throw error;
   }
 }

@@ -6,9 +6,9 @@ import { JwtStrategy } from './jwt.startegy';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../usuarios/user.module';
 import { ProveedoresModule } from '../proveedores/proveedores.module';
-import { Profile } from 'src/profile/entities/profile.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailModule } from '../enviar-correos/enviar-correos.module';  
+import { EmailModule } from '../enviar-correos/enviar-correos.module';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Module({
   imports: [

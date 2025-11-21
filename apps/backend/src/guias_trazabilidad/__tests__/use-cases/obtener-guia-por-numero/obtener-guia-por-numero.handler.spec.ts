@@ -3,7 +3,7 @@ import { ObtenerGuiaPorNumeroQueryHandler } from '../../../application/use-cases
 import { ObtenerGuiaPorNumeroQuery } from '../../../application/use-cases/obtener-guia-por-numero/obtener-guia-por-numero.query';
 import { RepositoryMocks } from '../../mocks/repository-mocks';
 import { GuiasTrazabilidadTestSetup } from '../../setup/test-setup';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../../utils/result';
 
 import { GUIA_READ_REPOSITORY } from '../../../application/ports/outbound/guia-read.repository.interface';
 

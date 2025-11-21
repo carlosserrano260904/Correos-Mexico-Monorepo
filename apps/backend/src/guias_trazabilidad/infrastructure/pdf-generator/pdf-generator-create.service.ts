@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CommandBus } from "@nestjs/cqrs";
-import { CrearGuiaCommand, TipoServicio } from "src/guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command";
+import { CrearGuiaCommand, TipoServicio } from '../../../guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command';
 
 @Injectable()
 export class PDFGeneratorCreateService {

@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction, TransactionContents } from './entities/transaction.entity';
-import { Product } from 'src/products/entities/product.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Product } from '../products/entities/product.entity';
+import { Profile } from '../profile/entities/profile.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 

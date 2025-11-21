@@ -1,40 +1,46 @@
-import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
-import { createElement } from "react"
-import { GuiaMapper } from "../../mappers/guia.mapper";
+import { createElement } from 'react';
+import { GuiaMapper } from '../../mappers/guia.mapper';
 
 type GuiaPdfPayload = ReturnType<typeof GuiaMapper.toPdfPayload>;
 
-export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: string) => {
+export const plantillaGuiaNacional = async (
+  guiaData: GuiaPdfPayload,
+  qrCodeDataURL: string,
+) => {
+  const { Document, Page, Text, View, StyleSheet, Image } = await import(
+    '@react-pdf/renderer'
+  );
+
   const styles = StyleSheet.create({
     page: {
       padding: 0,
-      fontFamily: "Helvetica",
+      fontFamily: 'Helvetica',
       fontSize: 10,
-      backgroundColor: "#ffffff",
+      backgroundColor: '#ffffff',
     },
     postalLabel: {
-      width: "100%",
-      backgroundColor: "white",
-      border: "3px solid black",
-      margin: "0 auto",
+      width: '100%',
+      backgroundColor: 'white',
+      border: '3px solid black',
+      margin: '0 auto',
     },
     header: {
-      borderBottom: "2px solid black",
+      borderBottom: '2px solid black',
       padding: 10,
-      textAlign: "center",
-      backgroundColor: "white",
+      textAlign: 'center',
+      backgroundColor: 'white',
     },
     headerTitle: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
       fontSize: 12,
       marginBottom: 10,
-      border: "1px solid black",
+      border: '1px solid black',
       padding: 5,
     },
     serviceInfo: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       marginTop: 10,
     },
     logo: {
@@ -51,85 +57,85 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
     },
     serviceTitle: {
       flex: 1,
-      textAlign: "center",
+      textAlign: 'center',
       marginHorizontal: 20,
     },
     serviceTitleMain: {
       fontSize: 18,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       margin: 0,
     },
     serviceTitleSub: {
       fontSize: 12,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginTop: 5,
     },
     infoFields: {
-      textAlign: "right",
+      textAlign: 'right',
       fontSize: 11,
     },
     infoField: {
       marginVertical: 3,
     },
     senderSection: {
-      flexDirection: "row",
-      borderBottom: "1px solid black",
+      flexDirection: 'row',
+      borderBottom: '1px solid black',
       minHeight: 80,
     },
     senderLeft: {
       flex: 1,
       padding: 10,
-      borderRight: "1px solid black",
+      borderRight: '1px solid black',
     },
     sectionTitle: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
       fontSize: 12,
       marginBottom: 10,
     },
     adminSection: {
       padding: 10,
-      borderBottom: "2px solid black",
+      borderBottom: '2px solid black',
       minHeight: 40,
     },
     barcodeSection: {
-      textAlign: "center",
+      textAlign: 'center',
       padding: 15,
-      borderBottom: "2px solid black",
+      borderBottom: '2px solid black',
     },
     barcodeNumber: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
       fontSize: 16,
       marginTop: 5,
-      fontFamily: "Courier",
+      fontFamily: 'Courier',
     },
     recipientSection: {
       minHeight: 120,
       padding: 10,
-      borderBottom: "1px solid black",
+      borderBottom: '1px solid black',
     },
     addressBox: {
       height: 60,
-      border: "1px solid #ccc",
+      border: '1px solid #ccc',
       marginTop: 10,
       padding: 5,
     },
     termsSection: {
       fontSize: 8,
       padding: 5,
-      borderBottom: "1px solid black",
+      borderBottom: '1px solid black',
       lineHeight: 1.2,
     },
     qrSection: {
-      flexDirection: "row",
-      borderBottom: "1px solid black",
+      flexDirection: 'row',
+      borderBottom: '1px solid black',
       padding: 10,
-      alignItems: "center",
+      alignItems: 'center',
     },
     qrLeft: {
       flex: 1,
     },
     qrRight: {
-      alignItems: "center",
+      alignItems: 'center',
       width: 100,
     },
     qrCode: {
@@ -139,48 +145,48 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
     },
     qrText: {
       fontSize: 8,
-      textAlign: "center",
-      color: "#666666",
+      textAlign: 'center',
+      color: '#666666',
     },
     instructionsTitle: {
       fontSize: 10,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginBottom: 5,
-      color: "#333333",
+      color: '#333333',
     },
     instructionsText: {
       fontSize: 8,
       lineHeight: 1.3,
-      color: "#666666",
+      color: '#666666',
     },
     footerInfo: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       padding: 10,
       fontSize: 11,
-      borderBottom: "1px solid black",
+      borderBottom: '1px solid black',
     },
     footerLeft: {
       flex: 1,
     },
     footerRight: {
-      textAlign: "right",
-      fontWeight: "bold",
+      textAlign: 'right',
+      fontWeight: 'bold',
     },
     declarations: {
       padding: 5,
       paddingHorizontal: 10,
       fontSize: 10,
-      borderBottom: "1px solid black",
+      borderBottom: '1px solid black',
     },
     receiptSection: {
-      textAlign: "center",
+      textAlign: 'center',
       padding: 10,
-      borderBottom: "1px solid black",
+      borderBottom: '1px solid black',
     },
     receiptTitle: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
       fontSize: 12,
       marginBottom: 10,
     },
@@ -190,52 +196,67 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
       lineHeight: 1.3,
     },
     boldText: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     addressText: {
       fontSize: 8,
       marginTop: 1,
     },
-  })
+  });
 
-  const formatAddress = (direccion: GuiaPdfPayload["remitente"]["direccion"]) => {
-    const parts: string[] = []
-    if (direccion.calle) parts.push(direccion.calle)
-    if (direccion.numero) parts.push(`#${direccion.numero}`)
-    if (direccion.numeroInterior) parts.push(`Int. ${direccion.numeroInterior}`)
+  const formatAddress = (
+    direccion: GuiaPdfPayload['remitente']['direccion'],
+  ) => {
+    const parts: string[] = [];
+    if (direccion.calle) parts.push(direccion.calle);
+    if (direccion.numero) parts.push(`#${direccion.numero}`);
+    if (direccion.numeroInterior)
+      parts.push(`Int. ${direccion.numeroInterior}`);
 
-    const line1 = parts.join(" ")
-    const line2 = `${direccion.asentamiento}, ${direccion.localidad}`
-    const line3 = `${direccion.localidad}, ${direccion.estado}, ${direccion.pais}`
-    const line4 = `C.P. ${direccion.codigoPostal}`
-    const line5 = direccion.referencia ? `Ref: ${direccion.referencia}` : ""
+    const line1 = parts.join(' ');
+    const line2 = `${direccion.asentamiento}, ${direccion.localidad}`;
+    const line3 = `${direccion.localidad}, ${direccion.estado}, ${direccion.pais}`;
+    const line4 = `C.P. ${direccion.codigoPostal}`;
+    const line5 = direccion.referencia ? `Ref: ${direccion.referencia}` : '';
 
-    return { line1, line2, line3, line4, line5 }
-  }
+    return { line1, line2, line3, line4, line5 };
+  };
 
-  const renderAddressBox = (persona: GuiaPdfPayload["remitente"] | GuiaPdfPayload["destinatario"]) => {
-    const fullName = `${persona.nombres} ${persona.apellidos}`
-    const address = formatAddress(persona.direccion)
+  const renderAddressBox = (
+    persona: GuiaPdfPayload['remitente'] | GuiaPdfPayload['destinatario'],
+  ) => {
+    const fullName = `${persona.nombres} ${persona.apellidos}`;
+    const address = formatAddress(persona.direccion);
 
     return createElement(
       View,
       { style: styles.addressBox },
-      createElement(Text, { style: { fontSize: 9, fontWeight: "bold" } }, fullName),
+      createElement(
+        Text,
+        { style: { fontSize: 9, fontWeight: 'bold' } },
+        fullName,
+      ),
       createElement(Text, { style: styles.addressText }, address.line1),
       createElement(Text, { style: styles.addressText }, address.line2),
       createElement(Text, { style: styles.addressText }, address.line3),
       createElement(Text, { style: styles.addressText }, address.line4),
-      createElement(Text, { style: styles.addressText }, `Tel: ${persona.TelefonoVO}`),
-      address.line5 ? createElement(Text, { style: styles.addressText }, address.line5) : null,
-    )
-  }
+      createElement(
+        Text,
+        { style: styles.addressText },
+        `Tel: ${persona.TelefonoVO}`,
+      ),
+      address.line5
+        ? createElement(Text, { style: styles.addressText }, address.line5)
+        : null,
+    );
+  };
 
   return createElement(
     Document,
     {},
     createElement(
       Page,
-      { size: "A4", style: styles.page },
+      { size: 'A4', style: styles.page },
       createElement(
         View,
         { style: styles.postalLabel },
@@ -246,31 +267,51 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             Text,
             { style: styles.headerTitle },
-            "Etiqueta Adherible SIO MEXPOST, Nacional e Internacional SPM-CGLO-13",
+            'Etiqueta Adherible SIO MEXPOST, Nacional e Internacional SPM-CGLO-13',
           ),
           createElement(
             View,
             { style: styles.serviceInfo },
             createElement(Image, {
               style: styles.logo,
-              src: './src/guias_trazabilidad/infrastructure/pdf-generator/plantillas/icons/correos-mexico.jpg'
+              src: './src/guias_trazabilidad/infrastructure/pdf-generator/plantillas/icons/correos-mexico.jpg',
             }),
             createElement(
               View,
               { style: styles.serviceTitle },
-              createElement(Text, { style: styles.serviceTitleMain }, "SERVICIO POSTAL MEXICANO"),
-              createElement(Text, { style: styles.serviceTitleSub }, "MENSAJERÍA NACIONAL E INTERNACIONAL"),
+              createElement(
+                Text,
+                { style: styles.serviceTitleMain },
+                'SERVICIO POSTAL MEXICANO',
+              ),
+              createElement(
+                Text,
+                { style: styles.serviceTitleSub },
+                'MENSAJERÍA NACIONAL E INTERNACIONAL',
+              ),
             ),
             createElement(
               View,
               { style: styles.infoFields },
-              createElement(View, { style: styles.infoField }, createElement(Text, {}, "Fecha: ___________")),
               createElement(
                 View,
                 { style: styles.infoField },
-                createElement(Text, {}, `C.P.: ${guiaData.remitente.direccion.codigoPostal}`),
+                createElement(Text, {}, 'Fecha: ___________'),
               ),
-              createElement(View, { style: styles.infoField }, createElement(Text, {}, "Tarifa: __________")),
+              createElement(
+                View,
+                { style: styles.infoField },
+                createElement(
+                  Text,
+                  {},
+                  `C.P.: ${guiaData.remitente.direccion.codigoPostal}`,
+                ),
+              ),
+              createElement(
+                View,
+                { style: styles.infoField },
+                createElement(Text, {}, 'Tarifa: __________'),
+              ),
               createElement(
                 View,
                 { style: styles.infoField },
@@ -287,7 +328,11 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             View,
             { style: styles.senderLeft },
-            createElement(Text, { style: styles.sectionTitle }, "Remitente (Shipper)"),
+            createElement(
+              Text,
+              { style: styles.sectionTitle },
+              'Remitente (Shipper)',
+            ),
             renderAddressBox(guiaData.remitente),
           ),
         ),
@@ -296,21 +341,33 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
         createElement(
           View,
           { style: styles.adminSection },
-          createElement(Text, { style: styles.sectionTitle }, "Administración: _______________"),
+          createElement(
+            Text,
+            { style: styles.sectionTitle },
+            'Administración: _______________',
+          ),
         ),
 
         // Barcode Section
         createElement(
           View,
           { style: styles.barcodeSection },
-          createElement(Text, { style: styles.barcodeNumber }, guiaData.numeroRastreo),
+          createElement(
+            Text,
+            { style: styles.barcodeNumber },
+            guiaData.numeroRastreo,
+          ),
         ),
 
         // Recipient Section
         createElement(
           View,
           { style: styles.recipientSection },
-          createElement(Text, { style: styles.sectionTitle }, "Destinatario (Consignee)"),
+          createElement(
+            Text,
+            { style: styles.sectionTitle },
+            'Destinatario (Consignee)',
+          ),
           renderAddressBox(guiaData.destinatario),
         ),
 
@@ -332,15 +389,19 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             View,
             { style: styles.qrLeft },
-            createElement(Text, { style: styles.instructionsTitle }, "INSTRUCCIONES DE ENTREGA"),
+            createElement(
+              Text,
+              { style: styles.instructionsTitle },
+              'INSTRUCCIONES DE ENTREGA',
+            ),
             createElement(
               Text,
               { style: styles.instructionsText },
-              "Para la entrega del paquete se requiere:\n" +
-                "• Identificación oficial vigente\n" +
-                "• Firma de recibido del destinatario\n" +
-                "• Verificación de datos personales\n" +
-                "• Presencia del destinatario o autorizado",
+              'Para la entrega del paquete se requiere:\n' +
+                '• Identificación oficial vigente\n' +
+                '• Firma de recibido del destinatario\n' +
+                '• Verificación de datos personales\n' +
+                '• Presencia del destinatario o autorizado',
             ),
           ),
           createElement(
@@ -350,7 +411,7 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
               style: styles.qrCode,
               src: qrCodeDataURL,
             }),
-            createElement(Text, { style: styles.qrText }, "Código QR"),
+            createElement(Text, { style: styles.qrText }, 'Código QR'),
           ),
         ),
 
@@ -361,14 +422,18 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             View,
             { style: styles.footerLeft },
-            createElement(Text, { style: styles.boldText }, "SEPOMEX"),
-            createElement(Text, {}, "Av. Ceylán No. 468 Col. Cosmopolita CD. MÉXICO, 02523"),
+            createElement(Text, { style: styles.boldText }, 'SEPOMEX'),
+            createElement(
+              Text,
+              {},
+              'Av. Ceylán No. 468 Col. Cosmopolita CD. MÉXICO, 02523',
+            ),
           ),
           createElement(
             View,
             { style: styles.footerRight },
-            createElement(Text, {}, "EMS / --------"),
-            createElement(Text, { style: styles.boldText }, "MEXPOST"),
+            createElement(Text, {}, 'EMS / --------'),
+            createElement(Text, { style: styles.boldText }, 'MEXPOST'),
           ),
         ),
 
@@ -379,8 +444,8 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             Text,
             {},
-            createElement(Text, { style: styles.boldText }, "ACLARACIONES"),
-            "     Directo: 55-53-85-09-00 Ext. 45412 al 45430",
+            createElement(Text, { style: styles.boldText }, 'ACLARACIONES'),
+            '     Directo: 55-53-85-09-00 Ext. 45412 al 45430',
           ),
         ),
 
@@ -388,8 +453,16 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
         createElement(
           View,
           { style: styles.receiptSection },
-          createElement(Text, { style: styles.receiptTitle }, "ACUSE DE RECIBO"),
-          createElement(Text, { style: styles.barcodeNumber }, guiaData.numeroRastreo),
+          createElement(
+            Text,
+            { style: styles.receiptTitle },
+            'ACUSE DE RECIBO',
+          ),
+          createElement(
+            Text,
+            { style: styles.barcodeNumber },
+            guiaData.numeroRastreo,
+          ),
         ),
 
         // Final Note
@@ -399,11 +472,11 @@ export const plantillaGuiaNacional = (guiaData: GuiaPdfPayload, qrCodeDataURL: s
           createElement(
             Text,
             {},
-            createElement(Text, { style: styles.boldText }, "NOTA: "),
-            "Este formato se requisita electrónicamente en los puntos de venta y los datos se ingresan conforme los va solicitando el sistema, por lo que no cuenta con instructivo de llenado.",
+            createElement(Text, { style: styles.boldText }, 'NOTA: '),
+            'Este formato se requisita electrónicamente en los puntos de venta y los datos se ingresan conforme los va solicitando el sistema, por lo que no cuenta con instructivo de llenado.',
           ),
         ),
       ),
     ),
-  )
-}
+  );
+};

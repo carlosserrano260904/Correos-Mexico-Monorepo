@@ -14,8 +14,8 @@ import { CreateReviewDto } from './dto/create-review.dto';
 // 👇 ajusta estas rutas si tu árbol cambia (mantén coherencia: singular "review")
 import { Review } from './entities/review.entity';
 import { ReviewImage } from './entities/review-image.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Product } from 'src/products/entities/product.entity';
+import { Profile } from '../profile/entities/profile.entity';
+import { Product } from '../products/entities/product.entity';
 
 @ApiTags('reviews')
 @ApiExtraModels(Review, ReviewImage, Profile, Product)

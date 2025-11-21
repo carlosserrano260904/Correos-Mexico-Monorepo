@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Pedido, PedidoProducto } from './entities/pedido.entity';
-import { Product } from 'src/products/entities/product.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Misdireccione } from 'src/misdirecciones/entities/misdireccione.entity';
+import { Product } from '../products/entities/product.entity';
+import { Profile } from '../profile/entities/profile.entity';
+import { Misdireccione } from '../misdirecciones/entities/misdireccione.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 

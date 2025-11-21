@@ -37,10 +37,24 @@ import HistorialFacturas from '../screens/facturas/historial_facturas';
 import GuiaFormulario from '../screens/usuario/tarifador/GuiaFormulario';
 import ComoEnviar from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviar';
 import ComoEnviarPaquetes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetes';
-import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarCarta';
+import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar//ComoEnviarCarta';
 import ComoEnviarPaquetesyEmbalajes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetesyEmbalajes';
 import ComoEnviarArticulosProhibidos from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarArticulosProhibidos';
 import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor'; 
+import TarificadorNacional from '../screens/usuario/correos-mex-page/Cotizar-envio/tarifador';
+import ServiciosEmpresas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/serviciosParaEmpresas';
+import tarifasParaEnviosDeCartas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosDeCartas';
+import tarifasParaEnviosDePaquetes from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosDePaquetes';
+import tarificadorParaImpresos from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosImpresos';
+import correspondencia from '../screens/usuario/correos-mex-page/envios-internacionales/correspondencia';
+import EnviosInternacionales from '../screens/usuario/correos-mex-page/envios-internacionales/envios_internacionales';
+import impresos from '../screens/usuario/correos-mex-page/envios-internacionales/impresos';
+import paqueteria from '../screens/usuario/correos-mex-page/envios-internacionales/paqueteria';
+import servicios_adicionales from '../screens/usuario/correos-mex-page/envios-internacionales/servicios_adicionales';
+import AtencionClientePrincipal from '../screens/usuario/correos-mex-page/atencion-cliente/AtencionClientePrincipal';
+import ComoEnviarAtencion from '../screens/usuario/correos-mex-page/atencion-cliente/ComoEnviar';
+import Contacto from '../screens/usuario/correos-mex-page/atencion-cliente/Contacto';
+import PreguntasFrecuentes from '../screens/usuario/correos-mex-page/atencion-cliente/PreguntasFrecuentes';
 // Esta cosa da error <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
 
 
@@ -89,7 +103,20 @@ export default function AppNavigator() {
             <Stack.Screen name="ComoEnviarPaquetes" component={ComoEnviarPaquetes} />
             <Stack.Screen name="ComoEnviarPaquetesyEmbalajes" component={ComoEnviarPaquetesyEmbalajes} />
             <Stack.Screen name="ComoEnviarArticulosProhibidos" component={ComoEnviarArticulosProhibidos} />
-
+            <Stack.Screen name="TarificadorNacional" component={TarificadorNacional} />
+            <Stack.Screen name="ServiciosEmpresas" component={ServiciosEmpresas} />
+            <Stack.Screen name="tarifasParaEnviosDeCartas" component={tarifasParaEnviosDeCartas} />
+            <Stack.Screen name="tarifasParaEnviosDePaquetes" component={tarifasParaEnviosDePaquetes} />
+            <Stack.Screen name="tarifasParaEnviosImpresos" component={tarificadorParaImpresos} />
+            <Stack.Screen name="impresos" component={impresos} />
+            <Stack.Screen name="tarifasParaEnviosPaqueteria" component={paqueteria} />
+            <Stack.Screen name="correspondencia" component={correspondencia} />
+            <Stack.Screen name="EnviosInternacionales" component={EnviosInternacionales} />
+            <Stack.Screen name="servicios_adicionales" component={servicios_adicionales} />
+            <Stack.Screen name="AtencionClientePrincipal" component={AtencionClientePrincipal} />
+            <Stack.Screen name="ComoEnviarAtencion" component={ComoEnviarAtencion} />
+            <Stack.Screen name="Contacto" component={Contacto} />
+            <Stack.Screen name="PreguntasFrecuentes" component={PreguntasFrecuentes} />
 
         </Stack.Navigator>
     );

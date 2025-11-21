@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as QRCode from 'qrcode';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../utils/result';
 import { QRGeneratorRepositoryInterface } from '../../application/ports/outbound/qr-generator.repository.interface';
 
 // payload por si hay que agregar mas datos

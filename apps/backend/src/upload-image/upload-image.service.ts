@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuid } from 'uuid';
 
 @Injectable()
-export class  UploadImageService {
+export class UploadImageService {
   private readonly bucket: string;
   private readonly region: string;
   private readonly s3: S3Client;
@@ -27,7 +26,7 @@ export class  UploadImageService {
             !endpoint && 'AWS_S3_ENDPOINT',
           ]
             .filter(Boolean)
-            .join(', ')
+            .join(', '),
       );
     }
 
@@ -45,12 +44,12 @@ export class  UploadImageService {
   }
 
   async uploadFile(file?: Express.Multer.File): Promise<string> {
-      // ✅ AGREGAR ESTA VERIFICACIÓN AL INICIO:
-        if (!file) {
-          console.log('⚠️ No file provided, using default image');
-          return 'default'; // Devolver un key por defecto
-        }
-    const key = `images/${uuid()}-${file.originalname}`;
+    // ✅ AGREGAR ESTA VERIFICACIÓN AL INICIO:
+    if (!file) {
+      console.log('⚠️ No file provided, using default image');
+      return 'default'; // Devolver un key por defecto
+    }
+    const key = `images/${crypto.randomUUID()}-${file.originalname}`;
     const cmd = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
@@ -63,7 +62,7 @@ export class  UploadImageService {
   }
 
   async uploadFileImage(file: Express.Multer.File): Promise<string> {
-    const key = `images/${uuid()}-${file.originalname}`;
+    const key = `images/${crypto.randomUUID()}-${file.originalname}`;
     const cmd = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
@@ -77,7 +76,7 @@ export class  UploadImageService {
   }
 
   async uploadEvidenceDistributor(file: Express.Multer.File): Promise<string> {
-    const key = `evidenciasPaquetes/${uuid()}-${file.originalname}`;
+    const key = `evidenciasPaquetes/${crypto.randomUUID()}-${file.originalname}`;
     const cmd = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,

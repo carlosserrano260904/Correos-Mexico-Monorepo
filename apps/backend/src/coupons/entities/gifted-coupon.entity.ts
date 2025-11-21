@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
-import { User } from 'src/usuarios/entities/user.entity';
+import { User } from '../../usuarios/entities/user.entity';
 
 @Entity('gifted_coupons')
 export class GiftedCouponEntity {

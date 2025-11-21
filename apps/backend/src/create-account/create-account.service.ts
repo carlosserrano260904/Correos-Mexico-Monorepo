@@ -1,13 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCreateAccountDto } from './dto/create-create-account.dto';
-import { UpdateCreateAccountDto } from './dto/update-create-account.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateAccount } from './entities/create-account.entity';
 import { Repository } from 'typeorm';
 import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
 import { generateToken } from '../utils/token';
 import { CompleteNameDto } from './dto/comple-name.dto';
 import { CompletePasswordDto } from './dto/complete-password.dto';
+import { CreateCreateAccountDto } from './dto/create-create-account.dto';
+import { UpdateCreateAccountDto } from './dto/update-create-account.dto';
+import { CreateAccount } from './entities/create-account.entity';
 
 @Injectable()
 export class CreateAccountService {
@@ -22,6 +27,11 @@ export class CreateAccountService {
       ...createCreateAccountDto,
       token,
     });
+
+    // Forzamos que el usuario inicie como no confirmado
+    user.confirmado = false;
+    await this.createAccountRepository.save(user);
+
     await this.emailService.enviarConfirmacion({
       correo: createCreateAccountDto.correo,
       token,
@@ -50,11 +60,23 @@ export class CreateAccountService {
   }
 
   async checkCoupon(token: string) {
-    const user = await this.createAccountRepository.findOneBy({ token });
+    // Me aseguro de que el token no llegue vacío o nulo.
+    if (!token) {
+      throw new BadRequestException('Token no puede estar vacío');
+    }
+
+    // Cambié findOneBy por queryBuilder para ser 100% explícito.
+    // Esto fuerza la consulta a "WHERE createAccount.token = :token"
+    const user = await this.createAccountRepository
+      .createQueryBuilder('createAccount')
+      .where('createAccount.token = :token', { token })
+      .getOne();
+
     if (!user) {
       throw new NotFoundException('Token no valido');
     }
-    user.token = '';
+    
+    user.token = ''; // Lo limpio para que no se use de nuevo
     user.confirmado = true;
     await this.createAccountRepository.save(user);
     return {
@@ -68,6 +90,12 @@ export class CreateAccountService {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
+
+    // Chequeo de seguridad
+    if (!user.confirmado) {
+      throw new UnauthorizedException('La cuenta no ha sido verificada');
+    }
+
     user.nombre = completeNameAccountDto.nombre;
     user.apellido = completeNameAccountDto.apellido;
     await this.createAccountRepository.save(user);
@@ -85,6 +113,12 @@ export class CreateAccountService {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
+
+    // Chequeo de seguridad
+    if (!user.confirmado) {
+      throw new UnauthorizedException('La cuenta no ha sido verificada');
+    }
+
     user.password = completePasswordAccountDto.password;
     await this.createAccountRepository.save(user);
     return {

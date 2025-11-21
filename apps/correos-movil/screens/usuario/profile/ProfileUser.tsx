@@ -23,7 +23,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { usuarioPorId } from '../../../api/profile'; 
+import { usuarioPorId } from '../../../api/profile';
 import { RootStackParamList, SchemaProfileUser } from '../../../schemas/schemas';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale } from 'react-native-size-matters';
@@ -51,17 +51,17 @@ const deleteReasons = [
 
 export default function ProfileUser({ navigation }: { navigation: ProfileNavProp }) {
     const isFocused = useIsFocused();
-    const { logout, userId: profileIdFromAuth } = useMyAuth(); 
+    const { logout, userId: profileIdFromAuth } = useMyAuth();
     const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
     // --- Estados para Modales ---
-    const [showReasonModal, setShowReasonModal] = useState(false); 
-    const [showConfirmModal, setShowConfirmModal] = useState(false); 
-    
+    const [showReasonModal, setShowReasonModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
     // --- Estados para Datos ---
-    const [selectedReason, setSelectedReason] = useState<string | null>(null); 
-    const [otherReasonText, setOtherReasonText] = useState(''); 
-    const [passwordInput, setPasswordInput] = useState(''); 
+    const [selectedReason, setSelectedReason] = useState<string | null>(null);
+    const [otherReasonText, setOtherReasonText] = useState('');
+    const [passwordInput, setPasswordInput] = useState('');
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
@@ -69,7 +69,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
         (async () => {
             try {
                 if (profileIdFromAuth) {
-                    const perfil = await usuarioPorId(parseInt(profileIdFromAuth, 10)); 
+                    const perfil = await usuarioPorId(parseInt(profileIdFromAuth, 10));
                     setUsuario(perfil);
                 } else {
                     console.warn('⚠ No se encontró profileId en AuthContext');
@@ -82,7 +82,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
         })();
     }, [isFocused, profileIdFromAuth]);
 
-    
+
     if (!usuario) {
         return <Loader message="Cargando tu perfil..." />;
     }
@@ -112,7 +112,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
             Alert.alert('Contraseña requerida', 'Ingresa tu contraseña para confirmar.');
             return;
         }
-        if (!profileIdFromAuth || !selectedReason) { 
+        if (!profileIdFromAuth || !selectedReason) {
             Alert.alert('Error', 'No se encontró el ID de usuario o el motivo.');
             return;
         }
@@ -121,25 +121,24 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
 
         const finalSelectedOption = selectedReason;
         const finalOtherText = (selectedReason === 'Otro (déjanos tus comentarios):') ? otherReasonText : null;
-        
+
         try {
             const token = await AsyncStorage.getItem('token');
             if (!token) {
                 throw new Error('No se encontró token de sesión.');
             }
 
-            // --- 👇 CORRECCIÓN DE SINTAXIS 1 ---
-            const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/auth/delete-account`; 
+            const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/auth/delete-account`;
             console.log("Intentando eliminar cuenta en URL:", apiUrl);
 
             const response = await axios.delete(
-                apiUrl, 
+                apiUrl,
                 {
                     headers: {
                         // --- 👇 CORRECCIÓN DE SINTAXIS 2 ---
-                        Authorization: `Bearer ${token}` 
+                        Authorization: `Bearer ${token}`
                     },
-                    data: { 
+                    data: {
                         password: passwordInput,
                         selectedOption: finalSelectedOption,
                         otherText: finalOtherText
@@ -159,7 +158,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
             let errorMessage = 'Ocurrió un error inesperado al eliminar la cuenta.';
             if (axios.isAxiosError(error)) {
                 errorMessage = error.response?.data?.message || error.message || errorMessage;
-                if (error.message === 'Network Error') { 
+                if (error.message === 'Network Error') {
                     console.error('Error Axios eliminando cuenta: "Network Error" - Verifica la conexión.');
                     errorMessage = 'Error de red. Asegúrate de estar conectado y que el servidor esté accesible.';
                 } else {
@@ -180,26 +179,26 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
 
     const sections: { title: string; items: SectionItem[] }[] = [
         {
-          title: 'Cuenta',
-          items: [
-            { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
-            { label: 'Mis cupones', icon: 'tag', to: 'MisCuponesScreen' },
-          ],
+            title: 'Cuenta',
+            items: [
+                { label: 'Mis compras', icon: 'shopping-bag', to: 'MisCompras' },
+                { label: 'Mis cupones', icon: 'tag', to: 'MisCuponesScreen' },
+            ],
         },
         {
-          title: 'Información de pago',
-          items: [
-            { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
-            { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
-            { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
-            { label: 'Historial de Facturas', icon: 'file-text', to: 'HistorialDeFacturas' },
-          ],
+            title: 'Información de pago',
+            items: [
+                { label: 'Mis direcciones', icon: 'map-pin', to: 'Direcciones' },
+                { label: 'Mis tarjetas', icon: 'credit-card', to: 'MisTarjetasScreen' },
+                { label: 'Mis pedidos', icon: 'truck', to: 'ListaPedidosScreen' },
+                { label: 'Historial de Facturas', icon: 'file-text', to: 'HistorialDeFacturas' },
+            ],
         },
         {
-          title: 'Políticas',
-          items: [
-            { label: 'Términos y condiciones', icon: 'file-text', to: 'Politicas', params: { key: 'docs/politicas.docx' } },
-          ],
+            title: 'Políticas',
+            items: [
+                { label: 'Términos y condiciones', icon: 'file-text', to: 'Politicas', params: { key: 'docs/politicas.docx' } },
+            ],
         },
     ];
 
@@ -208,28 +207,28 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
             <StatusBar barStyle="light-content" backgroundColor="#E6007A" translucent={false} />
 
             <SafeAreaView edges={['top']} style={styles.headerSafe}>
-                 <View style={styles.header}>
-                   <TouchableOpacity
-                       style={styles.profileButton}
-                       activeOpacity={0.8}
-                       onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
-                   >
-                     <Image
-                         // --- 👇 CORRECCIÓN DE SINTAXIS 3 ---
-                         source={{ uri: usuario?.imagen?.startsWith('http') ? usuario.imagen : `http://${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png` }}
-                         style={styles.avatar}
-                     />
-                     <View style={styles.textContainer}>
-                         <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                             {usuario?.nombre} {usuario?.apellido}
-                         </Text>
-                         <View style={styles.subtitleRow}>
-                             <Text style={styles.subtitle}>Mi perfil</Text>
-                             <Icon name="chevron-right" size={16} color="#fff" style={{ marginLeft: moderateScale(4) }} />
-                         </View>
-                     </View>
-                   </TouchableOpacity>
-                 </View>
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.profileButton}
+                        activeOpacity={0.8}
+                        onPress={() => usuario && navigation.navigate('UserDetailsScreen', { user: usuario })}
+                    >
+                        <Image
+                            // --- 👇 CORRECCIÓN DE SINTAXIS 3 ---
+                            source={{ uri: usuario?.imagen?.startsWith('http') ? usuario.imagen : `http://${process.env.EXPO_PUBLIC_API_URL}/uploads/defaults/avatar-default.png` }}
+                            style={styles.avatar}
+                        />
+                        <View style={styles.textContainer}>
+                            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                                {usuario?.nombre} {usuario?.apellido}
+                            </Text>
+                            <View style={styles.subtitleRow}>
+                                <Text style={styles.subtitle}>Mi perfil</Text>
+                                <Icon name="chevron-right" size={16} color="#fff" style={{ marginLeft: moderateScale(4) }} />
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </View>
             </SafeAreaView>
 
             <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.contentSafe}>
@@ -280,7 +279,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                             </View>
                             <Icon name="chevron-right" size={20} color="red" />
                         </TouchableOpacity>
-                        
+
                         <TouchableOpacity
                             style={styles.item}
                             activeOpacity={0.7}
@@ -335,7 +334,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                                             <Text style={styles.radioLabel}>{reason}</Text>
                                         </TouchableOpacity>
 
-                                        {isOther && isSelected && ( 
+                                        {isOther && isSelected && (
                                             <TextInput
                                                 style={styles.textInput}
                                                 placeholder="Escribe tus comentarios..."
@@ -353,7 +352,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                                 style={[
                                     styles.modalButton,
                                     styles.confirmButton, // Usa el estilo de fondo rosa
-                                    !selectedReason && styles.disabledButton, 
+                                    !selectedReason && styles.disabledButton,
                                 ]}
                                 activeOpacity={0.8}
                                 onPress={() => {
@@ -362,20 +361,22 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                                 }}
                                 disabled={!selectedReason}
                             >
-                                <Text style={styles.confirmButtonText}>Continuar</Text> 
-                            </TouchableOpacity>
+                                {/* --- 👇 CORRECCIÓN: Usa el estilo de texto blanco --- */}
+                                <Text style={styles.confirmButtonText}>Continuar</Text>
+                            </TouchableOpacity >
 
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton]} // Usa el estilo de fondo gris
                                 activeOpacity={0.8}
-                                onPress={() => setShowReasonModal(false)} 
+                                onPress={() => setShowReasonModal(false)}
                             >
+                                {/* --- 👇 CORRECCIÓN: Usa el estilo de texto oscuro --- */}
                                 <Text style={styles.cancelButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </TouchableWithoutFeedback>
-                </KeyboardAvoidingView>
-            </Modal>
+                            </TouchableOpacity >
+                        </View >
+                    </TouchableWithoutFeedback >
+                </KeyboardAvoidingView >
+            </Modal >
 
             {/* --- MODAL DE CONTRASEÑA --- */}
             <Modal
@@ -386,7 +387,7 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                     {/* Usamos modalOverlay aquí para centrarlo verticalmente */}
-                    <View style={styles.modalOverlay}> 
+                    <View style={styles.modalOverlay}>
                         <View onStartShouldSetResponder={() => true} style={styles.modalContainer}>
                             <Text style={styles.modalTitle}>Confirmar Eliminación</Text>
                             <Text style={styles.modalMessage}>
@@ -403,22 +404,20 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
                                 editable={!deleteLoading}
                             />
                             <View style={styles.modalButtons}>
-                                <TouchableOpacity 
-                                    // --- 👇 CORRECCIÓN VISUAL 3 (Añadido) ---
-                                    style={[styles.modalButton, styles.cancelButton, { flex: 1 }]} 
+                                <TouchableOpacity
+                                    style={[styles.modalButton, styles.cancelButton, { flex: 1 }]}
                                     onPress={() => setShowConfirmModal(false)}
                                     disabled={deleteLoading}
                                 >
                                     <Text style={styles.cancelButtonText}>Cancelar</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
-                                    // --- 👇 CORRECCIÓN VISUAL 3 (Añadido) ---
-                                    style={[styles.modalButton, styles.confirmButton, deleteLoading && styles.disabledButton, { flex: 1 }]} 
+                                <TouchableOpacity
+                                    style={[styles.modalButton, styles.confirmButton, deleteLoading && styles.disabledButton, { flex: 1 }]}
                                     onPress={confirmDeleteAccount}
                                     disabled={deleteLoading}
                                 >
                                     {deleteLoading ? (
-                                        <ActivityIndicator size="small" color="#fff" /> 
+                                        <ActivityIndicator size="small" color="#fff" />
                                     ) : (
                                         <Text style={styles.confirmButtonText}>Eliminar Cuenta</Text>
                                     )}
@@ -467,50 +466,50 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         backgroundColor: '#fff',
-        borderTopLeftRadius: moderateScale(20), 
+        borderTopLeftRadius: moderateScale(20),
         borderTopRightRadius: moderateScale(20),
-        borderRadius: moderateScale(12), 
+        borderRadius: moderateScale(12),
         padding: moderateScale(24),
         paddingBottom: moderateScale(40),
-        width: '100%', 
-        maxWidth: 400, 
-        alignItems: 'stretch', 
+        width: '100%',
+        maxWidth: 400,
+        alignItems: 'stretch',
     },
-    modalHeader: { 
+    modalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: moderateScale(8),
-        justifyContent: 'center', 
+        justifyContent: 'center',
     },
     modalTitle: {
         fontSize: moderateScale(18),
         fontWeight: 'bold',
         marginBottom: moderateScale(10),
         color: '#333',
-        marginLeft: moderateScale(10), 
-        textAlign: 'center', 
+        marginLeft: moderateScale(10),
+        textAlign: 'center',
     },
-    modalSubtitle: { 
+    modalSubtitle: {
         fontSize: moderateScale(14),
         color: '#666',
         marginBottom: moderateScale(20),
         lineHeight: moderateScale(20),
-        textAlign: 'center', 
+        textAlign: 'center',
     },
-    modalMessage: { 
+    modalMessage: {
         fontSize: moderateScale(14),
         textAlign: 'center',
         marginBottom: moderateScale(20),
         color: '#555',
         lineHeight: moderateScale(20),
     },
-    radioOption: { 
+    radioOption: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: moderateScale(16),
-        paddingVertical: moderateScale(4), 
+        paddingVertical: moderateScale(4),
     },
-    radioCircle: { 
+    radioCircle: {
         width: moderateScale(20),
         height: moderateScale(20),
         borderRadius: moderateScale(10),
@@ -520,19 +519,19 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginRight: moderateScale(12),
     },
-    radioCircleSelected: { 
-        borderColor: '#E6007A',  
+    radioCircleSelected: {
+        borderColor: '#E6007A',
     },
-    radioCircleInner: { 
+    radioCircleInner: {
         width: moderateScale(10),
         height: moderateScale(10),
         borderRadius: moderateScale(5),
         backgroundColor: '#E6007A',
     },
-    radioLabel: { 
+    radioLabel: {
         fontSize: moderateScale(14),
         color: '#333',
-        flex: 1,  
+        flex: 1,
     },
     textInput: { // Para "Otro"
         height: moderateScale(80),
@@ -542,8 +541,7 @@ const styles = StyleSheet.create({
         padding: moderateScale(10),
         textAlignVertical: 'top',
         marginBottom: moderateScale(20),
-        // --- 👇 CORRECCIÓN VISUAL 2 (Comentado) ---
-        //marginLeft: moderateScale(32), //ESTO HACE EL PADDING  
+        marginLeft: moderateScale(32),
         fontSize: moderateScale(14),
     },
     passwordInput: { // Para Contraseña
@@ -554,21 +552,21 @@ const styles = StyleSheet.create({
         fontSize: moderateScale(14),
         marginBottom: moderateScale(20),
         width: '100%',
-        backgroundColor: '#f9f9ff', 
+        backgroundColor: '#f9f9ff',
     },
-    modalButtons: { 
+    modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        gap: moderateScale(10), 
+        gap: moderateScale(10),
     },
     modalButton: {
         // --- 👇 CORRECCIÓN VISUAL 1 (Comentado) ---
         //flex: 1, //ESTE LINEA HACE CONFLICTO CON EL ESTILO Y HACE QUE NO SE MUESTREN LOS BOTONES 
-        paddingVertical: moderateScale(14), 
-        borderRadius: moderateScale(10), 
+        paddingVertical: moderateScale(14),
+        borderRadius: moderateScale(10),
         alignItems: 'center',
-        marginTop: moderateScale(10), 
+        marginTop: moderateScale(10),
     },
     cancelButton: { // Estilo Cancelar
         backgroundColor: '#eee',
@@ -576,7 +574,7 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
     },
     confirmButton: { // Estilo Confirmar/Eliminar
-        backgroundColor: '#E6007A', 
+        backgroundColor: '#E6007A',
     },
     disabledButton: { // Estilo Deshabilitado
         backgroundColor: '#cccccc',
@@ -584,11 +582,11 @@ const styles = StyleSheet.create({
     cancelButtonText: { // Estilo Texto Cancelar
         color: '#333',
         fontWeight: '500',
-        fontSize: moderateScale(16), 
+        fontSize: moderateScale(16),
     },
     confirmButtonText: { // Estilo Texto Confirmar
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: moderateScale(16), 
+        fontSize: moderateScale(16),
     },
 });

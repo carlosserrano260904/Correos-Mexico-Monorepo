@@ -1,31 +1,38 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Image, 
+  SafeAreaView, 
+  StatusBar, 
+  ScrollView 
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation, useFocusEffect  } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ServiciosParaEmpresas() {
-    const navigation = useNavigation();
-    const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
-    const cardData = [
+  const cardData = [
     {
       title: 'Correspondencia',
       description: 'Pasos a seguir para envíar correspondencia.',
       imageUrl: require('../../../../assets/paquetes1.jpg'),
-      link: 'CorrespondenciaInter',
+      link: 'tarifasParaEnviosDeCartas',
     },
     {
       title: 'Paquetería',
       description: 'Envío masivo de productos y mercancías.',
       imageUrl: require('../../../../assets/paquetes2.jpg'),
-      link: 'PaqueteriaInter',
+      link: 'tarifasParaEnviosDePaquetes',
     },
     {
       title: 'Impresos',
       description: 'Incrementa la difusión de tus servicios con nuestros recursos de impresión.',
       imageUrl: require('../../../../assets/impresos.jpg'),
-      link: 'ImpresosInter',
+      link: 'tarifasParaEnviosImpresos',
     },
     {
       title: 'Publicaciones periódicas',
@@ -50,6 +57,7 @@ export default function ServiciosParaEmpresas() {
   const ServicioCard = ({ item, onPress }) => (
     <TouchableOpacity style={styles.cardContainer} activeOpacity={0.8} onPress={onPress}>
       <Image source={item.imageUrl} style={styles.cardImage} />
+
       <View style={styles.cardContentWrapper}>
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle}>{item.title}</Text>
@@ -59,7 +67,7 @@ export default function ServiciosParaEmpresas() {
         <TouchableOpacity style={styles.cardFooter} onPress={onPress}>
           <Text style={styles.moreInfoText}>Más información</Text>
           <View style={styles.cardArrowContainer}>
-            <Icon name="arrow-back" size={24} color="#fff" style={{ transform: [{ scaleX: -1 }] }}/>
+            <Icon name="arrow-back" size={24} color="#fff" style={{ transform: [{ scaleX: -1 }] }} />
           </View>
         </TouchableOpacity>
       </View>
@@ -67,22 +75,21 @@ export default function ServiciosParaEmpresas() {
   );
 
   return (
-     <View style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-      <SafeAreaView style={styles.safeAreaContent}>
+
+      {/* 🔹 SafeAreaView agregado */}
+      <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
-          {/* Header con botón de regreso - SIN paddingTop adicional */}
+
+          {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              onPress={() => navigation.goBack()} 
-              style={styles.backButton}
-              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            >
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Icon name="arrow-back" size={24} color="#1f2937" />
             </TouchableOpacity>
           </View>
 
-          {/* Título de la pantalla */}
+          {/* Título */}
           <Text style={styles.title}>
             Servicios
             {'\n'}
@@ -91,16 +98,17 @@ export default function ServiciosParaEmpresas() {
             empresas
           </Text>
 
-          {/* Contenedor de las tarjetas */}
+          {/* Lista de tarjetas */}
           <View style={styles.cardsList}>
             {cardData.map((item, index) => (
-              <ServicioCard
-                key={index}
-                item={item}
-                onPress={() => navigation.navigate(item.link)}
+              <ServicioCard 
+                key={index} 
+                item={item} 
+                onPress={() => navigation.navigate(item.link)} 
               />
             ))}
           </View>
+
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -108,26 +116,47 @@ export default function ServiciosParaEmpresas() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 40,
+    paddingHorizontal: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 12,
+    color: '#000',
+  },
+  forwardButton: {
+    width: 40,              // tamaño del círculo
+    height: 40,
+    borderRadius: 20,       // mitad del ancho = círculo perfecto
+    backgroundColor: '#de1484', // color del fondo
+    alignItems: 'center',   // centrar horizontalmente
+    justifyContent: 'center', // centrar verticalmente
+  },
+  card: {
+    backgroundColor: '#f3f4f6', // gris claro
+    borderRadius: 16,           // bordes redondeados
+    padding: 16,                // espacio interno
+    marginVertical: 10,
+    alignItems: 'center',       // centra la imagen y textos
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,               // sombra en Android
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#f9fafb',
   },
-  safeAreaContent: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8, // Pequeño padding en lugar del insets.top
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 50,
-  },
   backButton: {
-    padding: 12,
-    marginLeft: 4,
+    padding: 8, 
   },
   title: {
     fontSize: 32,
@@ -140,31 +169,31 @@ const styles = StyleSheet.create({
   },
   cardsList: {
     paddingHorizontal: 24,
-    paddingBottom: 48,
+    paddingBottom: 48, // Espacio al final de la lista
   },
   cardContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
-    marginBottom: 24,
+    marginBottom: 24, // Espacio entre tarjetas
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 5,
-    overflow: 'hidden',
+    overflow: 'hidden', // Para que la imagen no se salga de los bordes
   },
   cardImage: {
     width: '100%',
     height: 180,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#e5e7eb', // Placeholder color
     resizeMode: 'cover', 
   },
-  cardContentWrapper: {
+  cardContentWrapper: { // Contenedor para el contenido de texto y footer
     padding: 20,
     paddingBottom: 0, 
   },
   cardTextContainer: {
-    marginBottom: 16,
+    marginBottom: 16, // Espacio entre la descripción y el footer
   },
   cardTitle: {
     fontSize: 20,
@@ -177,11 +206,11 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     lineHeight: 20,
   },
-  cardFooter: {
+  cardFooter: { // Footer de la tarjeta
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: 16, // Espacio entre la descripción y el footer
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6', 
     marginHorizontal: -20, 

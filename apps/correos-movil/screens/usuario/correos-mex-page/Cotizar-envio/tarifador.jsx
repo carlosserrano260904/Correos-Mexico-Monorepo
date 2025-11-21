@@ -13,7 +13,7 @@ const { height: screenHeight } = Dimensions.get('window');
 
 const TarificadorMexpost = () => {
   const navigation = useNavigation();
-  // Configuración de API
+  //Configuracion de API
   const IP = Constants.expoConfig?.extra?.IP_LOCAL;
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -25,19 +25,19 @@ const TarificadorMexpost = () => {
   const [paisDestino, setPaisDestino] = useState(null)
   const [showCountryModal, setShowCountryModal] = useState(false)
   const [infoPais, setInfoPais] = useState(null)
-  
+
   // Estados principales de visualización
   const [showResults, setShowResults] = useState(false)
   const [showQuote, setShowQuote] = useState(false)
   const [datosEnvio, setDatosEnvio] = useState(null)
   const [cotizacionData, setCotizacionData] = useState(null)
-  
+
   // Estados de Inputs Dimensiones
   const [peso, setPeso] = useState("")
   const [alto, setAlto] = useState("")
   const [ancho, setAncho] = useState("")
   const [largo, setLargo] = useState("")
-  
+
   // Estados de UI/Carga
   const [loading, setLoading] = useState(false)
   const [loadingQuote, setLoadingQuote] = useState(false)
@@ -51,19 +51,20 @@ const TarificadorMexpost = () => {
   const [profileId, setProfileId] = useState(null);
   const email = 'cliente@example.com'; 
 
+  // Definimos las dimensiones máximas
   const max_peso  = 50;
   const max_alto  = 300;
   const max_ancho = 300;
   const max_largo = 300;
 
-  // --- 1. Obtener Profile ID ---
+  // Obtener Profile ID
   useEffect(() => {
     const fetchProfileId = async () => {
       try {
         const userId = await AsyncStorage.getItem('userId');
         if (!userId) throw new Error('No se encontró el ID del usuario.');
         if (!API_URL) throw new Error('La URL de la API no está configurada.');
-
+  
         const profileRes = await axios.get(`${API_URL}/api/profile/${userId}`);
         const profileId = profileRes.data?.id;
         setProfileId(profileId); 
@@ -74,7 +75,7 @@ const TarificadorMexpost = () => {
     fetchProfileId();
   }, []);
 
-  // --- 2. Cargar Países Reales ---
+  // Fetch de países cuando se abre el modal
   useEffect(() => {
     if (!showCountryModal) return
     fetch(`http://${IP}:3000/api/shipping-rates/paises-internacionales`)
@@ -83,7 +84,7 @@ const TarificadorMexpost = () => {
       .catch(() => setPaises([]))
   }, [showCountryModal])
 
-  // --- 3. Animación Modal ---
+  // Animación Modal
   useEffect(() => {
     if (showCountryModal) {
       Animated.timing(modalAnim, {
@@ -103,7 +104,7 @@ const TarificadorMexpost = () => {
   const modalTranslateY = modalAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [400, 0],
-  });
+  });  
 
   // Referencias para inputs
   const pesoRef = useRef(null);
@@ -117,8 +118,7 @@ const TarificadorMexpost = () => {
     }
   };
 
-  // --- LÓGICA DE BÚSQUEDA (CORREGIDA) ---
-
+  //Funcion para validad los C.P y calculo de distancia nacional
   const handleSearchNacional = async () => {
     if (!codigoOrigen || !codigoDestino) {
       Alert.alert("Error", "Por favor ingresa ambos códigos postales");
@@ -128,11 +128,9 @@ const TarificadorMexpost = () => {
       Alert.alert("Error", "Los códigos postales deben tener 5 dígitos");
       return;
     }
-    
     // Limpiamos datos anteriores para evitar confusiones
     setDatosEnvio(null);
     setLoading(true);
-
     try {
       console.log("Buscando ruta:", codigoOrigen, "->", codigoDestino);
       const response = await fetch(`http://${IP}:3000/api/shipping-rates/calculate-distance`, {
@@ -141,9 +139,7 @@ const TarificadorMexpost = () => {
         body: JSON.stringify({ codigoOrigen, codigoDestino }),
       });
       const data = await response.json();
-      
-      console.log("Respuesta API Distancia:", data); // <--- REVISA TU CONSOLA AQUI
-
+      console.log("Respuesta API Distancia:", data);
       if (response.ok) {
         setDatosEnvio(data);
         setShowResults(true);
@@ -169,7 +165,6 @@ const TarificadorMexpost = () => {
     }
     setLoading(true)
     setInfoPais(null); // Limpiar anterior
-    
     try {
       const response = await fetch(`http://${IP}:3000/api/shipping-rates/consultar-pais`, {
         method: "POST",
@@ -197,8 +192,6 @@ const TarificadorMexpost = () => {
     else setShowCountryModal(true)
   }
 
-  // --- LÓGICA DE COTIZACIÓN (CORREGIDA PARA USAR PRECIO REAL) ---
-
   const handleCotizarNacional = async () => {
     if (!peso || !alto || !ancho || !largo) {
       Alert.alert("Error", "Por favor completa todas las dimensiones y peso")
@@ -206,7 +199,6 @@ const TarificadorMexpost = () => {
     }
     setLoadingQuote(true)
     setCotizacionData(null); // Limpiar anterior
-
     try {
       const body = {
         peso: parseFloat(peso),
@@ -226,7 +218,7 @@ const TarificadorMexpost = () => {
       })
       const data = await response.json()
       
-      console.log("Respuesta API Cotización:", data); // <--- IMPORTANTE VER ESTO
+      console.log("Respuesta API Cotización:", data); 
 
       if (response.ok) {
         setCotizacionData(data)
@@ -289,7 +281,7 @@ const TarificadorMexpost = () => {
     setDatosEnvio(null)
     setCotizacionData(null)
     setInfoPais(null)
-  }
+  } 
 
   const handleNuevaConsulta = () => {
     setShowQuote(false)
@@ -431,7 +423,6 @@ const TarificadorMexpost = () => {
                 </TouchableOpacity>
               </View>
             )}
-
             {activeTab === "Nacional" && !showResults && (
               <TouchableOpacity
                 style={[styles.searchButton, loading && styles.disabledButton]}
@@ -465,7 +456,6 @@ const TarificadorMexpost = () => {
 
                   <View style={styles.resultsInfoRow}>
                     <Text style={styles.resultsInfoLabel}>Origen</Text>
-                    {/* AQUI LEEMOS DIRECTO DE LA API, Si sale vacio, es porque la API no manda 'ciudadOrigen' */}
                     <Text style={styles.resultsInfoValue}>{datosEnvio.ciudadOrigen || "No disponible"}</Text>
                   </View>
                   
@@ -485,7 +475,6 @@ const TarificadorMexpost = () => {
                         "{datosEnvio.zona?.nombre || "?"}"
                       </Text>
                     </View>
-                    {/* Muestra esto solo si la API lo manda */}
                     <View style={[styles.pill, styles.pillIva]}>
                       <Text style={[styles.pillText, styles.pillTextIva]}>
                         IVA: 16%
@@ -1194,7 +1183,7 @@ const styles = StyleSheet.create({
   resultsInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', 
+    alignItems: 'flex-start',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
@@ -1202,17 +1191,17 @@ const styles = StyleSheet.create({
   resultsInfoLabel: {
     fontSize: 16,
     color: '#666',
-    width: '25%', 
-    paddingRight: 5, 
-    marginTop: 2, 
+    width: '25%',
+    paddingRight: 5,
+    marginTop: 2,
   },
   resultsInfoValue: {
-    fontSize: 14, 
+    fontSize: 14,
     color: '#000',
     fontWeight: '600',
     textAlign: 'right',
-    flex: 1, 
-    flexWrap: 'wrap', 
+    flex: 1,
+    flexWrap: 'wrap',
   },
   pillsContainer: {
     flexDirection: 'row',

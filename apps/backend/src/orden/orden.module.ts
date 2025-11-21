@@ -3,9 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrdenController } from './orden.controller';
 import { OrdenService } from './orden.service';
 
-import { Transaction } from 'src/transactions/entities/transaction.entity';
-import { Product } from 'src/products/entities/product.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Transaction } from '../transactions/entities/transaction.entity';
+import { Product } from '../products/entities/product.entity';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Module({
   imports: [

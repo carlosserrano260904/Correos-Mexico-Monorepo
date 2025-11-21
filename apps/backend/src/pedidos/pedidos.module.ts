@@ -4,8 +4,8 @@ import { Pedido } from './entities/pedido.entity';
 import { PedidoProducto } from './entities/pedido.entity';
 import { PedidosController } from './pedidos.controller';
 import { PedidosService } from './pedidos.service';
-import { Product } from 'src/products/entities/product.entity';
-import { Misdireccione } from 'src/misdirecciones/entities/misdireccione.entity';
+import { Product } from '../products/entities/product.entity';
+import { Misdireccione } from '../misdirecciones/entities/misdireccione.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Pedido, PedidoProducto, Product, Misdireccione])],
   controllers: [PedidosController],

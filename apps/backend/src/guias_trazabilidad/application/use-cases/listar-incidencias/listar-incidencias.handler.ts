@@ -1,7 +1,7 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { ListarIncidenciasQuery } from './listar-incidencias.query';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../../utils/result';
 import { IncidenciaReadModel } from '../../read-models/guia.read-models';
 import { GuiaReadRepositoryInterface, GUIA_READ_REPOSITORY } from '../../ports/outbound/guia-read.repository.interface';
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Card } from 'src/cards/entities/card.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Card } from '../cards/entities/card.entity';
+import { Profile } from '../profile/entities/profile.entity';
 import Stripe from 'stripe';
 import { Repository } from 'typeorm';
 

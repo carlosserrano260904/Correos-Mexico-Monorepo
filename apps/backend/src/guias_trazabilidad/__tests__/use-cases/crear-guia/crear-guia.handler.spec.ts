@@ -4,7 +4,7 @@ import { CrearGuiaCommandHandler } from '../../../application/use-cases/crear-gu
 import { CrearGuiaCommand } from '../../../application/use-cases/crear-guia/crear-guia.command';
 import { RepositoryMocks } from '../../mocks/repository-mocks';
 import { GuiasTrazabilidadTestSetup } from '../../setup/test-setup';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../../utils/result';
 
 import { GUIAREPOSITORYINTERFACE } from '../../../application/ports/outbound/guia.repository.interface';
 import { PDF_GENERATOR_REPOSITORY_INTERFACE } from '../../../application/ports/outbound/pdf-generator.repository.interface';

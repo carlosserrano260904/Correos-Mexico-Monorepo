@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { GeocodingRequestDto } from "src/guias_trazabilidad/application/use-cases/crear-guia/dtos/geocoding-request.dto";
-import { Result } from "src/utils/result";
-import { CoordenadasReadModel } from "src/guias_trazabilidad/application/read-models/geocoding-response.read-model";
-import { GoogleGeocodeRepositoryInterface } from "src/guias_trazabilidad/application/ports/outbound/geocode.repository.interface";
+import { GeocodingRequestDto } from '../../../guias_trazabilidad/application/use-cases/crear-guia/dtos/geocoding-request.dto';
+import { Result } from '../../../utils/result';
+import { CoordenadasReadModel } from '../../../guias_trazabilidad/application/read-models/geocoding-response.read-model';
+import { GoogleGeocodeRepositoryInterface } from '../../../guias_trazabilidad/application/ports/outbound/geocode.repository.interface';
 
 @Injectable()
 export class GoogleGeocodeRepository implements GoogleGeocodeRepositoryInterface {

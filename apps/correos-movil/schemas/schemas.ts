@@ -22,6 +22,12 @@ export type RootStackParamList = {
   Favorito: undefined;
   Politicas: undefined
   Productos: undefined
+  HomeCorreos: undefined; 
+  ComoEnviar: undefined; 
+  ComoEnviarCartas: undefined;
+  ComoEnviarPaquetes: undefined;
+  ComoEnviarPaquetesyEmbalajes: undefined;
+  ComoEnviarArticulosProhibidos: undefined;
   AgregarTarjetaScreen: undefined
   MisTarjetasScreen: undefined
   Direcciones: undefined

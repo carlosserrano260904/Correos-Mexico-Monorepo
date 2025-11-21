@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../../profile/entities/profile.entity';
 
 @Entity()
 export class Card {

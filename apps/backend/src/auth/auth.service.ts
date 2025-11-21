@@ -1,17 +1,15 @@
-// Archivo: apps/backend/src/auth/auth.service.ts
-
-import Stripe from 'stripe';
 import { Injectable, InternalServerErrorException, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule'; // Importado de develop
 
-import { UserService } from '../usuarios/user.service'; // Este servicio maneja CreateAccount
+import { UserService } from '../usuarios/user.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
 import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
-import { Profile } from 'src/profile/entities/profile.entity'; // Se asume necesaria por CreateAccount
-import { DeletionReason } from '../usuarios/entities/deletion-reason.entity'; // Ruta corregida
+import { Profile } from '../profile/entities/profile.entity'; // Ruta relativa corregida
+import { DeletionReason } from '../usuarios/entities/deletion-reason.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { OAuthDto } from './dto/oauth.dto';
@@ -21,7 +19,6 @@ import { UpdatePasswordDto, EmailOtpDto, VerifyOtpDto } from './dto/update-passw
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly stripe: Stripe;
 
   constructor(
     @InjectRepository(Profile)
@@ -32,47 +29,116 @@ export class AuthService {
     private readonly usuariosService: UserService,
     private readonly proveedoresService: ProveedoresService,
     private readonly enviarCorreosService: EnviarCorreosService,
-  ) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-      apiVersion: '2025-08-27.basil', // Asegúrate que esta sea la versión correcta
-    });
-  }
-
-  private async createStripeCustomer(name?: string): Promise<Stripe.Customer> {
-    return this.stripe.customers.create({
-      name: name || 'cliente',
-    });
-  }
+  ) { }
 
   async signup(dto: CreateUserDto) {
-    const hash = await bcrypt.hash(dto.contrasena, 10);
-    const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-    if (userExists) { throw new UnauthorizedException('El correo ya está en uso'); }
+    // Lógica combinada: Hash password + Stripe + Perfil + Usuario + Token
+    let hash = '';
+    if (dto.contrasena) {
+      hash = await bcrypt.hash(dto.contrasena, 10);
+    }
 
-    const customer = await this.createStripeCustomer(dto.nombre || dto.correo.split('@')[0]);
+    const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
+    if (userExists) {
+      throw new UnauthorizedException('El correo ya está en uso');
+    }
+
+    // Stripe
+    const Stripe = require('stripe');
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { 
+      apiVersion: '2023-10-16' 
+    });
+    const customer = await stripe.customers.create({
+      name: dto.nombre || dto.correo.split('@')[0],
+      email: dto.correo,
+    });
+
     const profile = this.profileRepository.create({
-      nombre: dto.nombre || dto.correo.split('@')[0], apellido: '', numero: '', estado: '', ciudad: '', fraccionamiento: '', calle: '', codigoPostal: '', stripeCustomerId: customer.id,
+      nombre: dto.nombre || dto.correo.split('@')[0],
+      apellido: '', numero: '', estado: '', ciudad: '', fraccionamiento: '', calle: '', codigoPostal: '', 
+      stripeCustomerId: customer.id,
     });
-    await this.profileRepository.save(profile);
+
     const user = await this.usuariosService.create({
-      nombre: dto.nombre || dto.correo.split('@')[0], correo: dto.correo, password: hash, rol: 'usuario', profile: profile,
+      nombre: dto.nombre || dto.correo.split('@')[0],
+      correo: dto.correo,
+      password: hash, // Puede ir vacío si vino de un flujo sin pass
+      rol: 'usuario',
+      profile,
     });
+
     const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
     await this.usuariosService.updateOTP(dto.correo, {
-      token: verificationToken, tokenCreatedAt: new Date(),
+      token: verificationToken,
+      tokenCreatedAt: new Date()
     });
-    await this.enviarCorreosService.enviarConfirmacion({
-      correo: user.correo, token: verificationToken, nombre: user.nombre
-    });
+
+    try {
+      await this.enviarCorreosService.enviarConfirmacion({
+        correo: user.correo,
+        token: verificationToken,
+        nombre: user.nombre
+      });
+    } catch (error) {
+      this.logger.error(`Error enviando correo a ${user.correo}`, error);
+    }
+
     const token = await this.jwtService.signAsync({
-      profileId: user.profile.id, rol: 'usuario',
+      profileId: user.profile.id,
+      rol: 'usuario',
     });
-    return { token, id: user.id, userId: user.profile.id };
+
+    return {
+      token,
+      id: user.id,
+      userId: user.profile.id,
+    };
   }
 
   async oauth(dto: OAuthDto) {
-     this.logger.warn('Método OAuth necesita revisión detallada.');
-     throw new InternalServerErrorException('Funcionalidad OAuth no verificada.');
+    this.logger.log(`Procesando OAuth para: ${dto.correo}`);
+    let proveedor = await this.proveedoresService.findBySub(dto.sub);
+    let user;
+
+    if (!proveedor) {
+      const Stripe = require('stripe');
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+      const customer = await stripe.customers.create({
+        name: dto.nombre || dto.correo.split('@')[0],
+        email: dto.correo,
+      });
+
+      const profile = this.profileRepository.create({
+        nombre: dto.nombre || dto.correo.split('@')[0],
+        apellido: '', numero: '', estado: '', ciudad: '', fraccionamiento: '', calle: '', codigoPostal: '', 
+        stripeCustomerId: customer.id,
+      });
+
+      user = await this.usuariosService.create({
+        nombre: dto.nombre || dto.correo.split('@')[0],
+        correo: dto.correo,
+        password: 'N/A: OAuth',
+        rol: 'usuario',
+        confirmado: true,
+        profile,
+      });
+
+      proveedor = await this.proveedoresService.create({
+        proveedor: dto.proveedor,
+        sub: dto.sub,
+        id_usuario: user.id,
+        correo_asociado: dto.correo,
+      });
+    } else {
+      user = await this.usuariosService.findById(proveedor.id_usuario);
+    }
+
+    const token = await this.jwtService.signAsync({
+      profileId: user.profile.id,
+      rol: user.rol || 'usuario',
+    });
+
+    return { token };
   }
 
   async signin(dto: AuthDto) {
@@ -82,11 +148,11 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // --- VERIFICACIÓN 'isActive' ---
+    // --- VERIFICACIÓN 'isActive' (Tu funcionalidad) ---
     if (user.isActive === false) {
       throw new UnauthorizedException('Esta cuenta ha sido desactivada.');
     }
-    // --- Fin Verificación ---
+    // -------------------------------------------------
 
     if (user.confirmado === false) {
       throw new UnauthorizedException('Usuario no verificado');
@@ -137,7 +203,7 @@ export class AuthService {
       const now = new Date();
       const tokenExpiration = new Date(user.tokenCreatedAt.getTime() + 10 * 60 * 1000);
       if (now > tokenExpiration) {
-        // await this.cleanSingleExpiredToken(user.correo); // Revisa si cleanSingleExpiredToken existe
+        // await this.cleanSingleExpiredToken(user.correo); // Método privado opcional
         throw new UnauthorizedException('El token ha expirado');
       }
     }
@@ -150,7 +216,7 @@ export class AuthService {
     return { isOtpVerified: false };
   }
 
-  // --- MÉTODO 'deleteUserAccount' AÑADIDO ---
+  // --- TU MÉTODO 'deleteUserAccount' ---
   async deleteUserAccount(
       profileIdFromToken: number,
       passwordAttempt: string,
@@ -188,5 +254,17 @@ export class AuthService {
   
       await this.usuariosService.deactivateUser(user.id);
       return { message: 'Cuenta desactivada exitosamente' };
+  }
+
+  // Tarea programada de develop (CRON)
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleCleanUnverifiedUsers() {
+    this.logger.log('Iniciando limpieza de usuarios no verificados...');
+    try {
+      const deletedCount = await this.usuariosService.cleanUnverifiedUsers();
+      this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
+    } catch (error) {
+      this.logger.error('Error en limpieza de usuarios no verificados:', error.stack);
+    }
   }
 }

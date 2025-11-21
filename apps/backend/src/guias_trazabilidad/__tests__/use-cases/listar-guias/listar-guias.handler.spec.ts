@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ListarGuiasQueryHandler } from '../../../application/use-cases/listar-guias/listar-guias.handler';
 import { ListarGuiasQuery } from '../../../application/use-cases/listar-guias/listar-guias.query';
 import { RepositoryMocks } from '../../mocks/repository-mocks';
-import { Result } from 'src/utils/result';
+import { Result } from '../../../../utils/result';
 
 import { GUIA_READ_REPOSITORY } from '../../../application/ports/outbound/guia-read.repository.interface';
 

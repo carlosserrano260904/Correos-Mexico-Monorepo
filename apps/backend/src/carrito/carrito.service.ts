@@ -4,8 +4,8 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Carrito } from './entities/carrito.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Product } from 'src/products/entities/product.entity';
+import { Profile } from '../profile/entities/profile.entity';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class CarritoService {

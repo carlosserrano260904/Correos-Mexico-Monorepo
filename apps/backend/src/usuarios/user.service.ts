@@ -1,11 +1,10 @@
-// Archivo: apps/backend/src/usuarios/user.service.ts
-
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Not, Repository } from 'typeorm';
-import { User } from './entities/user.entity'; // Esta entidad no la usamos aquí
-import { CreateAccount } from 'src/create-account/entities/create-account.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+// ZONA DE CONFLICTO EN IMPORTS RESUELTA
+import { User } from './entities/user.entity';
+import { CreateAccount } from '../create-account/entities/create-account.entity'; // Usamos rutas relativas (..)
+import { Profile } from '../profile/entities/profile.entity'; // Usamos rutas relativas (..)
 
 @Injectable()
 export class UserService {
@@ -16,7 +15,7 @@ export class UserService {
     private readonly repo: Repository<CreateAccount>,
   ) { }
 
-  // --- 👇 MÉTODO NUEVO AÑADIDO (para deleteAccount) ---
+  // --- MÉTODOS TUYOS (Eliminar Cuenta) ---
   async findByProfileId(profileIdToFind: number): Promise<CreateAccount | null> {
     return this.repo.findOne({ 
         where: { profile: { id: profileIdToFind } }, 
@@ -24,15 +23,15 @@ export class UserService {
     });
   }
 
-  // --- 👇 MÉTODO NUEVO AÑADIDO (para deleteAccount) ---
   async deactivateUser(userId: number): Promise<any> {
     return this.repo.update(
       { id: userId },     // Busca por ID principal
       { isActive: false } // Actualiza la columna
     );
   }
+  // ---------------------------------------
 
-  // --- (Resto de métodos originales) ---
+  // --- MÉTODOS ORIGINALES ---
 
   async create(data: Partial<CreateAccount> & { profile?: Profile }) {
     const user = this.repo.create({
@@ -124,10 +123,12 @@ export class UserService {
     return result;
   }
 
-  // --- 👇 CORRECCIÓN: Cambiado a Promise<void> ---
-  async cleanExpiredTokens(): Promise<void> { 
+  // --- MÉTODOS DE DEVELOP (Cron Jobs) ---
+  
+  // CORRECCIÓN: Devuelve Promise<number> para usarlo en logs, o void.
+  async cleanExpiredTokens(): Promise<number> { 
     try {
-      const expirationTime = new Date(Date.now() + (360- 10) * 60 * 1000); 
+      const expirationTime = new Date(Date.now() + (360 - 10) * 60 * 1000); // Ajuste según lógica de negocio
       const result = await this.repo.createQueryBuilder()
         .update(CreateAccount)
         .set({
@@ -140,14 +141,15 @@ export class UserService {
 
       const cleanedCount = result.affected || 0;
       this.logger.log(`Tokens expirados limpiados: ${cleanedCount}`);
+      return cleanedCount;
     } catch (error) {
       this.logger.error(`Error limpiando tokens expirados: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  // --- 👇 CORRECCIÓN: Cambiado a Promise<void> ---
-  async cleanUnverifiedUsers(): Promise<void> { 
+  // CORRECCIÓN: Devuelve Promise<number>
+  async cleanUnverifiedUsers(): Promise<number> { 
     try {
       const expirationTime = new Date(Date.now() - 18 * 60 * 60 * 1000); 
 
@@ -161,6 +163,7 @@ export class UserService {
 
       const deletedCount = result.affected || 0;
       this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
+      return deletedCount;
     } catch (error) {
       this.logger.error(`Error limpiando usuarios no verificados: ${(error as Error).message}`);
       throw error;

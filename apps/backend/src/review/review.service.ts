@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { ReviewImage } from './entities/review-image.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Injectable()
 export class ReviewService {

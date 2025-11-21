@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StripeController } from './stripe.controller';
 import { StripeService } from './stripe.service';
-import { Card } from 'src/cards/entities/card.entity';
+import { Card } from '../cards/entities/card.entity';
 import { Profile } from '../profile/entities/profile.entity';
 
 @Module({

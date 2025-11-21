@@ -1,5 +1,3 @@
-// Archivo: apps/backend/src/auth/auth.module.ts
-
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -10,9 +8,12 @@ import { JwtStrategy } from './jwt.startegy'; // Asegúrate que el nombre "start
 import { AuthController } from './auth.controller';
 import { UserModule } from '../usuarios/user.module'; // Importa el módulo de usuarios
 import { ProveedoresModule } from '../proveedores/proveedores.module';
-import { Profile } from 'src/profile/entities/profile.entity';
+
+// --- ZONA DEL CONFLICTO RESUELTA ---
 import { EmailModule } from '../enviar-correos/enviar-correos.module';
-import { DeletionReason } from '../usuarios/entities/deletion-reason.entity'; // <-- Ruta corregida
+import { Profile } from '../profile/entities/profile.entity'; // Usamos la ruta relativa (mejor práctica)
+import { DeletionReason } from '../usuarios/entities/deletion-reason.entity'; // Conservamos tu entidad necesaria
+// -----------------------------------
 
 @Module({
   imports: [

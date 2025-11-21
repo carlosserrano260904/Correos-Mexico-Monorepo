@@ -7,9 +7,9 @@ import {
   OneToMany,
   CreateDateColumn,
 } from 'typeorm';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Product } from 'src/products/entities/product.entity';
-import { Misdireccione } from 'src/misdirecciones/entities/misdireccione.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { Product } from '../../products/entities/product.entity';
+import { Misdireccione } from '../../misdirecciones/entities/misdireccione.entity';
 @Entity()
 export class Pedido {
   @PrimaryGeneratedColumn()

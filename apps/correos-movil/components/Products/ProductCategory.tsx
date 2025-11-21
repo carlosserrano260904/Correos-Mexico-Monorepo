@@ -23,6 +23,30 @@ const formatPrice = (price: number): string => {
   }).format(price);
 };
 
+// Componente PremiumBagIcon corregido
+const PremiumBagIcon: React.FC<{ isFilled: boolean }> = ({ isFilled }) => (
+  <View style={styles.premiumBagContainer}>
+    {/* Capa de fondo - ícono completo */}
+    <View style={styles.bagBackground}>
+      <ShoppingBag
+        size={24} // Aumentado a 24 para que sea más visible
+        color={isFilled ? '#de1484' : 'transparent'}
+        fill={isFilled ? '#de1484' : 'none'}
+      />
+    </View>
+    
+    {/* Capa de contorno - siempre visible pero con color diferente */}
+    <View style={styles.bagForeground}>
+      <ShoppingBag
+        size={24} // Aumentado a 24 para que sea más visible
+        color={isFilled ? '#555' : '#555'}
+        fill="none"
+        strokeWidth={isFilled ? 2.5 : 1.8} // Más grueso cuando está lleno
+      />
+    </View>
+  </View>
+);
+
 export interface Articulo {
   id: number;
   nombre: string;
@@ -65,7 +89,8 @@ const ProductoCard: React.FC<{
   favoritos: Record<number, number>;
   toggleFavorito: (id: number) => void;
   isInCart: boolean;
-}> = ({ articulo, favoritos, toggleFavorito, isInCart }) => {
+  toggleCart: (id: number) => void;
+}> = ({ articulo, favoritos, toggleFavorito, isInCart, toggleCart }) => {
   const nav = useNavigation<any>();
   const idNum = articulo.id;
   const isLiked = favoritos.hasOwnProperty(idNum);
@@ -99,12 +124,11 @@ const ProductoCard: React.FC<{
           />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.botonIcono}>
-          <ShoppingBag
-            size={20}
-            color={isInCart ? '#de1484' : '#555'}
-            fill={isInCart ? '#de1484' : 'none'}
-          />
+        <TouchableOpacity 
+          style={styles.botonIcono}
+          onPress={() => toggleCart(idNum)}
+        >
+          <PremiumBagIcon isFilled={isInCart} />
         </TouchableOpacity>
       </View>
 
@@ -155,6 +179,32 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({
     }
   };
 
+  const fetchCartItems = async () => {
+    if (!userId) return;
+    
+    try {
+      const response = await fetch(`${IP}/api/carrito/${userId}`);
+      if (response.status === 404) {
+        setCartItems({});
+        return;
+      }
+      if (!response.ok) throw new Error('Failed to fetch cart items');
+      const data = await response.json();
+      const cartMap = (Array.isArray(data) ? data : []).reduce(
+        (acc, item) => {
+          if (item && item.producto && item.producto.id) {
+            acc[item.producto.id] = true;
+          }
+          return acc;
+        },
+        {} as Record<number, boolean>
+      );
+      setCartItems(cartMap);
+    } catch (err) {
+      console.warn('Error al obtener el carrito:', err);
+    }
+  };
+
   const toggleFavorito = async (productoId: number) => {
     if (!userId) return console.log('Usuario no loggeado');
 
@@ -192,27 +242,64 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({
     }
   };
 
-  useEffect(() => {
-    fetchFavorites();
-  }, [userId]);
+  const toggleCart = async (productoId: number) => {
+    if (!userId) {
+      console.log('Usuario no loggeado');
+      return;
+    }
+
+    const isInCart = cartItems.hasOwnProperty(productoId);
+    const originalCartItems = { ...cartItems };
+
+    if (isInCart) {
+      // Remover del carrito
+      setCartItems(prev => {
+        const newState = { ...prev };
+        delete newState[productoId];
+        return newState;
+      });
+      
+      try {
+        const response = await fetch(`${IP}/api/carrito/${userId}`);
+        if (response.ok) {
+          const cartData = await response.json();
+          const cartItem = cartData.find((item: any) => item.producto.id === productoId);
+          if (cartItem) {
+            const deleteResponse = await fetch(`${IP}/api/carrito/${cartItem.id}`, {
+              method: 'DELETE',
+            });
+            if (!deleteResponse.ok) setCartItems(originalCartItems);
+          }
+        }
+      } catch {
+        setCartItems(originalCartItems);
+      }
+    } else {
+      // Agregar al carrito
+      try {
+        const response = await fetch(`${IP}/api/carrito`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            profileId: userId, 
+            productId: productoId,
+            cantidad: 1
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Error al agregar al carrito');
+        
+        setCartItems(prev => ({ ...prev, [productoId]: true }));
+      } catch (error) {
+        console.error('No se pudo agregar al carrito:', error);
+        setCartItems(originalCartItems);
+      }
+    }
+  };
 
   useEffect(() => {
-    if (!userId) return;
-    fetch(`${IP}/api/carrito/${userId}`)
-      .then(r => (r.status === 404 ? [] : r.json()))
-      .then((data: Array<{ producto: { id: number } }>) => {
-        if (Array.isArray(data)) {
-          const cartMap = data.reduce(
-            (acc, item) => {
-              if (item?.producto?.id) acc[item.producto.id] = true;
-              return acc;
-            },
-            {} as Record<number, boolean>
-          );
-          setCartItems(cartMap);
-        }
-      })
-      .catch(err => console.error('Error al obtener el carrito:', err));
+    fetchFavorites();
+    fetchCartItems();
   }, [userId]);
 
   return (
@@ -227,6 +314,7 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({
             favoritos={favoritos}
             toggleFavorito={toggleFavorito}
             isInCart={cartItems.hasOwnProperty(item.id)}
+            toggleCart={toggleCart}
           />
         )}
         showsHorizontalScrollIndicator={false}
@@ -238,7 +326,10 @@ export const ProductCategoryList: React.FC<ProductCategoryListProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff' 
+  },
 
   tarjetaProducto: {
     width: 180,
@@ -269,10 +360,35 @@ const styles = StyleSheet.create({
   },
 
   botonIcono: {
-    backgroundColor: '#ffffffcc',
+    backgroundColor: '#ffffff',
     borderRadius: 50,
-    padding: 6,
+    padding: 8, // Aumentado el padding para que quepa el ícono más grande
     marginLeft: 5,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 40, // Tamaño fijo para consistencia
+    height: 40, // Tamaño fijo para consistencia
+  },
+
+  // Estilos para el PremiumBagIcon
+  premiumBagContainer: {
+    position: 'relative',
+    width: 24, // Ajustado al tamaño del ícono
+    height: 24, // Ajustado al tamaño del ícono
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bagBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  bagForeground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
 
   datosProducto: {
@@ -299,8 +415,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  contenedorColores: { flexDirection: 'row', alignItems: 'center' },
-  circuloColor: { width: 14, height: 14, borderRadius: 7, marginRight: 4 },
+  contenedorColores: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  
+  circuloColor: { 
+    width: 14, 
+    height: 14, 
+    borderRadius: 7, 
+    marginRight: 4 
+  },
+  
   contadorRestante: {
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
@@ -308,7 +434,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 24,
   },
-  textoContador: { fontSize: 10, fontWeight: '600', color: '#666' },
+  
+  textoContador: { 
+    fontSize: 10, 
+    fontWeight: '600', 
+    color: '#666' 
+  },
 
   listContentContainer: {
     paddingBottom: 10,

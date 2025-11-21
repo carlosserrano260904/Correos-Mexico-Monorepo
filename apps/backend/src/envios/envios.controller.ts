@@ -4,7 +4,7 @@ import { EnviosService } from './envios.service';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
 import { CreateEnvioDto } from './dto/CrearEnvioDto.dto';
 import { FalloEnvioDto } from './dto/FalloEnvio.dto';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from '../upload-image/upload-image.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Envios')

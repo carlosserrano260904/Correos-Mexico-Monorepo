@@ -13,6 +13,7 @@ import {
   Modal,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -20,6 +21,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import { obtenerDirecciones } from '../../../api/direcciones';
+import { ChevronLeft } from 'lucide-react-native';
+
+const { width, height } = Dimensions.get('window');
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -255,6 +259,10 @@ const PantallaResumen = () => {
   }, [isPaying, spinValue]);
   const rotation = spinValue.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
+  const handleBack = useCallback(() => {
+    navigation.navigate('Carrito');
+  }, [navigation]);
+
   // === LOADERS ===
   const loadCart = async () => {
     try {
@@ -449,14 +457,20 @@ const PantallaResumen = () => {
     }
   }, [isFocused]);
 
+  const puedeConfirmar = cart.length > 0 && tarjeta && (modoEnvio === 'puntoRecogida' || (modoEnvio === 'domicilio' && direccion));
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 20 }}>
+
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Revisa tu pedido</Text>
+
         {/* Envío */}
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>
-            {modoEnvio === 'puntoRecogida' ? '📍 Punto de recogida' : '🏠 Envío a domicilio'}
+            {modoEnvio === 'puntoRecogida' ? ' Punto de recogida' : 'Envío a domicilio'}
           </Text>
 
           {modoEnvio === 'puntoRecogida' && puntoRecogida ? (
@@ -503,8 +517,10 @@ const PantallaResumen = () => {
         {/* Tarjeta */}
         {tarjeta && (
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>💳 Método de pago</Text>
-            <Text>{tarjeta.brand.toUpperCase()} •••• {tarjeta.last4}</Text>
+            <Text style={styles.infoTitle}> Método de pago</Text>
+            <Text style={styles.cardText}>
+              {tarjeta.brand.toUpperCase()} •••• {tarjeta.last4}
+            </Text>
           </View>
         )}
 
@@ -515,11 +531,12 @@ const PantallaResumen = () => {
           </View>
         ) : cart.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={{ fontSize: 48, color: '#D1D5DB' }}>🛒</Text>
-            <Text style={{ color: '#6B7280', marginTop: 8 }}>Tu carrito está vacío</Text>
+            <Text style={styles.emptyIcon}>🛒</Text>
+            <Text style={styles.emptyText}>Tu carrito está vacío</Text>
           </View>
         ) : (
           <View style={styles.list}>
+            <Text style={styles.productsTitle}>Productos en tu carrito</Text>
             {cart.map((item, idx) => (
               <View key={item.id}>
                 <TouchableOpacity
@@ -533,7 +550,7 @@ const PantallaResumen = () => {
                       console.log('Resumen image error:', item.image, e.nativeEvent)
                     }
                   />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={styles.productInfo}>
                     <Text style={styles.name}>{item.name}</Text>
                     <Text style={styles.desc}>Color: {item.color}</Text>
                     <Text style={styles.desc}>Cantidad: {item.quantity}</Text>
@@ -555,22 +572,40 @@ const PantallaResumen = () => {
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalAmount}>MXN {getSubtotal().toFixed(2)}</Text>
             </View>
-
-            <TouchableOpacity
-              style={[styles.confirmBtn, isPaying && { opacity: 0.7 }]}
-              onPress={confirmarCompra}
-              disabled={isPaying}
-              activeOpacity={0.8}
-            >
-              {isPaying ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <Text style={styles.confirmText}>Confirmar compra</Text>
-              )}
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+
+      {/* Botón de confirmación en footer */}
+      <View style={styles.footer}>
+        {puedeConfirmar ? (
+          <TouchableOpacity 
+            style={[styles.confirmBtn, isPaying && { opacity: 0.7 }]}
+            onPress={confirmarCompra}
+            disabled={isPaying}
+            activeOpacity={0.8}
+          >
+            {isPaying ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text style={styles.confirmText}>Confirmar compra</Text>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.placeholderButton}>
+            <Text style={styles.placeholderButtonText}>
+              {cart.length === 0 
+                ? 'Tu carrito está vacío' 
+                : !tarjeta 
+                ? 'Selecciona un método de pago' 
+                : !modoEnvio 
+                ? 'Selecciona un método de envío' 
+                : 'Completa tu información para continuar'
+              }
+            </Text>
+          </View>
+        )}
+      </View>
 
       {/* Modal de procesamiento */}
       <Modal visible={isPaying} transparent animationType="fade" statusBarTranslucent>
@@ -586,35 +621,120 @@ const PantallaResumen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: Colors.background 
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    backgroundColor: Colors.white,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.dark,
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: { 
+    flex: 1, 
+    padding: 20 
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: Colors.dark,
+  },
   infoBox: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  infoTitle: { fontWeight: '600', marginBottom: 8, color: Colors.primary },
-  addressTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4, color: Colors.dark },
-  addressText: { fontSize: 15, marginBottom: 4, color: Colors.textPrimary },
-  addressDetail: { fontSize: 14, color: Colors.textSecondary, marginBottom: 2 },
-
-  list: { paddingVertical: 12 },
+  infoTitle: { 
+    fontWeight: '600', 
+    marginBottom: 8, 
+    color: Colors.primary,
+    fontSize: 16,
+  },
+  addressTitle: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    marginBottom: 4, 
+    color: Colors.dark 
+  },
+  addressText: { 
+    fontSize: 15, 
+    marginBottom: 4, 
+    color: Colors.textPrimary 
+  },
+  addressDetail: { 
+    fontSize: 14, 
+    color: Colors.textSecondary, 
+    marginBottom: 2 
+  },
+  cardText: {
+    fontSize: 15,
+    color: Colors.textPrimary,
+    fontWeight: '500',
+  },
+  list: { 
+    paddingVertical: 12 
+  },
+  productsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.dark,
+    marginBottom: 12,
+  },
   productCard: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     flexDirection: 'row',
     padding: 12,
     marginBottom: 10,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     alignItems: 'center',
   },
-  image: { width: 70, height: 70, borderRadius: 8, backgroundColor: Colors.lightGray },
-  name: { fontWeight: '600', fontSize: 16, color: Colors.dark },
-  desc: { fontSize: 13, color: Colors.gray, marginTop: 2 },
-  price: { marginTop: 4, fontWeight: 'bold', color: Colors.primary },
-
+  image: { 
+    width: 70, 
+    height: 70, 
+    borderRadius: 8, 
+    backgroundColor: Colors.lightGray 
+  },
+  productInfo: { 
+    flex: 1, 
+    marginLeft: 12 
+  },
+  name: { 
+    fontWeight: '600', 
+    fontSize: 16, 
+    color: Colors.dark 
+  },
+  desc: { 
+    fontSize: 13, 
+    color: Colors.gray, 
+    marginTop: 2 
+  },
+  price: { 
+    marginTop: 4, 
+    fontWeight: 'bold', 
+    color: Colors.primary 
+  },
   expanded: {
     backgroundColor: '#f9f9f9',
     padding: 12,
@@ -622,9 +742,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: '#E0E0E0',
   },
-  detail: { fontSize: 14, color: Colors.textPrimary },
-
+  detail: { 
+    fontSize: 14, 
+    color: Colors.textPrimary 
+  },
   totalContainer: {
     marginTop: 20,
     borderTopWidth: 1,
@@ -634,21 +759,62 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  totalLabel: { fontSize: 18, fontWeight: '600', color: Colors.textPrimary },
-  totalAmount: { fontSize: 18, fontWeight: 'bold', color: Colors.primary },
-
+  totalLabel: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    color: Colors.textPrimary 
+  },
+  totalAmount: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: Colors.primary 
+  },
+  loadingContainer: { 
+    marginTop: 80, 
+    alignItems: 'center' 
+  },
+  emptyContainer: { 
+    marginTop: 60, 
+    alignItems: 'center' 
+  },
+  emptyIcon: { 
+    fontSize: 48, 
+    color: '#D1D5DB' 
+  },
+  emptyText: { 
+    color: '#6B7280', 
+    marginTop: 8 
+  },
+  footer: {
+    padding: 20,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
   confirmBtn: {
     backgroundColor: Colors.primary,
-    marginTop: 20,
-    borderRadius: 8,
     padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmText: { 
+    color: Colors.white, 
+    fontWeight: '600', 
+    fontSize: 16 
+  },
+  placeholderButton: {
+    backgroundColor: '#E0E0E0',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
   },
-  confirmText: { color: Colors.white, fontWeight: '600', fontSize: 16 },
-
-  loadingContainer: { marginTop: 80, alignItems: 'center' },
-  emptyContainer: { marginTop: 60, alignItems: 'center' },
-
+  placeholderButtonText: {
+    color: Colors.gray,
+    fontWeight: '500',
+    fontSize: 14,
+    textAlign: 'center',
+  },
   // Modal & spinner
   modalOverlay: {
     flex: 1,
@@ -675,7 +841,10 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.primary,
     marginBottom: 12,
   },
-  modalText: { color: Colors.textPrimary, fontWeight: '600' },
+  modalText: { 
+    color: Colors.textPrimary, 
+    fontWeight: '600' 
+  },
 });
 
 export default PantallaResumen;

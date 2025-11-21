@@ -8,25 +8,26 @@ const cardData = [
     title: 'Correspondencia Internacional',
     description: 'Envía tus cartas, documentos o tarjetas a cualquier parte del mundo.',
     imageUrl: require('../../../../assets/correspondencia.jpg'), // Ruta actualizada por el usuario
-    link: 'CorrespondenciaInter',
+    link: 'correspondencia',
   },
   {
     title: 'Paquetería Internacional',
     description: 'Exporta productos y mercancías a más de 180 países.',
     imageUrl: require('../../../../assets/paquete.jpg'), // Ruta actualizada por el usuario
-    link: 'PaqueteriaInter',
+    link: 'tarifasParaEnviosPaqueteria',
   },
   {
     title: 'Impresos Internacional',
     description: 'Haz crecer tu negocio enviando nuestro material de impresión a distintos países.',
     imageUrl: require('../../../../assets/impresos.png'), // Ruta actualizada por el usuario
-    link: 'ImpresosInter',
+    link: 'impresos', 
+
   },
   {
     title: 'Servicios Adicionales Internacionales',
     description: 'Conoce todos los servicios especiales que tenemos para ti.',
     imageUrl: require('../../../../assets/adicionales.jpg'), // Ruta actualizada por el usuario
-    link: 'ServiciosAdicionalesInter',
+     link: 'servicios_adicionales',
   },
 ];
 // --- FIN DE DATOS ---
@@ -132,15 +133,15 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 180,
-    backgroundColor: '#e5e7eb', // Placeholder color
-    resizeMode: 'cover', // Asegurarse que la imagen cubra el espacio
+    backgroundColor: '#e5e7eb', 
+    resizeMode: 'cover', 
   },
-  cardContentWrapper: { // Contenedor para el contenido de texto y footer
+  cardContentWrapper: { 
     padding: 20,
-    paddingBottom: 0, // Ajuste para que el footer gestione su propio padding
+    paddingBottom: 0, 
   },
   cardTextContainer: {
-    marginBottom: 16, // Espacio entre la descripción y el footer
+    marginBottom: 16,
   },
   cardTitle: {
     fontSize: 20,

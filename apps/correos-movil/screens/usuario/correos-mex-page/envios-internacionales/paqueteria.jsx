@@ -50,30 +50,28 @@ const SectionHeading = ({ number, title }) => (
 // --- Pantalla Principal (MODIFICADA) ---
 export default function PaqueteriaInternacionalScreen({ navigation }) {
   // Colores de las imágenes
-  const colorDarkRed = '#c21e56'; // Aprox. para Norteamérica
+  const colorDarkRed = '#c21e56'; 
   const colorGreen = '#84cc16';
-  const colorBeige = '#d2b48c'; // Aprox. para Resto del Mundo
-  const colorPink = '#ec4899'; // Para Especial EUA
+  const colorBeige = '#d2b48c'; 
+  const colorPink = '#ec4899'; 
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
       
-      {/* Header personalizado */}
+ 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color="#1f2937" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Paquetería Internacional</Text>
-        <View style={{ width: 40 }} /> {/* Espacio para centrar el título */}
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         
-        {/* Icono y Título Principal */}
         <View style={styles.titleContainer}>
           <View style={styles.iconBackground}>
-            {/* Icono cambiado a 'package' */}
             <Icon name="package" size={32} color="#ec4899" />
           </View>
           <Text style={styles.mainTitle}>Paquetería Internacional</Text>
@@ -82,7 +80,7 @@ export default function PaqueteriaInternacionalScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* Nota de Información (idéntica) */}
+       
         <View style={styles.infoBox}>
           <View style={styles.infoIconContainer}>
             <Icon name="info" size={16} color="#4b5563" />
@@ -95,7 +93,7 @@ export default function PaqueteriaInternacionalScreen({ navigation }) {
           </View>
         </View>
 
-        {/* --- Sección 1: Pequeños Paquetes --- */}
+      
         <SectionHeading number="1" title="Pequeños Paquetes" />
 
         <PriceSection 
@@ -117,7 +115,7 @@ export default function PaqueteriaInternacionalScreen({ navigation }) {
           weight="2"
         />
 
-        {/* --- Sección 2: Encomienda Postal --- */}
+      
         <SectionHeading number="2" title="Encomienda Postal" />
 
         <PriceSection 
@@ -145,7 +143,7 @@ export default function PaqueteriaInternacionalScreen({ navigation }) {
           weight="20"
         />
 
-        {/* Nota al final */}
+
         <BulletNote text="El tiempo de entrega depende del país de destino." />
 
       </ScrollView>
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#fce7f3', // Rosa pálido
+    backgroundColor: '#fce7f3', 
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -212,9 +210,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     maxWidth: '90%',
   },
-  // --- Info Box ---
+
   infoBox: {
-    backgroundColor: '#f3f4f6', // Gris claro
+    backgroundColor: '#f3f4f6', 
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -224,7 +222,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb', // Gris medio
+    backgroundColor: '#e5e7eb',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -243,7 +241,7 @@ const styles = StyleSheet.create({
     color: '#4b5563',
     lineHeight: 18,
   },
-  // --- NUEVO: Estilos para el Encabezado de Sección ---
+
   sectionHeadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -254,7 +252,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#ec4899', // Pink
+    backgroundColor: '#ec4899', 
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -269,7 +267,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
   },
-  // --- Price Section ---
+
   priceSection: {
     borderRadius: 12,
     overflow: 'hidden',
@@ -317,7 +315,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginTop: 7, // Alinea con el texto
+    marginTop: 7,
     marginRight: 8,
   },
   bulletText: {

@@ -1,4 +1,4 @@
-import { Result } from 'src/utils/result';
+import { Result } from '../../../utils/result';
 
 
 class MockHandler {

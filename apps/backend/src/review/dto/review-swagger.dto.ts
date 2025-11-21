@@ -1,6 +1,6 @@
 // src/reviews/dto/review-swagger.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { ProfilePublicDto } from 'src/profile/dto/profile-public.dto';
+import { ProfilePublicDto } from '../../profile/dto/profile-public.dto';
 import { ReviewImage } from '../entities/review-image.entity';
 
 export class ReviewSwaggerDto {

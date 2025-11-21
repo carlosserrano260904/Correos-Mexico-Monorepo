@@ -1,7 +1,7 @@
 // apps/backend/src/carrito/carrito.entity.ts
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn } from 'typeorm';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Product } from 'src/products/entities/product.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { Product } from '../../products/entities/product.entity';
 
 
 @Entity('carrito')

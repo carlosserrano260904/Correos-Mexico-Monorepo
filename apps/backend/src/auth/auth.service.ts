@@ -8,7 +8,7 @@ import { OAuthDto } from './dto/oauth.dto';
 import { AuthDto } from './dto/auth.dto';
 import { UpdatePasswordDto, EmailOtpDto, VerifyOtpDto } from './dto/update-password.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../profile/entities/profile.entity';
 import { Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';

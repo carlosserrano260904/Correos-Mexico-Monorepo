@@ -1,6 +1,6 @@
 import { Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { S3Client, S3ServiceException } from "@aws-sdk/client-s3";
-import { AWSRepositoryInterface } from "src/guias_trazabilidad/application/ports/outbound/aws.repository.interface";
+import { AWSRepositoryInterface } from '../../../guias_trazabilidad/application/ports/outbound/aws.repository.interface';
 import { AWS_S3_CLIENT } from "./aws.provider";
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { ConfigService } from "@nestjs/config";

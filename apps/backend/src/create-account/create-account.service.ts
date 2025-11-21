@@ -4,8 +4,8 @@ import { UpdateCreateAccountDto } from './dto/update-create-account.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateAccount } from './entities/create-account.entity';
 import { Repository } from 'typeorm';
-import { EnviarCorreosService } from 'src/enviar-correos/enviar-correos.service';
-import { generateToken } from 'src/utils/token';
+import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
+import { generateToken } from '../utils/token';
 import { CompleteNameDto } from './dto/comple-name.dto';
 import { CompletePasswordDto } from './dto/complete-password.dto';
 

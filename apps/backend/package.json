@@ -4,6 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
+  "type": "commonjs",
   "license": "UNLICENSED",
   "scripts": {
     "seed:products": "ts-node -r tsconfig-paths/register src/seeds/seed-products.ts",
@@ -58,9 +59,10 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
     "stripe": "^18.3.0",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
     "turbo": "^2.5.5",
-    "typeorm": "^0.3.25",
-    "uuid": "^8.3.2"
+    "typeorm": "^0.3.25"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -80,7 +82,6 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.8",
     "@types/supertest": "^6.0.2",
-    "@types/uuid": "^8.3.4",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
@@ -92,8 +93,6 @@
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.16",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.20.0"
   },

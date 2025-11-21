@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 
-import { Result } from 'src/utils/result';
+import { Result } from '../../../../utils/result';
 import { RegistrarMovimientoCommand } from './registrar-movimiento.command';
 import {
   GuiaRepositoryInterface,

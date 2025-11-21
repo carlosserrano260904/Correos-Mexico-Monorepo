@@ -18,7 +18,7 @@ export default function FormularioVendedor() {
     const [rfc, setRfc] = useState('');
     const [curp, setCurp] = useState('');
     
-    const [errors, setErrors] = useState({
+    const [errors, setErrors] = useState<{ [key: string]: string }>({
         nombre: '', categoria: '', telefono: '', email: '', direccion: '', rfc: '', curp: ''
     });
 
@@ -28,12 +28,11 @@ export default function FormularioVendedor() {
     const { userId } = useMyAuth();
     const [estadoSolicitud, setEstadoSolicitud] = useState(false); 
 
-    // --- REGEX (Reglas de Negocio) ---
+    // --- REGEX ---
     const rfcRegex = /^[A-Z&Ñ]{3,4}\d{6}[A-Z\d]{3}$/;
     const curpRegex = /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]\d$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // --- VALIDACIÓN ---
     const validate = () => {
         let isValid = true;
         let newErrors = { nombre: '', categoria: '', telefono: '', email: '', direccion: '', rfc: '', curp: '' };
@@ -71,7 +70,6 @@ export default function FormularioVendedor() {
         return isValid;
     };
 
-    // --- API CALLS ---
     const encontrarSolicitud = async () => {
         try {
             const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/vendedor/encontrar-solicitud/${userId}`);
@@ -184,7 +182,6 @@ export default function FormularioVendedor() {
         }, [userId])
     );
 
-    // --- RENDER: PANTALLA DE ÉXITO ---
     if (estadoSolicitud) {
         return (
             <View style={styles.containerCenter}>
@@ -204,14 +201,12 @@ export default function FormularioVendedor() {
         );
     }
 
-    // --- RENDER: FORMULARIO ---
     return (
         <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{ flex: 1 }}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Header */}
                 <View style={styles.headerRow}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Icon name="arrow-back" size={24} color="#333" />
@@ -235,23 +230,23 @@ export default function FormularioVendedor() {
                         {errors.nombre ? <Text style={styles.errorText}>{errors.nombre}</Text> : null}
                     </View>
 
-                    {/* Categoría - Con corrección de Scroll */}
+                    {/* Categoría (CORREGIDO) */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Categoría <Text style={styles.required}>*</Text></Text>
                         <View style={[styles.pickerContainer, errors.categoria ? styles.inputError : null]}>
                             <Picker
                                 selectedValue={categoria}
                                 onValueChange={(itemValue) => setCategoria(itemValue)}
-                                style={styles.picker}
-                                mode="dropdown" // IMPORTANTE: Permite scroll en Android
+                                style={styles.picker} // Estilo corregido
+                                mode="dropdown"
                                 dropdownIconColor="#333"
                             >
                                 <Picker.Item label="Selecciona una categoría" value="" color="#999" enabled={false} />
-                                <Picker.Item label="Electrónica" value="electronica" /> 
-                                <Picker.Item label="Ropa" value="ropa" />
-                                <Picker.Item label="Hogar" value="hogar" />
-                                <Picker.Item label="Juguetes" value="juguetes" />
-                                <Picker.Item label="Otros" value="otros" />
+                                <Picker.Item label="Electrónica" value="electronica" color="#000" /> 
+                                <Picker.Item label="Ropa" value="ropa" color="#000" />
+                                <Picker.Item label="Hogar" value="hogar" color="#000" />
+                                <Picker.Item label="Juguetes" value="juguetes" color="#000" />
+                                <Picker.Item label="Otros" value="otros" color="#000" />
                             </Picker>
                         </View>
                         {errors.categoria ? <Text style={styles.errorText}>{errors.categoria}</Text> : null}
@@ -367,7 +362,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 50, // Ajuste para SafeArea
+        paddingTop: 50, 
         marginBottom: 20,
     },
     title: {
@@ -379,7 +374,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
     },
     inputGroup: {
-        marginBottom: 16, // Espacio entre cada grupo de inputs
+        marginBottom: 16,
     },
     label: {
         fontSize: 15,
@@ -390,7 +385,7 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#E0E0E0',
-        backgroundColor: '#F9F9F9', // Fondo gris claro para inputs
+        backgroundColor: '#F9F9F9',
         paddingHorizontal: 14,
         paddingVertical: 12,
         borderRadius: 10,
@@ -413,14 +408,16 @@ const styles = StyleSheet.create({
         borderColor: '#E0E0E0',
         backgroundColor: '#F9F9F9',
         borderRadius: 10,
-        // overflow: 'hidden', // Comentado para evitar cortes en algunos Androids
-        height: 55, 
         justifyContent: 'center',
+        // Ajustes clave para el contenedor
+        height: 50, 
+        overflow: 'hidden',
     },
     picker: {
+        // Ajustes clave para el Picker en Android
         width: '100%',
-        color: '#000',
-        height: 55, 
+        color: '#000', 
+        marginLeft: Platform.OS === 'android' ? -5 : 0, // Alineación fina
     },
     required: {
         color: '#DE1484',
@@ -464,7 +461,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         letterSpacing: 1,
     },
-    // Estilos Pantalla de Éxito
     containerCenter: {
         flex: 1,
         backgroundColor: 'white',

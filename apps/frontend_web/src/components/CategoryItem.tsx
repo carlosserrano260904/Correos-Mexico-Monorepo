@@ -16,13 +16,15 @@ export const CategoryItem = ({ imageSrc, label }: CategoryItemProps) => {
           shadow-lg transition-all duration-500 ease-out
           ${isHovered ? 'scale-110 shadow-xl' : 'scale-100 shadow-md'}
         `}>
-          <img 
-            src={imageSrc} 
-            alt={label} 
-            className={`w-20 h-20 object-contain transition-all duration-500 ${
-              isHovered ? 'scale-110' : 'scale-100'
-            }`}
-          />
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={label}
+              className={`w-20 h-20 object-contain transition-all duration-500 ${
+                isHovered ? 'scale-110' : 'scale-100'
+              }`}
+            />
+          ) : null}
         </div>
 
         <div className={`absolute inset-0 rounded-full border-2 transition-all duration-300 ${

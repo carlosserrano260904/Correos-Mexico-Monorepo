@@ -9,14 +9,22 @@ import { CarrouselProducts } from '@/components/CarouselProducts';
 import { useProducts } from '@/hooks/useProduct'
 import Promo from '../Categoria/components/promo';
 import { useSearchParams } from 'next/navigation'
-
+import { useEffect } from 'react';
 
 export default function Page() {
-  const searchParams = useSearchParams()
-  const category = searchParams.get('category')
-  const { getProductsByCategory } = useProducts()
-  const products = category ? getProductsByCategory(category) : []
-  // const sampleProducts = [
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category');
+  const { products, loadProductsByCategory, loadProducts } = useProducts();
+
+  useEffect(() => {
+    if (category) {
+      loadProductsByCategory(category);
+    } else {
+      loadProducts();
+    }
+  }, [category, loadProducts, loadProductsByCategory]); // <-- agregar dependencias es importante
+
+    // const sampleProducts = [
   //   {
   //     ProductID: "1",
   //     ProductImageUrl: "/artesanal.png",
@@ -61,15 +69,11 @@ export default function Page() {
         <HeroBanner />
         <SummerTrends />
         <CarrouselProducts entradas={products} title='Tendencias de Verano' />
-        
-        <CarrouselProducts entradas={products} title='Tendencias de Verano'/>
         <CategoryGrid />
-        <CarrouselProducts entradas={products} title='Tendencias de Verano'/>
         <Promo />
-
-        <CarrouselProducts entradas={products} title='Tendencias de Verano'/>
         <HeroVideoBanner />
       </div>
     </Plantilla>
   );
 }
+

@@ -21,14 +21,19 @@ import {
 import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from '@/hooks/useAuth';
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
+    const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [loginData, setLoginData] = useState({ email: '', password: '' });
+    const [loginError, setLoginError] = useState<string | null>(null);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -40,6 +45,8 @@ export const Navbar = () => {
 
     const handleDropdownClose = () => {
         setOpenDropdown(null);
+        setLoginError(null);
+        setLoginData({ email: '', password: '' });
     };
 
     const formatPrice = (price: number) => {
@@ -47,6 +54,28 @@ export const Navbar = () => {
             style: 'currency',
             currency: 'MXN',
         }).format(price);
+    };
+
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoginError(null);
+        setIsLoggingIn(true);
+
+        try {
+            await login(loginData);
+            handleDropdownClose();
+        } catch (error: any) {
+            setLoginError(error.message);
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
+
+    const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLoginData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
     };
 
     // Renderizar versión simplificada durante la hidratación
@@ -359,54 +388,150 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Usuario */}
+                {/* Usuario - CON AUTENTICACIÓN REAL Y DEBUG */}
                 <DropdownMenu open={openDropdown === 'user'} onOpenChange={(open) => open ? handleDropdownToggle('user') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
                         <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
                     </DropdownMenuTrigger>
+                    
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-3 sm:p-4">
-                        <div className="flex-col">
-                            {/* Header con info del usuario */}
-                            <div className="flex items-center mb-3 sm:mb-4">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
-                                    JD
-                                </div>
-                                <div className="flex-col">
-                                    <div className="font-semibold text-sm sm:text-base">Mayela Díaz</div>
-                                    <div className="text-xs sm:text-sm text-gray-500">Mayela@gmail.com</div>
+                        {!isAuthenticated ? (
+                            // Usuario NO autenticado - Mostrar formulario de login
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 text-center">Iniciar Sesión</h3>
+                                
+                                {loginError && (
+                                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                                        {loginError}
+                                    </div>
+                                )}
+                                
+                                <form onSubmit={handleLoginSubmit} className="space-y-3">
+                                    <div>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={loginData.email}
+                                            onChange={handleLoginChange}
+                                            placeholder="Email"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DE1484] text-sm"
+                                            required
+                                            disabled={isLoggingIn}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            value={loginData.password}
+                                            onChange={handleLoginChange}
+                                            placeholder="Contraseña"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DE1484] text-sm"
+                                            required
+                                            disabled={isLoggingIn}
+                                        />
+                                    </div>
+                                    <button 
+                                        type="submit"
+                                        disabled={isLoggingIn}
+                                        className="w-full bg-[#DE1484] hover:bg-pink-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                                    </button>
+                                </form>
+                                
+                                <div className="text-center">
+                                    <button className="text-[#DE1484] hover:text-pink-700 text-xs font-medium">
+                                        ¿No tienes cuenta? Regístrate
+                                    </button>
                                 </div>
                             </div>
+                        ) : (
+                            // Usuario autenticado - Mostrar menú de usuario con datos reales
+                            <div className="flex-col">
+                                {/* Header con info del usuario real desde tu API */}
+                                <div className="flex items-center mb-3 sm:mb-4">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
+                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <div className="flex-col">
+                                        <div className="font-semibold text-sm sm:text-base">
+                                            {user?.name || 'Usuario'}
+                                        </div>
+                                        <div className="text-xs sm:text-sm text-gray-500">
+                                            {user?.email || 'user@example.com'}
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <Separator className="mb-3 sm:mb-4" />
+                                <Separator className="mb-3 sm:mb-4" />
 
-                            {/* Opciones del menú */}
-                            <div className="flex flex-col space-y-2 sm:space-y-3">
-                                <Link href="/Perfil" className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base" onClick={handleDropdownClose}>
-                                    Mi Perfil
-                                </Link>
-                                <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base" onClick={handleDropdownClose}>
-                                    Historial
-                                </Link>
-                                <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base" onClick={handleDropdownClose}>
-                                    Solicitar Cuenta de Vendedor
-                                </Link>
-                                <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base" onClick={handleDropdownClose}>
-                                    Vendedor
-                                </Link>
-                            </div>
+                                {/* Opciones del menú */}
+                                <div className="flex flex-col space-y-2 sm:space-y-3">
+                                    <Link 
+                                        href="/Perfil" 
+                                        className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
+                                        onClick={handleDropdownClose}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Mi Perfil
+                                    </Link>
+                                    
+                                    <Link 
+                                        href="/historial" 
+                                        className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
+                                        onClick={handleDropdownClose}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        Historial de Compras
+                                    </Link>
+                                    
+                                    <Link 
+                                        href="/solicitar_cuenta" 
+                                        className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
+                                        onClick={handleDropdownClose}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        Ser Vendedor
+                                    </Link>
+                                    
+                                    {user?.role === 'vendor' && (
+                                        <Link 
+                                            href="/Vendedor/app" 
+                                            className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
+                                            onClick={handleDropdownClose}
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                            </svg>
+                                            Panel Vendedor
+                                        </Link>
+                                    )}
+                                </div>
 
-                            <Separator className="my-3 sm:my-4" />
+                                <Separator className="my-3 sm:my-4" />
 
-                            {/* Botón cerrar sesión */}
-                            <button 
-                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base"
-                                onClick={handleDropdownClose}
-                            >
-                                <Link href={"/"}>
+                                {/* Botón cerrar sesión */}
+                                <button 
+                                    onClick={() => {
+                                        logout();
+                                        handleDropdownClose();
+                                    }}
+                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base flex items-center justify-center gap-2"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
                                     Cerrar sesión
-                                </Link>
-                            </button>
-                        </div>
+                                </button>
+                            </div>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
 

@@ -50,6 +50,8 @@ export const BackendCreateProductSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+
+
 // Tipos
 export type BackendProduct = z.infer<typeof BackendProductSchema>;
 export type FrontendProduct = z.infer<typeof FrontendProductSchema>;

@@ -2,18 +2,13 @@
 import { CarrouselProducts, CarrouselColection } from '@/components/CarouselProducts'
 import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/components/anuncios'
 import { Boletin } from '@/components/boletin'
-
-
 import Link from 'next/link'
 import React from 'react'
 import { Plantilla } from '@/components/plantilla'
-
 import { CarouselDetalles } from '@/components/CarouselDetalles'
 import { Comentario } from '@/components/Comentario'
 import { useProducts } from '@/hooks/useProduct'
 import Categories from '@/components/Categories'
-
-
 
 const carouselItems = [
   {
@@ -71,41 +66,74 @@ export default function Home() {
 
   return (
     <Plantilla>
-      <div className=''>
+      {/* Sección principal con espaciado responsive */}
+      <div className='mb-4 sm:mb-6 md:mb-8'>
         <Anuncios />
       </div>
-      <Categories />
-      <div className='my-3'>
+      
+      {/* Categories con margen responsive */}
+      <div className='mb-4 sm:mb-6 md:mb-8'>
+        <Categories />
+      </div>
+      
+      {/* Anuncios2 con espaciado adaptativo */}
+      <div className='my-4 sm:my-6 md:my-8'>
         <Anuncios2 />
       </div>
-<CarrouselProducts 
-  entradas={Products} 
-  title="Productos Destacados" 
-  className="mi-clase-personalizada"
-/>
-      <div className='my-3'>
+
+      {/* Carrousel Products con padding responsive */}
+      <div className='py-4 sm:py-6 md:py-8'>
+        <CarrouselProducts 
+          entradas={Products} 
+          title="Productos Destacados" 
+          className="mi-clase-personalizada"
+        />
+      </div>
+
+      {/* Anuncios3 con espaciado consistente */}
+      <div className='my-4 sm:my-6 md:my-8'>
         <Anuncios3 />
       </div>
 
-      <CarrouselProducts entradas={Products} title='Relacionados con lo último que viste' />
-      <CarrouselProducts entradas={Products} title='Pensados para ti en Joyería y Bisutería' />
+      {/* Grid de carrousels para móvil, stack en desktop */}
+      <div className='space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12'>
+        <div className='py-4 sm:py-6 md:py-8'>
+          <CarrouselProducts 
+            entradas={Products} 
+            title='Relacionados con lo último que viste' 
+          />
+        </div>
+        
+        <div className='py-4 sm:py-6 md:py-8'>
+          <CarrouselProducts 
+            entradas={Products} 
+            title='Pensados para ti en Joyería y Bisutería' 
+          />
+        </div>
+      </div>
 
-      <div className='my-3'>
+      {/* Anuncios4 con espaciado responsive */}
+      <div className='my-4 sm:my-6 md:my-8 lg:my-10'>
         <Anuncios4 />
       </div>
 
-      <CarrouselProducts entradas={Products} title='Tu historial de productos' />
+      {/* Último carrousel con espaciado superior */}
+      <div className='pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6 md:pb-8'>
+        <CarrouselProducts 
+          entradas={Products} 
+          title='Tu historial de productos' 
+        />
+      </div>
 
-      <div className='my-3'>
+      {/* Anuncios5 con espaciado adaptativo */}
+      <div className='my-4 sm:my-6 md:my-8 lg:my-10'>
         <Anuncios5 />
       </div>
 
-      <div className='my-3'>
+      {/* Boletin final con padding generoso */}
+      <div className='py-6 sm:py-8 md:py-10 lg:py-12'>
         <Boletin />
       </div>
     </Plantilla>
   );
 }
-
-
-

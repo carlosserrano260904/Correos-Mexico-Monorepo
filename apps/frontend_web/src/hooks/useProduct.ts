@@ -108,3 +108,48 @@ export const useFeaturedProducts = (limit: number = 8) => {
 
   return { featuredProducts, loading, error };
 };
+
+// En hooks/useProduct.ts - AGREGAR esta función al final
+export const useProductById = (productId: string) => {
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        
+        // Como tu API usa números, convertimos el string a número
+        const productIdNumber = parseInt(productId);
+        
+        if (isNaN(productIdNumber)) {
+          setError('ID de producto inválido');
+          setLoading(false);
+          return;
+        }
+
+        // Usamos tu servicio existente
+        const productData = await productsApiService.getProductById(productIdNumber);
+        
+        if (productData) {
+          setProduct(productData);
+        } else {
+          setError('Producto no encontrado');
+        }
+        
+      } catch (err) {
+        setError('Error al cargar el producto');
+        console.error('Error loading product:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  return { product, loading, error };
+};

@@ -9,7 +9,42 @@ const nextConfig: NextConfig = {
     externalDir: true,
   },
   
-  // Configuración de Webpack para hot reload en monorepo
+  images: {
+    domains: [
+      'correos-de-mexico.s3.us-east-2.amazonaws.com',
+      'via.placeholder.com',
+      'localhost',
+      '192.168.1.98'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'correos-de-mexico.s3.us-east-2.amazonaws.com',
+        port: '',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '192.168.1.98',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    formats: ['image/webp', 'image/avif'],
+  },
+  
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       // Mejora el hot reload en monorepos

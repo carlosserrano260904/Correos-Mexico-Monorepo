@@ -1,5 +1,5 @@
 'use client'
-import { CarrouselColection, CarrouselProducts } from '@/components/CarouselProducts'
+import { CarrouselProducts, CarrouselColection } from '@/components/CarouselProducts'
 import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/components/anuncios'
 import { Boletin } from '@/components/boletin'
 
@@ -78,9 +78,11 @@ export default function Home() {
       <div className='my-3'>
         <Anuncios2 />
       </div>
-      <CarrouselProducts entradas={Products} title='Mas vendido para ti en moda' />
-      <CarrouselColection entradas={Products} title='Nuevas Colecciones' />
-
+<CarrouselProducts 
+  entradas={Products} 
+  title="Productos Destacados" 
+  className="mi-clase-personalizada"
+/>
       <div className='my-3'>
         <Anuncios3 />
       </div>

@@ -1,73 +1,72 @@
-'use client'
+// components/CarrouselProducts.tsx
+'use client';
 
-import { ProductosProps } from '@/types' 
-import { Carousel, CarouselContent } from "./ui/carousel"
-import { ColectionCard, ProductCard } from "./primitivos"
-import { useProducts } from "@/hooks/useProduct" // Ajusta la ruta según tu estructura
+import { useFeaturedProducts } from '@/hooks/useProduct';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import { ProductCard } from "./primitivos";
 
-interface Data {entradas: ProductosProps[], className?: string, title: string}
+export const CarrouselProducts = () => {
+  const { featuredProducts, loading, error } = useFeaturedProducts(8);
 
-export const CarrouselProducts = ({entradas, className, title}: Data) =>{
-  // Usamos el hook personalizado
-  const { selectProduct } = useProducts();
+  if (loading) {
+    return (
+      <div className="my-12">
+        <h2 className="text-3xl my-6 ms-12 font-bold text-gray-800">Productos Destacados</h2>
+        <div className="flex gap-6 px-12">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="w-80 h-96 bg-gray-200 animate-pulse rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  // Función que maneja el clic en un producto
-  const handleProductClick = (productId: number) => {
-    selectProduct(productId);
-    // Aquí el componente ProductCard debe navegar a /Producto/
-    // La navegación se maneja dentro del componente ProductCard
-  };
+  if (error) {
+    return (
+      <div className="my-12">
+        <h2 className="text-3xl my-6 ms-12 font-bold text-gray-800">Productos Destacados</h2>
+        <p className="text-red-500 text-center">Error: {error}</p>
+      </div>
+    );
+  }
 
-  return(
-    <div className={`${className} my-6`}>
-      <h2 className="text-2xl my-3 ms-10 font-bold">{title}</h2>
-      <Carousel>
-        <CarouselContent className="mx-4">
-          {entradas.map((card) => (
-              <ProductCard
-                key={card.ProductID}
-                ProductColors={card.variants?.map(variant => variant.valor) || []}
-                ProductID ={card.ProductID}
-                ProductImage ={card.ProductImageUrl}
-                ProductName ={card.ProductName}
-                ProductPrice ={card.productPrice}
-                // Pasamos la función onClick como prop
-                onClick={() => handleProductClick(card.ProductID)}
-              />
+  return (
+    <div className="my-12 relative">
+      <h2 className="text-3xl my-6 ms-12 font-bold text-gray-800">Productos Destacados</h2>
+      
+      <Carousel
+        opts={{
+          align: "start",
+          loop: true,
+          dragFree: false,
+          duration: 25,
+        }}
+        className="relative w-full"
+      >
+        {/* Botones de navegación - siempre visibles */}
+        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/95 hover:bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 backdrop-blur-sm size-10" />
+        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/95 hover:bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 backdrop-blur-sm size-10" />
+        
+        <CarouselContent className="ml-0 py-6">
+          {featuredProducts.map((product, index) => (
+            <CarouselItem 
+              key={product.ProductID} 
+              className="pl-6 basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+            >
+              {/* Contenedor con buen espaciado */}
+              <div className="h-full">
+                <ProductCard
+                  ProductID={product.ProductID}
+                  ProductName={product.ProductName}
+                  ProductPrice={product.productPrice}
+                  ProductImage={product.ProductImageUrl}
+                  ProductColors={product.ProductColors}
+                />
+              </div>
+            </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>
     </div>
-  )
-}
-
-export const CarrouselColection = ({entradas, className, title}: Data) =>{
-  // Usamos el hook personalizado
-  const { selectProduct } = useProducts();
-
-  // Función que maneja el clic en un producto de colección
-  const handleProductClick = (productId: number) => {
-    selectProduct(productId);
-    // La navegación se maneja dentro del componente ColectionCard
-  };
-
-  return(
-    <div className={`${className} my-6`}>
-      <h2 className="text-2xl my-3 ms-10 font-bold">{title}</h2>
-    <Carousel>
-      <CarouselContent className="mx-4">
-        {entradas.map((card) => (
-            <ColectionCard
-              key={card.ProductID}
-              ProductID ={card.ProductID}
-              ProductImage ={card.ProductImageUrl}
-              ProductName ={card.ProductName}
-              // Pasamos la función onClick como prop
-              onClick={() => handleProductClick(card.ProductID)}
-            />
-        ))}
-      </CarouselContent>
-    </Carousel>
-    </div>
-  )
-}
+  );
+};

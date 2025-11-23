@@ -28,11 +28,19 @@ export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
     const [isMounted, setIsMounted] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-    // Marcar como montado solo en el cliente
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    const handleDropdownToggle = (dropdownName: string) => {
+        setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+    };
+
+    const handleDropdownClose = () => {
+        setOpenDropdown(null);
+    };
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('es-MX', {
@@ -120,14 +128,14 @@ export const Navbar = () => {
                     />
                 </Link>
                 {/* Menú hamburguesa */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoMenu className="w-5 h-5 text-gray-600" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[300px] max-h-[450px] overflow-y-auto">
                         {categories.map((category, index) => (
                             <DropdownMenuItem key={index} className="first:mb-6 last:mt-6 [&:not(:first-child):not(:last-child)]:my-6">
-                                <Link href={`./categories?category=${encodeURIComponent(category)}`}>
+                                <Link href={`./categories?category=${encodeURIComponent(category)}`} onClick={handleDropdownClose}>
                                     {category}
                                 </Link>
                             </DropdownMenuItem>
@@ -156,7 +164,7 @@ export const Navbar = () => {
             {/* Íconos de la derecha */}
             <div className="flex items-center gap-x-2">
                 {/* App */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'app'} onOpenChange={(open) => open ? handleDropdownToggle('app') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 hover:bg-gray-100 rounded-full text-gray-600 flex items-center gap-1 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoAppsOutline className="w-5 h-5" />
                         <span className="text-sm font-medium">App</span>
@@ -173,7 +181,7 @@ export const Navbar = () => {
                 </DropdownMenu>
 
                 {/* Favoritos */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'favorites'} onOpenChange={(open) => open ? handleDropdownToggle('favorites') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
                         <IoHeartOutline className={`w-5 h-5 ${totalFavorites > 0 ? 'hidden' : 'block'}`} />
                         <IoHeartSharp className={`w-5 h-5 text-red-600 ${totalFavorites > 0 ? 'block' : 'hidden'}`} />
@@ -185,7 +193,7 @@ export const Navbar = () => {
                         <div className="flex-col">
                             <div className="flex items-center">
                                 <div className="text-lg font-semibold">Mis Favoritos ({totalFavorites})</div>
-                                <Link href={"/favoritos"} className="ms-auto text-sm underline">
+                                <Link href={"/favoritos"} className="ms-auto text-sm underline" onClick={handleDropdownClose}>
                                     Visualizar mis favoritos
                                 </Link>
                             </div>
@@ -217,7 +225,10 @@ export const Navbar = () => {
                                             </div>
                                             <div className="basis-1/12 flex items-center justify-center">
                                                 <button 
-                                                    onClick={() => removeFromFavorites(product.ProductID)}
+                                                    onClick={() => {
+                                                        removeFromFavorites(product.ProductID);
+                                                        handleDropdownClose();
+                                                    }}
                                                     className="p-1 hover:bg-gray-100 rounded text-red-500"
                                                 >
                                                     <IoTrashOutline className="w-4 h-4" />
@@ -237,7 +248,7 @@ export const Navbar = () => {
                 </DropdownMenu>
 
                 {/* Carrito */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'cart'} onOpenChange={(open) => open ? handleDropdownToggle('cart') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px] relative">
                         <IoBagOutline className="w-5 h-5" />
                         {getTotalItems() > 0 && (
@@ -251,7 +262,7 @@ export const Navbar = () => {
                             {/* Header */}
                             <div className="flex items-center mb-4">
                                 <div className="text-lg font-semibold">Mi Carrito ({getTotalItems()})</div>
-                                <Link href={"/Carrito"} className="ms-auto text-sm underline">
+                                <Link href={"/Carrito"} className="ms-auto text-sm underline" onClick={handleDropdownClose}>
                                     Visualizar más
                                 </Link>
                             </div>
@@ -289,7 +300,10 @@ export const Navbar = () => {
                                                 </div>
                                                 <div className="basis-1/12 flex items-center justify-center">
                                                     <button 
-                                                        onClick={() => removeFromCart(item.ProductID)}
+                                                        onClick={() => {
+                                                            removeFromCart(item.ProductID);
+                                                            handleDropdownClose();
+                                                        }}
                                                         className="p-1 hover:bg-gray-100 rounded text-red-500"
                                                     >
                                                         <IoTrashOutline className="w-4 h-4" />
@@ -311,7 +325,10 @@ export const Navbar = () => {
                                     </div>
 
                                     {/* Botón Comprar ahora */}
-                                    <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-4 rounded-full mt-4 transition-colors">
+                                    <button 
+                                        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-4 rounded-full mt-4 transition-colors"
+                                        onClick={handleDropdownClose}
+                                    >
                                         <Link href={"/pago/"}>
                                             Comprar ahora
                                         </Link>
@@ -323,7 +340,7 @@ export const Navbar = () => {
                 </DropdownMenu>
 
                 {/* Usuario */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'user'} onOpenChange={(open) => open ? handleDropdownToggle('user') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <IoPersonOutline className="w-5 h-5" />
                     </DropdownMenuTrigger>
@@ -344,16 +361,16 @@ export const Navbar = () => {
 
                             {/* Opciones del menú */}
                             <div className="flex flex-col space-y-3">
-                                <Link href="/Perfil" className="text-gray-700 hover:text-gray-900 font-medium">
+                                <Link href="/Perfil" className="text-gray-700 hover:text-gray-900 font-medium" onClick={handleDropdownClose}>
                                     Mi Perfil
                                 </Link>
-                                <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium">
+                                <Link href="/historial" className="text-gray-700 hover:text-gray-900 font-medium" onClick={handleDropdownClose}>
                                     Historial
                                 </Link>
-                                <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium">
+                                <Link href="/solicitar_cuenta" className="text-gray-700 hover:text-gray-900 font-medium" onClick={handleDropdownClose}>
                                     Solicitar Cuenta de Vendedor
                                 </Link>
-                                <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium">
+                                <Link href="/Vendedor/app" className="text-gray-700 hover:text-gray-900 font-medium" onClick={handleDropdownClose}>
                                     Vendedor
                                 </Link>
                             </div>
@@ -361,7 +378,10 @@ export const Navbar = () => {
                             <Separator className="my-4" />
 
                             {/* Botón cerrar sesión */}
-                            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                            <button 
+                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
+                                onClick={handleDropdownClose}
+                            >
                                 <Link href={"/"}>
                                     Cerrar sesión
                                 </Link>
@@ -371,14 +391,17 @@ export const Navbar = () => {
                 </DropdownMenu>
 
                 {/* Selector de idioma */}
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown === 'language'} onOpenChange={(open) => open ? handleDropdownToggle('language') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[51px] min-w-[54px]">
                         <span className="text-sm font-medium">ES</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[280px] p-2">
                         <div className="flex-col">
                             {/* Español */}
-                            <div className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                            <div 
+                                className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={handleDropdownClose}
+                            >
                                 <div className="flex items-center">
                                     <div className="w-8 h-6 mr-3 flex items-center justify-center text-lg">
                                         🇲🇽
@@ -391,7 +414,10 @@ export const Navbar = () => {
                             <Separator className="my-1" />
 
                             {/* Inglés */}
-                            <div className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                            <div 
+                                className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={handleDropdownClose}
+                            >
                                 <div className="flex items-center">
                                     <div className="w-8 h-6 mr-3 flex items-center justify-center text-lg">
                                         🇺🇸
@@ -404,7 +430,10 @@ export const Navbar = () => {
                             <Separator className="my-1" />
 
                             {/* Francés */}
-                            <div className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                            <div 
+                                className="flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={handleDropdownClose}
+                            >
                                 <div className="flex items-center">
                                     <div className="w-8 h-6 mr-3 flex items-center justify-center text-lg">
                                         🇫🇷

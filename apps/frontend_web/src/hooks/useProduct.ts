@@ -1,121 +1,110 @@
-'use client'
-import { useProductsStore } from '../stores/useProductStore'
-import { useEffect, useMemo } from 'react'
-import { useHydration } from './useHydratyon'
-import type { FrontendProduct } from '@/schemas/products'
+// hooks/useProducts.ts
+'use client';
+
+import { useState, useEffect } from 'react';
+import { FrontendProduct } from '@/schemas/products';
+import { productsApiService } from '@/services/productsApi';
 
 export const useProducts = () => {
-  const store = useProductsStore()
-  const isHydrated = useHydration()
+  const [products, setProducts] = useState<FrontendProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Cargar todos los productos
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await productsApiService.getAllProducts();
+      setProducts(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar productos');
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar productos por categoría
+  const loadProductsByCategory = async (category: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await productsApiService.getProductsByCategory(category);
+      setProducts(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar productos');
+      console.error('Error loading products by category:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Buscar productos
+  const searchProducts = async (query: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await productsApiService.searchProducts(query);
+      setProducts(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al buscar productos');
+      console.error('Error searching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Obtener producto individual
+  const getProduct = async (id: number): Promise<FrontendProduct | null> => {
+    try {
+      return await productsApiService.getProductById(id);
+    } catch (err) {
+      console.error('Error getting product:', err);
+      return null;
+    }
+  };
+
+  // Cargar productos al montar el componente
   useEffect(() => {
-    if (store.products.length === 0 && !store.loading) {
-      store.loadProducts()
-    }
-  }, [store.products.length, store.loading, store.loadProducts])
-
-  const getProductsByCategory = useMemo(() => {
-    return (category: string): FrontendProduct[] => {
-      if (!category) return store.products
-      
-      return store.products.filter(product => 
-        product.ProductCategory?.toLowerCase() === category.toLowerCase()
-      )
-    }
-  }, [store.products])
-
-  const getFeaturedProducts = useMemo(() => {
-    return (limit?: number): FrontendProduct[] => {
-      const featuredProducts = store.products.filter(product => 
-        product.ProductStatus === true && product.ProductStock > 0
-      )
-      
-      return limit ? featuredProducts.slice(0, limit) : featuredProducts
-    }
-  }, [store.products])
-
-  const getAvailableCategories = useMemo(() => {
-    return (): string[] => {
-      const categories = store.products
-        .map(product => product.ProductCategory)
-        .filter((category, index, self) => 
-          category && self.indexOf(category) === index
-        )
-      
-      return categories as string[]
-    }
-  }, [store.products])
-
-  const getProductCountByCategory = useMemo(() => {
-    return (category: string): number => {
-      return store.products.filter(product => 
-        product.ProductCategory?.toLowerCase() === category.toLowerCase()
-      ).length
-    }
-  }, [store.products])
-
-  const searchProducts = useMemo(() => {
-    return (query: string): FrontendProduct[] => {
-      if (!query.trim()) return store.products
-      
-      const searchTerm = query.toLowerCase()
-      return store.products.filter(product =>
-        product.ProductName.toLowerCase().includes(searchTerm) ||
-        product.ProductDescription.toLowerCase().includes(searchTerm) ||
-        product.ProductCategory?.toLowerCase().includes(searchTerm)
-      )
-    }
-  }, [store.products])
-
-  const getProductsByPriceRange = useMemo(() => {
-    return (minPrice: number, maxPrice: number): FrontendProduct[] => {
-      return store.products.filter(product =>
-        product.productPrice >= minPrice && product.productPrice <= maxPrice
-      )
-    }
-  }, [store.products])
-
-  const getAvailableProducts = useMemo(() => {
-    return (): FrontendProduct[] => {
-      return store.products.filter(product =>
-        product.ProductStatus === true && product.ProductStock > 0
-      )
-    }
-  }, [store.products])
+    loadProducts();
+  }, []);
 
   return {
-    // ===== STATE =====
-    Products: store.products,
-    selectedProduct: store.selectedProduct,
-    loading: store.loading,
-    error: store.error,
-    isHydrated,
-
-    // ===== API ACTIONS =====
-    loadProducts: store.loadProducts,
-    loadProduct: store.loadProduct,
-    addProduct: store.addProduct,
-    updateProduct: store.updateProduct,
-    deleteProduct: store.deleteProduct,
-
-    // ===== LOCAL ACTIONS =====
-    selectProduct: store.selectProduct,
-
-    // ===== READ OPERATIONS (compatibilidad) =====
-    getProducts: store.getProducts,
-    getProduct: store.getProduct,
-    hasSelectedProduct: store.hasSelectedProduct,
-
-    // ===== FUNCIONES DE FILTRADO RESTAURADAS =====
-    getProductsByCategory,
-    getFeaturedProducts,
-    getAvailableCategories,
-    getProductCountByCategory,
+    products,
+    loading,
+    error,
+    loadProducts,
+    loadProductsByCategory,
     searchProducts,
-    getProductsByPriceRange,
-    getAvailableProducts,
+    getProduct,
+    refetch: loadProducts,
+  };
+};
 
-    // ===== ERROR HANDLING =====
-    clearError: store.clearError
-  }
-}
+// Hook para productos destacados
+export const useFeaturedProducts = (limit: number = 8) => {
+  const [featuredProducts, setFeaturedProducts] = useState<FrontendProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await productsApiService.getFeaturedProducts(limit);
+        setFeaturedProducts(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar productos destacados');
+        console.error('Error loading featured products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFeaturedProducts();
+  }, [limit]);
+
+  return { featuredProducts, loading, error };
+};

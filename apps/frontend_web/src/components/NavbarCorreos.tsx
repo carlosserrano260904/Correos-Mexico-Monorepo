@@ -10,46 +10,21 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
     return(
         <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-gray-100'}`}>
             <div className="flex items-center justify-between w-full px-4 py-2">
-                {/* Logo y Links de navegación */}
-                <div className="flex items-center gap-12">
-                    <Image 
-                        src="/logoCorreos.png" 
-                        alt="Logo de correos" 
-                        width={100} 
-                        height={38}
-                    />
-                    
-                    {/* Links de navegación */}
-                    <div className="flex items-center gap-6">
-                        <Link 
-                            href="/" 
-                            className="text-gray-700 hover:text-pink-500 font-medium transition-colors text-sm"
-                        >
-                            Inicio
-                        </Link>
-                        <Link 
-                            href="/mexposts" 
-                            className="text-gray-700 hover:text-pink-500 font-medium transition-colors text-sm"
-                        >
-                            MEXPOSTS
-                        </Link>
-                        <Link 
-                            href="/correos-clic" 
-                            className="text-gray-700 hover:text-pink-500 font-medium transition-colors text-sm"
-                        >
-                            CorreosClic
-                        </Link>
-                        <Link 
-                            href="/atencion-cliente" 
-                            className="text-gray-700 hover:text-pink-500 font-medium transition-colors text-sm"
-                        >
-                            Atención al cliente
-                        </Link>
-                    </div>
-                </div>
+                
+                <Image 
+                    src="/logoCorreos.png" 
+                    alt="Logo de correos" 
+                    width={100} 
+                    height={38}
+                />
 
-                {/* Espacio vacío para mantener el layout */}
-                <div></div>
+                {/* Links movidos completamente a la derecha */}
+                <div className="flex items-center text-gray-50 gap-16 ml-auto">
+                    <Link href="/" className=" hover:text-pink-500 font-medium transition-colors text-sm">Inicio</Link>
+                    <Link href="/mexposts" className=" hover:text-pink-500 font-medium transition-colors text-sm">MEXPOSTS</Link>
+                    <Link href="/correos-clic" className=" hover:text-pink-500 font-medium transition-colors text-sm">Centro de ayuda</Link>
+                    <Link href="/atencion-cliente" className=" hover:text-pink-500 font-medium transition-colors text-sm mr-18">Ubicaciones y horarios</Link>
+                </div>
             </div>
         </div>
     )

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { NavbarCorreos } from '@/components/NavbarCorreos'
 import { CarouselServicios } from '@/components/CarouselServicios'
 import Image from 'next/image'
+import Foterr from '@/components/footerCorreos';
 import {
   IoPricetagOutline,
   IoCalculatorOutline,
@@ -202,6 +203,7 @@ export default function CorreosMX() {
           </div>
         </div>
       </div>
+      <Foterr />
     </>
   )
 }

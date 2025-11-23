@@ -12,7 +12,7 @@ const DEFAULT_IMAGE =
 
 // Categorías (excluye la #9)
 const categoryNames = [
-  'Ropa, moda y calzado',
+  'pantalones',
   'Joyería y bisutería',
   'Juegos y juguetes',
   'Hogar y decoración',

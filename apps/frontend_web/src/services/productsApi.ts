@@ -4,6 +4,15 @@ import {
   FrontendProduct, 
   BackendCreateProductDto 
 } from '@/schemas/products';
+const bolsaImg = '/placeholder-bolsos.png';
+const accesoriosImg = '/placeholder-accesorios.png';
+const zapatosImg = '/placeholder-zapatos.png';
+const tenisImg = '/placeholder-tenis.png';
+const shortsImg = '/placeholder-shorts.png';
+const vestidosImg = '/placeholder-vestidos.png';
+const chamarrasImg = '/placeholder-chamarras.png';
+const pantalonesImg = '/placeholder-pantalones.png';
+const blusasImg = '/placeholder-blusas.png';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const DEFAULT_PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x300/cccccc/969696?text=Imagen+No+Disponible';
@@ -126,8 +135,33 @@ class ProductsApiService {
       const data = await response.json();
       console.log(`📦 Received ${Array.isArray(data) ? data.length : 'non-array'} products`);
       
-      const validProducts = this.processProducts(data);
+      let validProducts = this.processProducts(data);
       console.log(`Mapped ${validProducts.length} valid products`);
+
+      const categoryMapping: Record<string, string> = {
+        'Productos destacados': bolsaImg, 
+        'Ropa, moda y calzado': vestidosImg, 
+        'FONART': chamarrasImg,
+        'Calzado': tenisImg,
+        'Ropa': pantalonesImg,
+        'Accesorios': accesoriosImg, // Agregado si esta categoría existe
+        // Asegúrate de que los nombres de categoría sean EXACTOS
+      };
+
+      const productsWithLocalImages = validProducts.map(p => {
+    const localImagePath = p.ProductCategory && categoryMapping[p.ProductCategory];
+    
+    if (localImagePath) {
+        return {
+            ...p,
+          ProductImageUrl: localImagePath,
+        };
+      }
+      return p; 
+    });
+
+      // Reemplazamos la lista de la API con la lista modificada
+      validProducts = productsWithLocalImages;
 
       // Guardar en cache
       this.cache = validProducts;

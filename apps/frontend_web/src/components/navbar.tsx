@@ -441,15 +441,19 @@ export const Navbar = () => {
                                 </form>
                                 
                                 <div className="text-center">
-                                    <button className="text-[#DE1484] hover:text-pink-700 text-xs font-medium">
+                                         <Link 
+                                        href="/registro"
+                                        onClick={handleDropdownClose}
+                                        className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors"
+                                     >
                                         ¿No tienes cuenta? Regístrate
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         ) : (
                             // Usuario autenticado - Mostrar menú de usuario con datos reales
                             <div className="flex-col">
-                                {/* Header con info del usuario real desde tu API */}
+                                {/* Header con info     del usuario real desde tu API */}
                                 <div className="flex items-center mb-3 sm:mb-4">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
                                         {user?.name?.charAt(0).toUpperCase() || 'U'}

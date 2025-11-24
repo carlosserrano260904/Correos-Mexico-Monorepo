@@ -8,7 +8,7 @@ interface NavbarCorreosProps {
 
 export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
     return(
-        <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-gray-100'}`}>
+        <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-white-100'}`}>
             <div className="flex items-center justify-between w-full px-4 py-2">
                 
                 <Image 
@@ -19,7 +19,7 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
                 />
 
                 {/* Links movidos completamente a la derecha */}
-                <div className="flex items-center text-gray-50 gap-16 ml-auto">
+                <div className="flex items-center text-black-50 gap-16 ml-auto">
                     <Link href="/" className=" hover:text-pink-500 font-medium transition-colors text-sm">Inicio</Link>
                     <Link href="/mexposts" className=" hover:text-pink-500 font-medium transition-colors text-sm">MEXPOSTS</Link>
                     <Link href="/correos-clic" className=" hover:text-pink-500 font-medium transition-colors text-sm">Centro de ayuda</Link>

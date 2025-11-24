@@ -12,11 +12,14 @@ interface FavoritesState {
   removeFromFavorites: (productId: number) => void;
   clearFavorites: () => void;
   
+  //Guardar en lo que viene del backend
+  setFavorites: (products: ProductosProps[]) => void;
+
   // Read
   getFavorites: () => ProductosProps[];
   isFavorite: (productId: number) => boolean;
   getFavorite: (productId: number) => ProductosProps | undefined;
-  getTotalFavorites: () => number;
+  getTotalFavorites: () => number; 
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -29,7 +32,6 @@ export const useFavoritesStore = create<FavoritesState>()(
           // Evitar duplicados
           const exists = state.favorites.some(fav => fav.ProductID === product.ProductID);
           if (exists) return state;
-          
           return {
             favorites: [...state.favorites, product]
           };
@@ -42,13 +44,14 @@ export const useFavoritesStore = create<FavoritesState>()(
         clearFavorites: () => set(() => ({
           favorites: []
         }), false, 'clearFavorites'),
+
+        setFavorites: (list) => set(() => ({ 
+            favorites: list 
+        }), false, 'setFavorites'),
         
         getFavorites: () => get().favorites,
-        
         isFavorite: (productId) => get().favorites.some(fav => fav.ProductID === productId),
-        
         getFavorite: (productId) => get().favorites.find(fav => fav.ProductID === productId),
-        
         getTotalFavorites: () => get().favorites.length
       }),
       {

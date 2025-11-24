@@ -35,7 +35,7 @@ const categories = [
     label: "Herramienta",
   },
     {
-    imageSrc: "/muñeca.png",
+    imageSrc: "/muneca.png",
     label: "Artesanal",
   },
 ];

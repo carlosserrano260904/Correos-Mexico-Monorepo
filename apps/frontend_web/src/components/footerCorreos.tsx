@@ -12,7 +12,7 @@ export default function Footer() {
         </div>
 
         {/* Links */}
-        <nav className="flex gap-6 text-m font-medium text-gray-50 gap-12">
+        <nav className="flex gap-6 text-m font-medium text-black-50 gap-12">
           <a href="/centro-de-ayuda" className="hover:text-black transition">Centro de Ayuda</a>
           <a href="/CorreosMX/cotizar" className="hover:text-black transition">Cotizar un envío</a>
           <a href="comentarios" className="hover:text-black transition mr-18">Comentarios</a>

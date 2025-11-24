@@ -13,7 +13,7 @@ const PriceSection = ({ title, price, backgroundColor, weightText }) => (
         <Text style={styles.priceLabel}>Desde</Text>
         <Text style={styles.priceValue}>{price} MXN</Text>
       </View>
-      <Bullet text={weightText} />
+      <Bullet text={weightText} /> {/* Usamos weightText aquí */}
       <Bullet text="Incluye IVA." />
     </View>
   </View>
@@ -50,9 +50,9 @@ const SectionHeading = ({ number, title }) => (
 // --- Pantalla Principal para "Impresos Internacional" ---
 export default function ImpresosInternacionalScreen({ navigation }) {
   // Colores de las imágenes (usando los mismos de Paquetería para consistencia visual)
-  const colorDarkRed = '#c21e56';
+  const colorDarkRed = '#c21e56'; // Aprox. para Norteamérica
   const colorGreen = '#84cc16';
-  const colorBeige = '#d2b48c'; 
+  const colorBeige = '#d2b48c'; // Aprox. para Resto del Mundo
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -64,12 +64,12 @@ export default function ImpresosInternacionalScreen({ navigation }) {
           <Icon name="arrow-left" size={24} color="#1f2937" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Impresos Internacional</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 40 }} /> {/* Espacio para centrar el título */}
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         
-       
+        {/* Icono y Título Principal */}
         <View style={styles.titleContainer}>
           <View style={styles.iconBackground}>
             <Icon name="book" size={32} color="#ec4899" /> 
@@ -81,7 +81,7 @@ export default function ImpresosInternacionalScreen({ navigation }) {
           </Text>
         </View>
 
-       
+        {/* Nota de Información (idéntica) */}
         <View style={styles.infoBox}>
           <View style={styles.infoIconContainer}>
             <Icon name="info" size={16} color="#4b5563" />
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#fce7f3', 
+    backgroundColor: '#fce7f3', // Rosa pálido
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   // --- Info Box ---
   infoBox: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f3f4f6', // Gris claro
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#e5e7eb', 
+    backgroundColor: '#e5e7eb', // Gris medio
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -296,6 +296,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   bulletNoteText: {
-    color: '#ec4899',
+    color: '#ec4899', // Texto de nota en rosa
   },
 });

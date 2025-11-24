@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
-import { IoChevronBack } from "react-icons/io5"; 
+import { IoChevronBack } from "react-icons/io5"; // ✅ nuevo import
 
 function Toggle({
   checked,

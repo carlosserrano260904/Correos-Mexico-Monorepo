@@ -1,18 +1,22 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+// Importamos FiSettings (Engranaje) 
+import { FiSettings } from "react-icons/fi"; 
+// Importamos Plantilla
+import { Plantilla } from "../../components/plantilla"; 
 import { useRouter } from "next/navigation";
-import { FiEdit2 } from "react-icons/fi";
+// Asumo que estos hooks y servicios están definidos en tu proyecto:
 import { useAuth } from "@/hooks/useAuth";
-import { usuarioPorId, actualizarUsuarioPorId, uploadAvatar } from "@/services/profileService";
-import { Plantilla } from "@/components/plantilla";
+import { usuarioPorId } from "@/services/profileService"; 
+// Nota: Las funciones actualizarUsuarioPorId y uploadAvatar ya no son necesarias en esta página
 
 export default function Perfil() {
     // LÓGICA DE BACKEND Y AUTENTICACIÓN
     const { user, logout, isAuthenticated } = useAuth();
     const router = useRouter();
 
-    // --- ESTADOS DE DATOS REALES (Inicializados a vacíos, se llenan en cargarPerfil) ---
+    // --- ESTADOS DE DATOS REALES (Solo lectura) ---
     const [nombre, setNombre] = useState("");
     const [apellidos, setApellidos] = useState("");
     const [correo, setCorreo] = useState("");
@@ -21,20 +25,8 @@ export default function Perfil() {
     // Campo de solo lectura, simulamos que viene del backend
     const [metodoPago] = useState("Tarjeta Visa terminada en 3421"); 
 
-    // --- ESTADOS DE EDICIÓN Y CARGA ---
-    const [editando, setEditando] = useState(false);
-    const [nuevoNombre, setTempNombre] = useState("");
-    const [nuevoApellidos, setTempApellidos] = useState("");
-    const [nuevoCorreo, setTempCorreo] = useState("");
-    const [nuevoCelular, setTempCelular] = useState("");
-    
-    // Para la subida de archivos
-    const [nuevaFoto, setNuevaFoto] = useState<File | null>(null);
-    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
-    const [dragActive, setDragActive] = useState(false);
-
+    // --- ESTADOS DE CARGA Y ERROR ---
     const [cargando, setCargando] = useState(true);
-    const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState("");
 
     // --- EFECTOS Y CARGA INICIAL ---
@@ -44,7 +36,7 @@ export default function Perfil() {
         }
     }, [user]);
 
-    // Redirección si no está autenticado (ajustado para Next.js)
+    // Redirección si no está autenticado
     useEffect(() => {
         if (isAuthenticated === false && user === null) {
             router.push("/login");
@@ -56,27 +48,15 @@ export default function Perfil() {
         
         try {
             setCargando(true);
-            // Simulación: Llamada al servicio real de backend
+            // Llamada al servicio real de backend (solo lectura)
             const perfilData = await usuarioPorId(user.id);
             
             // Mapear datos del backend a los estados
-            const userNombre = perfilData.nombre || "";
-            const userApellido = perfilData.apellido || "";
-            const userCorreo = perfilData.email || perfilData.correo || user.email || "";
-            const userCelular = perfilData.numero || perfilData.celular || "";
-            const userFoto = perfilData.imagen || perfilData.avatar || foto;
-
-            setNombre(userNombre);
-            setApellidos(userApellido);
-            setCorreo(userCorreo);
-            setCelular(userCelular);
-            setFoto(userFoto);
-
-            // Inicializar estados de edición
-            setTempNombre(userNombre);
-            setTempApellidos(userApellido);
-            setTempCorreo(userCorreo);
-            setTempCelular(userCelular);
+            setNombre(perfilData.nombre || "");
+            setApellidos(perfilData.apellido || "");
+            setCorreo(perfilData.email || perfilData.correo || user.email || "");
+            setCelular(perfilData.numero || perfilData.celular || "");
+            setFoto(perfilData.imagen || perfilData.avatar || foto);
 
         } catch (err) {
             console.error("Error cargando perfil:", err);
@@ -95,126 +75,10 @@ export default function Perfil() {
     const handlePedidos = () => { router.push("/pedidos"); };
     const handleCupones = () => { router.push("/cupones"); };
     const handlePago = () => { router.push("/pago"); };
-
-    // --- MANEJADORES DE EDICIÓN ---
-    const handleEditar = () => {
-        // Cargar datos actuales a los temporales
-        setTempNombre(nombre);
-        setTempApellidos(apellidos);
-        setTempCorreo(correo);
-        setTempCelular(celular);
-
-        setNuevaFoto(null);
-        setFotoPreview(null);
-        setEditando(true);
-        setError("");
-    };
-
-    const handleCancelar = () => {
-        setEditando(false);
-        setNuevaFoto(null);
-        setFotoPreview(null);
-        setError("");
-    };
-
-    const handleGuardar = async () => {
-        if (!user?.id) return;
-
-        try {
-            setGuardando(true);
-            setError("");
-
-            // 1. Actualizar datos del perfil
-            const datosActualizados = {
-                nombre: nuevoNombre,
-                apellido: nuevoApellidos,
-                email: nuevoCorreo,
-                numero: nuevoCelular,
-                // Puedes agregar más campos si tu backend los requiere
-            };
-
-            await actualizarUsuarioPorId(datosActualizados, user.id);
-
-            // 2. Subir nueva foto si hay
-            if (nuevaFoto) {
-                const nuevaFotoUrl = await uploadAvatar(nuevaFoto, user.id);
-                setFoto(nuevaFotoUrl);
-            }
-
-            // 3. Actualizar estados locales y terminar edición
-            setNombre(nuevoNombre);
-            setApellidos(nuevoApellidos);
-            setCorreo(nuevoCorreo);
-            setCelular(nuevoCelular);
-            
-            if (fotoPreview) {
-                setFoto(fotoPreview); // Actualiza la foto con la preview si se subió
-            }
-
-            setEditando(false);
-            setNuevaFoto(null);
-            setFotoPreview(null);
-            
-            // Recargar datos para asegurar consistencia
-            await cargarPerfil();
-
-        } catch (err) {
-            console.error("Error guardando perfil:", err);
-            // Intenta extraer el mensaje de error si es posible
-            setError(err instanceof Error ? err.message : "Error al guardar los cambios");
-        } finally {
-            setGuardando(false);
-        }
-    };
-
-    // --- MANEJO DE FOTO (DRAG & DROP) ---
-    const handleEditarFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setNuevaFoto(file);
-            
-            // Crear preview
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                if (ev.target && typeof ev.target.result === "string") {
-                    setFotoPreview(ev.target.result);
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setDragActive(false);
-        if (editando && e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            if (file.type.startsWith("image/")) {
-                setNuevaFoto(file);
-                // Crear preview
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    if (ev.target && typeof ev.target.result === "string") {
-                        setFotoPreview(ev.target.result);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        if (editando) {
-            e.preventDefault();
-            setDragActive(true);
-        }
-    };
-
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        if (editando) {
-            e.preventDefault();
-            setDragActive(false);
-        }
+    
+    // REDIRECCIÓN A LA PÁGINA DE EDICIÓN / CONFIGURACIÓN
+    const handleConfiguracion = () => {
+        router.push("/Editar-Perfil"); 
     };
 
     // --- RENDERIZADO CONDICIONAL DE CARGA/AUTENTICACIÓN ---
@@ -224,7 +88,6 @@ export default function Perfil() {
                 <div className="max-w-4xl mx-auto p-8">
                     <div className="flex justify-center items-center h-64">
                         <div className="text-center">
-                            {/* Ícono de carga estilizado */}
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DE1484] mx-auto"></div>
                             <p className="mt-4 text-gray-600">Cargando perfil...</p>
                         </div>
@@ -246,7 +109,7 @@ export default function Perfil() {
         );
     }
     
-    // --- RENDERIZADO DEL PERFIL CON DISEÑO AVANZADO ---
+    // --- RENDERIZADO DEL PERFIL (MODO SOLO LECTURA) ---
     return (
         <Plantilla>
             <div className="min-h-screen flex flex-col items-center justify-start px-8 py-12">
@@ -258,43 +121,17 @@ export default function Perfil() {
                         </div>
                     )}
 
-                    {/* BLOQUE SUPERIOR: Foto, Nombre, Correo y BOTÓN EDITAR */}
+                    {/* BLOQUE SUPERIOR: Foto, Nombre, Correo y BOTÓN ENGRANAJE */}
                     <div className="flex items-center mb-12 border-b pb-8"> 
-                        <div 
-                            className={`relative mr-6 ${dragActive ? "ring-4 ring-pink-400" : ""} ${editando ? "cursor-pointer" : ""}`}
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                            onDragLeave={handleDragLeave}
-                        >
+                        <div className="relative mr-6">
                             <img
-                                src={fotoPreview || foto}
+                                src={foto}
                                 alt="Foto de perfil"
                                 className="w-24 h-24 rounded-full object-cover shadow-md"
                             />
-                            {editando && (
-                                <>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                        onChange={handleEditarFoto}
-                                        onClick={e => (e.currentTarget.value = "")}
-                                    />
-                                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded-full opacity-0 hover:opacity-100 transition duration-300">
-                                        <FiEdit2 className="w-6 h-6 text-white" />
-                                    </div>
-                                </>
-                            )}
-                            {dragActive && editando && (
-                                <div className="absolute inset-0 bg-pink-200 bg-opacity-70 flex items-center justify-center rounded-full pointer-events-none">
-                                    <span className="text-pink-700 font-semibold text-sm text-center px-2">
-                                        Suelta aquí
-                                    </span>
-                                </div>
-                            )}
                         </div>
                         
-                        {/* Contenedor de Nombre, Correo y Botón Editar/Guardar */}
+                        {/* Contenedor de Nombre, Correo y Botón de Configuración */}
                         <div className="flex-1 flex flex-col md:flex-row items-start md:items-center justify-between">
                             <div>
                                 {/* Nombre y Apellido */}
@@ -305,90 +142,68 @@ export default function Perfil() {
                                 <p className="text-gray-600">{correo}</p> 
                             </div>
 
-                            {/* Botón Editar (Visible en modo NO edición) */}
-                            {!editando && (
-                                <button
-                                    className="mt-4 md:mt-0 bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-lg transition text-md font-semibold flex items-center gap-2 shadow-md"
-                                    onClick={handleEditar}
-                                >
-                                    Editar
-                                    <FiEdit2 className="w-5 h-5" />
-                                </button>
-                            )}
+                            {/* Botón de Configuración (Engranaje) */}
+                            <button
+                                className="mt-4 md:mt-0 bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-lg transition text-md font-semibold flex items-center gap-2 shadow-md"
+                                onClick={handleConfiguracion}
+                            >
+                                Configuración
+                                <FiSettings className="w-5 h-5" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* BLOQUE DE DATOS PERSONALES */}
+                    {/* BLOQUE DE DATOS PERSONALES (Ahora solo lectura estática) */}
                     <div className="w-full py-8">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-gray-700">Datos personales</h3>
-                            
-                            {/* BOTONES GUARDAR/CANCELAR (Solo visibles en modo Edición) */}
-                            {editando && ( 
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition disabled:opacity-50"
-                                        onClick={handleCancelar}
-                                        disabled={guardando}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-2 rounded-lg transition disabled:opacity-50"
-                                        onClick={handleGuardar}
-                                        disabled={guardando}
-                                    >
-                                        {guardando ? "Guardando..." : "Guardar"}
-                                    </button>
-                                </div>
-                            )}
                         </div>
                         
-                        {/* Grid de 2 columnas para campos */}
+                        {/* Grid de 2 columnas para campos de SÓLO LECTURA */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                             
                             {/* Nombre */}
                             <CampoPerfil
                                 label="Nombre"
-                                value={editando ? nuevoNombre : nombre}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempNombre(e.target.value)}
-                                readOnly={!editando}
+                                value={nombre}
+                                readOnly={true}
                                 type="text"
+                                isReadOnlyStyle={true}
                             />
                             {/* Apellidos */}
                             <CampoPerfil
                                 label="Apellidos"
-                                value={editando ? nuevoApellidos : apellidos}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempApellidos(e.target.value)}
-                                readOnly={!editando}
+                                value={apellidos}
+                                readOnly={true}
                                 type="text"
+                                isReadOnlyStyle={true}
                             />
                             {/* Correo Electrónico */}
                             <CampoPerfil
                                 label="Correo Electrónico"
-                                value={editando ? nuevoCorreo : correo}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempCorreo(e.target.value)}
-                                readOnly={!editando}
+                                value={correo}
+                                readOnly={true}
                                 type="email"
+                                isReadOnlyStyle={true}
                             />
                             {/* Celular */}
                             <CampoPerfil
                                 label="Celular"
-                                value={editando ? nuevoCelular : celular}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempCelular(e.target.value)}
-                                readOnly={!editando}
+                                value={celular}
+                                readOnly={true}
                                 type="tel"
+                                isReadOnlyStyle={true}
                             />
                             
                             {/* Método de Pago (Solo lectura) */}
                             <CampoPerfil
                                 label="Método de pago"
-                                value={metodoPago}
+                                value={metodoPago} 
                                 readOnly={true}
                                 type="text"
-                                isReadOnlyStyle={true} onChange={undefined}                            />
+                                isReadOnlyStyle={true}
+                            />
                             
-                            {/* Espacio para Dirección/Otros campos si los tienes */}
                         </div>
                     </div>
                     
@@ -424,22 +239,21 @@ export default function Perfil() {
 }
 
 // Componente helper para simplificar el JSX de los campos de input
+// Se eliminó la lógica de 'onChange' ya que esta página es solo lectura
 type CampoPerfilProps = {
     label: string;
     value: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     readOnly?: boolean;
     type?: string;
     isReadOnlyStyle?: boolean;
 };
 
-const CampoPerfil: React.FC<CampoPerfilProps> = ({ label, value, onChange, readOnly, type = "text", isReadOnlyStyle = false }) => (
+const CampoPerfil: React.FC<CampoPerfilProps> = ({ label, value, readOnly = true, type = "text", isReadOnlyStyle = true }) => (
     <div className="space-y-1">
         <label className="text-sm text-gray-600">{label}</label>
         <input
             type={type}
             value={value}
-            onChange={onChange}
             readOnly={readOnly}
             className={`w-full border rounded-lg p-3 transition ${readOnly || isReadOnlyStyle ? "bg-gray-50 text-gray-700 border-gray-200 cursor-default" : "bg-white border-gray-300 focus:border-pink-500 focus:ring-pink-500"}`}
         />
@@ -449,7 +263,7 @@ const CampoPerfil: React.FC<CampoPerfilProps> = ({ label, value, onChange, readO
 // Componente helper para simplificar el JSX de los botones de navegación
 type BotonNavegacionProps = {
     children: React.ReactNode;
-    onClick?: () => void;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 const BotonNavegacion: React.FC<BotonNavegacionProps> = ({ children, onClick }) => (

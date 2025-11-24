@@ -11,10 +11,10 @@ CarouselItem,
 
 const CarruselLogin = () => {
 const images = [
-    "/imgen.png",
-    "/imgen (1).png",
-    "/imgen (2).png",
-    "/image.png",
+    "/imgen.jpg",
+    "/imgen (1).jpg",
+    "/imgen (2).jpg",
+    "/image.jpeg",
 ];
 
 return (

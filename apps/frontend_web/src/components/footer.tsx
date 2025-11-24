@@ -23,10 +23,6 @@ const Footer: React.FC = () => {
             <li>Direcciones</li>
             <li>Carrito de compras</li>
             <li>Solicitar cuenta de vendedor</li>
-            {/* NUEVO ENLACE AGREGADO */}
-            <li className="pt-2 font-bold text-pink-600">
-              <Link href="/CorreosMx">MEXPOST</Link>
-            </li>
           </ul>
         </div>
 

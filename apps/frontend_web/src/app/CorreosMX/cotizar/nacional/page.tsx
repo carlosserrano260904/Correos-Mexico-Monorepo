@@ -1,9 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation' // <-- NUEVA IMPORTACIÓN
+import { IoArrowBackOutline } from 'react-icons/io5' // <-- NUEVA IMPORTACIÓN
 import { NavbarCorreos } from '@/components/NavbarCorreos'
 
 export default function TarifasPage() {
+    // --- NUEVO HOOK ---
+    const router = useRouter() 
+    
     // --- ESTADOS ---
     const [origen, setOrigen] = useState('') 
     const [destino, setDestino] = useState('') 
@@ -95,6 +100,16 @@ export default function TarifasPage() {
                         {/* LADO IZQUIERDO: Título y Formulario de CPs */}
                         <div className="w-full max-w-sm space-y-8">
                             
+                            {/* --- BOTÓN REGRESAR --- */}
+                            <button
+                                onClick={() => router.back()}
+                                className="flex items-center text-gray-600 hover:text-pink-600 transition-colors mb-4"
+                            >
+                                <IoArrowBackOutline className="w-5 h-5 mr-2" />
+                                Regresar
+                            </button>
+                            {/* -------------------- */}
+
                             {/* Etiqueta */}
                             <p className="inline-block bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
                                 Cotizar un envío

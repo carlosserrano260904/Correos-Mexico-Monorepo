@@ -1,10 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation' // <-- NUEVA IMPORTACIÓN
+import { IoArrowBackOutline } from 'react-icons/io5' // <-- NUEVA IMPORTACIÓN
 import { NavbarCorreos } from '@/components/NavbarCorreos'
 
 
 export default function MexpostInternacional() {
+    // --- NUEVO HOOK ---
+    const router = useRouter() 
+    
     // --- ESTADOS ---
     const [paisDestino, setPaisDestino] = useState(''); // País de destino (sustituye a origen/destino CP)
     const [peso, setPeso] = useState('');
@@ -95,6 +100,16 @@ export default function MexpostInternacional() {
                         
                         {/* LADO IZQUIERDO: Título y Formulario de País */}
                         <div className="w-full max-w-sm space-y-8">
+
+                            {/* --- BOTÓN REGRESAR --- */}
+                            <button
+                                onClick={() => router.back()}
+                                className="flex items-center text-gray-600 hover:text-pink-600 transition-colors mb-4"
+                            >
+                                <IoArrowBackOutline className="w-5 h-5 mr-2" />
+                                Regresar
+                            </button>
+                            {/* -------------------- */}
                             
                             {/* Etiqueta */}
                             <p className="inline-block bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
@@ -220,7 +235,7 @@ export default function MexpostInternacional() {
                                             <p className="font-semibold text-lg">{resultado.pesoVolumetrico} kg</p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500">Tarifa</p>
+                                            <p className="text-sm text-gray-500">Tarifa (sin IVA)</p>
                                             <p className="font-semibold text-lg">${resultado.tarifa}</p>
                                         </div>
                                         

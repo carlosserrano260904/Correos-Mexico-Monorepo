@@ -159,19 +159,27 @@ export const Navbar = () => {
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
             {/* Logo */}
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                <Link href={'/'}>
+                <Link href={'/'} className="flex items-center">
                     <Image
-                        src="/logoCorreos.png"
-                        alt="Logo de correos"
-                        width={70}
-                        height={26}
-                        className="w-12 h-4 sm:w-14 sm:h-5 md:w-16 md:h-6 lg:w-20 lg:h-7 xl:w-24 xl:h-8"
+                    src="/logoCorreos.png"
+                    alt="Logo de correos"
+                    width={100}  
+                    height={38}
+                    priority
+                    className="
+                        h-9 w-auto object-contain
+                        sm:h-10
+                        md:h-11
+                        lg:h-12
+                        xl:h-14"
                     />
+
+
                 </Link>
                 
                 {/* Menú hamburguesa */}
                 <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
-                    <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
+                    <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6]h-[40px] w-[40px] sm:h-[45px] sm:w-[45px] md:h-[51px] md:w-[54px] flex-shrink-0">
                         <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[280px] sm:w-[300px] max-h-[400px] sm:max-h-[450px] overflow-y-auto">

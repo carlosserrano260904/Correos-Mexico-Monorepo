@@ -6,6 +6,10 @@ import Image from "next/image";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Switch } from "@radix-ui/react-switch";
 import CarruselLogin from "@/components/CarruselLogin";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 
 const Login = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -13,10 +17,25 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState(""); 
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
 
   const handleSwitchChange = () => setIsChecked(!isChecked);
 
-  const handleSubmit = () => {
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/"); //ruta para iniciar sesion
+    }
+  }, [isAuthenticated, router]);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+
+    e.preventDefault();
+    setError("");
+    setSuccessMessage("");
+
+
     if (!email || !password) {
       setError("Por favor, completa todos los campos.");
       setSuccessMessage(""); 
@@ -31,11 +50,17 @@ const Login = () => {
     }
 
     
-    setError(""); 
-    setSuccessMessage("¡Campos validados correctamente!"); // confirmacio  de que todo este bien.
+    try {
+      // usar el MISMO login que en la navbar
+      await login({ email, password});
 
-    // Simulamos que los datos están correctos y los imprimimos en consola
-    console.log("Datos enviados:", { email, password, remember: isChecked });
+      setSuccessMessage("Inicio de sesión correcto.");
+      // Redirige a la homepage
+      router.push("/");
+    } catch (err: any) {
+      setError(err?.message || "Error al iniciar sesión. Inténtalo de nuevo.");
+      setSuccessMessage("");
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -65,6 +90,7 @@ const Login = () => {
           </h2>
 
           {/* inputs */}
+          <form onSubmit={handleSubmit}>
           <div className="flex items-center border border-gray-300 rounded-full px-4 py-2 mb-4">
             <FaEnvelope className="text-gray-400 mr-2" />
             <input
@@ -120,11 +146,13 @@ const Login = () => {
           </div>
 
           <button
-            onClick={handleSubmit}
+            type="submit"
+            disabled={authLoading}//no permite doble click
             className="w-full bg-pink-600 text-white rounded-full py-2 font-semibold hover:bg-pink-700 transition duration-200 mb-4"
           >
-            Iniciar sesión
+            {authLoading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
+        </form>
 
           {/* diSvisor más compacto */}
           <div className="w-full flex items-center my-2 sm:my-3">

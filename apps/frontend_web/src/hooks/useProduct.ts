@@ -108,3 +108,30 @@ export const useFeaturedProducts = (limit: number = 8) => {
 
   return { featuredProducts, loading, error };
 };
+
+// Hook para obtener un producto por ID
+export const useProductById = (id: string | number) => {
+  const [product, setProduct] = useState<FrontendProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await productsApiService.getProductById(Number(id));
+        setProduct(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar el producto');
+        console.error('Error loading product:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) loadProduct();
+  }, [id]);
+
+  return { product, loading, error };
+};

@@ -159,16 +159,16 @@ export const Anuncios3 = () => {
 
 export const Anuncios4 = () => {
     return (
-        <div className='w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]'>
+        <div className='w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[350px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[600px]'>
             {/* Columna Izquierda - Anuncio Grande de Fragancias */}
             <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group'>
                 {/* Overlay sutil al hover */}
                 <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500 z-10'></div>
                 
-                <div className='w-full h-full bg-[url(/Perfume.png)] bg-cover bg-left-bottom bg-no-repeat'>
-                    <div className='absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 lg:top-8 lg:right-12 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 z-20 px-4 sm:px-0'>
+                <div className='w-full h-full bg-[url(/Perfume.png)] bg-cover bg-center bg-no-repeat'>
+                    <div className='absolute top-3 right-3 sm:top-6 sm:right-6 md:top-8 md:right-8 lg:top-8 lg:right-12 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 z-20 px-3 sm:px-0'>
                         <div className='ml-0'>
-                            <h2 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black leading-tight mb-2 sm:mb-3 md:mb-4'>
+                            <h2 className='text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black leading-snug mb-2 sm:mb-3 md:mb-4'>
                                 Fragancias que te enamoran
                             </h2>
                         </div>
@@ -195,15 +195,15 @@ export const Anuncios4 = () => {
             </div>
 
             {/* Columna Derecha - Grid de 3 elementos */}
-            <div className='flex flex-col gap-3 sm:gap-4 h-full'>
+            <div className='flex flex-col gap-3 sm:gap-4 min-h-[320px] sm:min-h-[380px] md:min-h-[450px]'>
                 {/* Banner Superior - Dale vida a tu look */}
-                <div className='bg-[#F5F5F5] rounded-2xl h-1/2 relative overflow-hidden group'>
+                <div className='bg-[#F5F5F5] rounded-2xl min-h-[120px] sm:min-h-[160px] md:min-h-[200px] relative overflow-hidden group'>
                     {/* Overlay sutil al hover */}
                     <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
                     
-                    <div className='w-full h-full bg-[url(/Brochas.png)] bg-contain bg-center bg-no-repeat flex items-start'>
-                        <div className='flex flex-col justify-center place-items-center w-full mt-4 sm:mt-6 md:mt-7 z-10 px-2 sm:px-0'>
-                            <h3 className='text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-black leading-tight mb-1 sm:mb-2 text-center'>
+                    <div className='w-full h-full bg-[url(/Brochas.png)] bg-contain bg-top bg-no-repeat flex items-start'>
+                        <div className='flex flex-col justify-center place-items-center w-full mt-3 sm:mt-6 md:mt-7 z-10 px-2 sm:px-0'>
+                            <h3 className='text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-black leading-snug mb-1 sm:mb-2 text-center'>
                                 Dale vida a tu look
                             </h3>
                             <p className='text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 text-center'>
@@ -227,15 +227,15 @@ export const Anuncios4 = () => {
                 </div>
 
                 {/* Grid Inferior - 2 tarjetas */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 h-1/2'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-h-[200px] sm:min-h-[260px]'>
                     {/* Tarjeta Izquierda - Cuida tu piel */}
-                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group'>
+                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
                         {/* Overlay sutil al hover */}
                         <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
                         
-                        <div className='w-full h-full bg-cover bg-[url(/skincare.png)] bg-center bg-no-repeat flex items-start'>
+                        <div className='w-full h-full bg-[url(/skincare.png)] bg-contain bg-center bg-no-repeat flex items-start'>
                             <div className='p-2 sm:p-3 md:p-4 w-full z-10'>
-                                <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1'>
+                                <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1 leading-snug'>
                                     Cuida tu piel
                                 </h4>
                                 <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
@@ -257,13 +257,13 @@ export const Anuncios4 = () => {
                     </div>
 
                     {/* Tarjeta Derecha - Tu cabello */}
-                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group'>
+                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
                         {/* Overlay sutil al hover */}
                         <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
                         
-                        <div className='w-full h-full bg-[url(/bote.png)] bg-cover bg-center bg-no-repeat flex items-start'>
+                        <div className='w-full h-full bg-[url(/bote.png)] bg-contain bg-center bg-no-repeat flex items-start'>
                             <div className='p-2 sm:p-3 md:p-4 w-full flex-row justify-items-end z-10'>
-                                <h4 className='text-sm sm:text-base md:text-lg font-bold text-black mb-1'>
+                                <h4 className='text-sm sm:text-base md:text-lg font-bold text-black mb-1 leading-snug'>
                                     Tu cabello
                                 </h4>
                                 <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
@@ -290,6 +290,7 @@ export const Anuncios4 = () => {
         </div>
     )
 }
+
 
 export const Anuncios5 = () => {
     return (

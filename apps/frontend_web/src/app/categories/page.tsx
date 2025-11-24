@@ -71,7 +71,6 @@ export default function Page() {
         <CarrouselProducts entradas={products} title='Tendencias de Verano' />
         <CategoryGrid />
         <Promo />
-        <HeroVideoBanner />
       </div>
     </Plantilla>
   );

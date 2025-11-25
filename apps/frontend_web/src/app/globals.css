@@ -137,3 +137,14 @@
     --chart-5: oklch(0.645 0.246 16.439);
   }
 }
+
+/* Ocultar scrollbar para Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ocultar scrollbar para IE, Edge and Firefox */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

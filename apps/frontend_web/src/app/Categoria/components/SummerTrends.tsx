@@ -31,7 +31,7 @@ const SummerTrends: React.FC = () => {
             <img
               src={trend.image}
               alt={trend.alt}
-              className="w-full h-[600px] object-cover"
+              className="w-full object-cover"
             />
           </div>
         ))}

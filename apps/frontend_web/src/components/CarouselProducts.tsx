@@ -34,7 +34,7 @@ export const CarrouselProducts = ({ title = 'Productos Destacados' }: CarrouselP
 
   return (
     // Agregamos 'group' al contenedor principal para que las flechas aparezcan al hacer hover
-    <div className="my-12 relative w-full max-w-[1400px] mx-auto px-4 sm:px-12 group">
+    <div className="my-12 relative w-full mx-auto px-4 sm:px-12 group">
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">{title}</h2>
       
       <Carousel

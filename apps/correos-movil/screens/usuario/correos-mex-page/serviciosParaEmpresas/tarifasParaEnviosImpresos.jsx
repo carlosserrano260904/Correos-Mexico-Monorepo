@@ -14,12 +14,9 @@ export default function TarifasParaEnviosImpresos() {
         {/* Header con botón de regreso */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="arrow-back" size={26} color="#1f2937" />
+            <Icon name="arrow-back" size={24} color="#1f2937" />
           </TouchableOpacity>
-
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>Impresos</Text>
-          </View>
+          <Text>Cartas</Text>
         </View>
 
         {/* Imagen */}
@@ -180,10 +177,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 16,
     paddingHorizontal: 16,
-    marginTop: 50,      // ← Más separación del top
-    marginBottom: 20,
-    position: 'relative',   // ← Necesario para centrar el texto REAL
   },
   headerTitle: {
     fontSize: 20,
@@ -209,6 +205,12 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
     padding: 8, 
@@ -362,11 +364,7 @@ const styles = StyleSheet.create({
     color: '#444',
     fontSize: 13,
     marginBottom: 3,
-  },
-  bulletPink: {
-    color: '#de1484',
-    fontSize: 13,
-    marginBottom: 3,
+    lineHeight: 18,
   },
   bold: {
     fontWeight: '700',
@@ -400,18 +398,5 @@ const styles = StyleSheet.create({
   footSpace:{
     marginBottom: 120,
   },
-  headerCenter: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
 
 });
-

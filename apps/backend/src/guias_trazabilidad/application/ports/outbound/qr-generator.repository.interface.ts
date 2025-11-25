@@ -1,4 +1,4 @@
-import { Result } from "src/utils/result";
+import { Result } from '../../../../utils/result';
 export const QR_GENERATOR_REPOSITORY = Symbol('QRGeneratorRepository');
 
 interface QRData {

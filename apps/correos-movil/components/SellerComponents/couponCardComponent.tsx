@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { SquarePen, CircleSlash } from 'lucide-react-native';
 import StatesCouponsComponent from './statesCouponsComponent';
+import ModalSellerComponent from './modalSellerComponent';
 
 const screenWidht = Dimensions.get('window').width;
 
@@ -21,8 +22,6 @@ export default function CouponCardCompnent({
     discount,
     // Pide el onPress del botón de editar cupón
     onPressEditCoupon,
-    // Pide el onPress del botón de pausar cupón
-    onPressPauseCoupon,
     // Pide el color del cupón
     colorCoupon,
 }: {
@@ -41,6 +40,10 @@ export default function CouponCardCompnent({
     const discountBgColor = colorCoupon;
     // Define el color del texto del descuento
     const [colorText, setColorText] = React.useState('#FFFFFF');
+    // Define si se va a mostrar el modal de deshabilitar el cupon
+    const [showDisableModal, setShowDisableModal] = useState(false)
+    // Define si se va a mostrar el modal de editar cupon
+    const [showEditCouponModal, setShowEditCouponModal] = useState(false)
 
     // Determina el color del texto basado en el color de fondo para asegurar legibilidad
     useEffect(() => {
@@ -74,10 +77,10 @@ export default function CouponCardCompnent({
                     <Text style={styles.firstText}>{nameCoupon}</Text>
                     <Text style={styles.secondText}>Usado {usageCoupon} veces</Text>
                     <View style={styles.buttonsContainer}> 
-                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={onPressEditCoupon}>
+                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowEditCouponModal(true)}>
                             <SquarePen  size={moderateScale(18)} color={'#9CA3AF'}/>
                         </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={onPressPauseCoupon}>
+                        <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowDisableModal(true)}>
                             <CircleSlash size={moderateScale(18)} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                     </View>
@@ -94,7 +97,35 @@ export default function CouponCardCompnent({
                     </View>
                 </View>
             </View>
+            <Modal
+                animationType='fade'
+                transparent={false}
+                visible={showDisableModal}
+                backdropColor={'#0000005e'}
+                onRequestClose={() => setShowDisableModal(!showDisableModal)}
+            >
+                <ModalSellerComponent 
+                    onPressNormalButton={() => console.log('Presione el boton normal')}
+                    onPressCancelButton={() => setShowDisableModal(!showDisableModal)}
+                    type={'quitar-cupon'}
+                />
+            </Modal>
+            <Modal
+                animationType='fade'
+                transparent={false}
+                visible={showEditCouponModal}
+                backdropColor={'#0000005e'}
+                onRequestClose={() => setShowEditCouponModal(!showEditCouponModal)}
+            >
+                <ModalSellerComponent 
+                    onPressNormalButton={() => console.log('Presione el boton normal')}
+                    onPressCancelButton={() => setShowEditCouponModal(!showEditCouponModal)}
+                    type={'actualizar-cupon'}
+                />
+            </Modal>
         </TouchableOpacity>
+
+        
     );
 }
 

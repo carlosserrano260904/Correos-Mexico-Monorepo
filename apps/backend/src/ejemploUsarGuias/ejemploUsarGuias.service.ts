@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { CommandBus } from "@nestjs/cqrs";
-import { CrearGuiaCommand } from "src/guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command";
-import { TipoServicio } from "src/guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command";
+import { CrearGuiaCommand } from "../guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command";
+import { TipoServicio } from "../guias_trazabilidad/application/use-cases/crear-guia/crear-guia.command";
 
 @Injectable()
 export class EjemploUsarGuiasService {

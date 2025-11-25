@@ -2,7 +2,7 @@ import { Controller, Get, Post,  Patch, Body, Param, Delete, Put, NotFoundExcept
 import { PaquetesService } from './paquetes.service';
 import { Paquete } from './entities/paquete.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Controller('paquetes')
 export class PaquetesController {

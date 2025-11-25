@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback  } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  FlatList,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
@@ -31,6 +32,7 @@ export default function UbicacionScreen() {
   const mapRef = useRef(null);
   const timeoutRef = useRef(null); 
   const navigation = useNavigation();
+  const [regionVisible, setRegionVisible] = useState(null);
 
   // Obtener ubicación del usuario al montar el componente
   useEffect(() => {
@@ -347,36 +349,16 @@ export default function UbicacionScreen() {
     }
   };
 
-  if (cargando) {
-    return (
-      <View style={styles.spinnerContainer}>
-        <ActivityIndicator size="large" color="#DE1484" />
-      </View>
-    );
+  const centrarEnSucursal = useCallback((sucursal) => {
+  if (mapRef.current && sucursal?.coordenadas) {
+    mapRef.current.animateToRegion({
+      ...sucursal.coordenadas,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    setSucursalSeleccionada(sucursal);
   }
-
-  const centrarEnSucursal = (obj) => {
-    // Si el objeto tiene coordenadas, extraerlas, si no, asumir que el objeto tiene lat y lon directamente
-    const coords = obj.coordenadas ? obj.coordenadas : obj;
-
-    if (!coords.latitude || !coords.longitude) return;
-
-    if (obj.coordenadas) {
-      setSucursalSeleccionada(obj);
-    }
-
-    if (mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        },
-        800
-      );
-    }
-  };
+}, []);
 
   // 🆕 Nueva función específica para centrar en ubicación del usuario sin seleccionar sucursal
   const centrarEnUbicacionUsuario = (coords) => {
@@ -446,34 +428,49 @@ export default function UbicacionScreen() {
   };
 
   // 🆕 Función para obtener la región inicial del mapa
-  const obtenerRegionInicial = () => {
-    if (ubicacionUsuario) {
-      return {
-        latitude: ubicacionUsuario.latitude,
-        longitude: ubicacionUsuario.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-    }
-    
-    // Si no hay ubicación del usuario pero hay sucursales, mostrar la primera
-    if (sucursales.length > 0 && sucursales[0].coordenadas) {
-      return {
-        latitude: sucursales[0].coordenadas.latitude,
-        longitude: sucursales[0].coordenadas.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-    }
-    
-    // Ubicación por defecto (México)
+  const obtenerRegionInicial = useMemo(() => {
+  if (ubicacionUsuario) {
     return {
-      latitude: 19.4326,
-      longitude: -99.1332,
-      latitudeDelta: 0.1,
-      longitudeDelta: 0.1,
+      latitude: ubicacionUsuario.latitude,
+      longitude: ubicacionUsuario.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
     };
+  }
+  // región por defecto (CDMX, por ejemplo)
+  return {
+    latitude: 19.4326,
+    longitude: -99.1332,
+    latitudeDelta: 0.1,
+    longitudeDelta: 0.1,
   };
+}, [ubicacionUsuario]);
+
+const sucursalesFiltradas = useMemo(() => {
+  if (!regionVisible) return sucursales;
+
+  const { latitude, longitude, latitudeDelta, longitudeDelta } = regionVisible;
+  const minLat = latitude - latitudeDelta / 2;
+  const maxLat = latitude + latitudeDelta / 2;
+  const minLng = longitude - longitudeDelta / 2;
+  const maxLng = longitude + longitudeDelta / 2;
+
+  return sucursales.filter(s => {
+    const lat = s.coordenadas?.latitude;
+    const lng = s.coordenadas?.longitude;
+    return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+  });
+}, [sucursales, regionVisible]);
+
+
+// 🌀 Pantalla de carga inicial
+if (cargando) {
+  return (
+    <View style={styles.spinnerContainer}>
+      <ActivityIndicator size="large" color="#DE1484" />
+    </View>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -521,25 +518,25 @@ export default function UbicacionScreen() {
       </View>
 
       {/* Mapa */}
-      {sucursales.length > 0 && (
+      {!cargando && sucursales.length > 0 && (
         <MapView
           ref={mapRef}
           style={styles.mapa}
-          initialRegion={obtenerRegionInicial()} // 🆕 Usar función para región inicial
-          showsUserLocation={ubicacionUsuario ? true : false}
+          initialRegion={obtenerRegionInicial}
+          showsUserLocation={!!ubicacionUsuario}
           showsMyLocationButton={false}
+          onRegionChangeComplete={setRegionVisible} // 👈 Guarda la región visible
         >
-          {sucursales.map((s) => (
-            s.coordenadas && (
-              <Marker
-                key={s.id_oficina}
-                coordinate={s.coordenadas}
-                pinColor="#DE1484"
-                onPress={() => centrarEnSucursal(s)}
-              />
-            )
+          {sucursalesFiltradas.map((s) => (
+            <Marker
+              key={s.id_oficina}
+              coordinate={s.coordenadas}
+              pinColor="#DE1484"
+              onPress={() => centrarEnSucursal(s)}
+            />
           ))}
         </MapView>
+
       )}
 
       {/* Información de sucursal seleccionada */}
@@ -582,39 +579,31 @@ export default function UbicacionScreen() {
 
       {/* Lista de sucursales */}
       {sucursales.length > 0 && (
-        <ScrollView style={styles.sugerencias} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sugerenciasTitle}>
-            {textoBusqueda
-              ? `Resultados (${sucursales.length})`
-              : ubicacionUsuario
-                ? 'Sucursales cercanas'
-                : 'Sucursales disponibles'
-            }
-          </Text>
-          {sucursales
-            .filter((s) => !sucursalSeleccionada || s.id_oficina !== sucursalSeleccionada.id_oficina)
-            .map((s) => (
-              <TouchableOpacity
-                key={s.id_oficina}
-                style={styles.sugerenciaItem}
-                onPress={() => centrarEnSucursal(s)}
-              >
-                <MaterialIcons name="location-on" size={22} color="#DE1484" style={{ marginRight: 8 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.sugerenciaNombre}>{s.nombre_cuo}</Text>
-                  <Text style={styles.sugerenciaDireccion}>{s.domicilio}</Text>
-                  <View style={styles.sugerenciaFooter}>
-                    <Text style={styles.sugerenciaCP}>CP: {s.codigo_postal}</Text>
-                    {s.distancia && (
-                      <Text style={styles.sugerenciaDistancia}>
-                        {s.distancia.toFixed(1)} km
-                      </Text>
-                    )}
-                  </View>
+        <FlatList
+          data={sucursales.filter(s => !sucursalSeleccionada || s.id_oficina !== sucursalSeleccionada.id_oficina)}
+          keyExtractor={item => item.id_oficina.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.sugerenciaItem}
+              onPress={() => centrarEnSucursal(item)}
+            >
+              <MaterialIcons name="location-on" size={22} color="#DE1484" style={{ marginRight: 8 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sugerenciaNombre}>{item.nombre_cuo}</Text>
+                <Text style={styles.sugerenciaDireccion}>{item.domicilio}</Text>
+                <View style={styles.sugerenciaFooter}>
+                  <Text style={styles.sugerenciaCP}>CP: {item.codigo_postal}</Text>
+                  {item.distancia && (
+                    <Text style={styles.sugerenciaDistancia}>
+                      {item.distancia.toFixed(1)} km
+                    </Text>
+                  )}
                 </View>
-              </TouchableOpacity>
-            ))}
-        </ScrollView>
+              </View>
+            </TouchableOpacity>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
       )}
     </View>
   );

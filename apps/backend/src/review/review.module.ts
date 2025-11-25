@@ -5,7 +5,7 @@ import { Review } from './entities/review.entity';
 import { ReviewImage } from './entities/review-image.entity';
 import { ReviewController } from './review.controller'; // 👈 singular
 import { ReviewService } from './review.service';       // 👈 singular
-import { UploadImageService } from 'src/upload-image/upload-image.service';
+import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Review, ReviewImage])],

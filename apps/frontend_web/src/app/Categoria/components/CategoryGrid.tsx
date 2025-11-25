@@ -14,7 +14,7 @@ const categories: Category[] = [
 
 const CategoryGrid: React.FC = () => {
   return (
-    <section className="max-w-6xl mx-auto px-4 py-10">
+    <section className="mx-auto px-4 py-10">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {categories.map((category) => (
           <div
@@ -24,7 +24,7 @@ const CategoryGrid: React.FC = () => {
             <img
               src={category.image}
               alt={category.name}
-              className="w-full h-[250px] object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-[450px] object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute bottom-0 w-full bg-black/40 text-white text-center py-2 text-sm font-medium">
               {category.name}

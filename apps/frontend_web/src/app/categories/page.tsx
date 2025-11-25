@@ -64,14 +64,14 @@ export default function Page() {
 
   return (
     <Plantilla>
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      
         <CategoryCarousel />
         <HeroBanner />
         <SummerTrends />
         <CarrouselProducts entradas={products} title='Tendencias de Verano' />
         <CategoryGrid />
         <Promo />
-      </div>
+      
     </Plantilla>
   );
 }

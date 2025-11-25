@@ -23,7 +23,7 @@ const trends: TrendItem[] = [
 
 const SummerTrends: React.FC = () => {
   return (
-    <section className="w-full max-w-6xl mx-auto py-10 text-center">
+    <section className="w-full mx-auto py-10 text-center">
       <h2 className="text-2xl font-semibold mb-8">Tendencias de verano</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {trends.map((trend, index) => (
@@ -31,7 +31,7 @@ const SummerTrends: React.FC = () => {
             <img
               src={trend.image}
               alt={trend.alt}
-              className="w-full h-[400px] object-cover"
+              className="w-full h-[600px] object-cover"
             />
           </div>
         ))}

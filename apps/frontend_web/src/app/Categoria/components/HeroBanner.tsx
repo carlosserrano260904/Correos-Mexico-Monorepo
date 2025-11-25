@@ -6,7 +6,7 @@ export const HeroBanner: React.FC = () => {
       <img
         src="/banner.png"
         alt="Tenis"
-        className="w-full max-w-6xl mx-auto object-contain z-10 relative rounded-2xl"
+        className="w-full  mx-auto object-contain z-10 relative rounded-2xl"
       />
     </div>
   );

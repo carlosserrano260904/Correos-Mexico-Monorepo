@@ -12,10 +12,9 @@ import {
   IoLocationOutline,
   IoSearchOutline,
   IoMailOutline,
-  IoArchiveOutline,
-  IoDocumentTextOutline,
-  IoCashOutline,
-  IoSettingsOutline
+  IoCubeOutline,
+  IoPrintOutline,
+  IoBriefcaseOutline
 } from 'react-icons/io5'
 
 export default function CorreosMX() {
@@ -40,31 +39,32 @@ export default function CorreosMX() {
     }
   ]
 
+  // --- ARRAY DE SERVICIOS ACTUALIZADO ---
   const servicios = [
     {
-      id: 'servicios-ventanilla',
-      titulo: 'Servicios en Ventanilla',
-      descripcion: 'Todos los servicios disponibles en ventanilla en mas de 1,100 Oficinas postales por toda la republica.',
+      id: 'correspondencia',
+      titulo: 'Correspondencia',
+      descripcion: 'Envío masivo de cartas, documentos o tarjetas postales por todo México y el mundo.',
       icono: <IoMailOutline className="w-8 h-8" />
     },
     {
-      id: 'enviar',
-      titulo: 'Como Enviar...',
-      descripcion: 'Envía de manera económica y garantizada por toda la República Mexicana.',
-      icono: <IoArchiveOutline className="w-8 h-8" />
+      id: 'paqueteria',
+      titulo: 'Paquetería',
+      descripcion: 'Envío masivo de productos y mercancías empaquetadas por toda la República Mexicana.',
+      icono: <IoCubeOutline className="w-8 h-8" /> 
     },
     {
-      id: 'prohibidos',
-      titulo: 'Articulos Prohibidos',
-      descripcion: 'El envío de artículos prohibidos puede causar la retención del paquete o intervención legal. Revisa antes de enviar.',
-      icono: <IoDocumentTextOutline className="w-8 h-8" />
+      id: 'impresos',
+      titulo: 'Impresos',
+      descripcion: 'Envía desde folletos, boletines, hasta carteles y catálogos y haz crecer tu negocio a través de nuestra red postal.',
+      icono: <IoPrintOutline className="w-8 h-8" /> 
     },
     {
-      id: 'corporativos',
-      titulo: 'Corporativos',
-      descripcion: 'Envío masivo de cartas, documentos o tarjetas postales por todo México y el mundo con tarifas corporativas',
-      icono: <IoCashOutline className="w-8 h-8" />
-    }
+    id: 'embalajes',
+    titulo: 'Embalajes',
+    descripcion: 'Garantiza la entrega adecuada y segura de tus empaques y embalajes por toda la República.',
+    icono: <IoBriefcaseOutline className="w-8 h-8" /> 
+   }
   ]
 
   return (

@@ -6,7 +6,7 @@ import { CuponesPropsFront, DescuentosPropsFront, OrdenesProps, ProductosPropsFr
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../../../components/ui/sheet';
 import { FaInfo } from 'react-icons/fa6';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { FaTrash, FaCaretUp, FaEdit } from "react-icons/fa6";
+import { FaTrash, FaCaretUp, FaPencil } from "react-icons/fa6";
 import { useProducts } from '@/hooks/useProduct';
 import { useCupons } from '@/hooks/useCupons';
 import { useDescuentos } from '@/hooks/useDescuentos';
@@ -285,7 +285,7 @@ export const BtnLink: React.FC<BtnLinkProps> = ({
   <Sheet>
     <SheetTrigger asChild className='mx-2'>
       <Button className='bg-green-700 rounded-2xl w-[38px] h-[38px] p-0'>
-        <FaEdit color='white' size={14} />
+        <FaPencil color='white' size={14} />
       </Button>
     </SheetTrigger>
     <SheetContent className='rounded-lg m-3 h-fit w-[800px] overflow-y-auto'>

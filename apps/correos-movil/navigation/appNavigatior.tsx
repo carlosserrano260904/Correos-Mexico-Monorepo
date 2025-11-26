@@ -39,8 +39,7 @@ import ComoEnviar from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnvi
 import ComoEnviarPaquetes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetes';
 import ComoEnviarCartas from '../screens/usuario/correos-mex-page/Como-enviar//ComoEnviarCarta';
 import ComoEnviarPaquetesyEmbalajes from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarPaquetesyEmbalajes';
-import ComoEnviarArticulosProhibidos from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarArticulosProhibidos';
-import HomeTabsVendedor from '../components/Tabs/HomeTabsVendedor'; 
+import ComoEnviarArticulosProhibidos from '../screens/usuario/correos-mex-page/Como-enviar/ComoEnviarArticulosProhibidos'; 
 import TarificadorNacional from '../screens/usuario/correos-mex-page/Cotizar-envio/tarifador';
 import ServiciosEmpresas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/serviciosParaEmpresas';
 import tarifasParaEnviosDeCartas from '../screens/usuario/correos-mex-page/serviciosParaEmpresas/tarifasParaEnviosDeCartas';
@@ -55,7 +54,7 @@ import AtencionClientePrincipal from '../screens/usuario/correos-mex-page/atenci
 import ComoEnviarAtencion from '../screens/usuario/correos-mex-page/atencion-cliente/ComoEnviar';
 import Contacto from '../screens/usuario/correos-mex-page/atencion-cliente/Contacto';
 import PreguntasFrecuentes from '../screens/usuario/correos-mex-page/atencion-cliente/PreguntasFrecuentes';
-// Esta cosa da error <Stack.Screen name="TabsVendedor" component={HomeTabsVendedor} options={{ headerShown: false }} />
+import HomeTabsSeller from '../components/Tabs/HomeTabsVendedor';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -117,7 +116,7 @@ export default function AppNavigator() {
             <Stack.Screen name="ComoEnviarAtencion" component={ComoEnviarAtencion} />
             <Stack.Screen name="Contacto" component={Contacto} />
             <Stack.Screen name="PreguntasFrecuentes" component={PreguntasFrecuentes} />
-
+            <Stack.Screen name="TabsVendedor" component={HomeTabsSeller} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

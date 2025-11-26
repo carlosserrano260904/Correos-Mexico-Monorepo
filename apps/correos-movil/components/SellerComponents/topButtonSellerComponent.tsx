@@ -1,13 +1,19 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native";
 import { moderateScale } from "react-native-size-matters";
 
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
+
 export default function TopButtonSellerComponent({
+    // Pide el icono que se va a mostrar en el boton
     icon,
+    // Pide el texto que se mostrara en el boton
     text,
+    // Pide el onPress del boton
     onPressTopButton,
 } : {
-    icon: any,
+    icon?: any,
     text: string,
     onPressTopButton: any
 }) {
@@ -22,16 +28,17 @@ export default function TopButtonSellerComponent({
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#E5E7EB',
-        borderRadius: moderateScale(100),
+        borderRadius: moderateScale(8),
         flexDirection: 'row',
-        gap: moderateScale(8),
-        padding: moderateScale(8),
+        gap: screenWidth * 0.011,
+        paddingHorizontal: screenWidth * 0.033,
+        paddingVertical: screenHeight * 0.01,
         alignItems: 'center'
     },
     text: {
         fontFamily: 'system-ui',
         fontWeight: 'normal',
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.0165,
         color: '#6B7280'
     }
 })

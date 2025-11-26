@@ -1,3 +1,4 @@
+'use client'
 import { HTMLAttributes, ReactNode } from "react";
 
 type TipoVariante = 'Color' | 'Talla';

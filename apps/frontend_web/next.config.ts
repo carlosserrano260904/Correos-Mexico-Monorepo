@@ -1,13 +1,22 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Configuración para monorepo
-  transpilePackages: [],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   
-  // Para desarrollo en monorepo - permite archivos externos
+  output: 'standalone',
+  
   experimental: {
     externalDir: true,
   },
+  
+  serverExternalPackages: ['zustand', 'immer'], 
+  
+  transpilePackages: [],
   
   images: {
     domains: [

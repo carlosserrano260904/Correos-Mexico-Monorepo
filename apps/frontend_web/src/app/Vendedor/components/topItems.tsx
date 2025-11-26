@@ -1,3 +1,4 @@
+'use client'
 import { Table, TableBody, TableCell, TableRow, } from "../../../components/ui/table"
 
 interface arrayTopData {

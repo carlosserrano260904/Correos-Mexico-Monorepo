@@ -1,4 +1,9 @@
 'use client'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+
+
 
 import { Plantilla } from "@/app/Administrador/components/plantilla";
 import { Button } from "@/components/ui/button";

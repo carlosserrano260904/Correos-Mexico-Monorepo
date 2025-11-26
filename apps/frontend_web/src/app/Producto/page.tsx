@@ -19,6 +19,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 export default function ProductDetailPage() {
   const { selectedProduct, hasSelectedProduct, Products } = useProducts();
@@ -124,7 +125,13 @@ export default function ProductDetailPage() {
       <div className="">
         <div className="flex">
           <div className=" rounded-2xl p-8 basis-2/3">
-            <img src={selectedProduct.ProductImageUrl} className="max-w-96" />
+            <Image 
+              src={selectedProduct.ProductImageUrl}
+              alt={selectedProduct.ProductName}
+              width={400}
+              height={400}
+              className="max-w-96 h-auto"
+            />
           </div>
           <div className="basis-1/3">
             <p className="text-xl  mb-2">{selectedProduct.ProductName}</p>
@@ -298,7 +305,13 @@ export default function ProductDetailPage() {
             {selectedProduct.ProductDescription}
           </div>
           <div className="basis-1/2 justify-center flex ">
-            <img src={selectedProduct.ProductImageUrl} className=" max-h-80" />
+            <Image
+              src={selectedProduct.ProductImageUrl}
+              alt={selectedProduct.ProductName}
+              width={400}
+              height={400}
+              className="max-h-80 w-auto object-contain"
+            />
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import React from "react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel"
+import Image from "next/image";
 
 interface CarouselLigeraViranteItem {
   image: string
@@ -33,11 +34,14 @@ export const CarouselLigeraVibrante = ({ items }: CarouselLigeraViranteProps) =>
             {items.map((item, idx) => (
               <CarouselItem key={idx} className="md:basis-1/2 lg:basis-1/2">
                 <div className="p-2">
-                  <img
-                    src={item.image}
-                    alt={`Imagen ${idx + 1}`}
-                    className="rounded-xl object-cover w-full h-96"
-                  />
+                  <div className="relative w-full h-96 rounded-xl overflow-hidden">
+                    <Image
+                      src={item.image}
+                      alt={`Imagen ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
               </CarouselItem>
             ))}

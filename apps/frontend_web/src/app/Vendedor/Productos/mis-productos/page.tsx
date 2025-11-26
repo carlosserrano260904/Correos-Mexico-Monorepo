@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import Image from "next/image";
 
 const BRAND_PINK_FROM = '#FF2AAF';
 const BRAND_PINK_TO = '#E50071';
@@ -62,7 +63,13 @@ export default function Page() {
     <div className="mx-auto w-full max-w-[1600px] px-8 lg:px-12 2xl:px-16 py-10 space-y-8">
       {/* Barra superior */}
       <div className="flex items-center justify-between gap-6">
-        <img src="/logoCorreos.png" alt="Logo Correos" className="h-16 w-auto md:h-20" />
+        <Image
+          src="/logoCorreos.png"
+          alt="Logo Correos"
+          width={2048}
+          height={2048}
+          className="h-16 w-auto md:h-20"
+        />
         <Link
           href="/Vendedor/Productos"
           className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-5 py-3 text-base text-neutral-700 ring-1 ring-black/5 shadow-sm hover:bg-neutral-200"

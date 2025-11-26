@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/StarRating';
 import { IoClose } from 'react-icons/io5';
+import Image from "next/image";
 
 interface AddCommentFormProps {
   productId: string;
@@ -67,9 +68,11 @@ export const AddCommentForm = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Información del usuario */}
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <img
+          <Image
             src={userInfo.image}
             alt={userInfo.name}
+            width={80}
+            height={80}
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>

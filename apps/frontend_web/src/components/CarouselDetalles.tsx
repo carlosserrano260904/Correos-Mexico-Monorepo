@@ -1,5 +1,6 @@
 import React from "react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel"
+import Image from "next/image";
 
 interface CarouselDetallesItem {
   image: string
@@ -29,9 +30,11 @@ export const CarouselDetalles = ({ items }: CarouselDetallesProps) => {
           {items.map((item, idx) => (
             <CarouselItem key={idx} className="md:basis-1/3 lg:basis-1/3">
               <div className="flex flex-col items-center p-2">
-                <img
+                <Image
                   src={item.image}
                   alt={`Imagen ${idx + 1}`}
+                  width={500}
+                  height={288}
                   className="rounded-xl object-cover w-full h-72"
                 />
                 <div className="mt-4 text-sm text-gray-800 text-left px-2">

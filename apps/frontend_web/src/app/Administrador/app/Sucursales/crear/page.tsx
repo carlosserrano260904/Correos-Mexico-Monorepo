@@ -14,7 +14,6 @@ export default function CrearSucursalPage() {
 
   const {agregarSucursal} = useSucursalStore();
   const router = useRouter();
-  const fetchSucursales = useSucursalStore((state) => state.sucursales);
 
   //tipado del estado inicial del formulario
   const [form, setForm] = useState<{
@@ -120,7 +119,7 @@ export default function CrearSucursalPage() {
       activo: form.activo === "true",
     });
     router.push("/Administrador/app/Sucursales"); // Redirige después de crear
-    } catch (error) {
+    } catch {
       alert("Error al crear la sucursal. intenta de nuevo.")
     }
   };

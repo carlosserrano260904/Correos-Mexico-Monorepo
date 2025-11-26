@@ -6,12 +6,11 @@ import { IoChevronDownOutline, IoAddOutline } from "react-icons/io5";
 import { useUnidadStore } from "@/stores/unidadStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import UnidadesPage from "../page";
+
 
 export default function RegistrarUnidadPage() {
 
-  const [curpConductor, setCurpConductor] = useState("");
-  const [asignado, setAsignado] = useState(false);
+
   const Unidades = useUnidadStore((state) => state.unidades);
   const asignarConductor = useUnidadStore((state) => state.asignarConductor);
   const fetchUnidades = useUnidadStore((state) => state.fetchUnidades);
@@ -23,9 +22,8 @@ export default function RegistrarUnidadPage() {
     try {
       await asignarConductor(form.placas, form.curpConductor);
       await fetchUnidades();
-      setAsignado(true);
       alert("Conductor asignado correctamente");
-    } catch (err) {
+    } catch {
       alert("Error asignando conductor");
     }
   } else {
@@ -78,7 +76,7 @@ export default function RegistrarUnidadPage() {
         await actualizarZonaAsignada(form.placas, form.zonaAsignada);
         alert("Zona asignada actualizada correctamente");
         await fetchUnidades();
-      } catch (err) {
+      } catch {
         alert("Error actualizando zona asignada");
       }
       router.push("/Administrador/app/Unidades"); // Redirige después de actualizar

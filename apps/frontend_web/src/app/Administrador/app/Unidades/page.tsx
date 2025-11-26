@@ -3,7 +3,6 @@
 import { Plantilla } from "@/app/Administrador/components/plantilla";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { IoSearchOutline, IoChevronDownOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useUnidadStore } from "@/stores/unidadStore";

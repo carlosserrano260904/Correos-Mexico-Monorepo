@@ -61,7 +61,7 @@ export const AddToListButton: React.FC<AddToListButtonProps> = ({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Agregar "{product.ProductName}" a lista</AlertDialogTitle>
+          <AlertDialogTitle>Agregar &quot;{product.ProductName}&quot; a lista</AlertDialogTitle>
         </AlertDialogHeader>
         <div className="space-y-4">
           {Lists.length > 0 && (

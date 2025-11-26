@@ -5,11 +5,8 @@ import SumatoriaOrden from "../Componentes/Primitivos/sumatoriaOrden";
 import AdressTable from "../Componentes/Primitivos/UserDirection";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, } from "@/components/ui/dialog"
 import FormularioAgregarDireccion from "../Componentes/Primitivos/formularioDireccion";
-import { UserAddressDeriveryProps } from "@/types/interface";
 
-
-
-export default function MasDirecciones({ Nombre, Apellido, Calle, Numero, CodigoPostal, Estado, Municipio, Ciudad, Colonia, NumeroDeTelefono, InstruccionesExtra }:UserAddressDeriveryProps ) {
+export default function MasDirecciones() {
     const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
     
     // Datos de ejemplo para las direcciones

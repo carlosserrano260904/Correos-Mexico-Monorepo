@@ -9,11 +9,15 @@ const nextConfig: NextConfig = {
   },
   
   output: 'standalone',
+  swcMinify: false,
   
   transpilePackages: [],
   experimental: {
     externalDir: true,
+    esmExternals: 'loose',
+    serverComponentsExternalPackages: ['zustand', 'immer'],
   },
+  
   images: {
     domains: [
       'correos-de-mexico.s3.us-east-2.amazonaws.com',

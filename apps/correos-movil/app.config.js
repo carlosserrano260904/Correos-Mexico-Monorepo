@@ -5,7 +5,7 @@ module.exports = ({ config }) => ({
   expo: {
     name: "Correos de Mexico",
     slug: "correos-de-mexico",
-    version: "1.0.2",
+    version: "1.0.3",
     scheme: "correosdemexico",
     assetBundlePatterns: ["**/*"],
     orientation: "portrait",
@@ -59,5 +59,15 @@ module.exports = ({ config }) => ({
       },
     },
     owner: "seanalytics",
+    plugins: [
+      [
+        "expo-camera",
+        {
+          cameraPermission:
+            "La cámara se utiliza para escanear códigos QR y tomar fotos como evidencia de entrega. ¿Deseas permitir el acceso?",
+          recordAudioAndroid: false,
+        },
+      ],
+    ],
   },
 });

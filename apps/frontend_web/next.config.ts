@@ -9,14 +9,14 @@ const nextConfig: NextConfig = {
   },
   
   output: 'standalone',
-  swcMinify: false,
   
-  transpilePackages: [],
   experimental: {
     externalDir: true,
-    esmExternals: 'loose',
-    serverComponentsExternalPackages: ['zustand', 'immer'],
   },
+  
+  serverExternalPackages: ['zustand', 'immer'], 
+  
+  transpilePackages: [],
   
   images: {
     domains: [

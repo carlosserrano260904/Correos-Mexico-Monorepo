@@ -1,3 +1,4 @@
+'use client'
 import { TarjetaNotificacion } from "./Notificacion";
 import { RiCoupon3Line } from "react-icons/ri";
 

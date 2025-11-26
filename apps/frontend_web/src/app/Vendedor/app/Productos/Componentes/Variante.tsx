@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import { FiUpload } from "react-icons/fi";
 import {FormularioProductoData} from "../../../../../types/interface"

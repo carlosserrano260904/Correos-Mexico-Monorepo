@@ -1,4 +1,9 @@
 'use client'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+
+
 import { Plantilla } from "@/components/plantilla";
 import React, { useState } from "react";
 import SumatoriaOrden from "../Componentes/Primitivos/sumatoriaOrden";

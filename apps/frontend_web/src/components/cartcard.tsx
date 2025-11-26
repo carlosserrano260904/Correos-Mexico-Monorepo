@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { CartProductItem } from '@/components/cartProductItem'
 import { CartItemProps } from '@/stores/useCartStore'

@@ -1,3 +1,4 @@
+'use client'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {OrdenesProps} from "../../../../../types/interface"
 import { Orden } from "@/app/Vendedor/components/primitivos";

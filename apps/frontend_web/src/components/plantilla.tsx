@@ -1,3 +1,4 @@
+'use client'
 import React from "react";
 import { Navbar } from "./navbar";
 import Categories from "./Categories"; // Ajusta ruta si es necesario

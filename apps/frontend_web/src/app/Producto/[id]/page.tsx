@@ -7,20 +7,6 @@ import { useProductById } from '@/hooks/useProduct';
 import { ProductDetails } from '@/components/primitivos/ProductDetails';
 import { Plantilla } from '@/components/plantilla';
 
-// ✅ Interface agregada para el producto
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  images: string[];
-  // Agrega otras propiedades que necesites según tu hook useProductById
-  category?: string;
-  brand?: string;
-  colors?: string[];
-  stock?: number;
-}
-
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
@@ -84,9 +70,8 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <Plantilla>
-      {/* ✅ CORREGIDO: Eliminado 'as any' */}
-      <ProductDetails product={product} />
-    </Plantilla>
+  <Plantilla>
+    <ProductDetails product={product as any} />
+  </Plantilla>
   );
 }

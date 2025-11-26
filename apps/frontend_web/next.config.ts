@@ -1,21 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  
-  output: 'standalone',
-  swcMinify: false,
-  
+  // Configuración para monorepo
   transpilePackages: [],
+  
+  // Para desarrollo en monorepo - permite archivos externos
   experimental: {
     externalDir: true,
-    esmExternals: 'loose',
-    serverComponentsExternalPackages: ['zustand', 'immer'],
   },
   
   images: {
@@ -56,6 +47,7 @@ const nextConfig: NextConfig = {
   
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
+      // Mejora el hot reload en monorepos
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
@@ -64,6 +56,14 @@ const nextConfig: NextConfig = {
     }
     return config
   },
+  
+  // Configuración del servidor de desarrollo
+  // devIndicators: {
+  //   buildActivity: true,
+  // },
+  
+  // Si necesitas transpilar paquetes específicos del monorepo
+  // transpilePackages: ['@your-monorepo/shared-lib'],
 }
 
 export default nextConfig

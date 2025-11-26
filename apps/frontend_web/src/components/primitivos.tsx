@@ -202,21 +202,6 @@ export const Title = ({ children, className = "" }: { children: string; classNam
   );
 };
 
-// --- DESCUENTO ---
-export const Descuento = ({ 
-  children, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
-  className?: string;
-}) => {
-  return (
-    <div className={`inline-flex items-center justify-center px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-full ${className}`}>
-      {children}
-    </div>
-  );
-}
-
 // --- SKELETON (CARGA) ---
 export const ProductCardSkeleton = () => {
   return (

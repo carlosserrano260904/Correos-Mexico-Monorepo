@@ -233,7 +233,7 @@ export default function ProductDetailPage() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Agregar &quot;{selectedProduct.ProductName}&quot; a lista</AlertDialogTitle>                
+                    <AlertDialogTitle>Agregar "{selectedProduct.ProductName}" a lista</AlertDialogTitle>
                   </AlertDialogHeader>
                   <div className="space-y-4">
                     {Lists.length > 0 && (

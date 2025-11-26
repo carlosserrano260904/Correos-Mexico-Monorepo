@@ -10,4 +10,4 @@ import { ProveedoresController } from './proveedores.controller';
   exports: [ProveedoresService],
   controllers: [ProveedoresController],
 })
-export class ProveedoresModule {} 
+export class ProveedoresModule {}

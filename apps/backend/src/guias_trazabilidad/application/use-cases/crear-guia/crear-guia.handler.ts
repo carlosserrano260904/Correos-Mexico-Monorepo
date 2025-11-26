@@ -6,19 +6,19 @@ import {
 } from '../../ports/outbound/guia.repository.interface';
 import {
   PDFGeneratorRepositoryInterface,
-  PDF_GENERATOR_REPOSITORY_INTERFACE
+  PDF_GENERATOR_REPOSITORY_INTERFACE,
 } from '../../ports/outbound/pdf-generator.repository.interface';
 import {
   QR_GENERATOR_REPOSITORY,
-  QRGeneratorRepositoryInterface
+  QRGeneratorRepositoryInterface,
 } from '../../ports/outbound/qr-generator.repository.interface';
 import {
   GOOGLE_GEOCODE_REPOSITORY_INTERFACE,
-  GoogleGeocodeRepositoryInterface
+  GoogleGeocodeRepositoryInterface,
 } from '../../ports/outbound/geocode.repository.interface';
 import {
   AWS_REPOSITORY_INTERFACE,
-  AWSRepositoryInterface
+  AWSRepositoryInterface,
 } from '../../ports/outbound/aws.repository.interface';
 import { CrearGuiaCommand } from './crear-guia.command';
 import { mapperCrearGuia } from './mapper/crear-guia.mapper';
@@ -37,45 +37,55 @@ export class CrearGuiaCommandHandler
     @Inject(GOOGLE_GEOCODE_REPOSITORY_INTERFACE)
     private readonly geocodeRepository: GoogleGeocodeRepositoryInterface,
     @Inject(AWS_REPOSITORY_INTERFACE)
-    private readonly awsRepository: AWSRepositoryInterface
+    private readonly awsRepository: AWSRepositoryInterface,
   ) {}
 
-  async execute(command: CrearGuiaCommand): Promise<{ numeroRastreo: string; pdf: Buffer }> {
-
+  async execute(
+    command: CrearGuiaCommand,
+  ): Promise<{ numeroRastreo: string; pdf: Buffer }> {
     // obtener las coordenadas de cada guia
-    const coordenadasRemitenteResult = await this.geocodeRepository.obtenerCoordenadas({
-      calle: command.remitente.direccion.calle,
-      numeroExterior: command.remitente.direccion.numero,
-      numeroInterior: command.remitente.direccion.numeroInterior,
-      asentamiento: command.remitente.direccion.asentamiento,
-      codigoPostal: command.remitente.direccion.codigoPostal,
-      localidad: command.remitente.direccion.localidad,
-      estado: command.remitente.direccion.estado,
-      pais: command.remitente.direccion.pais
-    })
+    const coordenadasRemitenteResult =
+      await this.geocodeRepository.obtenerCoordenadas({
+        calle: command.remitente.direccion.calle,
+        numeroExterior: command.remitente.direccion.numero,
+        numeroInterior: command.remitente.direccion.numeroInterior,
+        asentamiento: command.remitente.direccion.asentamiento,
+        codigoPostal: command.remitente.direccion.codigoPostal,
+        localidad: command.remitente.direccion.localidad,
+        estado: command.remitente.direccion.estado,
+        pais: command.remitente.direccion.pais,
+      });
     if (coordenadasRemitenteResult.isFailure()) {
-      throw new InternalServerErrorException(coordenadasRemitenteResult.getError())
+      throw new InternalServerErrorException(
+        coordenadasRemitenteResult.getError(),
+      );
     }
     const coordenadasRemitente = coordenadasRemitenteResult.getValue();
 
-    const coordenadasDestinatarioResult = await this.geocodeRepository.obtenerCoordenadas({
-      calle: command.destinatario.direccion.calle,
-      numeroExterior: command.destinatario.direccion.numero,
-      numeroInterior: command.destinatario.direccion.numeroInterior,
-      asentamiento: command.destinatario.direccion.asentamiento,
-      codigoPostal: command.destinatario.direccion.codigoPostal,
-      localidad: command.destinatario.direccion.localidad,
-      estado: command.destinatario.direccion.estado,
-      pais: command.destinatario.direccion.pais
-
-    })
+    const coordenadasDestinatarioResult =
+      await this.geocodeRepository.obtenerCoordenadas({
+        calle: command.destinatario.direccion.calle,
+        numeroExterior: command.destinatario.direccion.numero,
+        numeroInterior: command.destinatario.direccion.numeroInterior,
+        asentamiento: command.destinatario.direccion.asentamiento,
+        codigoPostal: command.destinatario.direccion.codigoPostal,
+        localidad: command.destinatario.direccion.localidad,
+        estado: command.destinatario.direccion.estado,
+        pais: command.destinatario.direccion.pais,
+      });
     if (coordenadasDestinatarioResult.isFailure()) {
-      throw new InternalServerErrorException(coordenadasRemitenteResult.getError())
+      throw new InternalServerErrorException(
+        coordenadasRemitenteResult.getError(),
+      );
     }
-    const coordenadasDestinatario = coordenadasDestinatarioResult.getValue()
+    const coordenadasDestinatario = coordenadasDestinatarioResult.getValue();
 
     // crear guia pasando por todas las validaciones
-    const guia = mapperCrearGuia(command, coordenadasRemitente, coordenadasDestinatario);
+    const guia = mapperCrearGuia(
+      command,
+      coordenadasRemitente,
+      coordenadasDestinatario,
+    );
 
     // persistencia
     await this.guiaRepository.save(guia);
@@ -86,23 +96,35 @@ export class CrearGuiaCommandHandler
       estado: guia.SituacionActual.getSituacion,
       idRuta: 'rutaPorDefectoPlaceHolder',
       idSucursal: 'sucursalPorDefectoPlaceHolder',
-      localizacion: 'localizacionPlaceHolder'
+      localizacion: 'localizacionPlaceHolder',
     });
     if (qrResult.isFailure()) {
-      throw new InternalServerErrorException(`Error al intentar generar QR: ${qrResult.getError()}`)
+      throw new InternalServerErrorException(
+        `Error al intentar generar QR: ${qrResult.getError()}`,
+      );
     }
 
     // generar pdf
     let pdfResult;
     if (command.tipoServicio === 'nacional') {
-      pdfResult = await this.pdfRepository.generarGuiaPDFNacional(guia, qrResult.getValue());
+      pdfResult = await this.pdfRepository.generarGuiaPDFNacional(
+        guia,
+        qrResult.getValue(),
+      );
       if (pdfResult.isFailure()) {
-        throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+        throw new InternalServerErrorException(
+          `Error al generar PDF: ${pdfResult.getError()}`,
+        );
       }
     } else {
-      pdfResult = await this.pdfRepository.generarGuiaPDFInternacional(guia, qrResult.getValue());
+      pdfResult = await this.pdfRepository.generarGuiaPDFInternacional(
+        guia,
+        qrResult.getValue(),
+      );
       if (pdfResult.isFailure()) {
-        throw new InternalServerErrorException(`Error al generar PDF: ${pdfResult.getError()}`)
+        throw new InternalServerErrorException(
+          `Error al generar PDF: ${pdfResult.getError()}`,
+        );
       }
     }
 
@@ -113,7 +135,7 @@ export class CrearGuiaCommandHandler
 
     return {
       numeroRastreo: guia.NumeroRastreo.getNumeroRastreo,
-      pdf: pdfResult.getValue()
+      pdf: pdfResult.getValue(),
     };
   }
 }

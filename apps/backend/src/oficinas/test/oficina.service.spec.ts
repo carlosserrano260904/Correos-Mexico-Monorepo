@@ -64,9 +64,13 @@ describe('OficinasService', () => {
 
       repo.findOneBy.mockImplementation((where) => {
         const id = (where as any).id_oficina;
-        return id === 304 ? Promise.resolve(mockOficina) : Promise.resolve(null);
+        return id === 304
+          ? Promise.resolve(mockOficina)
+          : Promise.resolve(null);
       });
-      repo.merge.mockImplementation((entity, data) => Object.assign(entity, data));
+      repo.merge.mockImplementation((entity, data) =>
+        Object.assign(entity, data),
+      );
       repo.save.mockResolvedValue({ ...mockOficina, ...updateDto });
       repo.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -80,9 +84,9 @@ describe('OficinasService', () => {
     it('Error si la oficina no existe', async () => {
       repo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.update(17899, { nombre_cuo: 'Nueva' })).rejects.toThrow(
-        new NotFoundException('Oficina no encontrada')
-      );
+      await expect(
+        service.update(17899, { nombre_cuo: 'Nueva' }),
+      ).rejects.toThrow(new NotFoundException('Oficina no encontrada'));
     });
   });
 
@@ -90,7 +94,9 @@ describe('OficinasService', () => {
     it('Activar una oficina', async () => {
       repo.findOneBy.mockImplementation((where) => {
         const id = (where as any).id_oficina;
-        return id === 304 ? Promise.resolve(mockOficina) : Promise.resolve(null);
+        return id === 304
+          ? Promise.resolve(mockOficina)
+          : Promise.resolve(null);
       });
       repo.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -103,7 +109,7 @@ describe('OficinasService', () => {
       repo.findOneBy.mockResolvedValue(null);
 
       await expect(service.activate(17899)).rejects.toThrow(
-        new NotFoundException('La oficina con id 17899 no existe.')
+        new NotFoundException('La oficina con id 17899 no existe.'),
       );
     });
   });
@@ -112,7 +118,9 @@ describe('OficinasService', () => {
     it('Desactivar una oficina', async () => {
       repo.findOneBy.mockImplementation((where) => {
         const id = (where as any).id_oficina;
-        return id === 304 ? Promise.resolve(mockOficina) : Promise.resolve(null);
+        return id === 304
+          ? Promise.resolve(mockOficina)
+          : Promise.resolve(null);
       });
       repo.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -125,7 +133,7 @@ describe('OficinasService', () => {
       repo.findOneBy.mockResolvedValue(null);
 
       await expect(service.deactivate(17899)).rejects.toThrow(
-        new NotFoundException('La oficina con id 17899 no existe.')
+        new NotFoundException('La oficina con id 17899 no existe.'),
       );
     });
   });

@@ -35,7 +35,7 @@ import { ProfileResponseDto } from './dto/profile-response.dto';
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
-    private readonly uploadImageService: UploadImageService,  // <-- Inyección añadida
+    private readonly uploadImageService: UploadImageService, // <-- Inyección añadida
   ) {}
 
   @Post()
@@ -90,10 +90,7 @@ export class ProfileController {
     type: ProfileResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Perfil no encontrado' })
-  update(
-    @Param('id') id: string,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
     return this.profileService.update(+id, updateProfileDto);
   }
 

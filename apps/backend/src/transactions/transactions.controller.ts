@@ -1,4 +1,3 @@
-
 // src/transactions/transactions.controller.ts
 import {
   Controller,
@@ -72,8 +71,16 @@ export class TransactionsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una transacción por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID de la transacción', example: 1 })
-  @ApiOkResponse({ description: 'Transacción encontrada', type: TransactionsContentsDto })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID de la transacción',
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Transacción encontrada',
+    type: TransactionsContentsDto,
+  })
   @ApiResponse({ status: 404, description: 'Transacción no encontrada' })
   async findOne(@Param('id') id: string) {
     const tx = await this.transactionsService.findOne(+id);
@@ -83,8 +90,16 @@ export class TransactionsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar una transacción por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID de la transacción', example: 1 })
-  @ApiOkResponse({ description: 'Transacción actualizada', type: TransactionsContentsDto })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID de la transacción',
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Transacción actualizada',
+    type: TransactionsContentsDto,
+  })
   @ApiResponse({ status: 404, description: 'Transacción no encontrada' })
   @ApiBody({ type: UpdateTransactionDto })
   async update(
@@ -96,7 +111,12 @@ export class TransactionsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar una transacción por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID de la transacción', example: 1 })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID de la transacción',
+    example: 1,
+  })
   @ApiNoContentResponse({ description: 'Transacción eliminada correctamente' })
   @ApiResponse({ status: 404, description: 'Transacción no encontrada' })
   async remove(@Param('id') id: string) {

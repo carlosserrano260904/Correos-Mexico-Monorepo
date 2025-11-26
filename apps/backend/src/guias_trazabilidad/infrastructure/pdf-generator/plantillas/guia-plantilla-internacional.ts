@@ -7,7 +7,8 @@ type GuiaPdfPayload = ReturnType<typeof GuiaMapper.toPdfPayload>;
 export const plantillaGuiaInternacional = async (
   guiaData: GuiaPdfPayload,
   qrCodeDataURL: string,
-): Promise<any> => { // <--- ESTO (Promise<any>) ARREGLA EL ERROR TS2742
+): Promise<any> => {
+  // <--- ESTO (Promise<any>) ARREGLA EL ERROR TS2742
   const { Document, Page, Text, View, StyleSheet, Image } = await import(
     '@react-pdf/renderer'
   );
@@ -747,8 +748,8 @@ export const plantillaGuiaInternacional = async (
               Text,
               { style: styles.instructionsText },
               'Para entrega se requiere:\n' +
-              '• ID oficial vigente • Firma de recibido\n' +
-              '• Verificación de datos del destinatario',
+                '• ID oficial vigente • Firma de recibido\n' +
+                '• Verificación de datos del destinatario',
             ),
           ),
           createElement(

@@ -10,7 +10,6 @@ export class AsignacionPaquetesService {
     private readonly asignacionRepo: Repository<AsignacionPaquetes>,
   ) {}
 
-
   findOne(id: string) {
     return this.asignacionRepo.findOne({
       where: { id },

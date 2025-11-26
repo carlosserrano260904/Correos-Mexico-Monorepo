@@ -20,4 +20,3 @@ export class SubtotalDto {
   @IsInt()
   profileId: number;
 }
-

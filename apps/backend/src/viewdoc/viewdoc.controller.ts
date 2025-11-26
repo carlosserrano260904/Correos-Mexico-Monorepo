@@ -10,19 +10,19 @@ import {
 import { Response } from 'express';
 import { ViewdocService } from './viewdoc.service';
 
-@Controller()  
+@Controller()
 export class ViewdocController {
   private readonly logger = new Logger(ViewdocController.name);
 
   constructor(private readonly docsService: ViewdocService) {}
 
   @Get('document-html')
-  async documentHtml(
-    @Query('key') key: string,
-    @Res() res: Response,
-  ) {
+  async documentHtml(@Query('key') key: string, @Res() res: Response) {
     if (!key) {
-      throw new HttpException('Falta el parámetro ?key=', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Falta el parámetro ?key=',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     try {
@@ -46,7 +46,10 @@ export class ViewdocController {
       res.type('text/html');
       return res.send(html);
     } catch (error) {
-      this.logger.error('Error al convertir Términos WEB DOCX a HTML', error.stack || error);
+      this.logger.error(
+        'Error al convertir Términos WEB DOCX a HTML',
+        error.stack || error,
+      );
       throw new HttpException(
         error?.message || 'Error interno al convertir los términos WEB',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -61,7 +64,10 @@ export class ViewdocController {
       res.type('text/html');
       return res.send(html);
     } catch (error) {
-      this.logger.error('Error al convertir Aviso WEB DOCX a HTML', error.stack || error);
+      this.logger.error(
+        'Error al convertir Aviso WEB DOCX a HTML',
+        error.stack || error,
+      );
       throw new HttpException(
         error?.message || 'Error interno al convertir el aviso WEB',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -76,7 +82,10 @@ export class ViewdocController {
       res.type('text/html');
       return res.send(html);
     } catch (error) {
-      this.logger.error('Error al convertir ARCO WEB DOCX a HTML', error.stack || error);
+      this.logger.error(
+        'Error al convertir ARCO WEB DOCX a HTML',
+        error.stack || error,
+      );
       throw new HttpException(
         error?.message || 'Error interno al convertir el ARCO WEB',
         HttpStatus.INTERNAL_SERVER_ERROR,

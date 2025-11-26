@@ -18,7 +18,7 @@ import { DeletionReason } from '../usuarios/entities/deletion-reason.entity'; //
 @Module({
   imports: [
     // Registra Profile y DeletionReason para inyección
-    TypeOrmModule.forFeature([Profile, DeletionReason]), 
+    TypeOrmModule.forFeature([Profile, DeletionReason]),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secret',

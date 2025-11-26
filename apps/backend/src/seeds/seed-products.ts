@@ -28,14 +28,36 @@ const categoryNames = [
 ];
 
 // Catálogos simples para valores variados
-const MARCAS = ['Genérica', 'Artesanal MX', 'Premium Co', 'Hecho a Mano', 'Clásicos'];
-const COLORES = ['Rojo', 'Azul', 'Negro', 'Blanco', 'Verde', 'Madera', 'Dorado', 'Plateado'];
-const VENDEDORES = ['Tienda Oficial', 'Market MX', 'Artesanos Unidos', 'Casa Central', 'Boutique Local'];
+const MARCAS = [
+  'Genérica',
+  'Artesanal MX',
+  'Premium Co',
+  'Hecho a Mano',
+  'Clásicos',
+];
+const COLORES = [
+  'Rojo',
+  'Azul',
+  'Negro',
+  'Blanco',
+  'Verde',
+  'Madera',
+  'Dorado',
+  'Plateado',
+];
+const VENDEDORES = [
+  'Tienda Oficial',
+  'Market MX',
+  'Artesanos Unidos',
+  'Casa Central',
+  'Boutique Local',
+];
 
 function slugify(input: string) {
   return input
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 }
@@ -62,7 +84,10 @@ function randomSKU(base: string) {
 }
 
 // Tipo de ayuda para construir productos sin relaciones ni id
-type NewProduct = Omit<Product, 'id' | 'images' | 'favoritos' | 'carrito' | 'reviews'>;
+type NewProduct = Omit<
+  Product,
+  'id' | 'images' | 'favoritos' | 'carrito' | 'reviews'
+>;
 
 // Genera 5 productos por categoría con todos los campos requeridos
 function sampleProductsFor(category: string): NewProduct[] {
@@ -83,11 +108,11 @@ function sampleProductsFor(category: string): NewProduct[] {
       inventario: randomInventario(),
       color,
       marca,
-      slug: baseSlug,       // se ajusta si choca
+      slug: baseSlug, // se ajusta si choca
       vendedor,
       estado: Math.random() < 0.9, // 90% activos
       vendidos: randomVendidos(),
-      sku: '',              // se setea único abajo
+      sku: '', // se setea único abajo
       altura: null,
       largo: null,
       ancho: null,
@@ -98,7 +123,10 @@ function sampleProductsFor(category: string): NewProduct[] {
   return items;
 }
 
-async function ensureUniqueSlug(productRepo: Repository<Product>, base: string) {
+async function ensureUniqueSlug(
+  productRepo: Repository<Product>,
+  base: string,
+) {
   let slug = base;
   let n = 1;
   while (await productRepo.findOne({ where: { slug } })) {
@@ -137,7 +165,9 @@ async function bootstrap() {
 
     for (const p of samples) {
       // Idempotencia por nombre (ajusta si prefieres usar slug)
-      const dupByName = await productRepo.findOne({ where: { nombre: p.nombre } });
+      const dupByName = await productRepo.findOne({
+        where: { nombre: p.nombre },
+      });
       if (dupByName) continue;
 
       // Asegurar unicidad de slug y sku
@@ -145,11 +175,11 @@ async function bootstrap() {
       p.slug = await ensureUniqueSlug(productRepo, base);
       p.sku = await ensureUniqueSKU(
         productRepo,
-        `${p.marca.substring(0, 3)}-${p.color.substring(0, 3)}`
+        `${p.marca.substring(0, 3)}-${p.color.substring(0, 3)}`,
       );
 
       // --- creación y guardado en dos pasos tipados (evita Product | Product[]) ---
-      const entity: Product = productRepo.create(p as Partial<Product>) as Product;
+      const entity: Product = productRepo.create(p as Partial<Product>);
       const saved: Product = await productRepo.save(entity);
 
       // Imagen por defecto
@@ -162,7 +192,9 @@ async function bootstrap() {
     }
   }
 
-  console.log('✅ Seed completo: categorías y 5 productos por categoría con imagen por defecto.');
+  console.log(
+    '✅ Seed completo: categorías y 5 productos por categoría con imagen por defecto.',
+  );
   await app.close();
 }
 

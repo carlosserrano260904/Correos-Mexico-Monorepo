@@ -1,8 +1,18 @@
-import { IsString, IsEmail, Length, Matches, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  Length,
+  Matches,
+  IsNotEmpty,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SolicitudDto {
-  @ApiProperty({ example: 'Abarrotes Don Pepe', description: 'Nombre comercial de la tienda' })
+  @ApiProperty({
+    example: 'Abarrotes Don Pepe',
+    description: 'Nombre comercial de la tienda',
+  })
   @IsString()
   @IsNotEmpty({ message: 'El nombre de la tienda es obligatorio' })
   nombre_tienda: string;
@@ -30,16 +40,16 @@ export class SolicitudDto {
   @ApiProperty({ example: 'XAXX010101000', description: 'RFC con homoclave' })
   @IsString()
   // Misma Regex que tu Frontend
-  @Matches(/^[A-Z&Ñ]{3,4}\d{6}[A-Z\d]{3}$/, { 
-    message: 'El RFC no tiene un formato válido (Ej: GOMA900101H52)' 
+  @Matches(/^[A-Z&Ñ]{3,4}\d{6}[A-Z\d]{3}$/, {
+    message: 'El RFC no tiene un formato válido (Ej: GOMA900101H52)',
   })
   rfc: string;
 
   @ApiProperty({ example: 'AAAA000000HDFXXX00', description: 'CURP oficial' })
   @IsString()
   // Misma Regex que tu Frontend
-  @Matches(/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]\d$/, { 
-    message: 'La CURP no tiene un formato válido' 
+  @Matches(/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]\d$/, {
+    message: 'La CURP no tiene un formato válido',
   })
   curp: string;
 

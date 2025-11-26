@@ -20,10 +20,19 @@ export class HistorialAsignacion {
   @Column({ name: 'clave_cuo_destino', length: 10 })
   claveOficinaDestino: string;
 
-  @Column({ name: 'clave_oficina_actual', type: 'varchar',  length: 10, nullable: true })
+  @Column({
+    name: 'clave_oficina_actual',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
   claveOficinaActual: string | null;
 
-  @Column({ name: 'fecha_asignacion', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'fecha_asignacion',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fechaAsignacion: Date;
 
   @Column({ name: 'fecha_llegada_destino', type: 'timestamp', nullable: true })

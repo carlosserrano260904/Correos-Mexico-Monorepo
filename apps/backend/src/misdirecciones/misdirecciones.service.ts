@@ -9,60 +9,65 @@ import { Profile } from '../profile/entities/profile.entity';
 @Injectable()
 export class MisdireccionesService {
   connection: any;
-   constructor(
+  constructor(
     @InjectRepository(Misdireccione)
     private readonly misdireccionesRepository: Repository<Misdireccione>,
   ) {}
 
-async obtenerPorUsuario(usuarioId: number): Promise<Misdireccione[]> {
-  return this.misdireccionesRepository.find({
-    where: { usuario: { id: usuarioId } },
-    relations: ['usuario'],
-  });
-}
-
-async findOne(id: number): Promise<Misdireccione> {
-  const direccion = await this.misdireccionesRepository.findOne({ where: { id } });
-
-  if (!direccion) {
-    throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+  async obtenerPorUsuario(usuarioId: number): Promise<Misdireccione[]> {
+    return this.misdireccionesRepository.find({
+      where: { usuario: { id: usuarioId } },
+      relations: ['usuario'],
+    });
   }
 
-  return direccion;
-}
+  async findOne(id: number): Promise<Misdireccione> {
+    const direccion = await this.misdireccionesRepository.findOne({
+      where: { id },
+    });
 
-async create(createDto: CreateMisdireccioneDto): Promise<Misdireccione> {
-  const direccion = this.misdireccionesRepository.create({
-    ...createDto,
-    usuario: { id: createDto.usuarioId }, 
-  });
+    if (!direccion) {
+      throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+    }
 
-  return this.misdireccionesRepository.save(direccion);
-}
+    return direccion;
+  }
 
+  async create(createDto: CreateMisdireccioneDto): Promise<Misdireccione> {
+    const direccion = this.misdireccionesRepository.create({
+      ...createDto,
+      usuario: { id: createDto.usuarioId },
+    });
 
+    return this.misdireccionesRepository.save(direccion);
+  }
 
   findAll() {
     return `This action returns all misdirecciones`;
   }
 
+  async update(
+    id: number,
+    dto: UpdateMisdireccioneDto,
+  ): Promise<Misdireccione> {
+    const direccion = await this.misdireccionesRepository.findOne({
+      where: { id },
+    });
+    if (!direccion) {
+      throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+    }
 
-  async update(id: number, dto: UpdateMisdireccioneDto): Promise<Misdireccione> {
-  const direccion = await this.misdireccionesRepository.findOne({ where: { id } });
-  if (!direccion) {
-    throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+    Object.assign(direccion, dto);
+    return this.misdireccionesRepository.save(direccion);
   }
-
-  Object.assign(direccion, dto);
-  return this.misdireccionesRepository.save(direccion);
-}
 
   async remove(id: number): Promise<void> {
-  const direccion = await this.misdireccionesRepository.findOne({ where: { id } });
-  if (!direccion) {
-    throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+    const direccion = await this.misdireccionesRepository.findOne({
+      where: { id },
+    });
+    if (!direccion) {
+      throw new NotFoundException(`Dirección con id ${id} no encontrada`);
+    }
+    await this.misdireccionesRepository.remove(direccion);
   }
-  await this.misdireccionesRepository.remove(direccion);
-}
-
 }

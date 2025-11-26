@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException} from '@nestjs/common'; // Importa decoradores y excepciones de NestJS
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common'; // Importa decoradores y excepciones de NestJS
 import { InjectRepository } from '@nestjs/typeorm'; // Permite inyectar repositorios TypeORM
 import { HttpService } from '@nestjs/axios'; // Permite hacer peticiones HTTP externas
 import { ConfigService } from '@nestjs/config'; // Permite acceder a variables de configuración
@@ -37,7 +41,7 @@ export class ShippingRateService {
 
     @InjectRepository(InternationalTariff)
     private readonly tariffRepository: Repository<InternationalTariff>,
-  ) { }
+  ) {}
 
   // Obtiene la tarifa internacional según país y peso
   async getInternationalTariff(paisDestino: string, peso: number) {
@@ -63,7 +67,10 @@ export class ShippingRateService {
     }
 
     const excedente = peso - tarifa.max_kg;
-    const adicional = excedente > 0 && tarifa.additional_per_kg ? excedente * tarifa.additional_per_kg : 0;
+    const adicional =
+      excedente > 0 && tarifa.additional_per_kg
+        ? excedente * tarifa.additional_per_kg
+        : 0;
     const subtotal = tarifa.base_price + adicional;
     const iva = subtotal * (tarifa.iva_percent / 100);
     const total = subtotal + iva;
@@ -80,15 +87,23 @@ export class ShippingRateService {
   }
 
   // Crea una nueva tarifa de envío
-  async create(createShippingRateDto: CreateShippingRateDto): Promise<ShippingRateResponseDto> {
-    const shippingRate = this.shippingRateRepository.create(createShippingRateDto);
+  async create(
+    createShippingRateDto: CreateShippingRateDto,
+  ): Promise<ShippingRateResponseDto> {
+    const shippingRate = this.shippingRateRepository.create(
+      createShippingRateDto,
+    );
     const savedRate = await this.shippingRateRepository.save(shippingRate);
     return this.mapToResponseDto(savedRate);
   }
 
   // Crea varias tarifas de envío en lote
-  async createMany(createShippingRateDtos: CreateShippingRateDto[]): Promise<ShippingRateResponseDto[]> {
-    const shippingRates = this.shippingRateRepository.create(createShippingRateDtos);
+  async createMany(
+    createShippingRateDtos: CreateShippingRateDto[],
+  ): Promise<ShippingRateResponseDto[]> {
+    const shippingRates = this.shippingRateRepository.create(
+      createShippingRateDtos,
+    );
     const savedRates = await this.shippingRateRepository.save(shippingRates);
     return savedRates.map((rate) => this.mapToResponseDto(rate));
   }
@@ -117,7 +132,10 @@ export class ShippingRateService {
   }
 
   // Actualiza una tarifa de envío por ID
-  async update(id: number, updateShippingRateDto: UpdateShippingRateDto): Promise<ShippingRateResponseDto> {
+  async update(
+    id: number,
+    updateShippingRateDto: UpdateShippingRateDto,
+  ): Promise<ShippingRateResponseDto> {
     const rate = await this.shippingRateRepository.findOne({ where: { id } });
 
     if (!rate) {
@@ -174,7 +192,11 @@ export class ShippingRateService {
   }
 
   // Busca la tarifa usando query builder (más flexible)
-  async findTarifa(zonaId: number, servicioId: number, peso: number): Promise<ShippingRate | null> {
+  async findTarifa(
+    zonaId: number,
+    servicioId: number,
+    peso: number,
+  ): Promise<ShippingRate | null> {
     return await this.shippingRateRepository
       .createQueryBuilder('rate')
       .where('rate.zone_id = :zonaId', { zonaId })
@@ -184,7 +206,10 @@ export class ShippingRateService {
   }
 
   // Obtiene datos de zona y distancia entre dos códigos postales usando Google Maps
-  async getDatosZonaYDistancia(codigoOrigen: string, codigoDestino: string): Promise<{
+  async getDatosZonaYDistancia(
+    codigoOrigen: string,
+    codigoDestino: string,
+  ): Promise<{
     distanciaKm: number;
     zona: Zone;
     ciudadOrigen: string;
@@ -196,7 +221,8 @@ export class ShippingRateService {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${cp},MX&key=${apiKey}`;
       const res = await firstValueFrom(this.httpService.get(url));
       const location = res.data.results?.[0]?.geometry?.location;
-      if (!location) throw new NotFoundException(`No se pudo geocodificar el CP: ${cp}`);
+      if (!location)
+        throw new NotFoundException(`No se pudo geocodificar el CP: ${cp}`);
       return location;
     };
 
@@ -208,7 +234,9 @@ export class ShippingRateService {
     const element = distanceRes.data.rows?.[0]?.elements?.[0];
 
     if (element?.status !== 'OK') {
-      throw new NotFoundException('No se pudo calcular la distancia entre los CP');
+      throw new NotFoundException(
+        'No se pudo calcular la distancia entre los CP',
+      );
     }
 
     const distanciaKm = Math.ceil(element.distance.value / 1000);
@@ -275,7 +303,7 @@ export class ShippingRateService {
     }
 
     // Calcula el peso volumétrico y el peso facturable
-    const pesoVol = +(largo * alto * ancho / 5000).toFixed(2);
+    const pesoVol = +((largo * alto * ancho) / 5000).toFixed(2);
     const pesoFacturable = Math.max(peso, pesoVol);
 
     const tarifa = await this.tariffRepository.findOne({

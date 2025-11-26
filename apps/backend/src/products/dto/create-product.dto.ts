@@ -20,20 +20,28 @@ const transformToBoolean = ({ value }): boolean | any => {
 };
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Tenis Runner Pro', description: 'Nombre del producto', maxLength: 60 })
+  @ApiProperty({
+    example: 'Tenis Runner Pro',
+    description: 'Nombre del producto',
+    maxLength: 60,
+  })
   @IsString()
   @IsNotEmpty()
   nombre: string;
 
   @ApiProperty({
-    example: 'Tenis deportivos de alto rendimiento con suela antideslizante y material transpirable, ideales para correr largas distancias.',
+    example:
+      'Tenis deportivos de alto rendimiento con suela antideslizante y material transpirable, ideales para correr largas distancias.',
     description: 'Descripción del producto',
   })
   @IsString()
   @IsNotEmpty()
   descripcion: string;
 
-  @ApiPropertyOptional({ example: 30, description: 'Altura del producto en cm' })
+  @ApiPropertyOptional({
+    example: 30,
+    description: 'Altura del producto en cm',
+  })
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
@@ -57,19 +65,30 @@ export class CreateProductDto {
   @IsOptional()
   peso?: number;
 
-  @ApiProperty({ example: 1299.9, description: 'Precio del producto', minimum: 0 })
+  @ApiProperty({
+    example: 1299.9,
+    description: 'Precio del producto',
+    minimum: 0,
+  })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   precio: number;
 
-  @ApiProperty({ example: 25, description: 'Cantidad en inventario', minimum: 0 })
+  @ApiProperty({
+    example: 25,
+    description: 'Cantidad en inventario',
+    minimum: 0,
+  })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   inventario: number;
 
-  @ApiProperty({ example: 'Electrónicos', description: 'Categoría del producto' })
+  @ApiProperty({
+    example: 'Electrónicos',
+    description: 'Categoría del producto',
+  })
   @IsString()
   categoria: string;
 
@@ -81,11 +100,17 @@ export class CreateProductDto {
   @IsString()
   marca: string;
 
-  @ApiProperty({ example: 'producto-de-ejemplo', description: 'URL amigable del producto' })
+  @ApiProperty({
+    example: 'producto-de-ejemplo',
+    description: 'URL amigable del producto',
+  })
   @IsString()
   slug: string;
 
-  @ApiProperty({ example: true, description: 'Estado del producto (activo/inactivo)' })
+  @ApiProperty({
+    example: true,
+    description: 'Estado del producto (activo/inactivo)',
+  })
   @Transform(transformToBoolean)
   @IsBoolean()
   estado: boolean;
@@ -98,7 +123,10 @@ export class CreateProductDto {
   @IsString()
   vendidos: number;
 
-  @ApiProperty({ example: 'Comercializadora S.A. de C.V.', description: 'Nombre de la empresa vendedora' })
+  @ApiProperty({
+    example: 'Comercializadora S.A. de C.V.',
+    description: 'Nombre de la empresa vendedora',
+  })
   @IsString()
   vendedor: string;
 

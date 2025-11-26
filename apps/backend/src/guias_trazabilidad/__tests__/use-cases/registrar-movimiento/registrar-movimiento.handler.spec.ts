@@ -5,17 +5,17 @@ import { GuiasTrazabilidadTestSetup } from '../../setup/test-setup';
 
 jest.mock('../../../business-logic/value-objects/situacion.vo', () => ({
   SituacionVO: {
-    create: jest.fn()
-  }
+    create: jest.fn(),
+  },
 }));
 
 jest.mock('../../../business-logic/movimiento.entity', () => ({
   MovimientoDomainEntity: {
-    create: jest.fn()
-  }
+    create: jest.fn(),
+  },
 }));
 
-let shouldValidateEstado = false;
+const shouldValidateEstado = false;
 
 class MockRegistrarMovimientoHandler {
   constructor(private readonly guiaRepository: any) {}
@@ -25,7 +25,9 @@ class MockRegistrarMovimientoHandler {
       throw new Error('Invalid tracking number');
     }
 
-    const guia = await this.guiaRepository.findByNumeroRastreo({ value: command.numeroDeRastreo });
+    const guia = await this.guiaRepository.findByNumeroRastreo({
+      value: command.numeroDeRastreo,
+    });
     if (!guia) {
       throw new Error('Guía no encontrada');
     }
@@ -36,7 +38,7 @@ class MockRegistrarMovimientoHandler {
 
     const updatedGuia = 'updated-guia';
     await this.guiaRepository.save(updatedGuia);
-    
+
     return { success: true };
   }
 }
@@ -47,7 +49,7 @@ class MockRegistrarMovimientoCommand {
     public readonly idSucursal: string,
     public readonly idRuta: string,
     public readonly estado: string,
-    public readonly localizacion: string
+    public readonly localizacion: string,
   ) {}
 }
 
@@ -63,12 +65,17 @@ describe('RegistrarMovimientoHandler', () => {
       providers: [
         {
           provide: MockRegistrarMovimientoHandler,
-          useFactory: () => new MockRegistrarMovimientoHandler(repositoryMocks.GUIAREPOSITORYINTERFACE)
-        }
-      ]
+          useFactory: () =>
+            new MockRegistrarMovimientoHandler(
+              repositoryMocks.GUIAREPOSITORYINTERFACE,
+            ),
+        },
+      ],
     }).compile();
 
-    handler = module.get<MockRegistrarMovimientoHandler>(MockRegistrarMovimientoHandler);
+    handler = module.get<MockRegistrarMovimientoHandler>(
+      MockRegistrarMovimientoHandler,
+    );
   });
 
   afterEach(async () => {
@@ -82,58 +89,68 @@ describe('RegistrarMovimientoHandler', () => {
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idSucursal,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idRuta,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().estado,
-        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion
+        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion,
       );
 
       const mockGuia = {
         ...GuiasTrazabilidadTestSetup.mockData.mockGuiaEntity(),
-        hacerMovimiento: jest.fn().mockReturnValue('updated-guia')
+        hacerMovimiento: jest.fn().mockReturnValue('updated-guia'),
       };
 
-      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo
-        .mockResolvedValue(mockGuia);
+      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo.mockResolvedValue(
+        mockGuia,
+      );
 
       const result = await handler.execute(command);
 
       expect(result).toEqual({ success: true });
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo).toHaveBeenCalledWith(
-        expect.objectContaining({ value: 'TEST123456789' })
+      expect(
+        repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ value: 'TEST123456789' }),
       );
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save).toHaveBeenCalledWith('updated-guia');
+      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save).toHaveBeenCalledWith(
+        'updated-guia',
+      );
     });
 
     it('should throw error when numero de rastreo is invalid', async () => {
       const command = new MockRegistrarMovimientoCommand(
         'INVALID',
         'SUC001',
-        'RUTA001', 
+        'RUTA001',
         'EN_TRANSITO',
-        'Ciudad de México'
+        'Ciudad de México',
       );
 
-      await expect(handler.execute(command)).rejects.toThrow('Invalid tracking number');
+      await expect(handler.execute(command)).rejects.toThrow(
+        'Invalid tracking number',
+      );
     });
 
     it('should handle estado validation correctly', async () => {
       const mockGuia = { numeroRastreo: 'TEST123456789' };
-      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo
-        .mockResolvedValue(mockGuia);
+      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo.mockResolvedValue(
+        mockGuia,
+      );
 
       const command = new MockRegistrarMovimientoCommand(
         'TEST123456789',
         'EN_TRANSITO',
-        'RUTA001', 
+        'RUTA001',
         'SUC001',
-        'Ciudad de México'
+        'Ciudad de México',
       );
 
       const result = await handler.execute(command);
 
       expect(result).toEqual({ success: true });
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo)
-        .toHaveBeenCalledWith({ value: 'TEST123456789' });
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save)
-        .toHaveBeenCalledWith('updated-guia');
+      expect(
+        repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo,
+      ).toHaveBeenCalledWith({ value: 'TEST123456789' });
+      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save).toHaveBeenCalledWith(
+        'updated-guia',
+      );
     });
 
     it('should throw error when guia is not found', async () => {
@@ -142,20 +159,25 @@ describe('RegistrarMovimientoHandler', () => {
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idSucursal,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idRuta,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().estado,
-        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion
+        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion,
       );
 
-      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo
-        .mockResolvedValue(null);
+      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo.mockResolvedValue(
+        null,
+      );
 
-      await expect(handler.execute(command)).rejects.toThrow('Guía no encontrada');
+      await expect(handler.execute(command)).rejects.toThrow(
+        'Guía no encontrada',
+      );
     });
 
     it('should handle movement creation failure', async () => {
-      const { MovimientoDomainEntity } = require('../../../business-logic/movimiento.entity');
+      const {
+        MovimientoDomainEntity,
+      } = require('../../../business-logic/movimiento.entity');
       (MovimientoDomainEntity.create as jest.Mock).mockReturnValue({
         isFailure: () => true,
-        getError: () => 'Movement creation failed'
+        getError: () => 'Movement creation failed',
       });
 
       const command = new MockRegistrarMovimientoCommand(
@@ -163,12 +185,13 @@ describe('RegistrarMovimientoHandler', () => {
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().estado,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idRuta,
         GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().idSucursal,
-        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion
+        GuiasTrazabilidadTestSetup.mockData.validRegistrarMovimientoCommand().localizacion,
       );
 
       const mockGuia = GuiasTrazabilidadTestSetup.mockData.mockGuiaEntity();
-      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo
-        .mockResolvedValue(mockGuia);
+      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo.mockResolvedValue(
+        mockGuia,
+      );
 
       const result = await handler.execute(command);
 
@@ -181,23 +204,28 @@ describe('RegistrarMovimientoHandler', () => {
         'EN_TRANSITO',
         'RUTA001',
         'SUC001',
-        'Ciudad de México'
+        'Ciudad de México',
       );
 
       const mockGuia = {
         ...GuiasTrazabilidadTestSetup.mockData.mockGuiaEntity(),
-        hacerMovimiento: jest.fn().mockReturnValue('updated-guia')
+        hacerMovimiento: jest.fn().mockReturnValue('updated-guia'),
       };
 
-      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo
-        .mockResolvedValue(mockGuia);
+      repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo.mockResolvedValue(
+        mockGuia,
+      );
 
       await handler.execute(command);
 
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo).toHaveBeenCalledWith(
-        expect.objectContaining({ value: 'TEST123456789' })
+      expect(
+        repositoryMocks.GUIAREPOSITORYINTERFACE.findByNumeroRastreo,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ value: 'TEST123456789' }),
       );
-      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save).toHaveBeenCalledWith('updated-guia');
+      expect(repositoryMocks.GUIAREPOSITORYINTERFACE.save).toHaveBeenCalledWith(
+        'updated-guia',
+      );
     });
   });
 });

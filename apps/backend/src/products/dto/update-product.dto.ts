@@ -83,7 +83,10 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   @Type(() => Number)
   ancho?: number;
 
-  @ApiPropertyOptional({ example: 15.5, description: 'Peso del producto en kg' })
+  @ApiPropertyOptional({
+    example: 15.5,
+    description: 'Peso del producto en kg',
+  })
   @IsOptional()
   @IsNumber()
   @IsPositive()

@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionContents } from './entities/transaction.entity';
+import {
+  Transaction,
+  TransactionContents,
+} from './entities/transaction.entity';
 import { Product } from '../products/entities/product.entity';
 import { Profile } from '../profile/entities/profile.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -88,9 +91,7 @@ export class TransactionsService {
       relations: ['contenidos', 'contenidos.producto'],
     });
     if (!transaction) {
-      throw new NotFoundException(
-        `Transacción con ID: ${id} no encontrada`,
-      );
+      throw new NotFoundException(`Transacción con ID: ${id} no encontrada`);
     }
     return transaction;
   }
@@ -102,4 +103,4 @@ export class TransactionsService {
   remove(id: number) {
     return `This action removes a #${id} transaction`;
   }
-} 
+}

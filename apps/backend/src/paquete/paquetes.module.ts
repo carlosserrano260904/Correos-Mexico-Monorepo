@@ -6,10 +6,7 @@ import { Paquete } from './entities/paquete.entity';
 import { UploadImageModule } from '../upload-image/upload-image.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Paquete]),
-    UploadImageModule
-  ],
+  imports: [TypeOrmModule.forFeature([Paquete]), UploadImageModule],
   controllers: [PaquetesController],
   providers: [PaquetesService],
 })

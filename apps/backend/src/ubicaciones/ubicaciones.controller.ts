@@ -9,10 +9,10 @@ export class OficinasController {
   @Get('buscar/:termino')
   async buscarOficinas(@Param('termino') termino: string) {
     const terminoLimpio = String(termino).trim();
-    
+
     // El servicio manejará la lógica de búsqueda y deduplicación
     const oficinas = await this.oficinasService.buscarOficinas(terminoLimpio);
-    
+
     return oficinas; // Siempre devuelve array (vacío si no encuentra)
   }
 

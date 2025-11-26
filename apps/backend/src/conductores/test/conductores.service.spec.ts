@@ -47,7 +47,9 @@ describe('ConductoresService', () => {
     }).compile();
 
     service = module.get<ConductoresService>(ConductoresService);
-    repository = module.get<Repository<Conductor>>(getRepositoryToken(Conductor));
+    repository = module.get<Repository<Conductor>>(
+      getRepositoryToken(Conductor),
+    );
   });
 
   afterEach(() => {
@@ -59,25 +61,27 @@ describe('ConductoresService', () => {
       mockConductorRepository.find.mockResolvedValue([mockConductor]);
 
       const result = await service.findAllDisponibles();
-      
+
       expect(repository.find).toHaveBeenCalledWith({
         where: {
           disponibilidad: true,
           licenciaVigente: true,
         },
-        relations: ['oficina'], 
+        relations: ['oficina'],
       });
-      expect(result).toEqual([{
-        nombreCompleto: mockConductor.nombreCompleto,
-        CURP: mockConductor.curp,
-        RFC: mockConductor.rfc,
-        licencia: mockConductor.licencia,
-        telefono: mockConductor.telefono,
-        correo: mockConductor.correo,
-        sucursal: mockConductor.oficina.clave_cuo,
-        disponibilidad: mockConductor.disponibilidad,   
-        licenciaVigente: mockConductor.licenciaVigente,   
-      }]);
+      expect(result).toEqual([
+        {
+          nombreCompleto: mockConductor.nombreCompleto,
+          CURP: mockConductor.curp,
+          RFC: mockConductor.rfc,
+          licencia: mockConductor.licencia,
+          telefono: mockConductor.telefono,
+          correo: mockConductor.correo,
+          sucursal: mockConductor.oficina.clave_cuo,
+          disponibilidad: mockConductor.disponibilidad,
+          licenciaVigente: mockConductor.licenciaVigente,
+        },
+      ]);
     });
   });
 
@@ -86,23 +90,25 @@ describe('ConductoresService', () => {
       mockConductorRepository.find.mockResolvedValue([mockConductor]);
 
       const result = await service.findBySucursal('00304');
-      
+
       expect(repository.find).toHaveBeenCalledWith({
         where: { oficina: { clave_cuo: '00304' } },
         relations: ['oficina'], // ✅ Ya está correcto aquí
         order: { disponibilidad: 'DESC' },
       });
-      expect(result).toEqual([{
-        nombreCompleto: mockConductor.nombreCompleto,
-        CURP: mockConductor.curp,
-        RFC: mockConductor.rfc,
-        licencia: mockConductor.licencia,
-        telefono: mockConductor.telefono,
-        correo: mockConductor.correo,
-        sucursal: mockConductor.oficina.clave_cuo,
-        disponibilidad: mockConductor.disponibilidad,
-        licenciaVigente: mockConductor.licenciaVigente,
-      }]);
+      expect(result).toEqual([
+        {
+          nombreCompleto: mockConductor.nombreCompleto,
+          CURP: mockConductor.curp,
+          RFC: mockConductor.rfc,
+          licencia: mockConductor.licencia,
+          telefono: mockConductor.telefono,
+          correo: mockConductor.correo,
+          sucursal: mockConductor.oficina.clave_cuo,
+          disponibilidad: mockConductor.disponibilidad,
+          licenciaVigente: mockConductor.licenciaVigente,
+        },
+      ]);
     });
   });
 
@@ -123,7 +129,7 @@ describe('ConductoresService', () => {
       mockConductorRepository.save.mockResolvedValue(mockConductor);
 
       const result = await service.create(createDto);
-      
+
       expect(repository.create).toHaveBeenCalledWith({
         ...createDto,
         fechaAlta: expect.any(Date),
@@ -144,9 +150,14 @@ describe('ConductoresService', () => {
         disponibilidad: false,
       });
 
-      const result = await service.updateDisponibilidad('PEMJ800101HDFRRN01', updateDto);
-      
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { curp: 'PEMJ800101HDFRRN01' } });
+      const result = await service.updateDisponibilidad(
+        'PEMJ800101HDFRRN01',
+        updateDto,
+      );
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { curp: 'PEMJ800101HDFRRN01' },
+      });
       expect(repository.save).toHaveBeenCalledWith({
         ...mockConductor,
         disponibilidad: false,
@@ -158,7 +169,7 @@ describe('ConductoresService', () => {
       mockConductorRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateDisponibilidad('INVALID_CURP', { disponibilidad: false })
+        service.updateDisponibilidad('INVALID_CURP', { disponibilidad: false }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -173,9 +184,14 @@ describe('ConductoresService', () => {
         licenciaVigente: false,
       });
 
-      const result = await service.updateLicenciaVigente('PEMJ800101HDFRRN01', updateDto);
-      
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { curp: 'PEMJ800101HDFRRN01' } });
+      const result = await service.updateLicenciaVigente(
+        'PEMJ800101HDFRRN01',
+        updateDto,
+      );
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { curp: 'PEMJ800101HDFRRN01' },
+      });
       expect(repository.save).toHaveBeenCalledWith({
         ...mockConductor,
         licenciaVigente: false,
@@ -187,7 +203,9 @@ describe('ConductoresService', () => {
       mockConductorRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateLicenciaVigente('INVALID_CURP', { licenciaVigente: false })
+        service.updateLicenciaVigente('INVALID_CURP', {
+          licenciaVigente: false,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
   });

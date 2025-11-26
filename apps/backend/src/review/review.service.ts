@@ -11,7 +11,8 @@ import { UploadImageService } from '../upload-image/upload-image.service';
 export class ReviewService {
   constructor(
     @InjectRepository(Review) private readonly reviewRepo: Repository<Review>,
-    @InjectRepository(ReviewImage) private readonly reviewImageRepo: Repository<ReviewImage>,
+    @InjectRepository(ReviewImage)
+    private readonly reviewImageRepo: Repository<ReviewImage>,
     private readonly uploadImageService: UploadImageService,
   ) {}
 
@@ -27,7 +28,11 @@ export class ReviewService {
         files.map(async (file, idx) => {
           const url = await this.uploadImageService.uploadFileImage(file);
           return this.reviewImageRepo.save(
-            this.reviewImageRepo.create({ url, orden: idx, reviewId: review.id }),
+            this.reviewImageRepo.create({
+              url,
+              orden: idx,
+              reviewId: review.id,
+            }),
           );
         }),
       );
@@ -68,7 +73,9 @@ export class ReviewService {
 
   // NUEVO: borrar una imagen específica
   async removeImage(reviewId: number, imageId: number) {
-    const img = await this.reviewImageRepo.findOne({ where: { id: imageId, reviewId } });
+    const img = await this.reviewImageRepo.findOne({
+      where: { id: imageId, reviewId },
+    });
     if (!img) throw new NotFoundException('Imagen de reseña no encontrada');
     await this.reviewImageRepo.remove(img);
     return 'Imagen eliminada';

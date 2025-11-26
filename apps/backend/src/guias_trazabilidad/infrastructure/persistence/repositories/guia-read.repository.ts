@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { GuiaReadRepositoryInterface, } from '../../../application/ports/outbound/guia-read.repository.interface';
-import { 
-  TrazabilidadReadModel, 
-  GuiaListReadModel, 
-  IncidenciaReadModel, 
-  ContactoReadModel 
+import { GuiaReadRepositoryInterface } from '../../../application/ports/outbound/guia-read.repository.interface';
+import {
+  TrazabilidadReadModel,
+  GuiaListReadModel,
+  IncidenciaReadModel,
+  ContactoReadModel,
 } from '../../../application/read-models/guia.read-models';
 
 @Injectable()
 export class GuiaReadRepository implements GuiaReadRepositoryInterface {
-  constructor(private readonly dataSource: DataSource) { }
+  constructor(private readonly dataSource: DataSource) {}
 
-  async findByNumeroRastreo(numeroRastreo: string): Promise<TrazabilidadReadModel | null> {
+  async findByNumeroRastreo(
+    numeroRastreo: string,
+  ): Promise<TrazabilidadReadModel | null> {
     const query = `
       WITH guia_info AS (
         SELECT 

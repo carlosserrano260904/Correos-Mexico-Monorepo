@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { Profile } from '../../profile/entities/profile.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -10,10 +15,13 @@ export class Favorito {
   @CreateDateColumn({ name: 'fecha_agregado' })
   fechaAgregado: Date;
 
-  @ManyToOne(() => Profile, usuario => usuario.favoritos, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Profile, (usuario) => usuario.favoritos, {
+    onDelete: 'CASCADE',
+  })
   usuario: Profile;
 
-  @ManyToOne(() => Product, producto => producto.favoritos, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, (producto) => producto.favoritos, {
+    onDelete: 'CASCADE',
+  })
   producto: Product;
 }
-

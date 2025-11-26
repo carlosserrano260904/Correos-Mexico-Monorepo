@@ -29,7 +29,9 @@ export class ContactoMapper {
   static toDomain(contactoOrmEntity: ContactosTypeormEntity): ContactoVO {
     return ContactoVO.fromPersistence({
       idTecnico: IdVO.fromPersistence(contactoOrmEntity.id_contacto),
-      idUsuario: contactoOrmEntity.id_usuario ? IdVO.fromPersistence(contactoOrmEntity.id_usuario) : undefined,
+      idUsuario: contactoOrmEntity.id_usuario
+        ? IdVO.fromPersistence(contactoOrmEntity.id_usuario)
+        : undefined,
       nombres: contactoOrmEntity.nombres,
       apellidos: contactoOrmEntity.apellidos,
       telefono: TelefonoVO.fromString(contactoOrmEntity.telefono),
@@ -44,7 +46,7 @@ export class ContactoMapper {
         pais: contactoOrmEntity.pais,
         lat: contactoOrmEntity.lat ?? undefined,
         lng: contactoOrmEntity.lng ?? undefined,
-        referencia: contactoOrmEntity.referencia ?? undefined
+        referencia: contactoOrmEntity.referencia ?? undefined,
       }),
     });
   }
@@ -57,14 +59,14 @@ export class ContactoMapper {
       direccion: {
         calle: contactoVO.getDireccion.getCalle,
         numero: contactoVO.getDireccion.getNumero,
-        numeroInterior: contactoVO.getDireccion.getNumeroInterior ?? "",
-        asentamiento: contactoVO.getDireccion.getAsentamiento ?? "",
+        numeroInterior: contactoVO.getDireccion.getNumeroInterior ?? '',
+        asentamiento: contactoVO.getDireccion.getAsentamiento ?? '',
         codigoPostal: contactoVO.getDireccion.getCodigoPostal,
         localidad: contactoVO.getDireccion.getLocalidad,
         estado: contactoVO.getDireccion.getEstado,
         pais: contactoVO.getDireccion.getPais,
-        referencia: contactoVO.getDireccion.getReferencia ?? ""
-      }
-    }
+        referencia: contactoVO.getDireccion.getReferencia ?? '',
+      },
+    };
   }
 }

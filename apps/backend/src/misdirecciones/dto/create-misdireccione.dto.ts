@@ -1,24 +1,24 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMisdireccioneDto {
   @ApiProperty({
     description: 'Nombre de la persona asociada a la dirección',
-    example: 'Juan Pérez'
+    example: 'Juan Pérez',
   })
   @IsString()
   nombre: string;
 
   @ApiProperty({
     description: 'Calle donde se ubica la dirección',
-    example: 'Av. Reforma'
+    example: 'Av. Reforma',
   })
   @IsString()
   calle: string;
 
   @ApiProperty({
     description: 'Colonia o fraccionamiento',
-    example: 'Centro Histórico'
+    example: 'Centro Histórico',
   })
   @IsString()
   colonia_fraccionamiento: string;
@@ -27,7 +27,7 @@ export class CreateMisdireccioneDto {
     description: 'Número interior (si aplica)',
     example: 202,
     required: false,
-    nullable: true
+    nullable: true,
   })
   @IsOptional()
   @IsNumber()
@@ -37,7 +37,7 @@ export class CreateMisdireccioneDto {
     description: 'Número exterior',
     example: 123,
     required: false,
-    nullable: true
+    nullable: true,
   })
   @IsOptional()
   @IsNumber()
@@ -45,28 +45,28 @@ export class CreateMisdireccioneDto {
 
   @ApiProperty({
     description: 'Número de celular asociado',
-    example: '+52 5512345678'
+    example: '+52 5512345678',
   })
   @IsString()
   numero_celular: string;
 
   @ApiProperty({
     description: 'Código postal',
-    example: '06000'
+    example: '06000',
   })
   @IsString()
   codigo_postal: string;
 
   @ApiProperty({
     description: 'Estado',
-    example: 'Ciudad de México'
+    example: 'Ciudad de México',
   })
   @IsString()
   estado: string;
 
   @ApiProperty({
     description: 'Municipio',
-    example: 'Cuauhtémoc'
+    example: 'Cuauhtémoc',
   })
   @IsString()
   municipio: string;
@@ -74,7 +74,7 @@ export class CreateMisdireccioneDto {
   @ApiProperty({
     description: 'Información adicional sobre la dirección',
     example: 'Departamento en el segundo piso',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
@@ -82,7 +82,7 @@ export class CreateMisdireccioneDto {
 
   @ApiProperty({
     description: 'ID del usuario dueño de la dirección',
-    example: 1
+    example: 1,
   })
   @IsNumber()
   usuarioId: number;

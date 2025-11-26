@@ -1,5 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { MisdireccionesService } from './misdirecciones.service';
 import { CreateMisdireccioneDto } from './dto/create-misdireccione.dto';
 import { UpdateMisdireccioneDto } from './dto/update-misdireccione.dto';
@@ -28,7 +42,10 @@ export class MisdireccionesController {
   @Get('usuario/:usuarioId')
   @ApiOperation({ summary: 'Obtener direcciones por ID de usuario' })
   @ApiParam({ name: 'usuarioId', type: Number, description: 'ID del usuario' })
-  @ApiResponse({ status: 200, description: 'Direcciones del usuario encontradas.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Direcciones del usuario encontradas.',
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   async findByUsuario(@Param('usuarioId') usuarioId: number) {
     return this.misdireccionesService.obtenerPorUsuario(usuarioId);
@@ -49,7 +66,10 @@ export class MisdireccionesController {
   @ApiBody({ type: UpdateMisdireccioneDto })
   @ApiResponse({ status: 200, description: 'Dirección actualizada.' })
   @ApiResponse({ status: 404, description: 'Dirección no encontrada.' })
-  update(@Param('id') id: string, @Body() updateMisdireccioneDto: UpdateMisdireccioneDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateMisdireccioneDto: UpdateMisdireccioneDto,
+  ) {
     return this.misdireccionesService.update(+id, updateMisdireccioneDto);
   }
 

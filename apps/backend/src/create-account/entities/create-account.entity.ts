@@ -1,6 +1,13 @@
 // Archivo: apps/backend/src/create-account/entities/create-account.entity.ts
 
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Favorito } from '../../favoritos/entities/favorito.entity';
 import { Carrito } from '../../carrito/entities/carrito.entity';
 import { Profile } from '../../profile/entities/profile.entity';
@@ -32,23 +39,23 @@ export class CreateAccount {
     type: 'timestamp',
     nullable: true,
     name: 'token_created_at',
-    default: () => 'CURRENT_TIMESTAMP'
+    default: () => 'CURRENT_TIMESTAMP',
   })
   tokenCreatedAt: Date | null;
 
   @Column({ type: 'varchar', default: 'usuario' })
   rol: string;
 
-  @OneToMany(() => Favorito, favorito => favorito.usuario)
+  @OneToMany(() => Favorito, (favorito) => favorito.usuario)
   favoritos: Favorito[];
 
-  @OneToMany(() => Carrito, carrito => carrito.usuario)
+  @OneToMany(() => Carrito, (carrito) => carrito.usuario)
   carrito: Carrito[];
 
   @OneToOne(() => Profile, { cascade: true })
   @JoinColumn()
   profile: Profile;
-  
+
   // --- Columna añadida para el borrado lógico ---
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

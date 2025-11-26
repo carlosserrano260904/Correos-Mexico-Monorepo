@@ -3,10 +3,15 @@ import { Inject } from '@nestjs/common';
 import { ListarGuiasQuery } from './listar-guias.query';
 import { Result } from '../../../../utils/result';
 import { GuiaListReadModel } from '../../read-models/guia.read-models';
-import { GuiaReadRepositoryInterface, GUIA_READ_REPOSITORY } from '../../ports/outbound/guia-read.repository.interface';
+import {
+  GuiaReadRepositoryInterface,
+  GUIA_READ_REPOSITORY,
+} from '../../ports/outbound/guia-read.repository.interface';
 
 @QueryHandler(ListarGuiasQuery)
-export class ListarGuiasQueryHandler implements IQueryHandler<ListarGuiasQuery> {
+export class ListarGuiasQueryHandler
+  implements IQueryHandler<ListarGuiasQuery>
+{
   constructor(
     @Inject(GUIA_READ_REPOSITORY)
     private readonly guiaReadRepository: GuiaReadRepositoryInterface,
@@ -20,4 +25,4 @@ export class ListarGuiasQueryHandler implements IQueryHandler<ListarGuiasQuery> 
       return Result.failure(`Error al listar guías: ${error.message}`);
     }
   }
-} 
+}

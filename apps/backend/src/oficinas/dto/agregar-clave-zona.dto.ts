@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, Length, Matches, NotEquals } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  Length,
+  Matches,
+  NotEquals,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AgregarClaveZonaDto {
@@ -10,10 +16,8 @@ export class AgregarClaveZonaDto {
   @IsNotEmpty()
   @Length(5, 5, { message: 'La claveZona debe tener exactamente 5 caracteres' })
   @Matches(/^\d{5}$/, { message: 'La claveZona debe contener solo números' })
-  @NotEquals('cuo', { message: 'No puedes asignar la misma clave CUO como clave de zona' })
-
-
+  @NotEquals('cuo', {
+    message: 'No puedes asignar la misma clave CUO como clave de zona',
+  })
   claveZona: string;
 }
-
-

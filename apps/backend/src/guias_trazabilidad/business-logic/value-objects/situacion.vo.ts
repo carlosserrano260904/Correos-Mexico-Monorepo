@@ -21,7 +21,7 @@ const situaciones = [
 export type Situacion = (typeof situaciones)[number];
 
 export class SituacionVO {
-  private constructor(private readonly situacion: Situacion) { }
+  private constructor(private readonly situacion: Situacion) {}
 
   public static create(situacion: Situacion): Result<SituacionVO> {
     if (!situaciones.includes(situacion)) {
@@ -31,7 +31,7 @@ export class SituacionVO {
   }
 
   public static safeCreate(situacion: Situacion): SituacionVO {
-    return new SituacionVO(situacion as Situacion);
+    return new SituacionVO(situacion);
   }
 
   public static fromPersistence(value: string): SituacionVO {

@@ -3,7 +3,8 @@ import { IsDateString } from 'class-validator';
 
 export class IniciarRutaDto {
   @ApiProperty({
-    description: 'Fecha de entrega programada para los envíos que se pondrán en ruta. Formato YYYY-MM-DD.',
+    description:
+      'Fecha de entrega programada para los envíos que se pondrán en ruta. Formato YYYY-MM-DD.',
     example: '2024-05-21',
   })
   @IsDateString()

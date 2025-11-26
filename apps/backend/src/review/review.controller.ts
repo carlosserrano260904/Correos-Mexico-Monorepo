@@ -1,11 +1,25 @@
 // src/review/review.controller.ts
 import {
-  Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFiles
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
-  ApiTags, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse,
-  ApiParam, ApiBadRequestResponse, ApiExtraModels, getSchemaPath
+  ApiTags,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiBadRequestResponse,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger';
 
 import { ReviewService } from './review.service';
@@ -48,11 +62,11 @@ export class ReviewController {
     schema: {
       type: 'object',
       properties: {
-        rating:     { type: 'number', example: 5, description: '1-5' },
-        comment:    { type: 'string', example: 'Excelente producto.' },
-        productId:  { type: 'number', example: 1 },
-        profileId:  { type: 'number', example: 7 },
-        files:      { type: 'array', items: { type: 'string', format: 'binary' } },
+        rating: { type: 'number', example: 5, description: '1-5' },
+        comment: { type: 'string', example: 'Excelente producto.' },
+        productId: { type: 'number', example: 1 },
+        profileId: { type: 'number', example: 7 },
+        files: { type: 'array', items: { type: 'string', format: 'binary' } },
       },
       required: ['rating', 'comment', 'productId', 'profileId'],
     },
@@ -61,7 +75,10 @@ export class ReviewController {
     description: 'Reseña creada con imágenes',
     schema: { $ref: getSchemaPath(Review) },
   })
-  createWithImages(@Body() dto: CreateReviewDto, @UploadedFiles() files: Express.Multer.File[]) {
+  createWithImages(
+    @Body() dto: CreateReviewDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
     return this.reviewService.createWithImages(dto, files);
   }
 
@@ -86,7 +103,10 @@ export class ReviewController {
     description: 'Imágenes agregadas',
     schema: { type: 'array', items: { $ref: getSchemaPath(ReviewImage) } },
   })
-  addImages(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
+  addImages(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
     return this.reviewService.addImages(+id, files);
   }
 
@@ -120,7 +140,10 @@ export class ReviewController {
   @ApiParam({ name: 'reviewId', type: Number, description: 'ID de la reseña' })
   @ApiParam({ name: 'imageId', type: Number, description: 'ID de la imagen' })
   @ApiOkResponse({ description: 'Imagen de reseña eliminada' })
-  removeImage(@Param('reviewId') reviewId: string, @Param('imageId') imageId: string) {
+  removeImage(
+    @Param('reviewId') reviewId: string,
+    @Param('imageId') imageId: string,
+  ) {
     return this.reviewService.removeImage(+reviewId, +imageId);
   }
 }

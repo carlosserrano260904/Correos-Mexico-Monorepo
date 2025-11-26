@@ -19,12 +19,14 @@ describe('ListarIncidenciasQueryHandler', () => {
         ListarIncidenciasQueryHandler,
         {
           provide: GUIA_READ_REPOSITORY,
-          useValue: repositoryMocks.GUIA_READ_REPOSITORY
-        }
-      ]
+          useValue: repositoryMocks.GUIA_READ_REPOSITORY,
+        },
+      ],
     }).compile();
 
-    handler = module.get<ListarIncidenciasQueryHandler>(ListarIncidenciasQueryHandler);
+    handler = module.get<ListarIncidenciasQueryHandler>(
+      ListarIncidenciasQueryHandler,
+    );
   });
 
   afterEach(async () => {
@@ -42,35 +44,39 @@ describe('ListarIncidenciasQueryHandler', () => {
           descripcion: 'Paquete con daños',
           reportadoPor: 'Juan Pérez',
           fechaCreacion: new Date(),
-          estado: 'ABIERTA'
+          estado: 'ABIERTA',
         },
         {
-          id: 'INC002', 
+          id: 'INC002',
           numeroRastreo: 'TEST987654321',
           tipo: 'ENTREGA_TARDIA',
           descripcion: 'Paquete entregado con retraso',
           reportadoPor: 'María González',
           fechaCreacion: new Date(),
-          estado: 'CERRADA'
-        }
+          estado: 'CERRADA',
+        },
       ];
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias
-        .mockResolvedValue(mockIncidenciasList);
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias.mockResolvedValue(
+        mockIncidenciasList,
+      );
 
       const result = await handler.execute(query);
 
       expect(result.isFailure()).toBe(false);
       expect(result.getValue()).toEqual(mockIncidenciasList);
       expect(result.getValue()).toHaveLength(2);
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias).toHaveBeenCalledTimes(1);
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty list when no incidencias exist', async () => {
       const query = new ListarIncidenciasQuery();
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias
-        .mockResolvedValue([]);
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias.mockResolvedValue(
+        [],
+      );
 
       const result = await handler.execute(query);
 
@@ -82,8 +88,9 @@ describe('ListarIncidenciasQueryHandler', () => {
     it('should return failure when repository throws error', async () => {
       const query = new ListarIncidenciasQuery();
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias
-        .mockRejectedValue(new Error('Database error'));
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllIncidencias.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       const result = await handler.execute(query);
 

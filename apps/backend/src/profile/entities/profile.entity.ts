@@ -1,7 +1,11 @@
 // src/profile/entities/profile.entity.ts
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Favorito } from '../../favoritos/entities/favorito.entity';
@@ -72,7 +76,9 @@ export class Profile {
   @OneToMany(() => Carrito, (carrito) => carrito.usuario)
   carrito: Carrito[];
 
-  @OneToMany(() => Misdireccione, (direccion) => direccion.usuario, { cascade: true })
+  @OneToMany(() => Misdireccione, (direccion) => direccion.usuario, {
+    cascade: true,
+  })
   direcciones: Misdireccione[];
 
   @OneToOne(() => CreateAccount, (user) => user.profile)

@@ -1,11 +1,17 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { StripeService } from './stripe.service';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Pagos (Stripe)¿')
 @Controller('pagos')
 export class StripeController {
-  constructor(private readonly stripeService: StripeService) { }
+  constructor(private readonly stripeService: StripeService) {}
 
   @Post('crear-cliente')
   @ApiOperation({ summary: 'Crear un cliente en Stripe' })
@@ -38,12 +44,17 @@ export class StripeController {
   })
   @ApiResponse({ status: 201, description: 'Tarjeta asociada correctamente' })
   async associateCard(
-    @Body() body: { customerId: string; paymentMethodId: string; profileId: number }
+    @Body()
+    body: {
+      customerId: string;
+      paymentMethodId: string;
+      profileId: number;
+    },
   ) {
     return this.stripeService.associateCardAndSave(
       body.customerId,
       body.paymentMethodId,
-      body.profileId
+      body.profileId,
     );
   }
 
@@ -53,7 +64,11 @@ export class StripeController {
     schema: {
       type: 'object',
       properties: {
-        amount: { type: 'number', example: 1500, description: 'Monto en centavos' },
+        amount: {
+          type: 'number',
+          example: 1500,
+          description: 'Monto en centavos',
+        },
         customerId: { type: 'string', example: 'cus_123abc' },
         paymentMethodId: { type: 'string', example: 'pm_456xyz' },
       },
@@ -67,18 +82,23 @@ export class StripeController {
       amount: number;
       customerId: string;
       paymentMethodId: string;
-    }
+    },
   ) {
     return this.stripeService.createPaymentIntent(
       body.amount,
       body.customerId,
-      body.paymentMethodId
+      body.paymentMethodId,
     );
   }
 
   @Get('mis-tarjetas/:profileId')
   @ApiOperation({ summary: 'Obtener tarjetas guardadas de un perfil' })
-  @ApiParam({ name: 'profileId', type: Number, example: 1, description: 'ID del perfil' })
+  @ApiParam({
+    name: 'profileId',
+    type: Number,
+    example: 1,
+    description: 'ID del perfil',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de tarjetas guardadas',
@@ -101,5 +121,4 @@ export class StripeController {
     });
     return tarjetas;
   }
-
 }

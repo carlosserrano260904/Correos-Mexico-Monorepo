@@ -5,18 +5,15 @@
 import 'reflect-metadata';
 import { Test } from '@nestjs/testing';
 
-
 jest.mock('@aws-sdk/client-s3');
 jest.mock('@aws-sdk/s3-request-presigner');
 jest.mock('qrcode');
 jest.mock('@react-pdf/renderer');
 jest.mock('axios');
 
-beforeAll(async () => {
-});
+beforeAll(async () => {});
 
-afterAll(async () => {
-});
+afterAll(async () => {});
 
 jest.setTimeout(10000);
 
@@ -33,6 +30,7 @@ afterEach(() => {
   console.warn = originalConsoleWarn;
 });
 
-global.testTimeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+global.testTimeout = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export {};

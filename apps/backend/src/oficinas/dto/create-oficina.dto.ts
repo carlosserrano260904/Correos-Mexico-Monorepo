@@ -1,4 +1,12 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsDecimal, IsBoolean } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsDecimal,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateOficinaDto {
   @IsString()

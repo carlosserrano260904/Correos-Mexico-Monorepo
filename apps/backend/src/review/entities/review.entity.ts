@@ -1,8 +1,14 @@
 // src/reviews/entities/review.entity.ts
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  Column, Entity, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn,
-  UpdateDateColumn, OneToMany, JoinColumn
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { Profile } from '../../profile/entities/profile.entity';
@@ -31,7 +37,9 @@ export class Review {
   updatedAt: Date;
 
   // --- PRODUCT
-  @ManyToOne(() => Product, (product) => product.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, (product) => product.reviews, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'productId' }) // <- enlaza FK
   product: Product;
 
@@ -44,7 +52,9 @@ export class Review {
     type: () => Profile,
     example: { id: 7, nombre: 'Ana', apellido: 'López', imagen: 'https://...' },
   })
-  @ManyToOne(() => Profile, (profile) => profile.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Profile, (profile) => profile.reviews, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'profileId' }) // <- enlaza FK
   profile: Profile;
 

@@ -12,7 +12,7 @@ export class CreateUnidadDto {
   @IsNotEmpty()
   placas: string;
 
-  @ApiProperty({ example: 120.50 })
+  @ApiProperty({ example: 120.5 })
   @IsNumber()
   @IsPositive()
   volumenCarga: number;

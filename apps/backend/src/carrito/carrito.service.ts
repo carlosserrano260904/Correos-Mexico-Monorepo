@@ -1,6 +1,10 @@
 // apps/backend/src/carrito/carrito.service.ts
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Carrito } from './entities/carrito.entity';
@@ -17,23 +21,29 @@ export class CarritoService {
     private profileRepo: Repository<Profile>,
 
     @InjectRepository(Product)
-    private productRepo: Repository<Product>
+    private productRepo: Repository<Product>,
   ) {}
-  
+
   async obtenerCarrito(profileId: number) {
     const productos = await this.carritoRepo.find({
       where: { usuario: { id: profileId }, activo: true },
-      relations: ['producto','producto.images'],
+      relations: ['producto', 'producto.images'],
     });
 
     if (!productos.length) {
-      throw new NotFoundException('El usuario no tiene productos en el carrito');
+      throw new NotFoundException(
+        'El usuario no tiene productos en el carrito',
+      );
     }
 
     return productos;
   }
 
-  async agregarProducto(profileId: number, productId: number, cantidad: number) {
+  async agregarProducto(
+    profileId: number,
+    productId: number,
+    cantidad: number,
+  ) {
     const usuario = await this.profileRepo.findOneBy({ id: profileId });
     const producto = await this.productRepo.findOneBy({ id: productId });
 

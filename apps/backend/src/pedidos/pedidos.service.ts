@@ -17,8 +17,7 @@ export class PedidosService {
     private readonly pedidoProductoRepository: Repository<PedidoProducto>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-
-  ) { }
+  ) {}
 
   async create(createPedidoDto: CreatePedidoDto) {
     await this.pedidoRepository.manager.transaction(async (manager) => {
@@ -95,24 +94,39 @@ export class PedidosService {
   }
 
   async findAll() {
-  return this.pedidoRepository.find({
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+    return this.pedidoRepository.find({
+      relations: [
+        'productos',
+        'productos.producto',
+        'productos.producto.images',
+        'direccion',
+      ],
+      order: { fecha: 'DESC' },
+    });
+  }
 
   async findByUser(profileId: number) {
-  return this.pedidoRepository.find({
-    where: { profile: { id: profileId } },
-    relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
-    order: { fecha: 'DESC' },
-  });
-}
+    return this.pedidoRepository.find({
+      where: { profile: { id: profileId } },
+      relations: [
+        'productos',
+        'productos.producto',
+        'productos.producto.images',
+        'direccion',
+      ],
+      order: { fecha: 'DESC' },
+    });
+  }
 
   async findOne(id: number) {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
-      relations: ['productos', 'productos.producto', 'productos.producto.images', 'direccion'],
+      relations: [
+        'productos',
+        'productos.producto',
+        'productos.producto.images',
+        'direccion',
+      ],
     });
 
     if (!pedido) {

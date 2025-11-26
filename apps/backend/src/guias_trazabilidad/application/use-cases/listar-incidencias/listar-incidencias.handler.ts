@@ -3,16 +3,23 @@ import { Inject } from '@nestjs/common';
 import { ListarIncidenciasQuery } from './listar-incidencias.query';
 import { Result } from '../../../../utils/result';
 import { IncidenciaReadModel } from '../../read-models/guia.read-models';
-import { GuiaReadRepositoryInterface, GUIA_READ_REPOSITORY } from '../../ports/outbound/guia-read.repository.interface';
+import {
+  GuiaReadRepositoryInterface,
+  GUIA_READ_REPOSITORY,
+} from '../../ports/outbound/guia-read.repository.interface';
 
 @QueryHandler(ListarIncidenciasQuery)
-export class ListarIncidenciasQueryHandler implements IQueryHandler<ListarIncidenciasQuery> {
+export class ListarIncidenciasQueryHandler
+  implements IQueryHandler<ListarIncidenciasQuery>
+{
   constructor(
     @Inject(GUIA_READ_REPOSITORY)
     private readonly guiaReadRepository: GuiaReadRepositoryInterface,
   ) {}
 
-  async execute(query: ListarIncidenciasQuery): Promise<Result<IncidenciaReadModel[]>> {
+  async execute(
+    query: ListarIncidenciasQuery,
+  ): Promise<Result<IncidenciaReadModel[]>> {
     try {
       const incidencias = await this.guiaReadRepository.findAllIncidencias();
       return Result.success(incidencias);
@@ -20,4 +27,4 @@ export class ListarIncidenciasQueryHandler implements IQueryHandler<ListarIncide
       return Result.failure(`Error al listar incidencias: ${error.message}`);
     }
   }
-} 
+}

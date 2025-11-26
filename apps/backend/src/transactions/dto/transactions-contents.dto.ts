@@ -3,7 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class TransactionsContentsDto {
-  @ApiProperty({ example: 1, description: 'ID del producto relacionado con la transacción' })
+  @ApiProperty({
+    example: 1,
+    description: 'ID del producto relacionado con la transacción',
+  })
   @IsNotEmpty({ message: 'El ID del producto no puede ir vacío' })
   @IsInt({ message: 'El ID del producto debe ser un número entero' })
   productId: number;
@@ -13,7 +16,10 @@ export class TransactionsContentsDto {
   @IsInt({ message: 'La cantidad debe ser un entero válido' })
   cantidad: number;
 
-  @ApiProperty({ example: 150.00, description: 'Precio unitario del producto en la transacción' })
+  @ApiProperty({
+    example: 150.0,
+    description: 'Precio unitario del producto en la transacción',
+  })
   @IsNotEmpty({ message: 'El precio no puede ir vacío' })
   @IsNumber({}, { message: 'El precio debe ser un valor numérico' })
   precio: number;

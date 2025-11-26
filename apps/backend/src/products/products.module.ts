@@ -7,7 +7,10 @@ import { UploadImageModule } from '../upload-image/upload-image.module'; // Impo
 import { ProductImage } from './entities/product-image.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product,ProductImage]), UploadImageModule], 
+  imports: [
+    TypeOrmModule.forFeature([Product, ProductImage]),
+    UploadImageModule,
+  ],
   controllers: [ProductsController],
   providers: [ProductsService],
 })

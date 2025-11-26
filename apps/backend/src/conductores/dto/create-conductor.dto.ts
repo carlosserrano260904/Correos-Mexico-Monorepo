@@ -1,4 +1,10 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { IsCURP } from '../decorators/is-curp.decorator';
 import { IsRFC } from '../decorators/is-rfc.decorator';
 import { IsLicenciaConducir } from '../decorators/is-licencia.decorator';
@@ -7,7 +13,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateConductorDto {
   @ApiProperty({
     example: 'José Luis Méndez Delgado',
-    description: 'Nombre completo del conductor'
+    description: 'Nombre completo del conductor',
   })
   @IsNotEmpty()
   @IsString()
@@ -15,7 +21,7 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: 'MEDJ910101HDFRRN17',
-    description: 'CURP válida del conductor'
+    description: 'CURP válida del conductor',
   })
   @IsNotEmpty()
   @IsString()
@@ -24,7 +30,7 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: 'MEDJ910101TUV',
-    description: 'RFC del conductor'
+    description: 'RFC del conductor',
   })
   @IsNotEmpty()
   @IsString()
@@ -33,7 +39,7 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: 'DL753951846',
-    description: 'Número de licencia de conducir'
+    description: 'Número de licencia de conducir',
   })
   @IsNotEmpty()
   @IsString()
@@ -42,14 +48,14 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: true,
-    description: 'Indica si la licencia está vigente'
+    description: 'Indica si la licencia está vigente',
   })
   @IsBoolean()
   licenciaVigente: boolean;
 
   @ApiProperty({
     example: '5557893456',
-    description: 'Número de teléfono del conductor'
+    description: 'Número de teléfono del conductor',
   })
   @IsNotEmpty()
   @IsString()
@@ -57,7 +63,7 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: 'jose.mendez@example.com',
-    description: 'Correo electrónico del conductor'
+    description: 'Correo electrónico del conductor',
   })
   @IsNotEmpty()
   @IsEmail()
@@ -65,7 +71,7 @@ export class CreateConductorDto {
 
   @ApiProperty({
     example: '00304',
-    description: 'Clave unica de la oficina asignada'
+    description: 'Clave unica de la oficina asignada',
   })
   @IsNotEmpty()
   @IsString()

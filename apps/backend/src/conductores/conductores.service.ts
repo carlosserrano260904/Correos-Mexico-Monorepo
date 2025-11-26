@@ -15,7 +15,8 @@ export class ConductoresService {
   ) {}
 
   private mapToResponseDto(conductor: Conductor): ConductorResponseDto {
-    return { //informacion que aparecera
+    return {
+      //informacion que aparecera
       nombreCompleto: conductor.nombreCompleto,
       CURP: conductor.curp,
       RFC: conductor.rfc,
@@ -23,8 +24,8 @@ export class ConductoresService {
       telefono: conductor.telefono,
       correo: conductor.correo,
       sucursal: conductor.oficina?.clave_cuo,
-      disponibilidad: conductor.disponibilidad,         
-      licenciaVigente: conductor.licenciaVigente     
+      disponibilidad: conductor.disponibilidad,
+      licenciaVigente: conductor.licenciaVigente,
     };
   }
 
@@ -56,7 +57,9 @@ export class ConductoresService {
     return conductores.map(this.mapToResponseDto);
   }
 
-  async findBySucursal(claveUnicaOficina: string): Promise<ConductorResponseDto[]> {
+  async findBySucursal(
+    claveUnicaOficina: string,
+  ): Promise<ConductorResponseDto[]> {
     const conductores = await this.conductorRepository.find({
       where: { oficina: { clave_cuo: claveUnicaOficina } },
       relations: ['oficina'],
@@ -79,7 +82,9 @@ export class ConductoresService {
     curp: string,
     updateDisponibilidadDto: UpdateDisponibilidadDto,
   ): Promise<Conductor> {
-    const conductor = await this.conductorRepository.findOne({ where: { curp } });
+    const conductor = await this.conductorRepository.findOne({
+      where: { curp },
+    });
     if (!conductor) {
       throw new NotFoundException(`Conductor con CURP ${curp} no encontrado`);
     }
@@ -92,7 +97,9 @@ export class ConductoresService {
     curp: string,
     dto: UpdateLicenciaVigenteDto,
   ): Promise<Conductor> {
-    const conductor = await this.conductorRepository.findOne({ where: { curp } });
+    const conductor = await this.conductorRepository.findOne({
+      where: { curp },
+    });
     if (!conductor) {
       throw new NotFoundException(`Conductor con CURP ${curp} no encontrado`);
     }

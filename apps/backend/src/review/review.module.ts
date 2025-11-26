@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Review } from './entities/review.entity';
 import { ReviewImage } from './entities/review-image.entity';
 import { ReviewController } from './review.controller'; // 👈 singular
-import { ReviewService } from './review.service';       // 👈 singular
+import { ReviewService } from './review.service'; // 👈 singular
 import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Module({

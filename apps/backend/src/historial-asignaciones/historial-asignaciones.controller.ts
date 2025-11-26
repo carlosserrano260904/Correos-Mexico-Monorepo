@@ -8,7 +8,9 @@ import { RetornoOrigenDto } from './dto/retorno-origen.dto';
 @ApiTags('Historial de Asignaciones')
 @Controller('historial-asignaciones')
 export class HistorialAsignacionesController {
-  constructor(private readonly historialService: HistorialAsignacionesService) {}
+  constructor(
+    private readonly historialService: HistorialAsignacionesService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Obtener historial de asignaciones' })
@@ -35,17 +37,17 @@ export class HistorialAsignacionesController {
   ): Promise<HistorialAsignacion[]> {
     return this.historialService.getHistorial(placas, curp);
   }
-  
+
   @Patch('llegada-destino')
   @ApiOperation({ summary: 'Registrar llegada a destino' })
   @ApiResponse({ status: 200, type: HistorialAsignacion })
   async registrarLlegada(
-    @Body() dto: LlegadaDestinoDto // Usa el DTO en lugar del objeto genérico
+    @Body() dto: LlegadaDestinoDto, // Usa el DTO en lugar del objeto genérico
   ) {
     return this.historialService.registrarLlegadaDestino(
       dto.curp,
       dto.placas,
-      dto.oficinaActual
+      dto.oficinaActual,
     );
   }
 
@@ -53,12 +55,8 @@ export class HistorialAsignacionesController {
   @ApiOperation({ summary: 'Registrar retorno a oficina de origen' })
   @ApiResponse({ status: 200, type: HistorialAsignacion })
   async registrarRetorno(
-    @Body() dto: RetornoOrigenDto // Usa el DTO en lugar del objeto genérico
+    @Body() dto: RetornoOrigenDto, // Usa el DTO en lugar del objeto genérico
   ) {
-    return this.historialService.registrarRetornoOrigen(
-      dto.curp,
-      dto.placas
-    );
+    return this.historialService.registrarRetornoOrigen(dto.curp, dto.placas);
   }
 }
-

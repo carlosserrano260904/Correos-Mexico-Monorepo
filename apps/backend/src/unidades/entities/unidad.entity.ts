@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { TipoVehiculo } from '../entities/tipo-vehiculo.entity';
 import { Conductor } from '../../conductores/entities/conductor.entity';
 import { Oficina } from '../../oficinas/entities/oficina.entity';
@@ -62,6 +69,6 @@ export class Unidad {
   })
   estado: 'disponible' | 'no disponible';
 
-  @OneToMany(() => Envio, envio => envio.unidad)
+  @OneToMany(() => Envio, (envio) => envio.unidad)
   envios: Envio[];
 }

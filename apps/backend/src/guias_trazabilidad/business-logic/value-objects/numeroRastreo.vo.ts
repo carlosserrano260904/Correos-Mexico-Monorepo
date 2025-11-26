@@ -1,14 +1,10 @@
 import { Result } from '../../../utils/result';
 
 export class NumeroDeRastreoVO {
-
-  private constructor(
-    private readonly numeroRastreo: string
-  ) { }
+  private constructor(private readonly numeroRastreo: string) {}
 
   public static safeCreate(): NumeroDeRastreoVO {
-
-    const servicios = { 'Estandar': 'CA', 'Express': 'EE', 'Menor': 'RT' }
+    const servicios = { Estandar: 'CA', Express: 'EE', Menor: 'RT' };
 
     const pais = 'MX';
 
@@ -18,9 +14,9 @@ export class NumeroDeRastreoVO {
       return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
-    const id = genId().toString()
+    const id = genId().toString();
 
-    const value = `${servicios.Express}${pais}${id}`
+    const value = `${servicios.Express}${pais}${id}`;
 
     return new NumeroDeRastreoVO(value);
   }
@@ -31,7 +27,7 @@ export class NumeroDeRastreoVO {
         `El numero de rastreo ${value} debe ser de 13 caracteres`,
       );
     }
-    return Result.success(new NumeroDeRastreoVO(value))
+    return Result.success(new NumeroDeRastreoVO(value));
   }
 
   public static fromPersistence(value: string): NumeroDeRastreoVO {

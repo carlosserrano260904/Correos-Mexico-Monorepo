@@ -1,5 +1,13 @@
 // apps/backend/src/carrito/carrito.controller.ts
-import { Controller, Get, Patch, Delete, Param, Body, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Post,
+} from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import {
   ApiTags,
@@ -20,7 +28,11 @@ export class CarritoController {
     description:
       'Devuelve el contenido del carrito (productos, cantidades y totales) asociado al `profileId`.',
   })
-  @ApiParam({ name: 'profileId', type: Number, description: 'ID del perfil (profileId)' })
+  @ApiParam({
+    name: 'profileId',
+    type: Number,
+    description: 'ID del perfil (profileId)',
+  })
   @ApiResponse({ status: 200, description: 'Carrito obtenido correctamente.' })
   obtener(@Param('profileId') profileId: number) {
     return this.carritoService.obtenerCarrito(profileId);
@@ -60,7 +72,11 @@ export class CarritoController {
     description:
       'Actualiza la cantidad de un registro específico del carrito por su `id`.',
   })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del registro en el carrito' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del registro en el carrito',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -71,10 +87,7 @@ export class CarritoController {
     },
   })
   @ApiResponse({ status: 200, description: 'Cantidad actualizada.' })
-  editarCantidad(
-    @Param('id') id: number,
-    @Body() body: { cantidad: number },
-  ) {
+  editarCantidad(@Param('id') id: number, @Body() body: { cantidad: number }) {
     return this.carritoService.editarCantidad(id, body.cantidad);
   }
 
@@ -84,7 +97,11 @@ export class CarritoController {
     description:
       'Elimina un ítem del carrito usando el `id` del registro del carrito (no el `productId`).',
   })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del registro en el carrito' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del registro en el carrito',
+  })
   @ApiResponse({ status: 200, description: 'Ítem eliminado del carrito.' })
   eliminar(@Param('id') id: number) {
     return this.carritoService.eliminarDelCarrito(id);
@@ -93,11 +110,17 @@ export class CarritoController {
   @Get(':profileId/subtotal')
   @ApiOperation({
     summary: 'Calcular subtotal del carrito',
-    description:
-      'Calcula y devuelve el subtotal del carrito del `profileId`.',
+    description: 'Calcula y devuelve el subtotal del carrito del `profileId`.',
   })
-  @ApiParam({ name: 'profileId', type: Number, description: 'ID del perfil (Profile.id)' })
-  @ApiResponse({ status: 200, description: 'Subtotal calculado correctamente.' })
+  @ApiParam({
+    name: 'profileId',
+    type: Number,
+    description: 'ID del perfil (Profile.id)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Subtotal calculado correctamente.',
+  })
   calcularSubtotal(@Param('profileId') profileId: number) {
     return this.carritoService.subtotal(profileId);
   }
@@ -105,11 +128,17 @@ export class CarritoController {
   @Get(':profileId/proceder')
   @ApiOperation({
     summary: 'Proceder al pago',
-    description:
-      'Prepara el proceso para pago para el `profileId`.',
+    description: 'Prepara el proceso para pago para el `profileId`.',
   })
-  @ApiParam({ name: 'profileId', type: Number, description: 'ID del perfil (Profile.id)' })
-  @ApiResponse({ status: 200, description: 'Proceso de pago iniciado/preparado.' })
+  @ApiParam({
+    name: 'profileId',
+    type: Number,
+    description: 'ID del perfil (Profile.id)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Proceso de pago iniciado/preparado.',
+  })
   procederAlPago(@Param('profileId') profileId: number) {
     return this.carritoService.procederAlPago(profileId);
   }

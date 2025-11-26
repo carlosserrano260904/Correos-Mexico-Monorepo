@@ -1,6 +1,13 @@
 import { MovimientoDomainEntity } from './movimiento.entity';
 import { IncidenciaDomainEntity } from './incidencias.entity';
-import { ContactoVO, SituacionVO, EmbalajeVO, IdVO, ValorDeclaradoVO, NumeroDeRastreoVO } from './value-objects'
+import {
+  ContactoVO,
+  SituacionVO,
+  EmbalajeVO,
+  IdVO,
+  ValorDeclaradoVO,
+  NumeroDeRastreoVO,
+} from './value-objects';
 
 /**
  * Tipos para constructor

@@ -68,7 +68,7 @@ describe('UnidadesService', () => {
     zonaAsignada: '',
     estado: 'disponible' as const,
     envios: [],
-    asignada: "00304" as unknown as Oficina,
+    asignada: '00304' as unknown as Oficina,
   };
 
   // Mock del QueryRunner
@@ -89,11 +89,11 @@ describe('UnidadesService', () => {
         UnidadesService,
         {
           provide: getRepositoryToken(Unidad),
-          useValue: { 
-            find: jest.fn(), 
-            findOne: jest.fn(), 
-            create: jest.fn(), 
-            save: jest.fn() 
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
@@ -110,17 +110,17 @@ describe('UnidadesService', () => {
         },
         {
           provide: getRepositoryToken(Conductor),
-          useValue: { 
-            findOne: jest.fn(), 
-            save: jest.fn() 
+          useValue: {
+            findOne: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
           provide: HistorialAsignacionesService,
-          useValue: { 
-            finalizarAsignacion: jest.fn(), 
+          useValue: {
+            finalizarAsignacion: jest.fn(),
             registrarAsignacion: jest.fn(),
-            registrarRetornoOrigen: jest.fn()
+            registrarRetornoOrigen: jest.fn(),
           },
         },
         {
@@ -151,7 +151,9 @@ describe('UnidadesService', () => {
       const result = await service.findAll();
       expect(result).toHaveLength(1);
       expect(result[0].placas).toBe('ABC1234');
-      expect(unidadRepo.find).toHaveBeenCalledWith({ relations: ['tipoVehiculo', 'oficina', 'conductor'] });
+      expect(unidadRepo.find).toHaveBeenCalledWith({
+        relations: ['tipoVehiculo', 'oficina', 'conductor'],
+      });
     });
   });
 
@@ -171,29 +173,31 @@ describe('UnidadesService', () => {
   describe('create', () => {
     it('debería lanzar un error cuando la oficina no existe', async () => {
       const createDto: CreateUnidadDto = {
-        tipoVehiculo: 'Camión de 10 ton', 
-        placas: 'ABC1234', 
+        tipoVehiculo: 'Camión de 10 ton',
+        placas: 'ABC1234',
         volumenCarga: 120.5,
-        numEjes: 3, 
-        numLlantas: 10, 
-        claveOficina: '99999', 
+        numEjes: 3,
+        numLlantas: 10,
+        claveOficina: '99999',
         tarjetaCirculacion: 'TC-10001',
       };
       oficinaRepo.findOne.mockResolvedValue(null);
-      await expect(service.create(createDto)).rejects.toThrow('Oficina con clave 99999 no encontrada');
+      await expect(service.create(createDto)).rejects.toThrow(
+        'Oficina con clave 99999 no encontrada',
+      );
     });
   });
 
   describe('assignConductor', () => {
     it('debería asignar correctamente un conductor a la unidad', async () => {
       // Mock de unidad con conductor
-      const unidadConConductor = { 
-        ...mockUnidad, 
-        conductor: mockConductor, 
+      const unidadConConductor = {
+        ...mockUnidad,
+        conductor: mockConductor,
         curpConductor: mockConductor.curp,
-        estado: 'no disponible'
+        estado: 'no disponible',
       };
-      
+
       unidadRepo.findOne.mockResolvedValue(mockUnidad);
       conductorRepo.findOne.mockResolvedValue(mockConductor);
 
@@ -207,7 +211,9 @@ describe('UnidadesService', () => {
         return Promise.resolve(entity);
       });
 
-      const assignDto: AssignConductorDto = { curpConductor: 'LOMM850505MDFRRT02' };
+      const assignDto: AssignConductorDto = {
+        curpConductor: 'LOMM850505MDFRRT02',
+      };
       const result = await service.assignConductor('ABC1234', assignDto);
 
       expect(result.conductor).toBe('LOMM850505MDFRRT02');
@@ -216,10 +222,13 @@ describe('UnidadesService', () => {
 
     it('debería lanzar error cuando la unidad no existe', async () => {
       unidadRepo.findOne.mockResolvedValue(null);
-      const assignDto: AssignConductorDto = { curpConductor: 'LOMM850505MDFRRT02' };
+      const assignDto: AssignConductorDto = {
+        curpConductor: 'LOMM850505MDFRRT02',
+      };
 
-      await expect(service.assignConductor('INVALID', assignDto))
-        .rejects.toThrow(NotFoundException);
+      await expect(
+        service.assignConductor('INVALID', assignDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('debería lanzar error cuando el conductor no existe', async () => {
@@ -227,24 +236,25 @@ describe('UnidadesService', () => {
       conductorRepo.findOne.mockResolvedValue(null);
       const assignDto: AssignConductorDto = { curpConductor: 'INVALID_CURP' };
 
-      await expect(service.assignConductor('ABC1234', assignDto))
-        .rejects.toThrow(NotFoundException);
+      await expect(
+        service.assignConductor('ABC1234', assignDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('debería desasignar conductor cuando se envía "S/C"', async () => {
-      const unidadConConductor = { 
-        ...mockUnidad, 
+      const unidadConConductor = {
+        ...mockUnidad,
         conductor: mockConductor,
-        curpConductor: 'LOMM850505MDFRRT02'
+        curpConductor: 'LOMM850505MDFRRT02',
       };
-      
+
       const unidadSinConductor = {
         ...mockUnidad,
         conductor: null,
         curpConductor: null,
-        estado: 'disponible'
+        estado: 'disponible',
       };
-      
+
       unidadRepo.findOne.mockResolvedValue(unidadConConductor);
 
       mockQueryRunner.manager.save.mockImplementation((entity) => {
@@ -267,16 +277,19 @@ describe('UnidadesService', () => {
   describe('assignZona', () => {
     it('debería asignar correctamente una zona a la unidad', async () => {
       const assignDto: AssignZonaDto = { claveCuoDestino: '00305' };
-      const mockOficinaDestino: Oficina = { 
-        ...mockOficina, 
-        clave_cuo: '00305', 
-        clave_unica_zona: '00304' 
+      const mockOficinaDestino: Oficina = {
+        ...mockOficina,
+        clave_cuo: '00305',
+        clave_unica_zona: '00304',
       } as Oficina;
-      
+
       unidadRepo.findOne.mockResolvedValue(mockUnidad);
       oficinaRepo.findOne.mockResolvedValue(mockOficinaDestino);
-      unidadRepo.save.mockResolvedValue({ ...mockUnidad, zonaAsignada: '00305' });
-      
+      unidadRepo.save.mockResolvedValue({
+        ...mockUnidad,
+        zonaAsignada: '00305',
+      });
+
       const result = await service.assignZona('ABC1234', assignDto);
       expect(result.zonaAsignada).toBe('00305');
     });
@@ -284,27 +297,30 @@ describe('UnidadesService', () => {
     it('debería lanzar error cuando la oficina destino no existe', async () => {
       unidadRepo.findOne.mockResolvedValue(mockUnidad);
       oficinaRepo.findOne.mockResolvedValue(null);
-      
-      await expect(service.assignZona('ABC1234', { claveCuoDestino: '99999' }))
-        .rejects.toThrow('Oficina destino no encontrada');
+
+      await expect(
+        service.assignZona('ABC1234', { claveCuoDestino: '99999' }),
+      ).rejects.toThrow('Oficina destino no encontrada');
     });
   });
 
   describe('getTiposVehiculoPorOficina', () => {
     it('debería retornar los tipos de vehículo permitidos para una oficina', async () => {
-      const mockTipoOficina: TipoVehiculoOficina = { 
-        id: 1, 
-        tipoOficina: 'CP', 
-        tipoVehiculoId: mockTipoVehiculo.id, 
-        tipoVehiculo: mockTipoVehiculo 
+      const mockTipoOficina: TipoVehiculoOficina = {
+        id: 1,
+        tipoOficina: 'CP',
+        tipoVehiculoId: mockTipoVehiculo.id,
+        tipoVehiculo: mockTipoVehiculo,
       } as TipoVehiculoOficina;
-      
+
       oficinaRepo.findOne.mockResolvedValue(mockOficina);
       tipoOficinaRepo.find.mockResolvedValue([mockTipoOficina]);
-      
+
       const result = await service.getTiposVehiculoPorOficina('00304');
       expect(result.tiposVehiculo).toContain('Camión de 10 ton');
-      expect(oficinaRepo.findOne).toHaveBeenCalledWith({ where: { clave_cuo: '00304' } });
+      expect(oficinaRepo.findOne).toHaveBeenCalledWith({
+        where: { clave_cuo: '00304' },
+      });
     });
   });
 
@@ -323,7 +339,9 @@ describe('UnidadesService', () => {
 
     it('debería lanzar error cuando la unidad no existe', async () => {
       unidadRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('999')).rejects.toThrow('Unidad con ID 999 no encontrada');
+      await expect(service.findOne('999')).rejects.toThrow(
+        'Unidad con ID 999 no encontrada',
+      );
     });
   });
 });

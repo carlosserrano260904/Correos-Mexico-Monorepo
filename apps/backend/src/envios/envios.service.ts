@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { Envio, EstadoEnvio } from './entities/envios.entity';
@@ -38,10 +42,15 @@ export class EnviosService {
   }
 
   async create(dto: CreateEnvioDto): Promise<Envio> {
-    const guia = await this.guiaRepo.findOne({ where: { id_guia: dto.guiaId }, relations: ['destinatario'] });
+    const guia = await this.guiaRepo.findOne({
+      where: { id_guia: dto.guiaId },
+      relations: ['destinatario'],
+    });
     if (!guia) throw new NotFoundException('Guía no encontrada');
 
-    const unidad = await this.unidadRepo.findOne({ where: { id: dto.unidadId } });
+    const unidad = await this.unidadRepo.findOne({
+      where: { id: dto.unidadId },
+    });
     if (!unidad) throw new NotFoundException('Unidad no encontrada');
 
     const fechaAsignacion = new Date();
@@ -49,9 +58,9 @@ export class EnviosService {
     horaLimite.setHours(15, 0, 0, 0);
 
     const fechaEntrega = new Date(fechaAsignacion);
-    if (fechaAsignacion > horaLimite) fechaEntrega.setDate(fechaEntrega.getDate() + 1);
+    if (fechaAsignacion > horaLimite)
+      fechaEntrega.setDate(fechaEntrega.getDate() + 1);
 
-    
     const envioExistente = await this.envioRepository.findOne({
       where: {
         guia: { id_guia: dto.guiaId },
@@ -61,7 +70,7 @@ export class EnviosService {
 
     if (envioExistente) {
       throw new BadRequestException(
-        `Ya existe un envío programado para la guía ${dto.guiaId} en la fecha ${fechaEntrega.toISOString().slice(0, 10)}.`
+        `Ya existe un envío programado para la guía ${dto.guiaId} en la fecha ${fechaEntrega.toISOString().slice(0, 10)}.`,
       );
     }
 
@@ -87,9 +96,14 @@ export class EnviosService {
     const finDelDia = new Date();
     finDelDia.setHours(23, 59, 59, 999);
 
-    const queryBuilder = this.envioRepository.createQueryBuilder('envio')
+    const queryBuilder = this.envioRepository
+      .createQueryBuilder('envio')
       .leftJoin('envio.guia', 'guia')
-      .leftJoin('contactos_guias', 'contactoGuia', 'contactoGuia.id_contacto = guia.id_destinatario')
+      .leftJoin(
+        'contactos_guias',
+        'contactoGuia',
+        'contactoGuia.id_contacto = guia.id_destinatario',
+      )
       .select([
         'envio.id AS id',
         'envio.estado_envio AS estado_envio',
@@ -108,16 +122,21 @@ export class EnviosService {
         "CONCAT(contactoGuia.nombres, ' ', contactoGuia.apellidos) AS destinatario",
       ])
       .where('envio.id_unidad = :unidadId', { unidadId })
-      .andWhere('envio.fecha_entrega_programada BETWEEN :inicioDelDia AND :finDelDia', {
-        inicioDelDia,
-        finDelDia,
-      })
+      .andWhere(
+        'envio.fecha_entrega_programada BETWEEN :inicioDelDia AND :finDelDia',
+        {
+          inicioDelDia,
+          finDelDia,
+        },
+      )
       .orderBy('envio.fecha_entrega_programada', 'ASC');
 
     const resultados = await queryBuilder.getRawMany();
 
     if (!resultados || resultados.length === 0) {
-      throw new NotFoundException(`No se encontraron envíos para la unidad ${unidadId} en el día de hoy.`);
+      throw new NotFoundException(
+        `No se encontraron envíos para la unidad ${unidadId} en el día de hoy.`,
+      );
     }
 
     return resultados;
@@ -142,7 +161,9 @@ export class EnviosService {
       },
     );
     if (!result.affected) {
-      throw new NotFoundException(`No se encontraron envíos pendientes para la unidad ${unidadId} para el día de hoy.`);
+      throw new NotFoundException(
+        `No se encontraron envíos pendientes para la unidad ${unidadId} para el día de hoy.`,
+      );
     }
 
     return { updated: result.affected };
@@ -179,7 +200,9 @@ export class EnviosService {
 
     // Si ya falló 3 veces, marcar como RETIRAR_SUCURSAL (no se crea más intentos)
     if (intentosFallidos >= 3) {
-      console.warn(`Guía ${envio.guia.id_guia} ha fallado 3 veces. Cambiando a RETIRAR_SUCURSAL.`);
+      console.warn(
+        `Guía ${envio.guia.id_guia} ha fallado 3 veces. Cambiando a RETIRAR_SUCURSAL.`,
+      );
 
       const retiro = this.envioRepository.create({
         guia: envio.guia,
@@ -204,7 +227,7 @@ export class EnviosService {
 
     if (yaExiste) {
       console.warn(
-        `Ya existe un reintento para la guía ${envio.guia.id_guia} en la fecha ${nuevaFechaEntrega.toISOString()}`
+        `Ya existe un reintento para la guía ${envio.guia.id_guia} en la fecha ${nuevaFechaEntrega.toISOString()}`,
       );
       return envio;
     }
@@ -221,10 +244,13 @@ export class EnviosService {
     await this.envioRepository.save(nuevoEnvio);
 
     return envio;
-
   }
 
-  async actualizarEstatus(id: string, nuevoEstatus: string, nombreReceptor: string): Promise<Envio | null> {
+  async actualizarEstatus(
+    id: string,
+    nuevoEstatus: string,
+    nombreReceptor: string,
+  ): Promise<Envio | null> {
     const envio = await this.envioRepository.findOne({ where: { id } });
 
     if (!envio) {
@@ -247,7 +273,6 @@ export class EnviosService {
       envio.fecha_fallido = today;
     }
 
-
     return await this.envioRepository.save(envio);
   }
 
@@ -260,7 +285,5 @@ export class EnviosService {
 
     envio.evidencia_entrega = url;
     return await this.envioRepository.save(envio);
-
   }
-  
 }

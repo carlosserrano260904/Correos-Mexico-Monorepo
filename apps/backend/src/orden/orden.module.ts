@@ -8,9 +8,7 @@ import { Product } from '../products/entities/product.entity';
 import { Profile } from '../profile/entities/profile.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Transaction, Product, Profile]),
-  ],
+  imports: [TypeOrmModule.forFeature([Transaction, Product, Profile])],
   controllers: [OrdenController],
   providers: [OrdenService],
 })

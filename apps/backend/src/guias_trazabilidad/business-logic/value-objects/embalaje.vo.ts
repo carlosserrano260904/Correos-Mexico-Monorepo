@@ -1,4 +1,4 @@
-import { Result } from "../../../utils/result";
+import { Result } from '../../../utils/result';
 
 interface EmbalajeProps {
   alto_cm: number;
@@ -8,17 +8,16 @@ interface EmbalajeProps {
 }
 
 export class EmbalajeVO {
-  private constructor(private readonly props: EmbalajeProps) { }
+  private constructor(private readonly props: EmbalajeProps) {}
 
   public static create(props: EmbalajeProps): Result<EmbalajeVO> {
-
     if (props.peso <= 0) {
-      return Result.failure("El peso no puede ser menor o igual a 0");
+      return Result.failure('El peso no puede ser menor o igual a 0');
     }
 
     if (props.largo_cm <= 0 || props.ancho_cm <= 0 || props.alto_cm <= 0) {
-      return Result.failure("No puede haber dimensiones menores o igual a 0")
-    };
+      return Result.failure('No puede haber dimensiones menores o igual a 0');
+    }
 
     const obj = new EmbalajeVO(props);
 
@@ -30,11 +29,12 @@ export class EmbalajeVO {
     }
 
     if (pesoVolumetrico > 40) {
-      return Result.failure(`Peso volumetrico actual de: ${pesoVolumetrico} excede los 40 KG`);
+      return Result.failure(
+        `Peso volumetrico actual de: ${pesoVolumetrico} excede los 40 KG`,
+      );
     }
 
-    return Result.success(obj)
-
+    return Result.success(obj);
   }
 
   public static safeCreate(props: EmbalajeProps): EmbalajeVO {
@@ -72,5 +72,4 @@ export class EmbalajeVO {
   get getAnchoCm(): number {
     return this.props.ancho_cm;
   }
-
 }

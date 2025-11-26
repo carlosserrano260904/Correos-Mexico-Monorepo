@@ -39,8 +39,7 @@ export class ProfileResponseDto {
   codigoPostal: string;
 
   @ApiProperty({
-    example:
-      'https://res.cloudinary.com/.../default_nlbjlp.jpg',
+    example: 'https://res.cloudinary.com/.../default_nlbjlp.jpg',
     description: 'URL de la imagen de avatar',
   })
   imagen: string;

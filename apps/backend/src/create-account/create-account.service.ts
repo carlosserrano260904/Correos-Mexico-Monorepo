@@ -75,7 +75,7 @@ export class CreateAccountService {
     if (!user) {
       throw new NotFoundException('Token no valido');
     }
-    
+
     user.token = ''; // Lo limpio para que no se use de nuevo
     user.confirmado = true;
     await this.createAccountRepository.save(user);

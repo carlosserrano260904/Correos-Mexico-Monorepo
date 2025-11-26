@@ -1,7 +1,14 @@
-import { registerDecorator, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
+import {
+  registerDecorator,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
 
 @ValidatorConstraint({ name: 'IsLicenciaConducir', async: false })
-export class IsLicenciaConducirConstraint implements ValidatorConstraintInterface {
+export class IsLicenciaConducirConstraint
+  implements ValidatorConstraintInterface
+{
   validate(licencia: string): boolean {
     if (typeof licencia !== 'string') return false;
 
@@ -30,9 +37,11 @@ export class IsLicenciaConducirConstraint implements ValidatorConstraintInterfac
     */
     const formatoFederal = /^FED\d{7,9}$/;
 
-    return formatoTradicional.test(licencia) || 
-           formatoTarjeta.test(licencia) || 
-           formatoFederal.test(licencia);
+    return (
+      formatoTradicional.test(licencia) ||
+      formatoTarjeta.test(licencia) ||
+      formatoFederal.test(licencia)
+    );
   }
 
   defaultMessage(): string {
@@ -41,7 +50,7 @@ export class IsLicenciaConducirConstraint implements ValidatorConstraintInterfac
 }
 
 export function IsLicenciaConducir(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,

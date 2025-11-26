@@ -1,40 +1,46 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsNumber, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsNumber,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GuiaFiltrosDto {
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Estado/situación de la guía',
     required: false,
-    example: 'En proceso' 
+    example: 'En proceso',
   })
   @IsOptional()
   @IsString()
   estado?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Fecha desde (formato ISO)',
     required: false,
-    example: '2024-01-01' 
+    example: '2024-01-01',
   })
   @IsOptional()
   @IsDateString()
   fechaDesde?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Fecha hasta (formato ISO)',
     required: false,
-    example: '2024-12-31' 
+    example: '2024-12-31',
   })
   @IsOptional()
   @IsDateString()
   fechaHasta?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Número de página',
     required: false,
     example: 1,
-    default: 1 
+    default: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -42,15 +48,15 @@ export class GuiaFiltrosDto {
   @Min(1)
   pagina?: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Límite de resultados por página',
     required: false,
     example: 10,
-    default: 10 
+    default: 10,
   })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   limite?: number;
-} 
+}

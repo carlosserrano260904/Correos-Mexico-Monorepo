@@ -8,7 +8,6 @@ import { Category } from '../categories/entities/category.entity';
 // Ajusta la ruta si moviste el JSON
 import * as categorias from './categorias.json';
 
-
 async function run() {
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['log', 'error', 'warn'],
@@ -18,7 +17,7 @@ async function run() {
 
   // Si no quieres insertar "Jóvenes construyendo el futuro", filtra aquí:
   const data = (categorias as Array<{ name: string }>).filter(
-    (c) => c.name.trim() !== 'Jóvenes construyendo el futuro'
+    (c) => c.name.trim() !== 'Jóvenes construyendo el futuro',
   );
 
   for (const c of data) {

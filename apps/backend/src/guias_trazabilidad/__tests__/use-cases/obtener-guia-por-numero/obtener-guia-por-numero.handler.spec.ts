@@ -20,12 +20,14 @@ describe('ObtenerGuiaPorNumeroQueryHandler', () => {
         ObtenerGuiaPorNumeroQueryHandler,
         {
           provide: GUIA_READ_REPOSITORY,
-          useValue: repositoryMocks.GUIA_READ_REPOSITORY
-        }
-      ]
+          useValue: repositoryMocks.GUIA_READ_REPOSITORY,
+        },
+      ],
     }).compile();
 
-    handler = module.get<ObtenerGuiaPorNumeroQueryHandler>(ObtenerGuiaPorNumeroQueryHandler);
+    handler = module.get<ObtenerGuiaPorNumeroQueryHandler>(
+      ObtenerGuiaPorNumeroQueryHandler,
+    );
   });
 
   afterEach(async () => {
@@ -35,7 +37,7 @@ describe('ObtenerGuiaPorNumeroQueryHandler', () => {
   describe('execute', () => {
     it('should return guia successfully when found', async () => {
       const query = new ObtenerGuiaPorNumeroQuery(
-        GuiasTrazabilidadTestSetup.mockData.validObtenerGuiaQuery().numeroRastreo
+        GuiasTrazabilidadTestSetup.mockData.validObtenerGuiaQuery().numeroRastreo,
       );
 
       const mockGuiaReadModel = {
@@ -43,47 +45,54 @@ describe('ObtenerGuiaPorNumeroQueryHandler', () => {
         remitente: {
           nombres: 'Juan',
           apellidos: 'Pérez',
-          telefono: '5551234567'
+          telefono: '5551234567',
         },
         destinatario: {
           nombres: 'María',
           apellidos: 'González',
-          telefono: '5559876543'
+          telefono: '5559876543',
         },
         situacionActual: 'CREADA',
         movimientos: [],
         fechaCreacion: new Date(),
-        fechaActualizacion: new Date()
+        fechaActualizacion: new Date(),
       };
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo
-        .mockResolvedValue(mockGuiaReadModel);
+      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo.mockResolvedValue(
+        mockGuiaReadModel,
+      );
 
       const result = await handler.execute(query);
 
       expect(result.isFailure()).toBe(false);
       expect(result.getValue()).toEqual(mockGuiaReadModel);
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo).toHaveBeenCalledWith(query.numeroRastreo);
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo,
+      ).toHaveBeenCalledWith(query.numeroRastreo);
     });
 
     it('should return failure when guia is not found', async () => {
       const query = new ObtenerGuiaPorNumeroQuery('NONEXISTENT123');
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo
-        .mockResolvedValue(null);
+      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo.mockResolvedValue(
+        null,
+      );
 
       const result = await handler.execute(query);
 
       expect(result.isFailure()).toBe(true);
       expect(result.getError()).toContain('no encontrada');
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo).toHaveBeenCalledWith('NONEXISTENT123');
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo,
+      ).toHaveBeenCalledWith('NONEXISTENT123');
     });
 
     it('should return failure when repository throws error', async () => {
       const query = new ObtenerGuiaPorNumeroQuery('TEST123456789');
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo
-        .mockRejectedValue(new Error('Database connection failed'));
+      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo.mockRejectedValue(
+        new Error('Database connection failed'),
+      );
 
       const result = await handler.execute(query);
 
@@ -94,17 +103,18 @@ describe('ObtenerGuiaPorNumeroQueryHandler', () => {
 
     it('should handle different tracking numbers correctly', async () => {
       const testNumbers = ['TEST123', 'TRACK456', 'GUIDE789'];
-      
+
       for (const numeroRastreo of testNumbers) {
         const query = new ObtenerGuiaPorNumeroQuery(numeroRastreo);
         const mockGuia = {
           numero_de_rastreo: numeroRastreo,
           situacionActual: 'EN_TRANSITO',
-          movimientos: []
+          movimientos: [],
         };
 
-        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo
-          .mockResolvedValue(mockGuia);
+        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo.mockResolvedValue(
+          mockGuia,
+        );
 
         const result = await handler.execute(query);
 
@@ -117,15 +127,18 @@ describe('ObtenerGuiaPorNumeroQueryHandler', () => {
       const numeroRastreo = 'EXACT_PARAM_TEST';
       const query = new ObtenerGuiaPorNumeroQuery(numeroRastreo);
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo
-        .mockResolvedValue({ numero_de_rastreo: numeroRastreo });
+      repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo.mockResolvedValue(
+        { numero_de_rastreo: numeroRastreo },
+      );
 
       await handler.execute(query);
 
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo)
-        .toHaveBeenCalledWith(numeroRastreo);
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo)
-        .toHaveBeenCalledTimes(1);
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo,
+      ).toHaveBeenCalledWith(numeroRastreo);
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findByNumeroRastreo,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { GuiaTypeormEntity } from '../../guias_trazabilidad/infrastructure/persistence/typeorm-entities/guia.typeorm-entity';
 import { Unidad } from '../../unidades/entities/unidad.entity';
 
@@ -16,11 +22,17 @@ export class Envio {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => GuiaTypeormEntity, guia => guia.envios, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => GuiaTypeormEntity, (guia) => guia.envios, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'id_guia' })
   guia: GuiaTypeormEntity;
 
-  @ManyToOne(() => Unidad, unidad => unidad.envios, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => Unidad, (unidad) => unidad.envios, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'id_unidad' })
   unidad?: Unidad;
 
@@ -31,7 +43,11 @@ export class Envio {
   })
   estado_envio: EstadoEnvio;
 
-  @Column({ type: 'timestamp', name: 'fecha_asignacion', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamp',
+    name: 'fecha_asignacion',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fecha_asignacion: Date;
 
   @Column({ type: 'date', name: 'fecha_entrega_programada' })

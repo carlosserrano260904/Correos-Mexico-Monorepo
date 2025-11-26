@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Get, Param, Delete, UseGuards, NotFoundException, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  UseGuards,
+  NotFoundException,
+  Req,
+} from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -12,7 +22,7 @@ export class CardsController {
     private readonly cardsService: CardsService,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('add')
@@ -25,10 +35,7 @@ export class CardsController {
       throw new NotFoundException('Perfil no encontrado');
     }
 
-    return this.cardsService.addCard(
-      profile,
-      dto.token,
-    );
+    return this.cardsService.addCard(profile, dto.token);
   }
 
   @Get()
@@ -49,9 +56,12 @@ export class CardsController {
   }
 
   @Delete()
-  deleteCard(@Body() body: { paymentMethodId: string, profileId: number }) {
+  deleteCard(@Body() body: { paymentMethodId: string; profileId: number }) {
     console.log('Petición DELETE recibida:', body);
     // Buscar la tarjeta en la BD por stripeCardId y profileId
-    return this.cardsService.deleteCardByStripeId(body.paymentMethodId, body.profileId);
+    return this.cardsService.deleteCardByStripeId(
+      body.paymentMethodId,
+      body.profileId,
+    );
   }
 }

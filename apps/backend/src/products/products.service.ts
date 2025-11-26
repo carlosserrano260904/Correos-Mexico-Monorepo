@@ -1,11 +1,11 @@
 // products.service.ts
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In, DataSource } from "typeorm";
-import { Product } from "./entities/product.entity";
-import { ProductImage } from "./entities/product-image.entity";
-import { CreateProductDto } from "./dto/create-product.dto";
-import { UpdateProductDto } from "./dto/update-product.dto";
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, In, DataSource } from 'typeorm';
+import { Product } from './entities/product.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { UploadImageService } from '../upload-image/upload-image.service';
 
 @Injectable()
@@ -19,12 +19,12 @@ export class ProductsService {
     private readonly productImageRepository: Repository<ProductImage>,
     private readonly uploadImageService: UploadImageService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   // Crear producto + subir imágenes (multipart/form-data)
   async createWithImages(
     createProductDto: CreateProductDto,
-    files?: Express.Multer.File[]
+    files?: Express.Multer.File[],
   ): Promise<Product> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -60,7 +60,10 @@ export class ProductsService {
       await queryRunner.commitTransaction();
       return product;
     } catch (error) {
-      this.logger.error(`Error al crear producto: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error al crear producto: ${error.message}`,
+        error.stack,
+      );
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -71,7 +74,7 @@ export class ProductsService {
   async addImages(
     productId: number,
     files: Express.Multer.File[],
-    ordenes?: number[]
+    ordenes?: number[],
   ): Promise<ProductImage[]> {
     const product = await this.productRepository.findOneBy({ id: productId });
     if (!product) {
@@ -79,9 +82,9 @@ export class ProductsService {
     }
 
     const maxOrderResult = await this.productImageRepository
-      .createQueryBuilder("img")
-      .select("MAX(img.orden)", "max_orden")
-      .where("img.productId = :productId", { productId })
+      .createQueryBuilder('img')
+      .select('MAX(img.orden)', 'max_orden')
+      .where('img.productId = :productId', { productId })
       .getRawOne();
     const startOrder = (maxOrderResult?.max_orden ?? -1) + 1;
 
@@ -121,7 +124,6 @@ export class ProductsService {
     });
   }
 
-
   async findAllActive(): Promise<Product[]> {
     return this.productRepository.find({
       where: { estado: true },
@@ -140,7 +142,10 @@ export class ProductsService {
     return producto;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const producto = await this.productRepository.preload({
       id,
       ...updateProductDto,
@@ -179,7 +184,7 @@ export class ProductsService {
     });
     if (result.affected === 0) {
       throw new NotFoundException(
-        "Imagen no encontrada o no pertenece al producto.",
+        'Imagen no encontrada o no pertenece al producto.',
       );
     }
   }
@@ -211,9 +216,9 @@ export class ProductsService {
 
       if (files?.length) {
         const maxOrderResult = await queryRunner.manager
-          .createQueryBuilder(ProductImage, "img")
-          .select("MAX(img.orden)", "max_orden")
-          .where("img.productId = :productId", { productId: id })
+          .createQueryBuilder(ProductImage, 'img')
+          .select('MAX(img.orden)', 'max_orden')
+          .where('img.productId = :productId', { productId: id })
           .getRawOne();
         const startOrder = (maxOrderResult?.max_orden ?? -1) + 1;
 
@@ -250,10 +255,10 @@ export class ProductsService {
     if (!categoria) return [];
 
     const idsResult = await this.productRepository
-      .createQueryBuilder("p")
-      .select("p.id", "id")
-      .where("LOWER(p.categoria) = LOWER(:categoria)", { categoria })
-      .orderBy("RANDOM()")
+      .createQueryBuilder('p')
+      .select('p.id', 'id')
+      .where('LOWER(p.categoria) = LOWER(:categoria)', { categoria })
+      .orderBy('RANDOM()')
       .limit(18)
       .getRawMany<{ id: number }>();
 

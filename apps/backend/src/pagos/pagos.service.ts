@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Profile } from '../profile/entities/profile.entity';
@@ -7,7 +11,8 @@ import { FacturasService } from '../facturas/facturas.service';
 @Injectable()
 export class PagosService {
   constructor(
-    @InjectRepository(Profile) private readonly profileRepo: Repository<Profile>,
+    @InjectRepository(Profile)
+    private readonly profileRepo: Repository<Profile>,
     private readonly facturasService: FacturasService,
     private readonly dataSource: DataSource,
   ) {}
@@ -23,7 +28,9 @@ export class PagosService {
     _modo: 'real' | 'dummy' = 'dummy',
   ) {
     // 1) Validaciones
-    const profile = await this.profileRepo.findOne({ where: { id: Number(profileId) } });
+    const profile = await this.profileRepo.findOne({
+      where: { id: Number(profileId) },
+    });
     if (!profile) throw new NotFoundException('Perfil no encontrado');
 
     const totalMXN = Number(total);
@@ -39,15 +46,15 @@ export class PagosService {
     await this.dataSource
       .createQueryBuilder()
       .delete()
-      .from('carrito')                  // nombre real de la tabla
+      .from('carrito') // nombre real de la tabla
       .where('usuarioId = :uid AND activo = true', { uid: Number(profileId) })
       .execute();
 
     // 4) Crear factura (usa tu método del servicio de facturas "desde cero")
     await this.facturasService.crearDesdePago({
       profileId: profile.id,
-      totalMXN,                         // MXN (no centavos)
-      status: 'PAGADA',                 // o usa paymentStatus si prefieres
+      totalMXN, // MXN (no centavos)
+      status: 'PAGADA', // o usa paymentStatus si prefieres
       productos: ['Compra en Correos MX'],
     });
 

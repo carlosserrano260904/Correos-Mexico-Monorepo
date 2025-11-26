@@ -24,7 +24,9 @@ export class RegistrarMovimientoHandler
   async execute(command: RegistrarMovimientoCommand): Promise<any> {
     // 1. construir los VO
     // 1.1 construyendo desde el exterior el numero de rastreo
-    const numeroRastreoResult = NumeroDeRastreoVO.fromString(command.numeroDeRastreo);
+    const numeroRastreoResult = NumeroDeRastreoVO.fromString(
+      command.numeroDeRastreo,
+    );
     if (numeroRastreoResult.isFailure()) {
       throw new BadRequestException(numeroRastreoResult.getError());
     }
@@ -38,7 +40,8 @@ export class RegistrarMovimientoHandler
     const estado = estadoResult.getValue();
 
     // 2. verificar que la guia existe en persistencia
-    const guiaEncontrada = await this.guiaRepository.findByNumeroRastreo(numeroRastreo);
+    const guiaEncontrada =
+      await this.guiaRepository.findByNumeroRastreo(numeroRastreo);
     if (!guiaEncontrada) {
       throw new NotFoundException('Guía no encontrada');
     }

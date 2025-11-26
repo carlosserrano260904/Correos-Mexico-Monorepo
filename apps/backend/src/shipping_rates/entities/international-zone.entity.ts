@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { InternationalTariff } from './international-tariff.entity';
 import { InternationalCountry } from './international-country.entity';
 
-
 @Entity('international_zones')
 export class InternationalZone {
   @PrimaryGeneratedColumn()
@@ -14,9 +13,9 @@ export class InternationalZone {
   @Column()
   description: string;
 
-  @OneToMany(() => InternationalTariff, tariff => tariff.zone)
+  @OneToMany(() => InternationalTariff, (tariff) => tariff.zone)
   tariffs: InternationalTariff[];
 
-  @OneToMany(() => InternationalCountry, country => country.zone)
+  @OneToMany(() => InternationalCountry, (country) => country.zone)
   countries: InternationalCountry[];
 }

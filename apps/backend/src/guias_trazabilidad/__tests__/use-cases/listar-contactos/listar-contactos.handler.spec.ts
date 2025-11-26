@@ -19,12 +19,14 @@ describe('ListarContactosQueryHandler', () => {
         ListarContactosQueryHandler,
         {
           provide: GUIA_READ_REPOSITORY,
-          useValue: repositoryMocks.GUIA_READ_REPOSITORY
-        }
-      ]
+          useValue: repositoryMocks.GUIA_READ_REPOSITORY,
+        },
+      ],
     }).compile();
 
-    handler = module.get<ListarContactosQueryHandler>(ListarContactosQueryHandler);
+    handler = module.get<ListarContactosQueryHandler>(
+      ListarContactosQueryHandler,
+    );
   });
 
   afterEach(async () => {
@@ -46,8 +48,8 @@ describe('ListarContactosQueryHandler', () => {
             calle: 'Av. Reforma',
             numero: '123',
             codigoPostal: '06000',
-            localidad: 'Ciudad de México'
-          }
+            localidad: 'Ciudad de México',
+          },
         },
         {
           id: 'CONT002',
@@ -60,27 +62,31 @@ describe('ListarContactosQueryHandler', () => {
             calle: 'Calle Morelos',
             numero: '456',
             codigoPostal: '44100',
-            localidad: 'Guadalajara'
-          }
-        }
+            localidad: 'Guadalajara',
+          },
+        },
       ];
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos
-        .mockResolvedValue(mockContactosList);
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos.mockResolvedValue(
+        mockContactosList,
+      );
 
       const result = await handler.execute(query);
 
       expect(result.isFailure()).toBe(false);
       expect(result.getValue()).toEqual(mockContactosList);
       expect(result.getValue()).toHaveLength(2);
-      expect(repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos).toHaveBeenCalledTimes(1);
+      expect(
+        repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty list when no contactos exist', async () => {
       const query = new ListarContactosQuery();
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos
-        .mockResolvedValue([]);
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos.mockResolvedValue(
+        [],
+      );
 
       const result = await handler.execute(query);
 
@@ -92,8 +98,9 @@ describe('ListarContactosQueryHandler', () => {
     it('should return failure when repository throws error', async () => {
       const query = new ListarContactosQuery();
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos
-        .mockRejectedValue(new Error('Connection timeout'));
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos.mockRejectedValue(
+        new Error('Connection timeout'),
+      );
 
       const result = await handler.execute(query);
 
@@ -107,13 +114,14 @@ describe('ListarContactosQueryHandler', () => {
       const mockRemitentes = [
         {
           nombres: 'Juan',
-          apellidos: 'Pérez', 
-          tipo: 'REMITENTE'
-        }
+          apellidos: 'Pérez',
+          tipo: 'REMITENTE',
+        },
       ];
 
-      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos
-        .mockResolvedValue(mockRemitentes);
+      repositoryMocks.GUIA_READ_REPOSITORY.findAllContactos.mockResolvedValue(
+        mockRemitentes,
+      );
 
       const result = await handler.execute(query);
 

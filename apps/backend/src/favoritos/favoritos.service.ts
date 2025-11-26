@@ -29,7 +29,7 @@ export class FavoritosService {
   async findByUsuario(profileId: number): Promise<Favorito[]> {
     const favoritos = await this.favoritoRepo.find({
       where: { usuario: { id: profileId } },
-      relations: ['producto','producto.images'],
+      relations: ['producto', 'producto.images'],
     });
 
     if (!favoritos.length) {
@@ -55,7 +55,7 @@ export class FavoritosService {
         usuario: { id: profileId },
         producto: { id: productId },
       },
-      relations: ['usuario', 'producto'], 
+      relations: ['usuario', 'producto'],
     });
 
     if (yaExiste) {

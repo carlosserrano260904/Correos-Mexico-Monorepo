@@ -5,5 +5,7 @@ export const GUIAREPOSITORYINTERFACE = Symbol('GuiaRepositoryInterface');
 
 export interface GuiaRepositoryInterface {
   save(guia: GuiaDomainEntity): Promise<void>;
-  findByNumeroRastreo(numeroRastreo: NumeroDeRastreoVO): Promise<GuiaDomainEntity | null>;
+  findByNumeroRastreo(
+    numeroRastreo: NumeroDeRastreoVO,
+  ): Promise<GuiaDomainEntity | null>;
 }

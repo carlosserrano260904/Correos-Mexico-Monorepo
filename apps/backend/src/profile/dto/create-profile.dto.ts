@@ -1,11 +1,6 @@
 // src/profile/dto/create-profile.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsOptional,
-  IsString,
-  Matches,
-  ValidateIf,
-} from 'class-validator';
+import { IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
 
 export class CreateProfileDto {
   @ApiProperty({
@@ -26,7 +21,8 @@ export class CreateProfileDto {
 
   @ApiProperty({
     example: '6182538020',
-    description: 'Número telefónico del usuario (exactamente 10 dígitos numéricos)',
+    description:
+      'Número telefónico del usuario (exactamente 10 dígitos numéricos)',
   })
   @IsOptional()
   @ValidateIf((o) => o.numero !== '')

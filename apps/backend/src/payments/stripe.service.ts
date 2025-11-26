@@ -8,10 +8,13 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class StripeService {
   private stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY ?? (() => { throw new Error('STRIPE_SECRET_KEY no definida'); })(),
+    process.env.STRIPE_SECRET_KEY ??
+      (() => {
+        throw new Error('STRIPE_SECRET_KEY no definida');
+      })(),
     {
       apiVersion: '2025-08-27.basil',
-    }
+    },
   );
 
   constructor(
@@ -20,7 +23,7 @@ export class StripeService {
 
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
-  ) { }
+  ) {}
 
   async createCustomer(email: string) {
     return await this.stripe.customers.create({ email });
@@ -38,7 +41,11 @@ export class StripeService {
     });
   }
 
-  async createPaymentIntent(amount: number, customerId: string, paymentMethodId: string) {
+  async createPaymentIntent(
+    amount: number,
+    customerId: string,
+    paymentMethodId: string,
+  ) {
     return await this.stripe.paymentIntents.create({
       amount,
       currency: 'mxn',
@@ -49,8 +56,13 @@ export class StripeService {
     });
   }
 
-  async saveCardToDatabase(paymentMethod: Stripe.PaymentMethod, profileId: number) {
-    const profile = await this.profileRepo.findOne({ where: { id: profileId } });
+  async saveCardToDatabase(
+    paymentMethod: Stripe.PaymentMethod,
+    profileId: number,
+  ) {
+    const profile = await this.profileRepo.findOne({
+      where: { id: profileId },
+    });
     if (!profile) throw new Error('Perfil no encontrado');
 
     const card = this.cardRepo.create({
@@ -64,15 +76,19 @@ export class StripeService {
     return await this.cardRepo.save(card);
   }
 
-  async associateCardAndSave(customerId: string, paymentMethodId: string, profileId: number) {
+  async associateCardAndSave(
+    customerId: string,
+    paymentMethodId: string,
+    profileId: number,
+  ) {
     // 1. Asociar tarjeta al cliente en Stripe
     await this.attachPaymentMethod(customerId, paymentMethodId);
 
     // 2. Obtener los datos de la tarjeta desde Stripe
-    const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod =
+      await this.stripe.paymentMethods.retrieve(paymentMethodId);
 
     // 3. Guardar en base de datos
     return await this.saveCardToDatabase(paymentMethod, profileId);
   }
-
 }

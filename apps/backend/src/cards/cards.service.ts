@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
 import { Repository } from 'typeorm';
@@ -14,14 +19,18 @@ export class CardsService {
 
   async getCardsByUser(userId: number) {
     // Buscar el perfil asociado al userId
-    const profile = await this.cardRepository.manager.findOne('Profile', { where: { usuario: userId } });
+    const profile = await this.cardRepository.manager.findOne('Profile', {
+      where: { usuario: userId },
+    });
     if (!profile || !('id' in profile)) {
       return [];
     }
     // Buscar las tarjetas por profileId
-    return this.cardRepository.find({ where: { profileId: (profile as any).id } });
+    return this.cardRepository.find({
+      where: { profileId: (profile as any).id },
+    });
   }
-  
+
   constructor(
     @InjectRepository(Card)
     private readonly cardRepository: Repository<Card>,
@@ -36,22 +45,31 @@ export class CardsService {
     try {
       // Verificar datos del perfil
       if (!profile.stripeCustomerId) {
-        throw new NotFoundException('Stripe Customer ID no encontrado para este perfil');
+        throw new NotFoundException(
+          'Stripe Customer ID no encontrado para este perfil',
+        );
       }
 
-      this.logger.debug(`Agregando tarjeta para Stripe Customer: ${profile.stripeCustomerId}`);
+      this.logger.debug(
+        `Agregando tarjeta para Stripe Customer: ${profile.stripeCustomerId}`,
+      );
 
       // Crear la fuente (tarjeta) en Stripe
-      const card = await this.stripe.customers.createSource(profile.stripeCustomerId, {
-        source: token,
-      }) as Stripe.Card;
+      const card = (await this.stripe.customers.createSource(
+        profile.stripeCustomerId,
+        {
+          source: token,
+        },
+      )) as Stripe.Card;
 
-      this.logger.debug(`Tarjeta creada en Stripe: ${card.id} (${card.brand}) ****${card.last4}`);
+      this.logger.debug(
+        `Tarjeta creada en Stripe: ${card.id} (${card.brand}) ****${card.last4}`,
+      );
 
       // Guardar la tarjeta en la base de datos
       const newCard = this.cardRepository.create({
         stripeCardId: card.id,
-        last4: card.last4!,
+        last4: card.last4,
         brand: card.brand,
         profileId: profile.id,
       });
@@ -62,10 +80,9 @@ export class CardsService {
 
       // Devolver la tarjeta guardada
       return savedCard;
-
     } catch (error) {
       this.logger.error('Error al agregar tarjeta:', error);
-      throw new InternalServerErrorException('No se pudo agregar la tarjeta')
+      throw new InternalServerErrorException('No se pudo agregar la tarjeta');
     }
   }
 
@@ -78,11 +95,17 @@ export class CardsService {
 
   async deleteCardByStripeId(stripeCardId: string, profileId: number) {
     console.log('deleteCardByStripeId:', { stripeCardId, profileId });
-    const card = await this.cardRepository.findOne({ where: { stripeCardId, profileId } });
+    const card = await this.cardRepository.findOne({
+      where: { stripeCardId, profileId },
+    });
     console.log('Card encontrada:', card);
     if (!card) return;
 
-    const stripeCustomerId = (await this.cardRepository.manager.findOne('Profile', { where: { id: profileId } }))?.['stripeCustomerId'];
+    const stripeCustomerId = (
+      await this.cardRepository.manager.findOne('Profile', {
+        where: { id: profileId },
+      })
+    )?.['stripeCustomerId'];
     console.log('stripeCustomerId:', stripeCustomerId);
     if (stripeCustomerId) {
       let stripeResult;
@@ -92,12 +115,15 @@ export class CardsService {
         console.log('Detach PaymentMethod:', stripeResult);
       } else {
         // Es un Source (legacy)
-        stripeResult = await this.stripe.customers.deleteSource(stripeCustomerId, stripeCardId);
+        stripeResult = await this.stripe.customers.deleteSource(
+          stripeCustomerId,
+          stripeCardId,
+        );
         console.log('Delete Source:', stripeResult);
       }
     }
     const dbResult = await this.cardRepository.delete(card.id);
     console.log('Resultado BD:', dbResult);
     return dbResult;
-}
+  }
 }

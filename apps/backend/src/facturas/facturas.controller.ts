@@ -11,14 +11,22 @@ export class FacturasController {
   @Get('profile/:profileId')
   @ApiOperation({ summary: 'Obtener facturas de un perfil específico' })
   @ApiParam({ name: 'profileId', description: 'ID del perfil', example: '1' })
-  @ApiResponse({ status: 200, description: 'Facturas encontradas', type: [Factura] })
+  @ApiResponse({
+    status: 200,
+    description: 'Facturas encontradas',
+    type: [Factura],
+  })
   findByProfile(@Param('profileId') profileId: string) {
     return this.facturasService.findByProfile(Number(profileId));
   }
 
   @Get()
   @ApiOperation({ summary: 'Obtener todas las facturas' })
-  @ApiResponse({ status: 200, description: 'Lista de facturas', type: [Factura] })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de facturas',
+    type: [Factura],
+  })
   findAll() {
     return this.facturasService.findAll();
   }

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundException, BadRequestException } from '@nestjs/common/exceptions';
+import {
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { HistorialAsignacion } from './entities/historial-asignacion.entity';
@@ -16,7 +19,7 @@ export class HistorialAsignacionesService {
     curp: string,
     placasUnidad: string,
     oficinaSalida: string,
-    claveCuoDestino: string
+    claveCuoDestino: string,
   ): Promise<HistorialAsignacion> {
     const nuevaAsignacion = this.historialRepository.create({
       nombreConductor,
@@ -24,7 +27,7 @@ export class HistorialAsignacionesService {
       placasUnidad,
       claveOficinaSalida: oficinaSalida,
       claveOficinaDestino: claveCuoDestino,
-      claveOficinaActual: oficinaSalida // Inicialmente está en la oficina de salida
+      claveOficinaActual: oficinaSalida, // Inicialmente está en la oficina de salida
     });
     return this.historialRepository.save(nuevaAsignacion);
   }
@@ -32,15 +35,15 @@ export class HistorialAsignacionesService {
   async registrarLlegadaDestino(
     curp: string,
     placasUnidad: string,
-    claveOficinaActual: string
+    claveOficinaActual: string,
   ): Promise<HistorialAsignacion> {
     const asignacion = await this.historialRepository.findOne({
       where: {
         curp: curp.toUpperCase(),
         placasUnidad,
-        fechaLlegadaDestino: IsNull()
+        fechaLlegadaDestino: IsNull(),
       },
-      order: { fechaAsignacion: 'DESC' }
+      order: { fechaAsignacion: 'DESC' },
     });
 
     if (!asignacion) {
@@ -49,14 +52,11 @@ export class HistorialAsignacionesService {
 
     asignacion.claveOficinaActual = claveOficinaActual;
     asignacion.fechaLlegadaDestino = new Date();
-    
+
     return this.historialRepository.save(asignacion);
   }
 
-  async finalizarAsignacion(
-    curp: string,
-    placasUnidad: string,
-  ): Promise<void> {
+  async finalizarAsignacion(curp: string, placasUnidad: string): Promise<void> {
     await this.historialRepository.update(
       { curp: curp.toUpperCase(), placasUnidad, fechaFinalizacion: IsNull() },
       { fechaFinalizacion: new Date() },
@@ -76,17 +76,17 @@ export class HistorialAsignacionesService {
       order: { fechaAsignacion: 'DESC' },
     });
   }
-    async registrarRetornoOrigen(
+  async registrarRetornoOrigen(
     curp: string,
-    placasUnidad: string
+    placasUnidad: string,
   ): Promise<HistorialAsignacion> {
     const asignacion = await this.historialRepository.findOne({
       where: {
         curp: curp.toUpperCase(),
         placasUnidad,
-        fechaFinalizacion: IsNull()
+        fechaFinalizacion: IsNull(),
       },
-      order: { fechaAsignacion: 'DESC' }
+      order: { fechaAsignacion: 'DESC' },
     });
 
     if (!asignacion) {
@@ -100,7 +100,7 @@ export class HistorialAsignacionesService {
 
     asignacion.claveOficinaActual = asignacion.claveOficinaSalida; // Regresa al origen
     asignacion.fechaFinalizacion = new Date();
-    
+
     return this.historialRepository.save(asignacion);
   }
 }

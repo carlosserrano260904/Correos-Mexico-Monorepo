@@ -1,6 +1,11 @@
 // Archivo: apps/backend/src/usuarios/entities/deletion-reason.entity.ts
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity('deletion_reasons')
 export class DeletionReason {
@@ -8,10 +13,10 @@ export class DeletionReason {
   id: number;
 
   @Column('text')
-  selected_option: string; 
+  selected_option: string;
 
   @Column('text', { nullable: true })
-  other_text: string | null; 
+  other_text: string | null;
 
   @CreateDateColumn()
   created_at: Date;

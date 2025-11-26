@@ -1,4 +1,11 @@
-import { IsString, IsNumber, IsOptional, IsIn, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsIn,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 // DTO para crear una nueva tarifa de envío
@@ -80,13 +87,15 @@ export class ShippingRateResponseDto {
   kgMin: number; // Peso mínimo
   kgMax: number; // Peso máximo
   price: number; // Precio
-  zone: { // Información de la zona
+  zone: {
+    // Información de la zona
     id: number;
     name: string;
     minDistance: number;
     maxDistance: number | null;
   };
-  service: { // Información del servicio
+  service: {
+    // Información del servicio
     id: number;
     name: string;
   };
@@ -98,7 +107,8 @@ export class CalculateShippingResponseDto {
   weight: number; // Peso del paquete
   zoneId: number; // ID de la zona
   serviceId: number; // ID del servicio
-  weightRange: { // Rango de peso aplicado
+  weightRange: {
+    // Rango de peso aplicado
     from: number;
     to: number;
   };

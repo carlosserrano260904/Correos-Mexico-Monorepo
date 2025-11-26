@@ -16,8 +16,8 @@ import { ContactosTypeormEntity } from '../guias_trazabilidad/infrastructure/per
       Pedido,
       PedidoProducto,
       GuiaTypeormEntity,
-      ContactosTypeormEntity
-    ])
+      ContactosTypeormEntity,
+    ]),
   ],
 })
 export class VendedorModule {}

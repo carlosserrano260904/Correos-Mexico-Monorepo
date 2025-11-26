@@ -28,7 +28,7 @@ export const AWSProvider: Provider = {
             !endpoint && 'AWS_S3_ENDPOINT',
           ]
             .filter(Boolean)
-            .join(', ')
+            .join(', '),
       );
     }
 

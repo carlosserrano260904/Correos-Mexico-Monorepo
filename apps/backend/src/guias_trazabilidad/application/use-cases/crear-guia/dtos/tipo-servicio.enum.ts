@@ -1,4 +1,4 @@
 export enum TipoServicio {
-    NACIONAL = 'nacional',
-    INTERNACIONAL = 'internacional',
+  NACIONAL = 'nacional',
+  INTERNACIONAL = 'internacional',
 }

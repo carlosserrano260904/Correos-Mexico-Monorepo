@@ -7,18 +7,17 @@ import { QRGeneratorRepositoryInterface } from '../../application/ports/outbound
 
 @Injectable()
 export class QRGeneratorRepository implements QRGeneratorRepositoryInterface {
-  
   async generarQRComoDataURL(payload): Promise<Result<string>> {
     try {
-      const qrData = payload
+      const qrData = payload;
 
       const qrString = await QRCode.toDataURL(JSON.stringify(qrData), {
         width: 200,
         margin: 2,
         color: {
           dark: '#000000',
-          light: '#FFFFFF'
-        }
+          light: '#FFFFFF',
+        },
       });
 
       return Result.success(qrString);
@@ -28,13 +27,12 @@ export class QRGeneratorRepository implements QRGeneratorRepositoryInterface {
   }
 
   async generarQRComoBuffer(payload): Promise<Result<Buffer>> {
-
     try {
-      const qrData = payload
+      const qrData = payload;
 
       const buffer = await QRCode.toBuffer(JSON.stringify(qrData), {
         width: 200,
-        margin: 2
+        margin: 2,
       });
 
       return Result.success(buffer);
@@ -44,15 +42,13 @@ export class QRGeneratorRepository implements QRGeneratorRepositoryInterface {
   }
 
   async generarQRComoSVG(payload): Promise<Result<string>> {
-
     try {
-
       const qrData = payload;
 
-      const svg = await QRCode.toString(JSON.stringify(qrData), { 
+      const svg = await QRCode.toString(JSON.stringify(qrData), {
         type: 'svg',
         width: 200,
-        margin: 2
+        margin: 2,
       });
 
       return Result.success(svg);
@@ -63,13 +59,12 @@ export class QRGeneratorRepository implements QRGeneratorRepositoryInterface {
 
   async generarQRComoTextoEnConsola(payload): Promise<Result<string>> {
     try {
-    
       const qrData = payload;
 
-      const terminal = await QRCode.toString(JSON.stringify(qrData), { 
+      const terminal = await QRCode.toString(JSON.stringify(qrData), {
         type: 'terminal',
         width: 80,
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'M',
       });
 
       return Result.success(terminal);

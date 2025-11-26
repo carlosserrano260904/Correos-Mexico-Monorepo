@@ -18,7 +18,10 @@ export class ClienteInfoDto {
   @ApiProperty({ example: 'Juan Carlos Pérez López' })
   nombre: string;
 
-  @ApiProperty({ example: 'Calle Reforma 123, Depto 4B, Col. Centro, 06000, Ciudad de México, CDMX, México' })
+  @ApiProperty({
+    example:
+      'Calle Reforma 123, Depto 4B, Col. Centro, 06000, Ciudad de México, CDMX, México',
+  })
   direccion: string;
 }
 

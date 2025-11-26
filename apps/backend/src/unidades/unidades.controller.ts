@@ -36,7 +36,7 @@ export class UnidadesController {
   @ApiOperation({ summary: 'Unidades disponibles por oficina' })
   @ApiResponse({ status: 200, type: [UnidadResponseDto] })
   async findByOficina(
-    @Param('clave') clave: string, 
+    @Param('clave') clave: string,
   ): Promise<Omit<UnidadResponseDto, 'claveOficina' | 'estado'>[]> {
     return this.unidadesService.findByOficina(clave);
   }
@@ -68,7 +68,9 @@ export class UnidadesController {
   }
 
   @Get('tipos-vehiculo/:clave')
-  @ApiOperation({ summary: 'Consultar tipos de vehículo permitidos en oficina' })
+  @ApiOperation({
+    summary: 'Consultar tipos de vehículo permitidos en oficina',
+  })
   @ApiResponse({ status: 200, type: OficinaTipoVehiculoDto })
   async getTiposVehiculo(
     @Param('clave') clave: string,
@@ -77,10 +79,13 @@ export class UnidadesController {
   }
 
   @Get('qrs/all')
-  @ApiOperation({ summary: 'Generar QR de todas las unidades (base64 y archivo)' })
+  @ApiOperation({
+    summary: 'Generar QR de todas las unidades (base64 y archivo)',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Lista de objetos con id, base64 del QR y ruta del archivo PNG',
+    description:
+      'Lista de objetos con id, base64 del QR y ruta del archivo PNG',
   })
   generarQrs() {
     return this.unidadesService.generarQRsDeUnidades();

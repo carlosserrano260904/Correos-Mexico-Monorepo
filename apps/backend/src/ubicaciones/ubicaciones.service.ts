@@ -14,7 +14,7 @@ export class OficinasService {
   async buscarOficinas(termino: string): Promise<Oficina[]> {
     try {
       const terminoLimpio = termino.trim();
-      
+
       if (!terminoLimpio) {
         return [];
       }
@@ -25,14 +25,14 @@ export class OficinasService {
 
       // Detectar si es código postal (5 dígitos)
       if (/^\d{5}$/.test(terminoLimpio)) {
-        query = query.andWhere('oficina.codigo_postal = :codigo_postal', { 
-          codigo_postal: terminoLimpio 
+        query = query.andWhere('oficina.codigo_postal = :codigo_postal', {
+          codigo_postal: terminoLimpio,
         });
       } else {
         // Buscar por nombre de entidad o municipio
         query = query.andWhere(
           '(oficina.nombre_entidad ILIKE :nombre OR oficina.nombre_municipio ILIKE :nombre)',
-          { nombre: `%${terminoLimpio}%` }
+          { nombre: `%${terminoLimpio}%` },
         );
       }
 
@@ -60,7 +60,6 @@ export class OficinasService {
       }
 
       return oficinasSinDuplicados; // Siempre devuelve array (vacío si no encuentra)
-      
     } catch (error) {
       console.error('Error en buscarOficinas:', error);
       return []; // Devuelve array vacío en lugar de lanzar excepción

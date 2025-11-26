@@ -7,7 +7,9 @@ export class OrdenController {
   constructor(private readonly ordenService: OrdenService) {}
 
   @Get(':id') // Endpoint: /api/orden/:id
-  async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<OrdenDetalleDto> {
+  async obtenerPorId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OrdenDetalleDto> {
     return this.ordenService.obtenerDetalleOrden(id);
   }
 }

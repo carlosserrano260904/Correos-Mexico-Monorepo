@@ -41,7 +41,7 @@ export class Paquete {
   @Column('float8')
   latitud: number;
 
-  @Column({ type: 'varchar', nullable: true})
+  @Column({ type: 'varchar', nullable: true })
   evidencia: string;
 
   @CreateDateColumn({ name: 'fecha_creacion' })

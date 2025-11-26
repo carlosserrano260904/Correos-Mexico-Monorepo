@@ -9,7 +9,7 @@ describe('Validaciones', () => {
       dto.claveZona = '1234'; //inválido, porque tiene 4 numeros
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].constraints).toHaveProperty('isLength'); 
+      expect(errors[0].constraints).toHaveProperty('isLength');
     });
 
     it('Error si claveZona tiene letras', async () => {

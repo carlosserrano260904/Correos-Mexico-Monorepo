@@ -26,5 +26,4 @@ export class User {
 
   @OneToMany(() => GiftedCouponEntity, (gift) => gift.user)
   giftedCoupons: GiftedCouponEntity[];
-
 }

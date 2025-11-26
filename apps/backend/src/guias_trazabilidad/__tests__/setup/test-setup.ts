@@ -2,7 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CqrsModule } from '@nestjs/cqrs';
 
 export class GuiasTrazabilidadTestSetup {
-  static async createTestingModule(providers: any[] = []): Promise<TestingModule> {
+  static async createTestingModule(
+    providers: any[] = [],
+  ): Promise<TestingModule> {
     const moduleBuilder = Test.createTestingModule({
       imports: [CqrsModule],
       providers: [...providers],
@@ -13,10 +15,10 @@ export class GuiasTrazabilidadTestSetup {
 
   static createSpyObject<T = any>(
     baseName: string,
-    methodNames: string[]
+    methodNames: string[],
   ): jest.Mocked<T> {
     const obj: any = {};
-    
+
     for (const method of methodNames) {
       obj[method] = jest.fn();
     }
@@ -40,8 +42,8 @@ export class GuiasTrazabilidadTestSetup {
           localidad: 'Ciudad de México',
           estado: 'Ciudad de México',
           pais: 'México',
-          referencia: 'Frente al parque'
-        }
+          referencia: 'Frente al parque',
+        },
       },
       destinatario: {
         nombres: 'María',
@@ -54,17 +56,17 @@ export class GuiasTrazabilidadTestSetup {
           codigoPostal: '44100',
           localidad: 'Guadalajara',
           estado: 'Jalisco',
-          pais: 'México'
-        }
+          pais: 'México',
+        },
       },
       dimensiones: {
         alto_cm: 10,
         ancho_cm: 15,
-        largo_cm: 20
+        largo_cm: 20,
       },
       peso: 1.5,
       valorDeclarado: 500,
-      tipoServicio: 'nacional'
+      tipoServicio: 'nacional',
     }),
 
     validRegistrarMovimientoCommand: () => ({
@@ -72,30 +74,31 @@ export class GuiasTrazabilidadTestSetup {
       estado: 'EN_TRANSITO',
       idRuta: 'RUTA001',
       idSucursal: 'SUC001',
-      localizacion: 'Ciudad de México'
+      localizacion: 'Ciudad de México',
     }),
 
     validObtenerGuiaQuery: () => ({
-      numeroRastreo: 'TEST123456789'
+      numeroRastreo: 'TEST123456789',
     }),
 
     mockCoordenadas: () => ({
       latitud: 19.4326,
-      longitud: -99.1332
+      longitud: -99.1332,
     }),
 
     mockGuiaEntity: () => ({
       NumeroRastreo: {
-        getNumeroRastreo: 'TEST123456789'
+        getNumeroRastreo: 'TEST123456789',
       },
       SituacionActual: {
-        getSituacion: 'CREADA'
+        getSituacion: 'CREADA',
       },
-      hacerMovimiento: jest.fn()
+      hacerMovimiento: jest.fn(),
     }),
 
     mockPDFBuffer: () => Buffer.from('mock-pdf-content'),
-    
-    mockQRDataURL: () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+    mockQRDataURL: () =>
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   };
 }

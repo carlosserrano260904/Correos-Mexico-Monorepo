@@ -46,7 +46,7 @@ export class OrdenService {
       .where('tc.transactionId = :id', { id })
       .getRawMany();
 
-    const productos = rawProductos.map(p => ({
+    const productos = rawProductos.map((p) => ({
       nombre: p.nombre,
       precio: Number(p.precio),
       cantidad: Number(p.cantidad),

@@ -7,7 +7,9 @@ import { PedidosService } from './pedidos.service';
 import { Product } from '../products/entities/product.entity';
 import { Misdireccione } from '../misdirecciones/entities/misdireccione.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([Pedido, PedidoProducto, Product, Misdireccione])],
+  imports: [
+    TypeOrmModule.forFeature([Pedido, PedidoProducto, Product, Misdireccione]),
+  ],
   controllers: [PedidosController],
   providers: [PedidosService],
 })

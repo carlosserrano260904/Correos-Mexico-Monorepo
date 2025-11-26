@@ -22,15 +22,15 @@ export class SucursalTipoVehiculoDto {
   @ApiProperty({ example: '2025-06-26T17:58:12.098Z' })
   fechaCreacion?: Date;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: ['Automóvil 400 kg', 'Camionetas de pasajeros tipo VAN'],
-    type: [String] 
+    type: [String],
   })
   tiposVehiculo: string[];
 
-  @ApiProperty({ 
+  @ApiProperty({
     required: false,
-    example: 'Esta sucursal no tiene tipos de vehículo asignados' 
+    example: 'Esta sucursal no tiene tipos de vehículo asignados',
   })
   mensaje?: string;
 }

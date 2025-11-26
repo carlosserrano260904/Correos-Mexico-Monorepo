@@ -46,7 +46,9 @@ describe('HistorialAsignacionesService', () => {
       ],
     }).compile();
 
-    service = module.get<HistorialAsignacionesService>(HistorialAsignacionesService);
+    service = module.get<HistorialAsignacionesService>(
+      HistorialAsignacionesService,
+    );
     mockRepository = module.get(getRepositoryToken(HistorialAsignacion));
   });
 
@@ -176,7 +178,11 @@ describe('HistorialAsignacionesService', () => {
      * - Confirma que establece la fecha actual al finalizar
      */
     it('debe actualizar fechaFinalizacion', async () => {
-      mockRepository.update.mockResolvedValue({ affected: 1, generatedMaps: [], raw: [] });
+      mockRepository.update.mockResolvedValue({
+        affected: 1,
+        generatedMaps: [],
+        raw: [],
+      });
 
       await service.finalizarAsignacion('GARC850101HDFLLL05', 'ABC1234');
 
@@ -221,12 +227,15 @@ describe('HistorialAsignacionesService', () => {
 
       mockRepository.find.mockResolvedValue(mockHistorial);
 
-      const result = await service.getHistorial('ABC1234', 'GARC850101HDFLLL05');
+      const result = await service.getHistorial(
+        'ABC1234',
+        'GARC850101HDFLLL05',
+      );
 
       expect(mockRepository.find).toHaveBeenCalledWith({
         where: {
           placasUnidad: 'ABC1234',
-          curp: 'GARC850101HDFLLL05'
+          curp: 'GARC850101HDFLLL05',
         },
         order: { fechaAsignacion: 'DESC' },
       });

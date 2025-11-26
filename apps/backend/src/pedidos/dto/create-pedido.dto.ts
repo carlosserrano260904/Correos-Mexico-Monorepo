@@ -1,13 +1,13 @@
 import { Type } from 'class-transformer';
-import { 
-  ArrayNotEmpty, 
-  IsArray, 
-  IsInt, 
-  IsNotEmpty, 
-  IsOptional, 
-  IsString, 
-  ValidateNested, 
-  IsNumber 
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -17,14 +17,20 @@ export class PedidoProductoDto {
   @IsInt()
   producto_id: number;
 
-  @ApiProperty({ example: 2, description: 'Cantidad solicitada de este producto' })
+  @ApiProperty({
+    example: 2,
+    description: 'Cantidad solicitada de este producto',
+  })
   @IsNotEmpty()
   @IsInt()
   cantidad: number;
 }
 
 export class CreatePedidoDto {
-  @ApiProperty({ example: 31, description: 'ID del perfil/usuario que realiza el pedido' })
+  @ApiProperty({
+    example: 31,
+    description: 'ID del perfil/usuario que realiza el pedido',
+  })
   @IsNotEmpty()
   @IsInt()
   profileId: number;
@@ -34,28 +40,40 @@ export class CreatePedidoDto {
   @IsString()
   status: string;
 
-  @ApiPropertyOptional({ example: 'pendiente', description: 'Estado del pago (si aplica)' })
+  @ApiPropertyOptional({
+    example: 'pendiente',
+    description: 'Estado del pago (si aplica)',
+  })
   @IsOptional()
   @IsString()
   estatus_pago?: string;
 
-  @ApiPropertyOptional({ example: 2655.50, description: 'Total del pedido' })
+  @ApiPropertyOptional({ example: 2655.5, description: 'Total del pedido' })
   @IsOptional()
   @IsNumber()
   total?: number;
 
   // Dirección
-  @ApiPropertyOptional({ example: 7, description: 'ID de la dirección asociada al pedido' })
+  @ApiPropertyOptional({
+    example: 7,
+    description: 'ID de la dirección asociada al pedido',
+  })
   @IsOptional()
   @IsInt()
   direccionId?: number;
 
-  @ApiPropertyOptional({ example: 'Unipoli', description: 'Calle de la dirección' })
+  @ApiPropertyOptional({
+    example: 'Unipoli',
+    description: 'Calle de la dirección',
+  })
   @IsOptional()
   @IsString()
   calle?: string;
 
-  @ApiPropertyOptional({ example: 'B', description: 'Número interior (si existe)' })
+  @ApiPropertyOptional({
+    example: 'B',
+    description: 'Número interior (si existe)',
+  })
   @IsOptional()
   @IsString()
   numero_int?: string;
@@ -76,12 +94,18 @@ export class CreatePedidoDto {
   ciudad?: string;
 
   // Datos de pago
-  @ApiPropertyOptional({ example: 'Daniel Baca', description: 'Nombre en la tarjeta o método de pago' })
+  @ApiPropertyOptional({
+    example: 'Daniel Baca',
+    description: 'Nombre en la tarjeta o método de pago',
+  })
   @IsOptional()
   @IsString()
   nombre?: string;
 
-  @ApiPropertyOptional({ example: '1234', description: 'Últimos 4 dígitos de la tarjeta' })
+  @ApiPropertyOptional({
+    example: '1234',
+    description: 'Últimos 4 dígitos de la tarjeta',
+  })
   @IsOptional()
   @IsString()
   last4?: string;
@@ -92,7 +116,10 @@ export class CreatePedidoDto {
   brand?: string;
 
   // Envío
-  @ApiPropertyOptional({ example: 'MX123456789', description: 'Número de guía del envío' })
+  @ApiPropertyOptional({
+    example: 'MX123456789',
+    description: 'Número de guía del envío',
+  })
   @IsOptional()
   @IsString()
   n_guia?: string;
@@ -103,8 +130,8 @@ export class CreatePedidoDto {
     description: 'Lista de productos que forman parte del pedido',
     example: [
       { producto_id: 3, cantidad: 1 },
-      { producto_id: 4, cantidad: 2 }
-    ]
+      { producto_id: 4, cantidad: 2 },
+    ],
   })
   @IsArray()
   @ArrayNotEmpty()

@@ -11,5 +11,4 @@ export class Service {
 
   @OneToMany(() => ShippingRate, (rate) => rate.service)
   shippingRates: ShippingRate[];
-  
 }

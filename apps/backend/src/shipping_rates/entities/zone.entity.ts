@@ -15,9 +15,6 @@ export class Zone {
   @Column({ name: 'max_distance', type: 'int', nullable: true })
   maxDistance: number | null;
 
-
   @OneToMany(() => ShippingRate, (rate) => rate.zone)
   shippingRates: ShippingRate[];
-
-  
 }

@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+} from 'typeorm';
 import { User } from '../../usuarios/entities/user.entity';
 
 @Entity('gifted_coupons')
@@ -11,5 +17,4 @@ export class GiftedCouponEntity {
 
   @Column()
   user_id: number;
-
 }

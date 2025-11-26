@@ -5,19 +5,17 @@ import { Proveedor } from './proveedor.entity';
 
 @Injectable()
 export class ProveedoresService {
-    constructor(
-        @InjectRepository(Proveedor)
-        private readonly repo: Repository<Proveedor>,
-    ) { }
+  constructor(
+    @InjectRepository(Proveedor)
+    private readonly repo: Repository<Proveedor>,
+  ) {}
 
-    create(data: Partial<Proveedor>) {
-        const proveedor = this.repo.create(data);
-        return this.repo.save(proveedor);
-    }
+  create(data: Partial<Proveedor>) {
+    const proveedor = this.repo.create(data);
+    return this.repo.save(proveedor);
+  }
 
-    findBySub(sub: string) {
-        return this.repo.findOne({ where: { sub } });
-    }
-
-    
+  findBySub(sub: string) {
+    return this.repo.findOne({ where: { sub } });
+  }
 }

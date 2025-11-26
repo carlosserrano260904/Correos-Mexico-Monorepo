@@ -29,7 +29,11 @@ export class FavoritosController {
     description:
       'Devuelve todos los productos marcados como favoritos para el `profileId`.',
   })
-  @ApiParam({ name: 'profileId', type: Number, description: 'ID del perfil (profileId)' })
+  @ApiParam({
+    name: 'profileId',
+    type: Number,
+    description: 'ID del perfil (profileId)',
+  })
   @ApiResponse({ status: 200, description: 'Lista de favoritos obtenida.' })
   getFavoritos(@Param('profileId', ParseIntPipe) profileId: number) {
     return this.favoritosService.findByUsuario(profileId);
@@ -59,8 +63,7 @@ export class FavoritosController {
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar favorito',
-    description:
-      'Elimina un registro de favoritos usando el id del favorito.',
+    description: 'Elimina un registro de favoritos usando el id del favorito.',
   })
   @ApiParam({ name: 'id', type: Number, description: 'ID del favorito' })
   @ApiResponse({ status: 200, description: 'Favorito eliminado.' })
@@ -84,7 +87,10 @@ export class FavoritosController {
       required: ['profileId', 'productId'],
     },
   })
-  @ApiResponse({ status: 201, description: 'Producto agregado al carrito desde favoritos.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Producto agregado al carrito desde favoritos.',
+  })
   agregarProductoDesdeFavorito(
     @Body() body: { profileId: number; productId: number },
   ) {

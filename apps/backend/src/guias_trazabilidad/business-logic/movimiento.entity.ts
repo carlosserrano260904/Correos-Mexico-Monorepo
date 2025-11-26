@@ -19,15 +19,23 @@ export class MovimientoDomainEntity {
    * @param props
    * @returns {}
    */
-  public static create(props: Omit<MovimientoProps, 'idMovimiento' | 'fechaMovimiento'>,): Result<MovimientoDomainEntity> {
+  public static create(
+    props: Omit<MovimientoProps, 'idMovimiento' | 'fechaMovimiento'>,
+  ): Result<MovimientoDomainEntity> {
     if (!props.idSucursal.trim()) {
-      return Result.failure('Falta el Id de la sucursal para registrar el movimiento');
+      return Result.failure(
+        'Falta el Id de la sucursal para registrar el movimiento',
+      );
     }
     if (!props.localizacion.trim()) {
-      return Result.failure('Falta el campo localizacion para registrar el movimiento');
+      return Result.failure(
+        'Falta el campo localizacion para registrar el movimiento',
+      );
     }
     if (!props.idRuta.trim()) {
-      return Result.failure('Falta el Id de la ruta para registrar el movimiento');
+      return Result.failure(
+        'Falta el Id de la ruta para registrar el movimiento',
+      );
     }
     return Result.success(
       new MovimientoDomainEntity({

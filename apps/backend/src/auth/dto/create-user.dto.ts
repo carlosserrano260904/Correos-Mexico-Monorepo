@@ -1,27 +1,47 @@
-// Archivo: apps/backend/src/auth/dto/create-user.dto.ts
-
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
+  @ApiProperty({
+    example: 'Juan Pérez',
+    description: 'Nombre completo del usuario',
+  })
   @IsString()
   @IsNotEmpty({ message: 'El nombre es obligatorio' })
-  @ApiProperty({ example: 'Juan Pérez' })
   nombre: string;
 
+  @ApiProperty({
+    example: 'juan@example.com',
+    description: 'Correo electrónico único',
+  })
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
   @IsNotEmpty({ message: 'El correo electrónico es obligatorio' })
-  @ApiProperty({ example: 'juan@example.com' })
   correo: string;
 
+  // IMPORTANTE: Se deja opcional para permitir OAuth (Google/Facebook)
+  // Se mantiene el mínimo de 6 caracteres del equipo para compatibilidad
+  @ApiProperty({
+    example: 'password123',
+    description: 'Contraseña del usuario',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
-  // Puedes añadir más validaciones si quieres (ej. @Matches(...))
-  @ApiProperty({ example: 'password123' })
-  contrasena: string;
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  contrasena?: string;
 
+  @ApiProperty({
+    example: 'usuario',
+    description: 'Rol del usuario (admin, vendedor, usuario)',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  @IsOptional() // El rol es opcional, ya que la entidad tiene un valor por defecto
-  @ApiProperty({ example: 'usuario', required: false })
   rol?: string;
 }

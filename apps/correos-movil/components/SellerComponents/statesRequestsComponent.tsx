@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { Loader, Check, X, MessageCircleWarning, Ban } from 'lucide-react-native';
+
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
 
 export default function StatesRequestsComponent({
     // Pide el estado de la solicitud
@@ -18,11 +21,11 @@ export default function StatesRequestsComponent({
     return (
         <View style={[styles.container, { backgroundColor: bgColor }]}>
             {
-                type === 'en-revision' ? (<Loader size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'aprobado' ? (<Check size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'rechazado' ? (<X size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                type === 'observaciones' ? (<MessageCircleWarning size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />) :
-                (<Ban size={moderateScale(12)} strokeWidth={moderateScale(3)} color={iconColor} />)
+                type === 'en-revision' ? (<Loader size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'aprobado' ? (<Check size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'rechazado' ? (<X size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                type === 'observaciones' ? (<MessageCircleWarning size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />) :
+                (<Ban size={screenWidth * 0.03} strokeWidth={moderateScale(3)} color={iconColor} />)
             }
             {
                 type === 'en-revision' ? (<Text style={[styles.text, {color: textColor}]}>En revisíon</Text>) :
@@ -38,22 +41,17 @@ export default function StatesRequestsComponent({
     
 const styles = StyleSheet.create({
     container: {
-        gap: moderateScale(6),
+        gap: screenWidth * 0.016,
         borderRadius: moderateScale(100),
-        paddingHorizontal: moderateScale(12),
-        paddingVertical: moderateScale(4),
+        paddingHorizontal: screenWidth * 0.032,
+        paddingVertical: screenHeight * 0.005,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
     },
-    dot: {
-        width: moderateScale(6),
-        height: moderateScale(6),
-        borderRadius: moderateScale(100),
-    },
     text: {
-        fontSize: moderateScale(12),
+        fontSize: screenHeight * 0.014,
         fontFamily: 'system-ui',
     },
     

@@ -21,4 +21,5 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   }
+  // BORRÉ LA LÍNEA "extends" AQUÍ PORQUE EL BACKEND NO NECESITA EXPO
 }

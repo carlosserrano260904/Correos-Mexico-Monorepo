@@ -1,46 +1,34 @@
-<<<<<<< HEAD
-import { Injectable, InternalServerErrorException, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
-=======
 import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-<<<<<<< HEAD
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule'; // Importado de develop
+import { Cron, CronExpression } from '@nestjs/schedule';
 
+// Servicios
 import { UserService } from '../usuarios/user.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
 import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
-import { Profile } from '../profile/entities/profile.entity'; // Ruta relativa corregida
+
+// Entidades
+import { Profile } from '../profile/entities/profile.entity';
 import { DeletionReason } from '../usuarios/entities/deletion-reason.entity';
 
+// DTOs
 import { CreateUserDto } from './dto/create-user.dto';
 import { OAuthDto } from './dto/oauth.dto';
 import { AuthDto } from './dto/auth.dto';
-import { UpdatePasswordDto, EmailOtpDto, VerifyOtpDto } from './dto/update-password.dto';
-=======
-import { Repository } from 'typeorm';
-import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
-import { Profile } from '../profile/entities/profile.entity';
-import { ProveedoresService } from '../proveedores/proveedores.service';
-import { UserService } from '../usuarios/user.service';
-import { AuthDto } from './dto/auth.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { OAuthDto } from './dto/oauth.dto';
 import {
   EmailOtpDto,
   UpdatePasswordDto,
   VerifyOtpDto,
 } from './dto/update-password.dto';
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
 
 @Injectable()
 export class AuthService {
@@ -58,88 +46,74 @@ export class AuthService {
   ) {}
 
   async signup(dto: CreateUserDto) {
-    // Lógica combinada: Hash password + Stripe + Perfil + Usuario + Token
+    // 1. Validación de contraseña segura (Evita error si es undefined)
     let hash = '';
     if (dto.contrasena) {
       hash = await bcrypt.hash(dto.contrasena, 10);
     }
 
-    const userExists = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-<<<<<<< HEAD
-=======
-
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
+    const userExists = await this.usuariosService.findByCorreoNoOAuth(
+      dto.correo,
+    );
     if (userExists) {
       throw new UnauthorizedException('El correo ya está en uso');
     }
 
-    // Stripe
+    // 2. Creación de cliente en Stripe (Versión de Develop - Más actual)
     const Stripe = require('stripe');
-<<<<<<< HEAD
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { 
-      apiVersion: '2023-10-16' 
-=======
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-06-30.basil',
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
     });
+
     const customer = await stripe.customers.create({
       name: dto.nombre || dto.correo.split('@')[0],
       email: dto.correo,
     });
 
-<<<<<<< HEAD
-=======
-    // Creación de perfil
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
+    // 3. Creación de perfil
     const profile = this.profileRepository.create({
       nombre: dto.nombre || dto.correo.split('@')[0],
-      apellido: '', numero: '', estado: '', ciudad: '', fraccionamiento: '', calle: '', codigoPostal: '', 
+      apellido: '',
+      numero: '',
+      estado: '',
+      ciudad: '',
+      fraccionamiento: '',
+      calle: '',
+      codigoPostal: '',
       stripeCustomerId: customer.id,
     });
 
+    // 4. Creación de usuario
     const user = await this.usuariosService.create({
       nombre: dto.nombre || dto.correo.split('@')[0],
       correo: dto.correo,
-      password: hash, // Puede ir vacío si vino de un flujo sin pass
+      password: hash,
       rol: 'usuario',
       profile,
     });
 
-<<<<<<< HEAD
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-    await this.usuariosService.updateOTP(dto.correo, {
-      token: verificationToken,
-      tokenCreatedAt: new Date()
-    });
-
-    try {
-      await this.enviarCorreosService.enviarConfirmacion({
-        correo: user.correo,
-        token: verificationToken,
-        nombre: user.nombre
-      });
-    } catch (error) {
-      this.logger.error(`Error enviando correo a ${user.correo}`, error);
-    }
-=======
-    // Generar y enviar token de verificación
+    // 5. Generar y enviar token de verificación
     const verificationToken = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
+
     await this.usuariosService.updateOTP(dto.correo, {
       token: verificationToken,
       tokenCreatedAt: new Date(),
     });
 
     // Enviar email de confirmación
-    await this.enviarCorreosService.enviarConfirmacion({
-      correo: user.correo,
-      token: verificationToken,
-      nombre: user.nombre,
-    });
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
+    try {
+      await this.enviarCorreosService.enviarConfirmacion({
+        correo: user.correo,
+        token: verificationToken,
+        nombre: user.nombre,
+      });
+    } catch (error) {
+      this.logger.error(`Error enviando correo a ${user.correo}`, error);
+    }
 
+    // 6. Generar token JWT
     const token = await this.jwtService.signAsync({
       profileId: user.profile.id,
       rol: 'usuario',
@@ -159,13 +133,11 @@ export class AuthService {
 
     if (!proveedor) {
       const Stripe = require('stripe');
-<<<<<<< HEAD
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
-=======
+      // Usamos la versión de Stripe de Develop para consistencia
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
         apiVersion: '2025-06-30.basil',
       });
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
+
       const customer = await stripe.customers.create({
         name: dto.nombre || dto.correo.split('@')[0],
         email: dto.correo,
@@ -173,7 +145,13 @@ export class AuthService {
 
       const profile = this.profileRepository.create({
         nombre: dto.nombre || dto.correo.split('@')[0],
-        apellido: '', numero: '', estado: '', ciudad: '', fraccionamiento: '', calle: '', codigoPostal: '', 
+        apellido: '',
+        numero: '',
+        estado: '',
+        ciudad: '',
+        fraccionamiento: '',
+        calle: '',
+        codigoPostal: '',
         stripeCustomerId: customer.id,
       });
 
@@ -207,11 +185,7 @@ export class AuthService {
   async signin(dto: AuthDto) {
     const user = await this.usuariosService.findByCorreo(dto.correo);
 
-<<<<<<< HEAD
-    if (!user || !user.password || user.password === 'N/A: OAuth') {
-=======
     if (!user || !user.password) {
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -230,6 +204,13 @@ export class AuthService {
       );
     }
 
+    // Si es OAuth (password N/A) no debería entrar aquí, pero validamos por seguridad
+    if (user.password === 'N/A: OAuth') {
+      throw new UnauthorizedException(
+        'Ingresa usando tu red social (Google/Facebook)',
+      );
+    }
+
     const valid = await bcrypt.compare(dto.contrasena, user.password);
     if (!valid) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -245,26 +226,18 @@ export class AuthService {
 
   async updatePassword(dto: UpdatePasswordDto) {
     const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-    if (!user) { throw new UnauthorizedException('Usuario no encontrado'); }
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
     const hash = await bcrypt.hash(dto.contrasena, 10);
-    const result = await this.usuariosService.update(dto.correo, hash); 
-    if (result.affected === 0) { throw new UnauthorizedException('No se pudo actualizar la contraseña'); }
+    const result = await this.usuariosService.update(dto.correo, hash);
+    if (result.affected === 0) {
+      throw new UnauthorizedException('No se pudo actualizar la contraseña');
+    }
     return { message: 'Contraseña actualizada exitosamente' };
   }
 
   async emailOtp(dto: EmailOtpDto) {
-<<<<<<< HEAD
-     const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-     if (!user) { throw new UnauthorizedException('Usuario no encontrado'); }
-     const otp = Math.floor(100000 + Math.random() * 900000);
-     await this.usuariosService.updateOTP(dto.correo, {
-       token: otp.toString(), tokenCreatedAt: new Date(),
-     });
-     await this.enviarCorreosService.enviarConfirmacion({
-       correo: user.correo, token: otp.toString(), nombre: user.nombre,
-     });
-     return { message: 'OTP enviado correctamente' };
-=======
     const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
@@ -283,76 +256,27 @@ export class AuthService {
     });
 
     return { message: 'OTP enviado correctamente' };
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
     const user = await this.usuariosService.findByCorreoNoOAuth(dto.correo);
-    if (!user) { throw new UnauthorizedException('Usuario no encontrado'); }
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
     if (user.tokenCreatedAt) {
       const now = new Date();
-<<<<<<< HEAD
-      const tokenExpiration = new Date(user.tokenCreatedAt.getTime() + 10 * 60 * 1000);
-=======
       const tokenExpiration = new Date(
         user.tokenCreatedAt.getTime() + 10 * 60 * 1000,
       );
 
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
       if (now > tokenExpiration) {
-        // await this.cleanSingleExpiredToken(user.correo); // Método privado opcional
         throw new UnauthorizedException('El token ha expirado');
       }
     }
+
     if (user.token === dto.token) {
       await this.usuariosService.updateOTP(user.correo, {
-<<<<<<< HEAD
-        token: null, tokenCreatedAt: null, confirmado: true,
-      });
-      return { isOtpVerified: true };
-    }
-    return { isOtpVerified: false };
-  }
-
-  // --- TU MÉTODO 'deleteUserAccount' ---
-  async deleteUserAccount(
-      profileIdFromToken: number,
-      passwordAttempt: string,
-      selectedOption: string,
-      otherText: string | null
-  ): Promise<{ message: string }> {
-  
-      const user = await this.usuariosService.findByProfileId(profileIdFromToken);
-      if (!user) { 
-          throw new NotFoundException('Usuario no encontrado usando el profileId del token'); 
-      }
-  
-      const storedHash = user.password; 
-      if (!storedHash || storedHash === 'N/A: OAuth') { 
-          throw new UnauthorizedException('El usuario no tiene una contraseña configurada para verificar.'); 
-      }
-  
-      const isPasswordValid = await bcrypt.compare(passwordAttempt, storedHash);
-      if (!isPasswordValid) { 
-          throw new UnauthorizedException('La contraseña es incorrecta'); 
-      }
-  
-      if (selectedOption) {
-          try {
-              const newReason = this.reasonRepository.create({ 
-                  selected_option: selectedOption,
-                  other_text: otherText || null
-              });
-              await this.reasonRepository.save(newReason);
-              this.logger.log(`Motivo estructurado guardado (profileId: ${profileIdFromToken})`);
-          } catch (error) {
-              this.logger.error(`Error al guardar motivo estructurado: ${(error as Error).message}`);
-          }
-      }
-  
-      await this.usuariosService.deactivateUser(user.id);
-      return { message: 'Cuenta desactivada exitosamente' };
-=======
         token: null,
         tokenCreatedAt: null,
         confirmado: true,
@@ -360,11 +284,55 @@ export class AuthService {
       return { isOtpVerified: true };
     }
 
-    // Vi que el frontend solo checa si la respuesta es 'ok' (status 200).
-    // Si el token estaba mal, yo regresaba 'false' pero con status 200,
-    // así que la app pensaba que estaba bien.
-    // Ahora lanzo un error 401 para que el frontend sí lo cache.
+    // Aceptamos la lógica de Develop: Lanzar error 401 en lugar de devolver false
     throw new UnauthorizedException('Token no valido');
+  }
+
+  // --- TU MÉTODO 'deleteUserAccount' ---
+  async deleteUserAccount(
+    profileIdFromToken: number,
+    passwordAttempt: string,
+    selectedOption: string,
+    otherText: string | null,
+  ): Promise<{ message: string }> {
+    const user = await this.usuariosService.findByProfileId(profileIdFromToken);
+    if (!user) {
+      throw new NotFoundException(
+        'Usuario no encontrado usando el profileId del token',
+      );
+    }
+
+    const storedHash = user.password;
+    if (!storedHash || storedHash === 'N/A: OAuth') {
+      throw new UnauthorizedException(
+        'El usuario no tiene una contraseña configurada para verificar.',
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(passwordAttempt, storedHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('La contraseña es incorrecta');
+    }
+
+    if (selectedOption) {
+      try {
+        const newReason = this.reasonRepository.create({
+          selected_option: selectedOption,
+          other_text: otherText || null,
+        });
+        await this.reasonRepository.save(newReason);
+        this.logger.log(
+          `Motivo estructurado guardado (profileId: ${profileIdFromToken})`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Error al guardar motivo estructurado: ${(error as Error).message}`,
+        );
+      }
+    }
+
+    await this.usuariosService.deactivateUser(user.id);
+    return { message: 'Cuenta desactivada exitosamente' };
   }
 
   private async cleanSingleExpiredToken(email: string) {
@@ -372,22 +340,20 @@ export class AuthService {
       token: null,
       tokenCreatedAt: null,
     });
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
   }
 
-  // Tarea programada de develop (CRON)
+  // Tarea programada (CRON)
   @Cron(CronExpression.EVERY_HOUR)
   async handleCleanUnverifiedUsers() {
     this.logger.log('Iniciando limpieza de usuarios no verificados...');
-<<<<<<< HEAD
-=======
-
->>>>>>> a83e1c0a422ac708dd0fc6de7003caf4b174ff5b
     try {
       const deletedCount = await this.usuariosService.cleanUnverifiedUsers();
       this.logger.log(`Usuarios no verificados eliminados: ${deletedCount}`);
     } catch (error) {
-      this.logger.error('Error en limpieza de usuarios no verificados:', error.stack);
+      this.logger.error(
+        'Error en limpieza de usuarios no verificados:',
+        error.stack,
+      );
     }
   }
 }

@@ -1,8 +1,7 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { UserService } from './user.service';
-// --- 👇 CORRECCIÓN: Ruta de importación actualizada ---
-import { CreateUserDto } from '../auth/dto/create-user.dto'; 
-import { CreateAccount } from 'src/create-account/entities/create-account.entity'; // Importa la entidad correcta
+import { CreateUserDto } from '../auth/dto/create-user.dto';
+import { User } from './entities/user.entity'; // Usamos la entidad estándar del equipo
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('users') // Etiqueta de Swagger
@@ -12,20 +11,15 @@ export class UserController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
-  // Devuelve un array de 'CreateAccount' (la entidad real)
-  @ApiResponse({ status: 200, description: 'Lista de usuarios', type: [CreateAccount] }) 
+  @ApiResponse({ status: 200, description: 'Lista de usuarios', type: [User] })
   findAll() {
-    // Llama al método del servicio (que usa 'CreateAccount')
-    return this.userService.findAll(); 
+    return this.userService.findAll();
   }
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  // Devuelve un 'CreateAccount'
-  @ApiResponse({ status: 201, description: 'Usuario creado', type: CreateAccount }) 
+  @ApiResponse({ status: 201, description: 'Usuario creado', type: User })
   create(@Body() createUserDto: CreateUserDto) {
-    // Pasa el DTO al servicio (que espera Partial<CreateAccount>)
-    // Esto funciona porque CreateUserDto es compatible
-    return this.userService.create(createUserDto); 
+    return this.userService.create(createUserDto);
   }
 }

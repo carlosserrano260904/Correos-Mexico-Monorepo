@@ -1,10 +1,22 @@
 import React, {useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { SquarePen, Pause } from 'lucide-react-native';
 import StatesComponent from './statesComponent';
 import CircularProgress from './circularProgress';
 import ModalSellerComponent from './modalSellerComponent';
+
+const screenWidht = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height;
+
+type Producto = {
+    id: number;
+    status: string;
+    nombre: string;
+    precio: number;
+    sold: number;
+    stock: number;
+};
 
 export default function ProductCardSellerComponent({
     // Pide el estatus en el que se encuentra el producto
@@ -17,12 +29,10 @@ export default function ProductCardSellerComponent({
     soldProducts,
     // Pide el stock actual del producto
     stock,
-    // Pide la logica del onPress para editar el producto
-    onPressEditProduct,
-    // Pide la logica del onPress para pausar el producto
-    onPressPauseProduct,
     // Pide la logica del onPress de toda la card del producto
     onPressCardProduct,
+    // Pide el array de informacion del objeto de la card
+    item,
 } : {
     // Define el estatus del producto que coincide con el componente StatesComponent
     statusProduct: 'activo' | 'pausado';
@@ -30,9 +40,8 @@ export default function ProductCardSellerComponent({
     priceProduct: number;
     soldProducts: number,
     stock: number,
-    onPressEditProduct: any,
-    onPressPauseProduct: any,
     onPressCardProduct: any,
+    item: Producto
 }) {
 
     // Define si se va a mostrar de pausar producto
@@ -63,10 +72,10 @@ export default function ProductCardSellerComponent({
                 </View>
                 <View style={styles.buttonsContainer}> 
                         <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowEditProductModal(true)}>
-                            <SquarePen  size={moderateScale(18)} color={'#9CA3AF'}/>
+                            <SquarePen  size={screenWidht * 0.047} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                         <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowPauseProductModal(true)}>
-                            <Pause size={moderateScale(18)} color={'#9CA3AF'}/>
+                            <Pause size={screenWidht * 0.047} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                 </View>
             </View>
@@ -108,27 +117,27 @@ export default function ProductCardSellerComponent({
 
 const styles = StyleSheet.create({
     container: {
-        padding: moderateScale(16),
+        padding: screenWidht * 0.042,
         backgroundColor: '#F3F4F6',
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
         borderWidth: 1,
         flexDirection: 'row',
-        gap: moderateScale(8),
+        gap: screenWidht * 0.022,
         justifyContent: 'space-between'
     },
     leftContainer: {
         flexDirection: 'column',
-        gap: moderateScale(8),
+        gap: screenWidht * 0.022,
         width: '50%'
     },
     buttonsContainer: {
         flexDirection: 'row',
-        gap: moderateScale(12),
-        marginTop: moderateScale(8),
+        gap: screenWidht * 0.032,
+        marginTop: screenHeight * 0.01,
     },
     buttonAction: {
-        padding: moderateScale(8),
+        padding: screenWidht * 0.022,
         backgroundColor: '#F3F4F6',
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
@@ -136,36 +145,36 @@ const styles = StyleSheet.create({
     },
     nameContainer: {
         flexDirection: 'column',
-        gap: moderateScale(4)
+        gap: screenWidht * 0.012
     },
     nameText: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.019,
         color: '#DE1484'
     },
     priceText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(20),
+        fontSize: screenHeight * 0.024,
         color: '#374151'
     },
     stockContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: moderateScale(4),
+        gap: screenWidht * 0.01,
         flexWrap: 'wrap'
     },
     stockText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.016,
         color: '#6B7280'
     },
     stockTextStrong: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.016,
         color: '#374151'
     },
     percentageContainer: {
@@ -174,16 +183,10 @@ const styles = StyleSheet.create({
         width: '50%',
         alignItems: 'center'
     },
-    percentage: {
-        fontFamily: 'system-ui',
-        fontWeight: 700,
-        fontSize: moderateScale(28),
-        color: '#111827'
-    },
     percentageText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(12),
+        fontSize: screenHeight * 0.014,
         color: '#6B7280'
     }
 

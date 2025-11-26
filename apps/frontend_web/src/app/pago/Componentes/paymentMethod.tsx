@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from "react";
 import PaymentMethodPrim from "./Primitivos/paymentMethod";
 import Link from 'next/link'

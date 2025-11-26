@@ -1,4 +1,3 @@
-'use client'
 
 import { useDescuentoStore } from "../stores/useDescuentoStore"
 import { useEffect, useState } from 'react'

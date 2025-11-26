@@ -1,5 +1,5 @@
-'use client'
-import { useEffect, useCallback } from 'react'
+// hooks/useFavorites.ts
+import { useEffect } from 'react' // ⬅️ REMOVER useCallback
 import { useFavoritesStore } from '../stores/useFavoritesStore'
 import { useAuth } from './useAuth' 
 
@@ -19,7 +19,6 @@ export const useFavorites = () => {
   const { user, isAuthenticated } = useAuth() 
 
   // 1. SINCRONIZAR AL CARGAR (Backend -> Store)
-  // Cuando el usuario entra, bajamos sus favoritos de la base de datos
   useEffect(() => {
     const fetchServerFavorites = async () => {
       if (!isAuthenticated || !user?.id) return;
@@ -30,8 +29,6 @@ export const useFavorites = () => {
           const data = await response.json();
           
           // TRADUCCIÓN DE DATOS: Backend (NestJS) -> Frontend (Zustand)
-          // El backend te da { producto: { nombre: ... } }
-          // Tu store espera { ProductName: ... }
           const mappedFavorites = Array.isArray(data) ? data.map((item: any) => ({
              ProductID: item.producto.id,
              ProductName: item.producto.nombre,
@@ -51,21 +48,20 @@ export const useFavorites = () => {
     };
 
     fetchServerFavorites();
-  }, [isAuthenticated, user?.id]); // Se ejecuta cuando el usuario cambia o hace login
+  }, [isAuthenticated, user?.id, store]); // ⬅️ AGREGAR store a las dependencias
 
   // 2. AGREGAR (Wrapper que conecta API + Store)
   const handleAddToFavorites = async (rawProduct: any) => {
     console.log("Producto recibido al dar like:", rawProduct);
 
     // 1. TRADUCCIÓN (El Mapper)
-    // Convertimos el producto crudo (del backend/tarjeta) al formato del Navbar
     const productForStore = {
-        ProductID: rawProduct.id || rawProduct.ProductID, // Intenta leer 'id', si no 'ProductID'
+        ProductID: rawProduct.id || rawProduct.ProductID,
         ProductName: rawProduct.nombre || rawProduct.ProductName || 'Producto sin nombre',
         ProductBrand: rawProduct.marca || rawProduct.ProductBrand || 'Correos',
         ProductImageUrl: getImageOrden0(rawProduct), 
         productPrice: Number(rawProduct.precio || rawProduct.productPrice || 0),
-        favoriteId: null // Es nuevo localmente, aun no tiene ID de base de datos de favoritos
+        favoriteId: null
     };
 
     // 2. Guardar en ZUSTAND (Visualmente inmediato)
@@ -79,7 +75,7 @@ export const useFavorites = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: user.id,
-            productId: productForStore.ProductID // Usamos el ID ya normalizado
+            productId: productForStore.ProductID
           })
         });
       } catch (error) {
@@ -93,7 +89,7 @@ export const useFavorites = () => {
     Favorites: store.favorites,
     
     // Insert
-    addToFavorites: store.addToFavorites,
+    addToFavorites: handleAddToFavorites, // ⬅️ CAMBIAR a nuestra función personalizada
     
     // Delete
     removeFromFavorites: store.removeFromFavorites,

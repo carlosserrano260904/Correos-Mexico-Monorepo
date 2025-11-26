@@ -48,6 +48,7 @@ module.exports = ({ config }) => ({
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],
+      permissions: ["android.permission.CAMERA"],
     },
     web: {
       favicon: "./assets/icons_correos_mexico/square_correos_clic_Logo.png",

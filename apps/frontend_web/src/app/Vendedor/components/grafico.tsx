@@ -11,12 +11,6 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, } from 
 
 export const description = "An interactive bar chart"
 
-interface  ChartData {
-  date: string,
-  comprasUltMes: number,
-  usuarioNuevos: number,
-  ingresos_mensuales: number
-}
 
 const chartData = [
   //fecha , desktop seria la primer seccion de compras en el mes, mobile es la segunda seccion de usuarios nuevos, ingresos mensuales pues como su nombre lo dice es de los ingresos jaja

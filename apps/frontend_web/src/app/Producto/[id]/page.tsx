@@ -5,7 +5,6 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { useProductById } from '@/hooks/useProduct';
 import { ProductDetails } from '@/components/primitivos/ProductDetails';
-import { ProductCardSkeleton } from '@/components/primitivos';
 import { Plantilla } from '@/components/plantilla';
 
 export default function ProductDetailPage() {
@@ -71,8 +70,8 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <Plantilla>
-      <ProductDetails product={product} />
-    </Plantilla>
+  <Plantilla>
+    <ProductDetails product={product as any} />
+  </Plantilla>
   );
 }

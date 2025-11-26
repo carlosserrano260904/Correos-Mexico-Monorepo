@@ -1,8 +1,7 @@
 
 'use client';
 
-import {CardsResumen} from "../../../types/interface"
-import {  Card_cambio, Card_titulo, Card_valor } from "./primitivos";
+import {  Card_titulo, Card_valor } from "./primitivos";
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import React from 'react';
 import { cn } from "../../lib/utils";

@@ -4,7 +4,6 @@ import { HiOutlineBell, HiOutlineUserCircle } from "react-icons/hi";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
-import BotonNotificacion from '@/app/Vendedor/components/BotonNotificacion'
 
 
 

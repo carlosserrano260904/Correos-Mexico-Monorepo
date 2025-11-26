@@ -241,7 +241,10 @@ export default function SignUpScreen() {
       try {
         const { createdSessionId, setActive } = await startSSOFlow({
           strategy,
-          redirectUrl: AuthSession.makeRedirectUri(),
+          redirectUrl: AuthSession.makeRedirectUri({
+            scheme: "correosdemexico",
+            path: 'sso-callback' 
+          }),
         })
 
         if (createdSessionId) {
@@ -477,15 +480,15 @@ export default function SignUpScreen() {
               <Text style={styles.socialTextColumn}>Ingresar con Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.socialButtonColumn} disabled={loading} onPress={() => handleOAuthPress('oauth_facebook')}>
+            {/*<TouchableOpacity style={styles.socialButtonColumn} disabled={loading} onPress={() => handleOAuthPress('oauth_facebook')}>
               <Icon name="facebook" size={24} color="#1877F3" style={{ marginRight: 12 }} />
               <Text style={styles.socialTextColumn}>Ingresar con Facebook</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
 
-            <TouchableOpacity style={styles.socialButtonColumn} disabled={loading} onPress={() => handleOAuthPress('oauth_apple')}>
+            {/*<TouchableOpacity style={styles.socialButtonColumn} disabled={loading} onPress={() => handleOAuthPress('oauth_apple')}>
               <Icon name="apple" size={24} color="#000" style={{ marginRight: 12 }} />
               <Text style={styles.socialTextColumn}>Ingresar con Apple</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('SignIn')} disabled={loading}>

@@ -4,7 +4,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // LISTA COMBINADA DE CATEGORÍAS
-// Incluye las de la Imagen 1 (Destacados, FONART) y la Imagen 2 (Blusas, Pantalones...)
 const STATIC_CATEGORIES = [
   { 
     name: 'Blusas', 
@@ -147,9 +146,6 @@ export const CategoryCarousel: React.FC = () => {
         ))}
       </div>
       
-      
-      {/* 🚫 AQUÍ ES DONDE ESTABAN LOS PUNTOS. LOS HE ELIMINADO. 🚫 */}
-
     </div>
     
   );

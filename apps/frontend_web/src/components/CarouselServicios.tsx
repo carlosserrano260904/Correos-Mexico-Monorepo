@@ -1,7 +1,7 @@
 import React from "react"
 import { useRouter } from 'next/navigation'
 import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel"
-import { IoMailOutline, IoArchiveOutline, IoDocumentTextOutline, IoCashOutline, IoSettingsOutline, IoArrowForwardOutline } from 'react-icons/io5'
+import { IoArrowForwardOutline } from 'react-icons/io5'
 
 interface ServicioItem {
   id: string

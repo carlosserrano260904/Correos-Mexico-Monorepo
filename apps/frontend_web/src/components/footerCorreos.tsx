@@ -9,7 +9,7 @@ export default function Footer() {
           <img  src="/logoCorreos.png" 
                 alt="Logo de Correos" width={150} 
                 height={40}  />
-        </div>
+        </div> 
 
         {/* Links */}
         <nav className="flex gap-6 text-m font-medium text-black-50 gap-12">

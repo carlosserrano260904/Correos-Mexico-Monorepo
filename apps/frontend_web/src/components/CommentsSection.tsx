@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Comentario } from '@/components/Comentario';
 import { AddCommentForm } from '@/components/AddCommentForm';
-import { StarRating } from '@/components/StarRating';
 import { useComments } from '@/hooks/useComments';
 import { IoAddOutline, IoStarSharp } from 'react-icons/io5';
 

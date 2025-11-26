@@ -1,6 +1,5 @@
 import React from "react"
 import { Star } from "lucide-react"
-import { Progress } from "./ui/progress"
 
 interface ResenaStats {
   excelente: number

@@ -127,50 +127,6 @@ function Tag({
   );
 }
 
-function ActionBar() {
-  const Item = ({
-    active = false,
-    label,
-    children,
-  }: {
-    active?: boolean;
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <button
-      aria-label={label}
-      className={[
-        "inline-flex h-10 w-10 items-center justify-center rounded-full",
-        active ? "text-white shadow" : "text-neutral-600 hover:bg-neutral-200",
-      ].join(" ")}
-      style={active ? { backgroundColor: BRAND_PINK_SOLID } : { backgroundColor: "#E5E7EB" }} // gris suave para no activos
-    >
-      {children}
-    </button>
-  );
-
-  return (
-    <div className="mx-auto w-full max-w-2xl">
-      <div className="rounded-full bg-neutral-100 px-2 py-1 ring-1 ring-black/5 shadow-sm">
-        <div className="flex items-center justify-around gap-1">
-          <Item label="Inicio" active>
-            <svg viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M12 3 3 10h3v10h12V10h3L12 3Z" /></svg>
-          </Item>
-          <Item label="Inventario">
-            <svg viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M20 7H4V4h16v3Zm0 3H4v10h16V10ZM8 12h8v2H8v-2Z" /></svg>
-          </Item>
-          <Item label="Borrar">
-            <svg viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M9 4h6l1 2h4v2H4V6h4l1-2Zm1 6h2v8h-2v-8Zm4 0h2v8h-2v-8Zm-8 0h2v8H6v-8Z" /></svg>
-          </Item>
-          <Item label="Enviar">
-            <svg viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="m2 21 21-9L2 3v7l15 2-15 2v7Z" /></svg>
-          </Item>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function CouponCard({ c }: { c: Coupon }) {
   return (
     <div className="rounded-2xl bg-neutral-50 p-5 ring-1 ring-black/5 shadow-sm">

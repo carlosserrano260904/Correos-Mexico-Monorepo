@@ -5,26 +5,25 @@ import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
-// Asegúrate de que esta lista tenga los nombres CORRECTOS de tus archivos en la carpeta 'public'
 const banners = [
   {
     id: 1,
-    image: "/banner-tenis.png",
+    image: "/banners/banner-principal.png",
     alt: "Tenis - Nuevos Modelos"
   },
   {
     id: 2,
-    image: "/banner-llego-verano.png",
+    image: "/banners/banner-llego-verano.png",
     alt: "Llegó el verano - Envíos gratis"
   },
   {
     id: 3,
-    image: "/banner-verano-amarilla.png",
+    image: "/banners/banner-verano-amarilla.png",
     alt: "Nuevos modelos deportivos"
   },
   {
     id: 4,
-    image: "/banner-temporada-verano.png",
+    image: "/banners/banner-temporada-verano.png",
     alt: "Temporada Verano 2025"
   }
 ];
@@ -61,18 +60,15 @@ export const HeroBanner: React.FC = () => {
         <CarouselContent className="ml-0">
           {banners.map((banner, index) => (
             <CarouselItem key={banner.id} className="pl-0">
-              {/* --- CAMBIO CLAVE AQUÍ --- */}
-              {/* 1. Definimos alturas FIJAS y explícitas para diferentes tamaños de pantalla.
-                  h-[300px] en móvil, h-[450px] en tablet pequeña, h-[550px] en escritorio.
-                  El 'relative' es necesario para que funcione el 'fill' de la imagen. */}
-              <div className="relative w-full h-[300px] sm:h-[450px] md:h-[550px] lg:h-[600px]">
+              <div className="relative w-full">
                 <Image
                   src={banner.image}
                   alt={banner.alt}
-                  // 2. Usamos 'fill' en lugar de width/height. Esto hace que la imagen llene el 'div' padre.
-                  fill
-                  // 3. 'object-cover' es vital: recorta la imagen para llenar el espacio sin estirarla.
-                  className="object-cover"
+                  // Usamos dimensiones base grandes para mantener la calidad
+                  width={1920} 
+                  height={600}
+                  // "w-full h-auto" hace la magia: escala proporcionalmente sin recortar
+                  className="w-full h-auto object-contain"
                   priority={index === 0}
                 />
               </div>
@@ -80,20 +76,22 @@ export const HeroBanner: React.FC = () => {
           ))}
         </CarouselContent>
         
-        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
-        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
+        {/* Flechas */}
+        <CarouselPrevious className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
+        <CarouselNext className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
       </Carousel>
 
       {/* Indicadores (Puntitos) */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+      {/* Ajustamos 'bottom' para que se vea bien si la imagen es pequeña en móvil */}
+      <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
         {banners.map((_, index) => (
           <button
             key={index}
             onClick={() => api?.scrollTo(index)}
-            className={`h-3 rounded-full transition-all duration-500 pointer-events-auto ${
+            className={`h-2 sm:h-3 rounded-full transition-all duration-500 pointer-events-auto shadow-sm border border-black/10 ${
               index + 1 === current
-                ? "bg-[#DE1484] w-8" 
-                : "bg-white/80 hover:bg-white w-3" 
+                ? "bg-[#DE1484] w-6 sm:w-8" 
+                : "bg-white/90 hover:bg-white w-2 sm:w-3" 
             }`}
             aria-label={`Ir a banner ${index + 1}`}
           />

@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useMyAuth } from '../../context/AuthContext'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+// import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 type CheckoutStackParamList = {
   SignUp: undefined
@@ -88,7 +88,10 @@ export default function SignInScreen() {
       try {
         const { createdSessionId, setActive } = await startSSOFlow({
           strategy,
-          redirectUrl: AuthSession.makeRedirectUri(),
+          redirectUrl: AuthSession.makeRedirectUri({
+            scheme: "correosdemexico",
+            path: 'sso-callback' 
+          }),
         })
 
         if (createdSessionId) {
@@ -181,19 +184,19 @@ export default function SignInScreen() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_facebook')}>
+      {/*<TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_facebook')}>
         <View style={styles.socialContent}>
           <Icon name="facebook" size={24} color="#1877F3" style={styles.socialIcon} />
           <Text style={styles.socialText}>Continuar con Facebook</Text>
         </View>
-      </TouchableOpacity>
+      </TouchableOpacity>*/}
 
-      <TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_apple')}>
+      {/*<TouchableOpacity style={styles.socialButton} onPress={() => handleOAuthPress('oauth_apple')}>
         <View style={styles.socialContent}>
           <Icon name="apple" size={24} color="#000" style={styles.socialIcon} />
           <Text style={styles.socialText}>Continuar con Apple</Text>
         </View>
-      </TouchableOpacity>
+      </TouchableOpacity>*/}
 
       <TouchableOpacity onPress={() => navigation.navigate('SignUp' as never)}>
         <Text style={styles.footerText}>

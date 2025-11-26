@@ -6,6 +6,7 @@ module.exports = ({ config }) => ({
     name: "Correos de Mexico",
     slug: "correos-de-mexico",
     version: "1.0.1",
+    scheme: "correosdemexico",
     assetBundlePatterns: ["**/*"],
     orientation: "portrait",
     icon: "./assets/icons_correos_mexico/square_correos_clic_Logo.png",
@@ -19,6 +20,13 @@ module.exports = ({ config }) => ({
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.seanalytics.correosdemexico",
+      infoPlist: {
+        CFBundleURLTypes: [
+          {
+            CFBundleURLSchemes: ["correosdemexico"], // must match your scheme
+          },
+        ],
+      },
     },
     android: {
       adaptiveIcon: {
@@ -28,6 +36,18 @@ module.exports = ({ config }) => ({
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.seanalytics.correosdemexico",
+      intentFilters: [
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme: "correosdemexico",
+              host: "sso-callback",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     web: {
       favicon: "./assets/icons_correos_mexico/square_correos_clic_Logo.png",

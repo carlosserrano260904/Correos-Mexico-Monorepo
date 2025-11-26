@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { IoSearchOutline, IoChevronDownOutline } from 'react-icons/io5';
-import { FaUserTie, FaFileAlt, FaImages, FaHome } from 'react-icons/fa';
+import Image from 'next/image';
+import { IoSearchOutline } from 'react-icons/io5';
+import { FaImages, FaHome } from 'react-icons/fa';
 
 // Single-file React component that simulates the 5 screens the user requested.
 // Built with Tailwind classes so you can paste it into a Next.js "use client" page.
 
+type RouteType = 'inicio' | 'terminos' | 'productos' | 'vendedores' | 'banners';
+
 export default function AdminDashboard() {
-  const [route, setRoute] = useState<'inicio'|'terminos'|'productos'|'vendedores'|'banners'>('inicio');
+  const [route, setRoute] = useState<RouteType>('inicio');
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -24,32 +27,38 @@ export default function AdminDashboard() {
   );
 }
 
-function Header({ onNavigate, active }:{onNavigate:(r:any)=>void, active:string}){
+function Header({ onNavigate, active }: { onNavigate: (r: RouteType) => void, active: string }) {
   return (
     <header className="flex items-center justify-between max-w-6xl mx-auto">
       <div className="flex items-center gap-4">
         <div className="h-10 w-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold">C</div>
         <h1 className="text-xl font-semibold text-gray-900">Panel administrativo</h1>
         <nav className="ml-6 flex items-center gap-2 text-sm text-gray-600">
-          <NavButton label="Inicio" active={active==='inicio'} onClick={()=>onNavigate('inicio')} icon={<FaHome/>} />
-          <NavButton label="Términos" active={active==='terminos'} onClick={()=>onNavigate('terminos')} />
-          <NavButton label="Productos" active={active==='productos'} onClick={()=>onNavigate('productos')} />
-          <NavButton label="Vendedores" active={active==='vendedores'} onClick={()=>onNavigate('vendedores')} />
-          <NavButton label="Banners" active={active==='banners'} onClick={()=>onNavigate('banners')} icon={<FaImages/>} />
+          <NavButton label="Inicio" active={active === 'inicio'} onClick={() => onNavigate('inicio')} icon={<FaHome />} />
+          <NavButton label="Términos" active={active === 'terminos'} onClick={() => onNavigate('terminos')} />
+          <NavButton label="Productos" active={active === 'productos'} onClick={() => onNavigate('productos')} />
+          <NavButton label="Vendedores" active={active === 'vendedores'} onClick={() => onNavigate('vendedores')} />
+          <NavButton label="Banners" active={active === 'banners'} onClick={() => onNavigate('banners')} icon={<FaImages />} />
         </nav>
       </div>
 
       <div className="flex items-center gap-4">
         <button className="text-sm px-3 py-1 rounded-full bg-white border border-gray-200 shadow-sm">Usuarios</button>
         <div className="h-8 w-8 rounded-full overflow-hidden">
-          <img src="https://i.pravatar.cc/40" alt="avatar" />
+          <Image 
+            src="https://i.pravatar.cc/40" 
+            alt="avatar" 
+            width={32} 
+            height={32}
+            className="object-cover"
+          />
         </div>
       </div>
     </header>
   );
 }
 
-function NavButton({label, onClick, active, icon}:{label:string, onClick?:any, active?:boolean, icon?:any}){
+function NavButton({ label, onClick, active, icon }: { label: string, onClick?: () => void, active?: boolean, icon?: React.ReactNode }) {
   return (
     <button onClick={onClick} className={`px-3 py-1 rounded-full ${active ? 'bg-pink-500 text-white' : 'hover:bg-gray-100'} text-sm flex items-center gap-2`}>
       {icon}
@@ -61,7 +70,7 @@ function NavButton({label, onClick, active, icon}:{label:string, onClick?:any, a
 // ----------------------------
 // Pantalla: INICIO / DASHBOARD
 // ----------------------------
-function PantallaInicio({onNavigate}:{onNavigate:(r:any)=>void}){
+function PantallaInicio({ onNavigate }: { onNavigate: (r: RouteType) => void }) {
   return (
     <section className="space-y-6">
       <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
@@ -80,10 +89,10 @@ function PantallaInicio({onNavigate}:{onNavigate:(r:any)=>void}){
         </div>
 
         <div className="mt-6 grid grid-cols-4 gap-4">
-          <ActionCard title="Términos y condiciones" onClick={()=>onNavigate('terminos')} colorClass="bg-green-500" />
-          <ActionCard title="Banners de la aplicación" onClick={()=>onNavigate('banners')} colorClass="bg-violet-600" />
-          <ActionCard title="Solicitudes para ser vendedor" onClick={()=>onNavigate('vendedores')} colorClass="bg-orange-500" />
-          <ActionCard title="Solicitudes de productos" onClick={()=>onNavigate('productos')} colorClass="bg-sky-500" />
+          <ActionCard title="Términos y condiciones" onClick={() => onNavigate('terminos')} colorClass="bg-green-500" />
+          <ActionCard title="Banners de la aplicación" onClick={() => onNavigate('banners')} colorClass="bg-violet-600" />
+          <ActionCard title="Solicitudes para ser vendedor" onClick={() => onNavigate('vendedores')} colorClass="bg-orange-500" />
+          <ActionCard title="Solicitudes de productos" onClick={() => onNavigate('productos')} colorClass="bg-sky-500" />
         </div>
 
         <div className="mt-6">
@@ -99,8 +108,8 @@ function PantallaInicio({onNavigate}:{onNavigate:(r:any)=>void}){
   );
 }
 
-function StatCard({title, value, color}:{title:string, value:string, color:string}){
-  const colorMap:any = {
+function StatCard({ title, value, color }: { title: string, value: string, color: string }) {
+  const colorMap: Record<string, string> = {
     red: 'bg-red-50 text-red-600',
     yellow: 'bg-yellow-50 text-yellow-600',
     cyan: 'bg-cyan-50 text-cyan-600',
@@ -116,13 +125,13 @@ function StatCard({title, value, color}:{title:string, value:string, color:strin
   );
 }
 
-function ActionCard({title, onClick, colorClass}:{title:string, onClick?:any, colorClass?:string}){
+function ActionCard({ title, onClick, colorClass }: { title: string, onClick?: () => void, colorClass?: string }) {
   return (
     <button onClick={onClick} className={`rounded-xl p-4 text-white shadow ${colorClass} text-left`}>{title}</button>
   );
 }
 
-function ActivityRow({text, badge, badgeClass}:{text:string, badge:string, badgeClass:string}){
+function ActivityRow({ text, badge, badgeClass }: { text: string, badge: string, badgeClass: string }) {
   return (
     <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-100">
       <div className="text-sm text-gray-700">{text}</div>
@@ -134,7 +143,7 @@ function ActivityRow({text, badge, badgeClass}:{text:string, badge:string, badge
 // ----------------------------
 // Pantalla: TERMINOS Y CONDICIONES
 // ----------------------------
-function PantallaTerminos(){
+function PantallaTerminos() {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between">
@@ -159,7 +168,7 @@ function PantallaTerminos(){
   );
 }
 
-function Section({title, children}:{title:string, children:React.ReactNode}){
+function Section({ title, children }: { title: string, children: React.ReactNode }) {
   return (
     <div>
       <div className="text-sm font-semibold text-gray-800">{title}</div>
@@ -171,10 +180,10 @@ function Section({title, children}:{title:string, children:React.ReactNode}){
 // ----------------------------
 // Pantalla: SOLICITUDES DE PRODUCTOS
 // ----------------------------
-function PantallaSolicitudesProductos(){
-  const solicitudes = Array.from({length:12}).map((_,i)=>({
-    id: i+1,
-    nombre: `Nombre del producto ${i+1}`,
+function PantallaSolicitudesProductos() {
+  const solicitudes = Array.from({ length: 12 }).map((_, i) => ({
+    id: i + 1,
+    nombre: `Nombre del producto ${i + 1}`,
     vendedor: 'Juan Pérez',
     fecha: '21/11/2025',
     estado: i % 5 === 0 ? 'Rechazada' : (i % 3 === 0 ? 'Modificada' : 'Nueva')
@@ -190,7 +199,7 @@ function PantallaSolicitudesProductos(){
         <div className="flex items-center gap-3">
           <div className="relative">
             <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="pl-10 pr-3 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm w-72" placeholder="Buscar por nombre o vendedor"/>
+            <input className="pl-10 pr-3 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm w-72" placeholder="Buscar por nombre o vendedor" />
           </div>
           <select className="rounded-full border border-gray-200 bg-white px-3 py-2 text-sm">
             <option>Todas las solicitudes</option>
@@ -204,7 +213,7 @@ function PantallaSolicitudesProductos(){
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2 space-y-3">
           <div className="grid grid-cols-3 gap-3">
-            {solicitudes.map(s=> (
+            {solicitudes.map(s => (
               <CardSolicitud key={s.id} data={s} />
             ))}
           </div>
@@ -212,7 +221,7 @@ function PantallaSolicitudesProductos(){
         <aside className="bg-gray-50 rounded-xl p-4 border border-gray-100">
           <h3 className="text-sm font-semibold text-gray-800">Solicitudes recientes</h3>
           <div className="mt-3 space-y-2">
-            {solicitudes.slice(0,4).map(s=> (
+            {solicitudes.slice(0, 4).map(s => (
               <div key={s.id} className="bg-white p-3 rounded-lg border border-gray-100 text-sm">
                 <div className="font-medium">{s.nombre}</div>
                 <div className="text-xs text-gray-500">Vendedor: {s.vendedor} • {s.fecha}</div>
@@ -225,7 +234,15 @@ function PantallaSolicitudesProductos(){
   );
 }
 
-function CardSolicitud({data}:{data:any}){
+interface SolicitudData {
+  id: number;
+  nombre: string;
+  vendedor: string;
+  fecha: string;
+  estado: string;
+}
+
+function CardSolicitud({ data }: { data: SolicitudData }) {
   const colorClass = data.estado === 'Nueva' ? 'bg-green-50 text-green-700' : (data.estado === 'Modificada' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700');
   return (
     <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -244,12 +261,12 @@ function CardSolicitud({data}:{data:any}){
 // ----------------------------
 // Pantalla: SOLICITUDES DE VENDEDORES
 // ----------------------------
-function PantallaSolicitudesVendedores(){
-  const solicitudes = Array.from({length:8}).map((_,i)=>({
-    id: i+1,
+function PantallaSolicitudesVendedores() {
+  const solicitudes = Array.from({ length: 8 }).map((_, i) => ({
+    id: i + 1,
     nombre: 'Marta Rodríguez',
     fecha: '21/11/2025',
-    estado: i===6 ? 'Rechazada' : 'Nueva'
+    estado: i === 6 ? 'Rechazada' : 'Nueva'
   }));
 
   return (
@@ -264,15 +281,15 @@ function PantallaSolicitudesVendedores(){
       <div className="mt-4">
         <div className="relative mb-4">
           <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input className="pl-10 pr-3 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm w-72" placeholder="Buscar por nombre"/>
+          <input className="pl-10 pr-3 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm w-72" placeholder="Buscar por nombre" />
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          {solicitudes.map(s=> (
+          {solicitudes.map(s => (
             <div key={s.id} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
               <div className="text-sm font-medium">{s.nombre}</div>
               <div className="text-xs text-gray-500 mt-1">Fecha de creación: {s.fecha}</div>
-              <div className={`mt-3 px-3 py-1 rounded-full text-xs font-semibold ${s.estado==='Nueva' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{s.estado}</div>
+              <div className={`mt-3 px-3 py-1 rounded-full text-xs font-semibold ${s.estado === 'Nueva' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{s.estado}</div>
             </div>
           ))}
         </div>
@@ -284,10 +301,10 @@ function PantallaSolicitudesVendedores(){
 // ----------------------------
 // Pantalla: BANNERS DEL SISTEMA
 // ----------------------------
-function PantallaBanners(){
-  const banners = Array.from({length:4}).map((_,i)=>({
-    id: i+1,
-    img: 'https://via.placeholder.com/160x60?text=Banner+'+(i+1),
+function PantallaBanners() {
+  const banners = Array.from({ length: 4 }).map((_, i) => ({
+    id: i + 1,
+    img: 'https://via.placeholder.com/160x60?text=Banner+' + (i + 1),
     pagina: 'Inicio - 1',
     estado: 'Activo'
   }));
@@ -316,9 +333,17 @@ function PantallaBanners(){
             </tr>
           </thead>
           <tbody>
-            {banners.map(b=> (
+            {banners.map(b => (
               <tr key={b.id} className="border-b border-gray-100">
-                <td className="py-3 px-4"><img src={b.img} alt="banner" className="h-12 w-36 object-cover rounded-md"/></td>
+                <td className="py-3 px-4">
+                  <Image 
+                    src={b.img} 
+                    alt="banner" 
+                    width={144} 
+                    height={48}
+                    className="object-cover rounded-md"
+                  />
+                </td>
                 <td className="py-3 px-4">{b.pagina}</td>
                 <td className="py-3 px-4"><span className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold">{b.estado}</span></td>
                 <td className="py-3 px-4"><button className="px-3 py-1 rounded-full border border-gray-200 text-sm">Editar</button></td>

@@ -7,7 +7,6 @@ import {
 } from "../../../../../components/ui/table"
 import { DescuentoProps } from "../../../../../types/interface"
 import { Separator } from "../../../../../components/ui/separator"
-import { DiscountSheet } from "./DiscountSheet"
 import { Descuento } from "../../../components/primitivos"
 
 interface TablerDescuentosProps {

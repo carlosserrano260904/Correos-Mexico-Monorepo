@@ -158,11 +158,12 @@ export default function UsuariosPage() {
 }
 
 function RolBadge({ rol }: { rol: string }) {
-  const map: any = {
+  const map: Record<string, string> = {
     Comprador: "bg-blue-100 text-blue-700",
     Vendedor: "bg-pink-100 text-pink-700",
     Administrador: "bg-yellow-100 text-yellow-700",
   };
+  
   return <span className={`px-3 py-1 rounded-full text-xs font-medium ${map[rol] || "bg-gray-100 text-gray-700"}`}>{rol}</span>;
 }
 

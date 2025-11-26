@@ -9,6 +9,13 @@ const BRAND_PINK_TO = '#E50071';
 const BRAND_PINK_SOLID = '#E50071';
 
 type Estado = 'Activo' | 'Pausado' | 'Sin stock';
+type TabType = 'Todos' | Estado;
+
+// ✅ Interface agregada para el producto extendido
+interface ProdWithPercent extends Prod {
+  percent: number;
+}
+
 type Prod = { id: string; nombre: string; precio: number; vendidos: number; stock: number; estado: Estado };
 
 const DATA: Prod[] = [
@@ -49,7 +56,7 @@ function ProgressRing({ percent }: { percent: number }) {
 }
 
 export default function Page() {
-  const [tab, setTab] = useState<'Todos' | Estado>('Todos');
+  const [tab, setTab] = useState<TabType>('Todos');
 
   const prods = useMemo(() => {
     return DATA.map(p => {
@@ -89,7 +96,8 @@ export default function Page() {
         {(['Todos', 'Activo', 'Pausado', 'Sin stock'] as const).map(t => (
           <button
             key={t}
-            onClick={() => setTab(t as any)}
+            // ✅ CORREGIDO LÍNEA 92: Eliminado 'as any'
+            onClick={() => setTab(t)}
             className={[
               'rounded-full px-5 py-2.5 text-base',
               tab === t
@@ -171,7 +179,7 @@ export default function Page() {
             </div>
 
             {/* Indicador */}
-            <ProgressRing percent={(p as any).percent} />
+            <ProgressRing percent={(p as ProdWithPercent).percent} />
           </div>
         ))}
       </div>

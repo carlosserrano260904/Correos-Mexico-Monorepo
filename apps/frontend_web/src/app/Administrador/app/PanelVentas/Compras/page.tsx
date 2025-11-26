@@ -31,7 +31,7 @@ type CompraReciente = {
 };
 
 export default function ComprasPage() {
-  const totalProductos = 1525;
+  //const totalProductos = 1525;
   const totalIngresos = 18950.5;
   const totalCategorias = 5;
   const totalCompradores = 12;

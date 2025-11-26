@@ -1,15 +1,15 @@
 'use client'
 import { Plantilla } from '@/components/plantilla'
-import React, { useEffect } from 'react'
+import React from 'react' 
 import { CartCard } from '../../components/cartcard'
 import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { CarrouselProducts } from '@/components/CarouselProducts'
 
-export default function page() {
+export default function CarritoPage() {
   const { Products } = useProducts();
-  const { CartItems} = useCart();
+  const { CartItems } = useCart();
 
   return (
     <Plantilla>

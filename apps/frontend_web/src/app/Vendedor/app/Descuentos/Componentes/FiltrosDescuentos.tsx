@@ -33,11 +33,10 @@ export const FiltrosDescuentos = ({ onFilteredDescuentos }: FiltrosDescuentosPro
     onFilteredDescuentos(filteredDescuentos)
   }, [filteredDescuentos, onFilteredDescuentos])
   
-  // Función para limpiar filtros
-  const clearFilters = () => {
-    setSearchTerm('')
-    setSelectedStatus('all')
-  }
+  // const clearFilters = () => {
+  //   setSearchTerm('')
+  //   setSelectedStatus('all')
+  // }
 
   return (
     <div className="flex gap-2.5">

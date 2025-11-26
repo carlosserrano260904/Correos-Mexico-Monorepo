@@ -28,10 +28,7 @@ const { width, height } = Dimensions.get('window');
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 /** Normaliza base de API para que SIEMPRE termine en /api (sin duplicar) */
-const apiBase = () =>
-  Constants?.expoConfig?.extra?.IP_LOCAL
-    ? `http://${Constants.expoConfig.extra.IP_LOCAL}:3000/api`
-    : `${BASE_URL}/api`;
+const apiBase = () => `${BASE_URL}/api`;
 
 const Colors = {
   primary: '#E91E63',

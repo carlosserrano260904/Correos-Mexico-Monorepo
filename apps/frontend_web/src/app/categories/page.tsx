@@ -10,6 +10,8 @@ import { useProducts } from '@/hooks/useProduct'
 import Promo from '../Categoria/components/promo';
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react';
+import { Anuncios, Anuncios6 } from '@/components/anuncios'
+
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -69,9 +71,12 @@ export default function Page() {
         <HeroBanner />
         <SummerTrends />
         <CarrouselProducts entradas={products} title='Tendencias de Verano' />
+        <CarrouselProducts entradas={products} title='Tendencias de Verano' />
         <CategoryGrid />
-        <Promo />
-      
+        <Promo />        
+        <CarrouselProducts entradas={products} title='Tendencias de Verano' />
+        <Anuncios6/>
+
     </Plantilla>
   );
 }

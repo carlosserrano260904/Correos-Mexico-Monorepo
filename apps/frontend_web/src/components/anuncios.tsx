@@ -294,38 +294,77 @@ export const Anuncios4 = () => {
 
 export const Anuncios5 = () => {
     return (
-        <div className='w-full bg-[#F5F5F5] rounded-2xl h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] relative overflow-hidden p-4 sm:p-6 group'>
-            {/* Overlay sutil al hover */}
+        <div className='w-full bg-[#F5F5F5] rounded-2xl h-auto sm:h-[400px] md:h-[500px] lg:h-[600px] relative overflow-hidden p-4 sm:p-6 group'>
+
             <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-            
-            <div className='w-full h-full flex flex-col lg:flex-row items-center justify-center z-10 gap-4 sm:gap-6 md:gap-8'>
-                <div className='basis-full lg:basis-1/2 flex flex-col items-center justify-center space-y-4 sm:space-y-6 md:space-y-8 text-center lg:text-left'>
-                    <div className='text-xl sm:text-2xl md:text-3xl lg:text-4xl text-balance font-bold max-w-full lg:max-w-md'>
-                        ¡Precios especiales solo en nuestra app!
-                    </div>
-                    <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6'>
-                        <div className='w-24 h-24 sm:w-32 sm:h-32 md:w-[151px] md:h-[151px] transform transition-transform duration-300 group-hover:scale-105'>
-                            <img src="/qr.png" alt="qr" className='w-full h-full rounded-2xl shadow-lg' />
-                        </div>
-                        <div className='w-full sm:w-48 md:w-56 lg:w-[220px] text-sm sm:text-base md:text-lg lg:text-xl text-balance'>
-                            Escanea el código QR y descarga <Link href={"/"} className='text-[#DE1484] hover:text-pink-700 font-semibold transition-colors duration-300'>nuestra app</Link>
-                        </div>
-                    </div>
-                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                        {/* Efecto de brillo en el botón */}
-                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                        
-                        <span className='relative flex items-center gap-1 sm:gap-2'>
-                            Descargar Ahora
-                            <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                            </svg>
-                        </span>
-                    </button>
+
+            <div className='w-full h-full flex flex-col items-center justify-center text-center z-10 
+                            space-y-6 sm:space-y-8 md:space-y-10'>
+
+                {/* LOGO */}
+                <img 
+                    src="/logo_correos.png"
+                    alt="logo"
+                    className='w-20 sm:w-28 md:w-32 lg:w-36 mx-auto'
+                />
+
+                {/* TITULO CENTRADO Y OCUPANDO TODO EL ANCHO */}
+                <div className='w-full text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold max-w-2xl mx-auto'>
+                    ¡Precios especiales solo en nuestra app!
                 </div>
-                <div className='basis-full lg:basis-1/2 bg-[url(/celular.png)] bg-contain bg-center bg-no-repeat h-32 sm:h-48 md:h-64 lg:h-full transform transition-transform duration-500 group-hover:scale-105'>
+
+                
+
+                {/* QR + TEXTO */}
+                <div className='flex flex-col items-center gap-4 sm:gap-6'>
+                    <div className='w-24 h-24 sm:w-32 sm:h-32 md:w-[151px] md:h-[151px] transition-transform duration-300 group-hover:scale-105'>
+                        <img src="/qr.png" alt="qr" className='w-full h-full rounded-2xl shadow-lg' />
+                    </div>
+
+                    {/* FIX DEL ESPACIO FALTANTE */}
+                    <div className='w-full max-w-sm text-sm sm:text-base md:text-lg text-balance'>
+                        Escanea el código QR y descarga&nbsp;
+                        <Link href={"/"} className='text-[#DE1484] hover:text-pink-700 font-semibold transition-colors duration-300'>
+                            nuestra app
+                        </Link>
+                    </div>
                 </div>
+
+
             </div>
+        </div>
+    )
+}
+
+
+
+export const Anuncios6 = () => {
+    return (
+        <div className='w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] bg-cover bg-center bg-no-repeat rounded-2xl relative overflow-hidden flex items-center'
+            style={{ backgroundImage: "url('/Bannerverano.png')" }}>
+
+            <div className='ml-4 sm:ml-8 md:ml-12 lg:ml-16 xl:ml-20 bg-[#00000033] backdrop-blur-sm 
+                px-6 py-6 sm:px-10 sm:py-10 md:px-12 md:py-14 rounded-xl max-w-[350px] sm:max-w-[420px]
+                flex flex-col items-center text-center'>
+
+                
+                <h2 className='text-white font-extrabold text-xl sm:text-2xl md:text-3xl leading-tight'>
+                    Hola verano.
+                </h2>
+
+                <p className='text-white mt-2 text-sm sm:text-base md:text-lg font-semibold leading-snug'>
+                    Encuentra el <br /> outfit perfecto
+                </p>
+
+                <button className='mt-5 bg-[#DE1484] hover:bg-pink-700 text-white px-5 py-2 sm:px-6 sm:py-3 
+                                   rounded-full font-bold text-sm sm:text-base transition-all duration-300'>
+                    Encontrar ya!
+                </button>
+            </div>
+
+            {/* Burbujas decorativas */}
+            <div className='absolute top-2 left-2 sm:top-4 sm:left-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500/10 rounded-full blur-lg sm:blur-xl'></div>
+            <div className='absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-blue-500/10 rounded-full blur-md sm:blur-lg'></div>
         </div>
     )
 }

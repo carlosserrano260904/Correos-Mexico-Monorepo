@@ -11,7 +11,12 @@ export const Plantilla = ({
   return (
     <>
     <Navbar/>
-    <div className='min-h-screen bg-white rounded-xl px-10 py-3 pt-9 m-2'>
+    <div className='min-h-screen bg-white rounded-xl 
+                px-4 sm:px-6 md:px-8 lg:px-10
+                py-3 pt-9 
+                m-1 sm:m-2 md:m-3 lg:m-4'>
+
+
         {children}
       </div>
       <Footer/>

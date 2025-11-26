@@ -16,7 +16,7 @@ export default function Cupones() {
   const { Products } = useProducts();
   
   // Estado para cupones filtrados
-  const [filteredCupons, setFilteredCupons] = useState<CuponProps[]>(Cupons)
+  const [filteredCupons, setFilteredCupons] = useState<CuponProps[]>(Cupons || [])
   
   const [formData, setFormData] = useState({
     CuponCode: '',
@@ -27,9 +27,8 @@ export default function Cupones() {
     ProductsId: [] as number[]
   })
 
-  // Función para recibir los cupones filtrados del componente Filtros
   const handleFilteredCupons = (filtered: CuponProps[]) => {
-    setFilteredCupons(filtered)
+    setFilteredCupons(filtered || [])
   }
 
   const handleProductSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -47,11 +46,11 @@ export default function Cupones() {
   const removeProduct = (productId: number) => {
     setFormData({
       ...formData,
-      ProductsId: formData.ProductsId.filter(id => id !== productId)
+      ProductsId: (formData.ProductsId || []).filter(id => id !== productId)
     })
   }
 
-  const productsAvailables = Products.filter(
+  const productsAvailables = (Products || []).filter(
     product => !formData.ProductsId.includes(product.ProductID)
   )
 
@@ -106,7 +105,8 @@ export default function Cupones() {
                     />
                   </div>
                   {/* Productos */}
-                  {Products.length > 0 ? (
+                  {/* ✅ CORREGIDO: Validar Products antes de usar .length */}
+                  {(Products && Products.length > 0) ? (
                     <div className='space-y-3'>
                       <div className='flex items-center'>
                         <label className="block text-end text-sm font-medium text-gray-700 mb-1 basis-1/3 me-3">
@@ -118,7 +118,8 @@ export default function Cupones() {
                           defaultValue=""
                         >
                           <option value="" disabled>Seleccionar producto</option>
-                          {productsAvailables.map((product) => (
+                          {/* ✅ CORREGIDO: Validar productsAvailables */}
+                          {(productsAvailables || []).map((product) => (
                             <option key={product.ProductID} value={product.ProductID}>
                               {product.ProductName}
                             </option>
@@ -130,7 +131,8 @@ export default function Cupones() {
                       {formData.ProductsId.length > 0 && (
                         <div className="ml-1/3 pl-3">
                           <div className="flex flex-wrap gap-2">
-                            {formData.ProductsId.map((productId) => {
+                            {/* ✅ CORREGIDO: Validar formData.ProductsId */}
+                            {(formData.ProductsId || []).map((productId) => {
                               const product = Products.find(p => p.ProductID === productId)
                               return (
                                 <span

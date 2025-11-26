@@ -1,4 +1,3 @@
-'use client'
 import { useCartStore } from '../stores/useCartStore'
 
 export const useCart = () => {

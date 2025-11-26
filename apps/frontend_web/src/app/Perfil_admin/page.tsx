@@ -5,13 +5,14 @@ import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
 import { FiEdit2 } from "react-icons/fi";
 
-export default function perfil(){
+// ✅ CAMBIADO: Nombre del componente a mayúscula
+export default function PerfilAdmin(){
     const [nombre, setNombre] = useState("Mayela");
     const [apellidos, setApellidos] = useState("Díaz");
     const [correo, setCorreo] = useState("Mayela@gmail.com")
     const [celular, setCelular] = useState("6183316693");
-    // 1. NUEVO ESTADO: Método de pago, inicializado con un valor de ejemplo.
-    const [metodoPago, setMetodoPago] = useState("Visa ** 1234");
+    // ✅ COMENTADO: Variables no usadas
+    // const [metodoPago, setMetodoPago] = useState("Visa ** 1234");
 
     const [editando, setEditando] = useState(false);
     const [nuevoNombre, setTempNombre]= useState(nombre);

@@ -1,21 +1,41 @@
 // services/productsApi.ts
 import { 
-  BackendProduct, 
   FrontendProduct, 
   BackendCreateProductDto 
 } from '@/schemas/products';
+
 const bolsaImg = '/placeholder-bolsos.png';
 const accesoriosImg = '/placeholder-accesorios.png';
-const zapatosImg = '/placeholder-zapatos.png';
 const tenisImg = '/placeholder-tenis.png';
-const shortsImg = '/placeholder-shorts.png';
 const vestidosImg = '/placeholder-vestidos.png';
 const chamarrasImg = '/placeholder-chamarras.png';
 const pantalonesImg = '/placeholder-pantalones.png';
-const blusasImg = '/placeholder-blusas.png';
+// ❌ COMENTADO: Variables no usadas
+// const zapatosImg = '/placeholder-zapatos.png';
+// const shortsImg = '/placeholder-shorts.png';
+// const blusasImg = '/placeholder-blusas.png';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const DEFAULT_PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x300/cccccc/969696?text=Imagen+No+Disponible';
+
+// ✅ Interface para producto del backend
+interface BackendProduct {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  imagen?: string | null;
+  images?: Array<{ url: string }>;
+  categoria?: string | null;
+  inventario: number;
+  color?: string | null;
+  marca?: string | null;
+  peso?: number | null;
+  dimensiones?: string | null;
+  estado?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 class ProductsApiService {
   private baseUrl = `${API_BASE_URL}/api/products`;
@@ -37,21 +57,24 @@ class ProductsApiService {
   /**
    * Procesa el array de productos
    */
-  private processProducts(data: any[]): FrontendProduct[] {
+  // ✅ CORREGIDO LÍNEA 40: Reemplazado any por unknown
+  private processProducts(data: unknown[]): FrontendProduct[] {
     if (!Array.isArray(data)) {
       console.warn(' No llego array:', typeof data);
       return [];
     }
 
     const validProducts = data
-      .filter((product: any) => {
+      // ✅ CORREGIDO LÍNEA 47: Reemplazado any por unknown
+      .filter((product: unknown) => {
         const isValid = this.isValidProduct(product);
         if (!isValid) {
-          console.warn('Pasando produc inva:', product?.id);
+          console.warn('Pasando produc inva:', (product as BackendProduct)?.id);
         }
         return isValid;
       })
-      .map((product: any) => this.mapBackendToFrontend(product))
+      // ✅ CORREGIDO LÍNEA 54: Reemplazado any por unknown
+      .map((product: unknown) => this.mapBackendToFrontend(product))
       .filter((product: FrontendProduct) => {
         const hasValidImage = product.ProductImageUrl && product.ProductImageUrl !== '';
         if (!hasValidImage) {
@@ -63,47 +86,56 @@ class ProductsApiService {
     return validProducts;
   }
 
-  private mapBackendToFrontend(backendProduct: any): FrontendProduct {
+  // ✅ CORREGIDO LÍNEA 66: Reemplazado any por unknown
+  private mapBackendToFrontend(backendProduct: unknown): FrontendProduct {
+    // Convertir a tipo BackendProduct
+    const product = backendProduct as BackendProduct;
+    
     // Procesar colores
-    const colors = backendProduct.color 
-      ? backendProduct.color.split(',').map((c: string) => c.trim()).filter(Boolean)
+    const colors = product.color 
+      ? product.color.split(',').map((c: string) => c.trim()).filter(Boolean)
       : [];
 
     let imageUrl = DEFAULT_PLACEHOLDER_IMAGE;
     
-    if (backendProduct.images && Array.isArray(backendProduct.images) && backendProduct.images.length > 0) {
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       // Tomar la primera imagen del array
-      imageUrl = this.validateImageUrl(backendProduct.images[0]?.url);
-    } else if (backendProduct.imagen) {
+      imageUrl = this.validateImageUrl(product.images[0]?.url);
+    } else if (product.imagen) {
       // Fallback a imagen individual
-      imageUrl = this.validateImageUrl(backendProduct.imagen);
+      imageUrl = this.validateImageUrl(product.imagen);
     }
 
     return {
-      ProductID: backendProduct.id,
-      ProductName: backendProduct.nombre,
-      ProductDescription: backendProduct.descripcion,
-      productPrice: backendProduct.precio,
+      ProductID: product.id,
+      ProductName: product.nombre,
+      ProductDescription: product.descripcion,
+      productPrice: product.precio,
       ProductImageUrl: imageUrl,
-      ProductCategory: backendProduct.categoria,
-      productStockQuantity: backendProduct.inventario,
+      ProductCategory: product.categoria || null,
+      productStockQuantity: product.inventario,
       ProductColors: colors,
-      ProductBrand: backendProduct.marca || 'Sin marca',
-      ProductWeight: backendProduct.peso,
-      ProductDimensions: backendProduct.dimensiones,
-      isActive: backendProduct.estado !== false,
-      createdAt: backendProduct.createdAt ? new Date(backendProduct.createdAt) : new Date(),
-      updatedAt: backendProduct.updatedAt ? new Date(backendProduct.updatedAt) : new Date(),
+      ProductBrand: product.marca || 'Sin marca',
+      ProductWeight: product.peso || null,
+      ProductDimensions: product.dimensiones || null,
+      isActive: product.estado !== false,
+      createdAt: product.createdAt ? new Date(product.createdAt) : new Date(),
+      updatedAt: product.updatedAt ? new Date(product.updatedAt) : new Date(),
     };
   }
 
-  private isValidProduct(product: any): boolean {
+  // ✅ CORREGIDO LÍNEA 100: Reemplazado any por unknown
+  private isValidProduct(product: unknown): boolean {
+    if (!product || typeof product !== 'object') {
+      return false;
+    }
+
+    const p = product as BackendProduct;
+    
     return (
-      product &&
-      typeof product === 'object' &&
-      product.id &&
-      product.nombre &&
-      typeof product.precio === 'number'
+      p.id !== undefined &&
+      p.nombre !== undefined &&
+      typeof p.precio === 'number'
     );
   }
 

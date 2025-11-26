@@ -5,8 +5,20 @@ import { useRouter } from 'next/navigation' // <-- NUEVA IMPORTACIÓN
 import { IoArrowBackOutline } from 'react-icons/io5' // <-- NUEVA IMPORTACIÓN
 import { NavbarCorreos } from '@/components/NavbarCorreos'
 
+interface ResultadoType {
+paisOrigen?: string;
+paisDestino?: string;
+tarifaBase?: number;
+pesoVolumetrico?: string;
+pesoFisico?: string;
+tarifa?: string;
+ivaMonto?: string;
+costoAdicionales?: string;
+total?: string;
+}
 
 export default function MexpostInternacional() {
+
     // --- NUEVO HOOK ---
     const router = useRouter() 
     
@@ -16,7 +28,7 @@ export default function MexpostInternacional() {
     const [alto, setAlto] = useState('');
     const [ancho, setAncho] = useState('');
     const [largo, setLargo] = useState('');
-    const [resultado, setResultado] = useState<any>(null)
+    const [resultado, setResultado] = useState<ResultadoType | null>(null)
 
     const [fase, setFase] = useState('inicial'); // 'inicial', 'datos', 'resultado'
     const [incluirSeguro, setIncluirSeguro] = useState(false);

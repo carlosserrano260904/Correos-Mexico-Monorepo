@@ -1,4 +1,3 @@
-'use client'
 import { useListsStore } from '../stores/useListsStore'
 
 export const useLists = () => {

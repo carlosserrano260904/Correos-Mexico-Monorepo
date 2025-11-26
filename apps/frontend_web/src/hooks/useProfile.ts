@@ -1,5 +1,4 @@
 // hooks/useProfile.ts
-'use client';
 
 import { useState } from 'react';
 import { useAuth } from './useAuth';

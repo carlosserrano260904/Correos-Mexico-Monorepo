@@ -2,12 +2,11 @@
 import { Plantilla } from "@/components/plantilla"
 import PaymentMethodPrim from "../Componentes/Primitivos/paymentMethod"
 import SumatoriaOrden from "../Componentes/Primitivos/sumatoriaOrden"
-import { PaymentMethodProps } from "@/types/interface"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import FormularioPagoTarjeta from "../Componentes/Primitivos/formularioPagoTarjeta"
 import React, { useState } from "react"
 
-export default function MasTarjetas({ NombreDeTarjeta, NumeroDeTarjeta, FechaVencimiento, CodigoSeguridad }: PaymentMethodProps) {
+export default function MasTarjetas() {
     const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<number | null>(null);
     
     // Datos de ejemplo para las tarjetas

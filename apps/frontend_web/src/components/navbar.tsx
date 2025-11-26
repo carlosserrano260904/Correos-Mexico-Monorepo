@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
@@ -28,7 +29,7 @@ const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebid
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
-    const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, login, logout } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -64,7 +65,7 @@ export const Navbar = () => {
         try {
             await login(loginData);
             handleDropdownClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             setLoginError(error.message);
         } finally {
             setIsLoggingIn(false);
@@ -265,7 +266,7 @@ export const Navbar = () => {
                                     {favoritesList.slice(0, 3).map((product) => (
                                         <div key={product.ProductID} className="flex items-stretch">
                                             <div className="basis-1/3">
-                                                <img 
+                                                <image 
                                                     src={product.ProductImageUrl} 
                                                     alt={product.ProductName} 
                                                     className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl object-cover" 
@@ -335,7 +336,7 @@ export const Navbar = () => {
                                         {CartItems.slice(0, 3).map((item) => (
                                             <div key={item.ProductID} className="flex items-stretch">
                                                 <div className="basis-1/4">
-                                                    <img 
+                                                    <image 
                                                         src={item.ProductImageUrl} 
                                                         alt={item.ProductName} 
                                                         className="w-full h-14 sm:h-16 rounded-lg object-cover" 

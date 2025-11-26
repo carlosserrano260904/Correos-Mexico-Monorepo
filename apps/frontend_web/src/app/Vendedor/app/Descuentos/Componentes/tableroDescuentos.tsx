@@ -15,6 +15,8 @@ interface TablerDescuentosProps {
 }
 
 export default function TablerDescuentos({ entradas, variant = "full" }: TablerDescuentosProps) {
+  const safeEntradas = entradas || []
+
   if (variant === "full") {
     return (
       <div className="max-h-[620px] overflow-y-auto bg-white">
@@ -29,7 +31,7 @@ export default function TablerDescuentos({ entradas, variant = "full" }: TablerD
             </TableRow>
           </TableHeader>
           <TableBody>
-            {entradas.map((entrada) => (
+            {safeEntradas.map((entrada) => (
               <Descuento
                 key={entrada.DescuentoID}
                 variant="full"
@@ -49,7 +51,7 @@ export default function TablerDescuentos({ entradas, variant = "full" }: TablerD
   if (variant === "compact") {
     return (
       <div className="space-y-2">
-        {entradas.slice(0, 5).map((entrada, index) => (
+        {safeEntradas.slice(0, 5).map((entrada, index) => (
           <div key={entrada.DescuentoID}>
             <Descuento
               variant="compact"
@@ -59,7 +61,7 @@ export default function TablerDescuentos({ entradas, variant = "full" }: TablerD
               DescuentoStatus={entrada.DescuentoStatus}
               EndDate={entrada.EndDate}
             />
-            {index < Math.min(entradas.length, 5) - 1 && (
+            {index < Math.min(safeEntradas.length, 5) - 1 && (
               <Separator className="my-2" />
             )}
           </div>

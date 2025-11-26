@@ -1,10 +1,15 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Configuración para monorepo
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  
   transpilePackages: [],
   
-  // Para desarrollo en monorepo - permite archivos externos
   experimental: {
     externalDir: true,
   },

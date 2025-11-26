@@ -5,7 +5,19 @@ import { SquarePen, CircleSlash } from 'lucide-react-native';
 import StatesCouponsComponent from './statesCouponsComponent';
 import ModalSellerComponent from './modalSellerComponent';
 
-const screenWidht = Dimensions.get('window').width;
+const screenWidht = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height;
+
+// Define el tipo para los productos
+type Coupon = {
+    id: number;
+    status: string;
+    nombre: string;
+    descuento: number;
+    tipoDescuento: string;
+    usado: number;
+    color: string;
+};
 
 export default function CouponCardCompnent({
     // Pide el onPress de la card del cupón
@@ -20,10 +32,10 @@ export default function CouponCardCompnent({
     typeOfDiscount,
     // Pide el valor del descuento
     discount,
-    // Pide el onPress del botón de editar cupón
-    onPressEditCoupon,
     // Pide el color del cupón
     colorCoupon,
+    // Pide el array completo de informacion del objeto
+    item,
 }: {
     onPressCoupon: any;
     // Es el estado del cupon activo, expirado o pausado igual que el StatesCouponsComponent
@@ -32,9 +44,8 @@ export default function CouponCardCompnent({
     usageCoupon: number;
     typeOfDiscount: 'porcentaje' | 'cantidad';
     discount: number;
-    onPressEditCoupon: any;
-    onPressPauseCoupon: any;
     colorCoupon: string;
+    item: any
 }) {
     // Define el color de fondo del descuento
     const discountBgColor = colorCoupon;
@@ -78,10 +89,10 @@ export default function CouponCardCompnent({
                     <Text style={styles.secondText}>Usado {usageCoupon} veces</Text>
                     <View style={styles.buttonsContainer}> 
                         <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowEditCouponModal(true)}>
-                            <SquarePen  size={moderateScale(18)} color={'#9CA3AF'}/>
+                            <SquarePen  size={screenWidht * 0.046} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                         <TouchableOpacity activeOpacity={0.2} style={styles.buttonAction} onPress={() => setShowDisableModal(true)}>
-                            <CircleSlash size={moderateScale(18)} color={'#9CA3AF'}/>
+                            <CircleSlash size={screenWidht * 0.046} color={'#9CA3AF'}/>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -131,13 +142,13 @@ export default function CouponCardCompnent({
 
 const styles = StyleSheet.create({
     container: {
-        padding: moderateScale(16),
+        padding: screenWidht * 0.044,
         backgroundColor: '#F3F4F6',
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
         borderWidth: 1,
         flexDirection: 'column',
-        gap: moderateScale(8),
+        gap: screenWidht * 0.02,
     },
     informationContainer: {
         flexDirection: 'row',
@@ -146,27 +157,27 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flexDirection: 'column',
-        gap: moderateScale(4),
+        gap: screenWidht * 0.01,
     },
     firstText: {
         fontFamily: 'system-ui',
         fontWeight: '700',
-        fontSize: moderateScale(20),
+        fontSize: screenHeight * 0.025,
         color: '#1F2937',
     },
     secondText: {
         fontFamily: 'system-ui',
         fontWeight: '400',
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.017,
         color: '#4B5563',
     },
     buttonsContainer: {
         flexDirection: 'row',
-        gap: moderateScale(12),
-        marginTop: moderateScale(8),
+        gap: screenWidht * 0.03,
+        marginTop: screenHeight * 0.01,
     },
     buttonAction: {
-        padding: moderateScale(8),
+        padding: screenWidht * 0.02,
         backgroundColor: '#F3F4F6',
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
@@ -179,19 +190,19 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: moderateScale(2),
+        gap: screenHeight * 0.005,
     },
     discountText: {
         fontFamily: 'system-ui',
         fontWeight: '700',
-        fontSize: moderateScale(20),
+        fontSize: screenHeight * 0.023,
         textAlign: 'center',
-        paddingHorizontal: moderateScale(8),
+        paddingHorizontal: screenWidht * 0.02,
     },
     secondDiscountText: {
         fontFamily: 'system-ui',
         fontWeight: '400',
-        fontSize: moderateScale(14),
+        fontSize:screenHeight * 0.017,
     },
 
 });

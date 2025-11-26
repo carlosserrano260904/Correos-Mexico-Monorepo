@@ -1,23 +1,35 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { moderateScale } from 'react-native-size-matters';
+
+const screenWidht = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const CircularProgress = ({ 
-    percentage, radius = moderateScale(44), strokeWidth = 10 
+    // Pide el porcentaje de "lleno"
+    percentage, 
+    // Pide el radio del grafico, que por defecto ya tiene un valor
+    radius = screenWidht * 0.12, 
+    // Pide la anchura de la linea, que por defecto ya tiene un valor
+    strokeWidth = 10 
 }:{
     percentage: number,
     radius?: any,
     strokeWidth?: number
 }) => {
+    // Define el valor o porcentaje que se va a llenar el grafico
     const animatedValue = useRef(new Animated.Value(0)).current;
 
+    // Define la circunferencia del grafico
     const circumference = 2 * Math.PI * radius;
+    // Define la mitad del grafico
     const halfCircle = radius + strokeWidth;
 
+    // Al tener el porcentaje se renderiza el grafico y se llena segun su porcentaje
     useEffect(() => {
+        // Animacion para llenar el grafico segun el porcentaje
         Animated.timing(animatedValue, {
         toValue: percentage,
         duration: 1200,
@@ -25,17 +37,20 @@ const CircularProgress = ({
         }).start();
     }, [percentage]);
 
+    // Define el rango de llenado del grafico
     const strokeDashoffset = animatedValue.interpolate({
         inputRange: [0, 100],
         outputRange: [circumference, 0],
     });
 
+    // Funcion que define el tipo de color de linea segun el porcentaje del grafico
     const getColor = (p: number) => {
         if (p < 30) return '#E53935'; // rojo
         if (p < 70) return '#FB8C00'; // naranja
         return '#43A047'; // verde
     };
 
+    // Define el color
     const color = getColor(percentage);
 
     return (
@@ -82,13 +97,9 @@ const CircularProgress = ({
     text: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(24),
+        fontSize: screenHeight * 0.03,
         color: '#111827',
         textAlign: 'center',
-    },
-    subText: {
-        fontSize: 12,
-        color: '#888',
     },
 });
 

@@ -10,12 +10,16 @@ const screenWidht = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height;
 
 export default function ModalSellerComponent({
+    // Pide el onPress del boton "Normal" del modal
     onPressNormalButton,
+    // Pidel el onPress del boton "Cancelar" del modal
     onPressCancelButton,
+    // Pidel el tipo de modal
     type
 } : {
     onPressNormalButton: any,
     onPressCancelButton: any,
+    // Define los tipos de modales que hay
     type: 
         'actualizar-cupon' | 
         'actualizar-producto' | 
@@ -25,31 +29,42 @@ export default function ModalSellerComponent({
     ;
 }) {
 
+    // Define el tipo de cantidad en el modal de actualizar cupon
     const [typeAmount, setTypeAmount] = useState('cantidad');
+    // Define el producto seleccionado para el dropDownButton
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+    // Define la categoria seleccionada para el dropDownButton
     const [selectedCategorie, setSelectedCategorie] = useState<string | null>(null);
+    // Define la visibilidad de la lista para el dropDownButton
     const [listVisible, setListVisible] = useState(false);
+    // Define la fecha de inicio
     const [dateStart, setDateStart] = useState('');
+    // Define la fecha de expiracion
     const [dateExpired, setDateExpired] = useState('');
+    // Define la cantidad total del stock
     const [amountStock, setAmountStock] = useState('');
 
+    // Array de ejemplo de productos para el dropDownButton
     const products = [
         { id: '1', nombre: 'Camiseta' },
         { id: '2', nombre: 'Pantalón' },
         { id: '3', nombre: 'Zapatos ' },
     ];
 
+    // Array de ejemplo de categorias para el dropDownButton
     const categories = [
         { id: '1', nombre: 'Ropa y calzado' },
         { id: '2', nombre: 'Linea blanca' },
         { id: '3', nombre: 'Jugueteria' },
     ];
 
+    // Funcion para seleccionar el producto 
     const handleSelect = (item: string) => {
         setSelectedProduct(item);
         setListVisible(false);
     };
 
+    // Funcion para seleccionar la categoria
     const handleSelectCategories = (item: string) => {
         setSelectedCategorie(item);
         setListVisible(false);
@@ -77,7 +92,7 @@ export default function ModalSellerComponent({
     const handleAmountChange = (text: string) => {
         // Eliminar todo lo que no sean números
         const cleaned = text.replace(/\D/g, '');
-
+        
         let nuberFormatted = cleaned;
 
         return nuberFormatted;
@@ -99,7 +114,7 @@ export default function ModalSellerComponent({
                             <ButtonSellerComponent 
                                 type={'normal'} 
                                 haveIcon={true} 
-                                icon={<CircleSlash color={'white'} size={moderateScale(16)} strokeWidth={3}/>}
+                                icon={<CircleSlash color={'white'} size={screenWidht * 0.042} strokeWidth={3}/>}
                                 text={'Deshabilitar'} 
                                 onPressButton={onPressNormalButton}
                             />
@@ -123,7 +138,7 @@ export default function ModalSellerComponent({
                             <ButtonSellerComponent 
                                 type={'normal'} 
                                 haveIcon={true} 
-                                icon={<Pause color={'white'} size={moderateScale(16)} strokeWidth={3}/>}
+                                icon={<Pause color={'white'} size={screenWidht * 0.042} strokeWidth={3}/>}
                                 text={'Pausar'} 
                                 onPressButton={onPressNormalButton}
                             />
@@ -138,7 +153,7 @@ export default function ModalSellerComponent({
                 ) : type === 'actualizar-cupon' ? (
                     <View style={styles.modalView}>
                         <View style={styles.editTitleContainer}>
-                            <SquarePen size={moderateScale(20)} color={'#030712'} strokeWidth={3}/>
+                            <SquarePen size={screenWidht * 0.052} color={'#030712'} strokeWidth={3}/>
                             <Text style={styles.editTitle}>Editar/Actualizar Cupón</Text>
                         </View>
                         <View style={styles.inputsContainer}>
@@ -219,7 +234,7 @@ export default function ModalSellerComponent({
                                     >
                                     {selectedProduct || 'Selecciona un producto'}
                                     </Text>
-                                    <ChevronDown size={18} color="#9CA3AF" />
+                                    <ChevronDown size={screenWidht * 0.045} color="#9CA3AF" />
                                 </TouchableOpacity>
 
                                 {/* Modal con lista de opciones */}
@@ -265,7 +280,7 @@ export default function ModalSellerComponent({
                 ) : type === 'actualizar-producto' ? (
                     <ScrollView contentContainerStyle={[styles.modalView, {paddingVertical: moderateScale(20)}]} showsVerticalScrollIndicator={false}>
                         <View style={styles.editTitleContainer}>
-                            <SquarePen size={moderateScale(20)} color={'#030712'} strokeWidth={3}/>
+                            <SquarePen size={screenWidht * 0.052} color={'#030712'} strokeWidth={3}/>
                             <Text style={styles.editTitle}>Editar/Actualizar Producto</Text>
                         </View>
                         <View style={styles.inputsContainer}>
@@ -328,7 +343,7 @@ export default function ModalSellerComponent({
                                     >
                                     {selectedCategorie || 'Selecciona una categoría'}
                                     </Text>
-                                    <ChevronDown size={18} color="#9CA3AF" />
+                                    <ChevronDown size={screenWidht * 0.045} color="#9CA3AF" />
                                 </TouchableOpacity>
 
                                 {/* Modal con lista de opciones */}
@@ -392,48 +407,47 @@ const styles = StyleSheet.create({
     modalView: {
         backgroundColor: '#ffffff',
         borderRadius: moderateScale(20),
-        padding: moderateScale(24),
+        padding: screenWidht * 0.06,
         width: screenWidht * 0.9,
-        gap: moderateScale(24)
+        gap: screenWidht * 0.06
     },
     text: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.02,
         textAlign: 'center'
     },
     buttonsContainer: {
         flexDirection: 'column',
-        gap: moderateScale(12)
+        gap: screenWidht * 0.03
     },
     editTitleContainer: {
         flexDirection: 'row',
-        gap: moderateScale(4),
+        gap: screenWidht * 0.02,
         alignItems: 'center'
     }, 
     editTitle: {
         fontFamily: 'system-ui',
         fontWeight: 700,
-        fontSize: moderateScale(20),
+        fontSize: screenHeight * 0.024,
         color: '#030712'
     },
     inputsContainer: {
-        gap: moderateScale(12)
+        gap: screenWidht * 0.03
     },
     textInputContainer: {
         flexDirection: 'column',
-        gap: moderateScale(4)
+        gap: screenWidht * 0.01
     },
     textInputDateContainer: {
         flexDirection: 'row',
-        gap: moderateScale(4),
         alignItems: 'center',
         justifyContent: 'space-between'
     },
     label: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.018,
         color: '#6B7280'
     },
     textInput: {
@@ -441,14 +455,14 @@ const styles = StyleSheet.create({
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
         borderWidth: 1,
-        paddingLeft: moderateScale(8),
+        paddingLeft: screenWidht * 0.02,
     },
     textInputDescription: {
         backgroundColor: '#F9FAFB',
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
         borderWidth: 1,
-        paddingLeft: moderateScale(8),
+        paddingLeft: screenWidht * 0.02,
         height: screenHeight * 0.15,
     },
     textInputDropDown: {
@@ -456,14 +470,14 @@ const styles = StyleSheet.create({
         borderRadius: moderateScale(8),
         borderColor: '#E5E7EB',
         borderWidth: 1,
-        padding: moderateScale(8),
+        padding: screenWidht * 0.02,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between'
     },
     radioButtonsContainer: {
         flexDirection: 'row',
-        gap: moderateScale(24),
+        gap: screenWidht * 0.06,
         alignItems: 'center'
     },
     radioButton: {
@@ -471,20 +485,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     separationContainer: {
-        gap: moderateScale(4)
+        gap: screenWidht * 0.01
     },
     separationDateContainer: {
-        gap: moderateScale(4),
+        gap: screenWidht * 0.01,
         width: '45%'
     },
     radioButtonText: {
         fontFamily: 'system-ui',
         fontWeight: 500,
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.017,
         color: '#1F2937'
     },
     dropdownText: { 
-        fontSize: moderateScale(14), 
+        fontSize: screenHeight * 0.017, 
         color: '#111827' 
     },
     placeholderText: { 
@@ -494,19 +508,19 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         backgroundColor: 'rgba(0,0,0,0.3)',
-        paddingHorizontal: moderateScale(40),
+        paddingHorizontal: screenWidht * 0.1,
     },
     modalContainer: {
         backgroundColor: '#fff',
         borderRadius: moderateScale(8),
-        paddingVertical: moderateScale(20),
+        paddingVertical: screenHeight * 0.024,
     },
     option: {
-        paddingVertical: moderateScale(12),
-        paddingHorizontal: moderateScale(16),
+        paddingVertical: screenHeight * 0.015,
+        paddingHorizontal: screenWidht * 0.04,
     },
     optionText: {
-        fontSize: moderateScale(14),
+        fontSize: screenHeight * 0.017,
         color: '#111827',
     },
 })

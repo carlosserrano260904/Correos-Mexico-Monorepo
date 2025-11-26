@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 import { Box, CirclePause, Banknote, CircleAlert, CircleQuestionMark } from 'lucide-react-native';
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height
 // Calcula el tamaño de la tarjeta para que haya un espacio de 20 entre ellas y los bordes
 const cardSize = (screenWidth - 60) / 2;
 
@@ -24,26 +25,26 @@ export default function ResumeCardComponent({
                 {
                     type === 'activos' ? (
                         <View style={[styles.iconContainer, {backgroundColor: '#3D50DF'}]}>
-                            <Box width={moderateScale(40)} height={moderateScale(28)} color="#fff" />
+                            <Box size={screenWidth * 0.075} color="#fff" />
                         </View>
                     ) :
                     type === 'vendidos' ? (
                         <View style={[styles.iconContainer, {backgroundColor: '#22C55E'}]}>
-                            <Banknote width={moderateScale(40)} height={moderateScale(28)} color="#fff" />
+                            <Banknote size={screenWidth * 0.075} color="#fff" />
                         </View>
                 ) :
                     type === 'pausados' ? (
                         <View style={[styles.iconContainer, {backgroundColor: '#F97316'}]}>
-                            <CirclePause width={moderateScale(40)} height={moderateScale(28)} color="#fff" />
+                            <CirclePause size={screenWidth * 0.075} color="#fff" />
                         </View>
                 ) :
                     type === 'sin-stock' ? (
                         <View style={[styles.iconContainer, {backgroundColor: '#FF4D51'}]}>
-                            <CircleAlert width={moderateScale(40)} height={moderateScale(28)} color="#fff" />
+                            <CircleAlert size={screenWidth * 0.075} color="#fff" />
                         </View>
                 ) : (
                     <View style={[styles.iconContainer, { backgroundColor: '#6B7280' }]}>
-                        <CircleQuestionMark width={moderateScale(40)} height={moderateScale(28)} color="#fff" />
+                        <CircleQuestionMark size={screenWidth * 0.075} color="#fff" />
                         </View>
                     )
                 }
@@ -66,34 +67,34 @@ const styles = StyleSheet.create({
     card: {
         width: cardSize,
         borderRadius: moderateScale(12),
-        padding: moderateScale(16),
-        marginBottom: moderateScale(20),
+        padding: screenWidth * 0.042,
+        marginBottom: screenHeight * 0.024,
         backgroundColor: '#F3F4F6',
         borderColor: '#E5E7EB',
         borderWidth: 1,
     },
     title: {
-        fontSize: moderateScale(16),
+        fontSize: screenHeight * 0.019,
         fontWeight: 400,
-        marginBottom: moderateScale(8),
+        marginBottom: screenHeight * 0.01,
         color: '#4B5563',
         fontFamily: 'system-ui',
     },
     number: {
-        fontSize: moderateScale(36),
+        fontSize: screenHeight * 0.043,
         color: '#111827',
         fontWeight: 700,
         fontFamily: 'system-ui',
     },
     iconContainer: {
-        padding: moderateScale(4),
+        padding: screenWidth * 0.01,
         borderRadius: moderateScale(100),
         alignSelf: 'flex-start',
-        height: moderateScale(40),
-        width: moderateScale(40),
+        height: screenWidth * 0.105,
+        width: screenWidth * 0.105,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: moderateScale(12),
+        marginBottom: screenHeight * 0.014,
     },
 
 });

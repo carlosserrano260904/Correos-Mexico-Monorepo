@@ -1,21 +1,5 @@
 // src/utils/debugProductData.ts - HELPER TEMPORAL PARA DEBUG
 
-// ✅ Interface para análisis de campos
-interface FieldAnalysis {
-  types: Set<string>;
-  nullCount: number;
-  undefinedCount: number;
-  examples: unknown[];
-}
-
-// ✅ Interface para producto genérico de debug
-interface DebugProduct {
-  [key: string]: unknown;
-  precio?: unknown;
-  inventario?: unknown;
-  color?: unknown;
-}
-
 /**
  * 🔍 Helper temporal para inspeccionar los datos exactos que vienen de tu backend
  * Úsalo temporalmente para ver qué estructura tienen realmente tus productos
@@ -29,8 +13,8 @@ export function debugProductData(products: unknown[]): void {
     return
   }
   
-  // ✅ CORREGIDO LÍNEA 17: Reemplazado any por DebugProduct
-  const firstProduct = products[0] as DebugProduct
+  // Analizar el primer producto en detalle
+  const firstProduct = products[0] as any
   console.log('\n📦 ANÁLISIS DEL PRIMER PRODUCTO:')
   console.log('Estructura completa:', JSON.stringify(firstProduct, null, 2))
   
@@ -42,13 +26,16 @@ export function debugProductData(products: unknown[]): void {
   // Buscar patrones en todos los productos
   console.log('\n🔍 ANÁLISIS DE TODOS LOS PRODUCTOS:')
   
-  const fieldAnalysis: Record<string, FieldAnalysis> = {}
+  const fieldAnalysis: Record<string, {
+    types: Set<string>,
+    nullCount: number,
+    undefinedCount: number,
+    examples: any[]
+  }> = {}
   
-  // ✅ CORREGIDO LÍNEA 33: Reemplazado any por DebugProduct
-  // ✅ CORREGIDO LÍNEA 36: Eliminado index no usado
-  products.forEach((product) => {
+  products.forEach((product, index) => {
     if (typeof product === 'object' && product !== null) {
-      Object.entries(product as DebugProduct).forEach(([key, value]) => {
+      Object.entries(product as any).forEach(([key, value]) => {
         if (!fieldAnalysis[key]) {
           fieldAnalysis[key] = {
             types: new Set(),
@@ -86,8 +73,7 @@ export function debugProductData(products: unknown[]): void {
   products.forEach((product, index) => {
     const issues: string[] = []
     if (typeof product === 'object' && product !== null) {
-      // ✅ CORREGIDO LÍNEA 38: Reemplazado any por DebugProduct
-      const p = product as DebugProduct
+      const p = product as any
       
       // Verificar precio
       if (typeof p.precio === 'string') {
@@ -133,8 +119,7 @@ export function testSingleProductMapping(product: unknown): void {
 /**
  * 🔧 Helper para limpiar datos inconsistentes (usa solo si es necesario)
  */
-// ✅ CORREGIDO LÍNEA 76: Reemplazado any por DebugProduct
-export function cleanProductData(product: DebugProduct): DebugProduct {
+export function cleanProductData(product: any): any {
   const cleaned = { ...product }
   
   // Limpiar precio: convertir string a number
@@ -157,16 +142,15 @@ export function cleanProductData(product: DebugProduct): DebugProduct {
 }
 
 // Función para usar en tu servicio temporalmente
-// ✅ CORREGIDO LÍNEA 122: Reemplazado any por DebugProduct
-export function debugAndCleanProducts(products: unknown[]): DebugProduct[] {
+export function debugAndCleanProducts(products: unknown[]): unknown[] {
   debugProductData(products)
   
   return products.map((product, index) => {
     try {
-      return cleanProductData(product as DebugProduct)
+      return cleanProductData(product)
     } catch (error) {
       console.error(`Error limpiando producto ${index}:`, error)
-      return product as DebugProduct
+      return product
     }
   })
 }

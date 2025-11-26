@@ -1,5 +1,7 @@
 // hooks/useProduct.ts
-import { useState, useEffect } from 'react'; // ⬅️ REMOVER useCallback
+'use client';
+
+import { useState, useEffect, useCallback } from 'react'; // <--- IMPORTANTE: Importar useCallback
 import { FrontendProduct } from '@/schemas/products';
 import { productsApiService } from '@/services/productsApi';
 
@@ -8,8 +10,8 @@ export const useProducts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ❌ ELIMINAR useCallback - funciones normales
-  const loadProducts = async () => {
+  // 1. Envolver en useCallback para que la función sea estable
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -21,9 +23,10 @@ export const useProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Dependencias vacías porque productsApiService es externo
 
-  const loadProductsByCategory = async (category: string) => {
+  // 2. Envolver en useCallback
+  const loadProductsByCategory = useCallback(async (category: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -35,9 +38,10 @@ export const useProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const searchProducts = async (query: string) => {
+  // 3. Envolver en useCallback
+  const searchProducts = useCallback(async (query: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -49,21 +53,22 @@ export const useProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getProduct = async (id: number): Promise<FrontendProduct | null> => {
+  // Obtener producto individual (Este no suele dar problemas de loop, pero es buena práctica)
+  const getProduct = useCallback(async (id: number): Promise<FrontendProduct | null> => {
     try {
       return await productsApiService.getProductById(id);
     } catch (err) {
       console.error('Error getting product:', err);
       return null;
     }
-  };
+  }, []);
 
-  // ✅ CORREGIDO: Eliminar loadProducts de las dependencias
+  // Cargar productos al montar el componente
   useEffect(() => {
     loadProducts();
-  }, []); // ⬅️ Array vacío, sin loadProducts
+  }, [loadProducts]); // Ahora es seguro poner loadProducts aquí
 
   return {
     products,
@@ -77,6 +82,7 @@ export const useProducts = () => {
   };
 };
 
+// ... (El resto del archivo useFeaturedProducts y useProductById estaba bien, puedes dejarlo igual)
 export const useFeaturedProducts = (limit: number = 8) => {
   const [featuredProducts, setFeaturedProducts] = useState<FrontendProduct[]>([]);
   const [loading, setLoading] = useState(true);

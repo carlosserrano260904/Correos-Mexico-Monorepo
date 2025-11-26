@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState } from "react";
 import AdressTable from "./Primitivos/UserDirection";
 import Link from 'next/link'

@@ -1,4 +1,5 @@
 // hooks/useAuth.ts
+'use client';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';

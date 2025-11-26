@@ -16,7 +16,7 @@ export const FiltrosDescuentos = ({ onFilteredDescuentos }: FiltrosDescuentosPro
   
   // Filtrar descuentos
   const filteredDescuentos = useMemo(() => {
-    return (Descuentos || []).filter(descuento => {
+    return Descuentos.filter(descuento => {
       // Filtro por nombre del descuento
       const matchesName = descuento.DescuentoName.toLowerCase().includes(searchTerm.toLowerCase())
      
@@ -33,10 +33,11 @@ export const FiltrosDescuentos = ({ onFilteredDescuentos }: FiltrosDescuentosPro
     onFilteredDescuentos(filteredDescuentos)
   }, [filteredDescuentos, onFilteredDescuentos])
   
-  // const clearFilters = () => {
-  //   setSearchTerm('')
-  //   setSelectedStatus('all')
-  // }
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedStatus('all')
+  }
 
   return (
     <div className="flex gap-2.5">

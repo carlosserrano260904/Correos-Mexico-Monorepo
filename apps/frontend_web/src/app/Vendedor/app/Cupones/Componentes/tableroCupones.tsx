@@ -7,25 +7,11 @@ import {
 } from "@/components/ui/table"
 import { CuponProps } from "@/types/interface"
 import { Separator } from "@/components/ui/separator"
-import { CouponSheet } from "./CouponSheet" // Ajusta ruta según tu estructura
 import { Cupon } from "@/app/Vendedor/components/primitivos"
 
 interface TableroCuponesProps {
   entradas: CuponProps[]
   variant?: "full" | "compact"
-}
-
-const mapStatusNumberToString = (statusNum: number): "Activo" | "Borrador" | "Caducado" => {
-  switch (statusNum) {
-    case 1:
-      return "Activo"
-    case 2:
-      return "Borrador"
-    case 3:
-      return "Caducado"
-    default:
-      return "Caducado"
-  }
 }
 
 export default function TableroCupones({ entradas, variant = "full" }: TableroCuponesProps) {

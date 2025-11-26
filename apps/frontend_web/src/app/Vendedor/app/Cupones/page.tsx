@@ -10,7 +10,6 @@ import { useCupons } from '../../../../hooks/useCupons'
 import { useProducts } from '../../../../hooks/useProduct'
 import { Filtros } from '../../components/filtros'
 import { CuponProps } from '../../../../types/interface'
-import { CouponSheet } from './Componentes/CouponSheet'
 
 export default function Cupones() {
   const { Cupons, addCupon } = useCupons()

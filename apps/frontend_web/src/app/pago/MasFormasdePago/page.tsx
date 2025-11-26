@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import FormularioPagoTarjeta from "../Componentes/Primitivos/formularioPagoTarjeta"
 import React, { useState } from "react"
 
-export default function MasTarjetas({ NombreDeTarjeta, NumeroDeTarjeta, FechaVencimiento, CodigoSeguridad }: PaymentMethodProps) {
+export default function MasTarjetas() {
     const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<number | null>(null);
     
     // Datos de ejemplo para las tarjetas

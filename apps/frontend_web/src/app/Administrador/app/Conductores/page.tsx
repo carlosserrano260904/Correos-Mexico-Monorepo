@@ -177,8 +177,8 @@ export default function ConductoresPage() {
                 {filteredConductores.map((conductor, index) => (
                   <TableRow key={conductor.curp || index} className="hover:bg-gray-50 border-b border-gray-100">
                     <TableCell className="text-gray-700 text-sm border-0">{conductor.nombreCompleto}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{conductor.curp || conductor.CURP}</TableCell>
-                    <TableCell className="text-gray-700 text-sm border-0">{conductor.rfc || conductor.RFC}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{conductor.curp}</TableCell>
+                    <TableCell className="text-gray-700 text-sm border-0">{conductor.rfc}</TableCell>
                     <TableCell className="text-gray-700 text-sm border-0">{conductor.licencia}</TableCell>
                     <TableCell>
                       {conductor.licenciaVigente  ? (

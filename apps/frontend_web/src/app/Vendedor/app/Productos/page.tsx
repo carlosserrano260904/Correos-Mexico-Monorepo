@@ -7,9 +7,6 @@ import { Separator } from '@/components/ui/separator'
 import { useProducts } from '@/hooks/useProduct'
 import { Filtros } from '../../components/filtros'
 import { ProductosProps } from '@/types' // ← CAMBIO: nuevo import
-import { ProductSheet } from './Componentes/ProductSheet'
-
-export { ProductSheet }
 
 export default function Productos() {
     // ← CAMBIO: destructurar más propiedades del hook para manejar estados

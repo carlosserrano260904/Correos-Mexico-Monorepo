@@ -11,19 +11,19 @@ import { useProducts } from '@/hooks/useProduct';
 
 
 export default function Page() {
-  const {Products} = useProducts()   
+  const {products} = useProducts()   
   return (
     <Plantilla>
       <div className="max-w-6xl mx-auto px-4 py-6">
         <CategoryCarousel />
         <HeroBanner />
         <SummerTrends />
-        <CarrouselProducts entradas={Products} title='Tendencias de verano' />
-        <CarrouselProducts entradas={Products} title='Tendencias de verano' />
+        <CarrouselProducts entradas={products} title='Tendencias de verano' />
+        <CarrouselProducts entradas={products} title='Tendencias de verano' />
         <CategoryGrid />
-        <CarrouselProducts entradas={Products} title='Tendencias de verano' />
+        <CarrouselProducts entradas={products} title='Tendencias de verano' />
         <Promo />
-        <CarrouselProducts entradas={Products} title='Tendencias de verano' />
+        <CarrouselProducts entradas={products} title='Tendencias de verano' />
         <HeroVideoBanner />
       </div>
     </Plantilla>

@@ -9,7 +9,7 @@ import { UserAddressDeriveryProps } from "@/types/interface";
 
 
 
-export default function MasDirecciones({ Nombre, Apellido, Calle, Numero, CodigoPostal, Estado, Municipio, Ciudad, Colonia, NumeroDeTelefono, InstruccionesExtra }:UserAddressDeriveryProps ) {
+export default function MasDirecciones() {
     const [direccionSeleccionada, setDireccionSeleccionada] = useState<number | null>(null);
     
     // Datos de ejemplo para las direcciones

@@ -13,7 +13,7 @@ interface FiltrosProps {
 }
 
 export const Filtros = ({ onFilteredProducts, onFilteredCupons, type }: FiltrosProps) => {
-  const { Products } = useProducts()
+  const { products } = useProducts()
   const { Cupons } = useCupons()
  
   const [searchTerm, setSearchTerm] = useState('')
@@ -24,15 +24,15 @@ export const Filtros = ({ onFilteredProducts, onFilteredCupons, type }: FiltrosP
   
   const categories = useMemo(() => {
     if (filterType !== 'productos') return []
-    const uniqueCategories = [...new Set(Products.map(product => product.ProductCategory))]
+    const uniqueCategories = [...new Set(products.map(product => product.ProductCategory))]
     return uniqueCategories.filter(category => category && category.trim() !== '')
-  }, [Products, filterType])
+  }, [products, filterType])
   
   // Filtrar productos
   const filteredProducts = useMemo(() => {
     if (filterType !== 'productos') return []
     
-    return Products.filter(product => {
+    return products.filter(product => {
       // Filtro por nombre
       const matchesName = product.ProductName.toLowerCase().includes(searchTerm.toLowerCase())
      
@@ -46,7 +46,7 @@ export const Filtros = ({ onFilteredProducts, onFilteredCupons, type }: FiltrosP
      
       return matchesName && matchesCategory && matchesStatus
     })
-  }, [Products, searchTerm, selectedCategory, selectedStatus, filterType])
+  }, [products, searchTerm, selectedCategory, selectedStatus, filterType])
 
   // Filtrar cupones
   const filteredCupons = useMemo(() => {

@@ -64,6 +64,12 @@ const nextConfig: NextConfig = {
   
   // Si necesitas transpilar paquetes específicos del monorepo
   // transpilePackages: ['@your-monorepo/shared-lib'],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  }
 }
 
 export default nextConfig

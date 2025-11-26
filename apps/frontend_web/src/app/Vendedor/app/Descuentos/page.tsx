@@ -14,7 +14,7 @@ import { DiscountSheet } from './Componentes/DiscountSheet'
 
 export default function Descuentos() {
   const { Descuentos, addDescuento } = useDescuentos()
-  const { Products } = useProducts();
+  const { products } = useProducts();
   
   // Estado para descuentos filtrados
   const [filteredDescuentos, setFilteredDescuentos] = useState<DescuentoProps[]>(Descuentos)
@@ -52,7 +52,7 @@ export default function Descuentos() {
     })
   }
 
-  const productsAvailables = Products.filter(
+  const productsAvailables = products.filter(
     product => !formData.ProductsId.includes(product.ProductID)
   )
 
@@ -107,7 +107,7 @@ export default function Descuentos() {
                     />
                   </div>
                   {/* Productos */}
-                  {Products.length > 0 ? (
+                  {products?.length > 0 ? (
                     <div className='space-y-3'>
                       <div className='flex items-center'>
                         <label className="block text-end text-sm font-medium text-gray-700 mb-1 basis-1/3 me-3">
@@ -132,7 +132,7 @@ export default function Descuentos() {
                         <div className="ml-1/3 pl-3">
                           <div className="flex flex-wrap gap-2">
                             {formData.ProductsId.map((productId) => {
-                              const product = Products.find(p => p.ProductID === productId)
+                              const product = products?.find(p => p.ProductID === productId)
                               return (
                                 <span
                                   key={productId}

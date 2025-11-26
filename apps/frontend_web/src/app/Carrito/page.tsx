@@ -7,7 +7,7 @@ import { useCart } from '@/hooks/useCart'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { CarrouselProducts } from '@/components/CarouselProducts'
 
-export default function page() {
+export default function Page() {
   const { Products } = useProducts();
   const { CartItems} = useCart();
 

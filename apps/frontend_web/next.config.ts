@@ -8,12 +8,12 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   
-  transpilePackages: [],
+  output: 'standalone',
   
+  transpilePackages: [],
   experimental: {
     externalDir: true,
   },
-  
   images: {
     domains: [
       'correos-de-mexico.s3.us-east-2.amazonaws.com',
@@ -52,7 +52,6 @@ const nextConfig: NextConfig = {
   
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
-      // Mejora el hot reload en monorepos
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
@@ -61,14 +60,6 @@ const nextConfig: NextConfig = {
     }
     return config
   },
-  
-  // Configuración del servidor de desarrollo
-  // devIndicators: {
-  //   buildActivity: true,
-  // },
-  
-  // Si necesitas transpilar paquetes específicos del monorepo
-  // transpilePackages: ['@your-monorepo/shared-lib'],
 }
 
 export default nextConfig

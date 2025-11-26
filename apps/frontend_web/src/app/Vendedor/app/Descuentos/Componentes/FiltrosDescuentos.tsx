@@ -16,7 +16,7 @@ export const FiltrosDescuentos = ({ onFilteredDescuentos }: FiltrosDescuentosPro
   
   // Filtrar descuentos
   const filteredDescuentos = useMemo(() => {
-    return Descuentos.filter(descuento => {
+    return (Descuentos || []).filter(descuento => {
       // Filtro por nombre del descuento
       const matchesName = descuento.DescuentoName.toLowerCase().includes(searchTerm.toLowerCase())
      

@@ -41,6 +41,8 @@ export class UserController {
   }
 
   @Patch('role/:id') // api/users/:id/role
+  @ApiOperation({ summary: 'Actualizar el rol de un usuario' })
+  @ApiResponse({ status: 200, description: 'Rol de usuario actualizado', type: Usuarios })
     async updateUserRole(
       @Param('id', ParseIntPipe) id: number, // Obtiene el 'id' de la URL y lo convierte a número
       @Body() updateUserRoleDto: UpdateUserRoleDto, // Obtiene los datos del body (ej. { "rol": "vendedor" })

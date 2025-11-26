@@ -29,17 +29,18 @@ export const AddToListButton: React.FC<AddToListButtonProps> = ({
 
   const handleConfirm = () => {
     if (selectedListId) {
+      // Agregar a lista existente
       addProductToList(selectedListId, product);
       const selectedList = Lists.find(list => list.ListaID === selectedListId);
       alert(`Producto agregado a la lista: ${selectedList?.ListaName}`);
     } else if (newListName.trim()) {
+      // Crear nueva lista y agregar producto
       createList(newListName.trim());
+      // Obtener la lista recién creada (será la última)
       const newListId = Lists.length > 0 ? Math.max(...Lists.map(l => l.ListaID)) + 1 : 1;
-
       setTimeout(() => {
         addProductToList(newListId, product);
       }, 100);
-
       alert(`Lista "${newListName.trim()}" creada y producto agregado`);
     }
     
@@ -58,14 +59,10 @@ export const AddToListButton: React.FC<AddToListButtonProps> = ({
           <span className="text-sm">Agregar a lista</span>
         </button>
       </AlertDialogTrigger>
-
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {`Agregar "${product.ProductName}" a lista`}
-          </AlertDialogTitle>
+          <AlertDialogTitle>Agregar "{product.ProductName}" a lista</AlertDialogTitle>
         </AlertDialogHeader>
-
         <div className="space-y-4">
           {Lists.length > 0 && (
             <div>
@@ -106,7 +103,6 @@ export const AddToListButton: React.FC<AddToListButtonProps> = ({
             />
           </div>
         </div>
-
         <AlertDialogFooter>
           <AlertDialogCancel 
             onClick={() => {
@@ -117,7 +113,6 @@ export const AddToListButton: React.FC<AddToListButtonProps> = ({
           >
             Cancelar
           </AlertDialogCancel>
-
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={!selectedListId && !newListName.trim()}

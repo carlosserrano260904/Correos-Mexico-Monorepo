@@ -7,7 +7,7 @@ import { CartItemProps } from "@/components/cartcard";
 
 interface OrderCardListProps {
   className?: string;
-  items: (CartItemProps & {
+  items?: (CartItemProps & {
     delivered?: boolean;
     deliveredDate?: string;
     orderDate?: string;
@@ -15,7 +15,13 @@ interface OrderCardListProps {
 }
 
 export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps) => {
-
+  if (!items || items.length === 0) {
+  return (
+    <div className={`text-center text-gray-600 py-10 ${className}`}>
+      <p className="text-lg font-semibold">No hay historial de compra</p>
+    </div>
+    );
+  }
   const validItems = items?.filter(item =>
     item &&
     item.ProductID &&

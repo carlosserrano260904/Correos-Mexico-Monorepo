@@ -47,9 +47,23 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     product.ProductImageUrl,
   ];
 
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
+const handleAddToCart = () => {
+  const cartItem = {
+    ProductID: product.ProductID,
+    ProductName: product.ProductName,
+    productPrice: product.productPrice,
+    ProductImageUrl: product.ProductImageUrl,
+    ProductColors: product.ProductColors,
+    ProductDescription: product.ProductDescription,
+    ProductCategory: product.ProductCategory,
+    selectedColor: selectedColor,
+    selectedSize: selectedSize,
   };
+
+  addToCart(cartItem, quantity);
+  
+  console.log('Producto agregado al carrito:', product.ProductName);
+};
 
   const handleToggleFavorite = () => {
     if (isProductFavorite) {

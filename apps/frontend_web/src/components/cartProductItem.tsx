@@ -1,55 +1,109 @@
-'use client';
+// components/cartProductItem.tsx
+import React from 'react'
+import { CartItemProps } from './cartcard' // O desde donde lo importes
+import { useCart } from '@/hooks/useCart'
+import { SafeImage } from './ui/SafeImage'
 
-import React from 'react';
-import { useCart } from '@/hooks/useCart';
-import { useFavorites } from '@/hooks/useFavorites';
-import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
+interface CartProductItemProps {
+  item: CartItemProps;
+}
 
-// Versión ultra-simplificada para debug
-export const CartProductItem = ({ item }: { item: any }) => {
-  const { toggleSelection, updateQuantity, removeFromCart } = useCart();
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+export const CartProductItem = ({ item }: CartProductItemProps) => {
+  const { updateQuantity, removeFromCart } = useCart();
 
-  // Función DIRECTA sin lógica compleja
-  const handleFavorite = () => {
-    console.log('🔄 Favorite clicked for:', item.ProductID);
-    
-    if (isFavorite(item.ProductID)) {
-      removeFromFavorites(item.ProductID);
-    } else {
-      addToFavorites(item); // Usar el item directamente
-    }
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(price);
   };
 
-  const isFav = isFavorite(item.ProductID);
-  
-  console.log('🎯 CartProductItem Render:', {
-    id: item.ProductID,
-    isFavorite: isFav,
-    item: item
-  });
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity < 1) return;
+    updateQuantity(item.ProductID, newQuantity);
+  };
+
+  const handleRemove = () => {
+    removeFromCart(item.ProductID);
+  };
 
   return (
-    <div className="border p-4 m-2">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3>{item.ProductName}</h3>
-          <p>Precio: ${item.productPrice}</p>
-          <p>Cantidad: {item.productQuantity}</p>
-        </div>
+    <div className="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors">
+      {/* Imagen del producto */}
+      <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-white">
+        <SafeImage
+          src={item.ProductImageUrl}
+          alt={item.ProductName}
+          width={96}
+          height={96}
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Información del producto */}
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-gray-900 text-lg mb-1">
+          {item.ProductName}
+        </h3>
         
-        {/* Botón de favoritos SUPER SIMPLE */}
-        <button
-          onClick={handleFavorite}
-          className={`p-2 ${isFav ? 'text-red-500' : 'text-gray-500'}`}
-        >
-          {isFav ? <IoHeartSharp /> : <IoHeartOutline />}
-        </button>
+        {item.selectedColor && (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm text-gray-600">Color:</span>
+            <div
+              className="w-4 h-4 rounded-full border border-gray-300"
+              style={{ backgroundColor: item.selectedColor }}
+              title={item.selectedColor}
+            />
+          </div>
+        )}
+
+        {item.selectedSize && (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm text-gray-600">Talla:</span>
+            <span className="text-sm font-medium">{item.selectedSize}</span>
+          </div>
+        )}
+
+        {/* Controles de cantidad y precio */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleQuantityChange(item.quantity - 1)}
+              disabled={item.quantity <= 1}
+              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              -
+            </button>
+            <span className="w-8 text-center font-medium">{item.quantity}</span>
+            <button
+              onClick={() => handleQuantityChange(item.quantity + 1)}
+              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+            >
+              +
+            </button>
+          </div>
+
+          <div className="text-right">
+            <div className="font-bold text-lg text-gray-900">
+              {formatPrice(item.productPrice * item.quantity)}
+            </div>
+            <div className="text-sm text-gray-500">
+              {formatPrice(item.productPrice)} c/u
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <div className="text-xs text-gray-500 mt-2">
-        ID: {item.ProductID} | En favs: {isFav ? 'SÍ' : 'NO'}
-      </div>
+
+      {/* Botón eliminar */}
+      <button
+        onClick={handleRemove}
+        className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors p-2"
+        title="Eliminar producto"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
     </div>
   );
 };

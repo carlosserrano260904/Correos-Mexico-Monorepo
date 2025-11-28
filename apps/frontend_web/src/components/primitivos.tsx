@@ -1,3 +1,4 @@
+// components/primitivos.tsx
 'use client'
 import React from 'react'
 import { ColetcionCardProps, ProductCardProps } from '@/types/interface'
@@ -24,7 +25,7 @@ export const Btn = ({children, className, link}: {children: React.ReactNode, cla
 
 export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductName, ProductPrice, onClick }: ProductCardProps) => {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
-  const { addToCart, removeFromCart, getCartItem } = useCart();
+  const { addToCart, removeFromCart, getCartItem, isInCart } = useCart(); // ✅ Agregar isInCart
   const { getProduct } = useProducts();
 
   const formattedPrice = new Intl.NumberFormat('es-MX', {
@@ -34,7 +35,10 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   }).format(ProductPrice);
 
   const isProductFavorite = isFavorite(ProductID);
-  const isInCart = getCartItem(ProductID) !== undefined;
+  
+  // ✅ CORREGIDO: Usar isInCart si existe, o getCartItem como fallback
+  const cartItem = getCartItem ? getCartItem(ProductID) : undefined;
+  const isInCartBoolean = isInCart ? isInCart(ProductID) : cartItem !== undefined;
 
   const Colors: string[] = ProductColors ? ProductColors.filter(c => c.includes('#')) : [];
 
@@ -61,8 +65,8 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
           const compatibleProduct = {
             ProductID,
             ProductName,
-            productPrice: ProductPrice, // ← minúscula 'p' para compatibilidad
-            ProductImageUrl: ProductImage, // ← convertir ProductImage → ProductImageUrl
+            productPrice: ProductPrice,
+            ProductImageUrl: ProductImage,
             ProductDescription: '',
             ProductCategory: '',
             productStockQuantity: 1,
@@ -108,7 +112,7 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
     
     console.log('🛒 Toggle cart for:', ProductID);
     
-    if (isInCart) {
+    if (isInCartBoolean) {
       console.log('➖ Removing from cart');
       removeFromCart(ProductID);
     } else {
@@ -124,8 +128,8 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
           const compatibleProduct = {
             ProductID,
             ProductName,
-            productPrice: ProductPrice, // ← minúscula 'p' para compatibilidad
-            ProductImageUrl: ProductImage, // ← convertir ProductImage → ProductImageUrl
+            productPrice: ProductPrice,
+            ProductImageUrl: ProductImage,
             ProductDescription: '',
             ProductCategory: '',
             productStockQuantity: 1,
@@ -168,11 +172,11 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   React.useEffect(() => {
     console.log(`🔍 ProductCard ${ProductID}:`, {
       isFavorite: isProductFavorite,
-      isInCart: isInCart,
+      isInCart: isInCartBoolean,
       price: ProductPrice,
       image: ProductImage
     });
-  }, [ProductID, isProductFavorite, isInCart, ProductPrice, ProductImage]);
+  }, [ProductID, isProductFavorite, isInCartBoolean, ProductPrice, ProductImage]);
 
   return (
     <Card className="w-full h-full mx-auto border-0 shadow-none bg-[#F9FAFB] rounded-[24px] overflow-hidden group/card font-sans hover:bg-[#F3F4F6] transition-colors duration-300 flex flex-col">
@@ -224,14 +228,14 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
             <button 
               onClick={handleToggleCart}
               className={`p-2 rounded-full transition-all duration-200 ${
-                isInCart 
+                isInCartBoolean 
                   ? 'text-gray-800 bg-gray-100 hover:bg-gray-200' 
                   : 'hover:text-gray-800 hover:bg-white'
               }`}
               type="button"
-              title={isInCart ? "Quitar del carrito" : "Agregar al carrito"}
+              title={isInCartBoolean ? "Quitar del carrito" : "Agregar al carrito"}
             >
-              {isInCart ? 
+              {isInCartBoolean ? 
                 <IoBag className="w-4 h-4 sm:w-5 sm:h-5" /> : 
                 <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
               }
@@ -273,8 +277,6 @@ export const ColectionCard = ({ ProductID, ProductImage, ProductName, onClick }:
         </div>
 
         <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0 flex-grow flex flex-col justify-end">
-           {/* Se puede personalizar más si es necesario */}
-           {/* ... contenido similar ... */}
            <div>
             <h3 className="text-gray-500 text-sm font-medium mb-1 text-left truncate tracking-wide">
               {ProductName}
@@ -291,7 +293,6 @@ export const ColectionCard = ({ ProductID, ProductImage, ProductName, onClick }:
 
 export const Title = ({ children, className = "" }: { children: string; className?: string }) => {
   return (
-    // Responsive text size
     <h2 className={`text-2xl sm:text-3xl font-bold text-gray-900 text-center break-words whitespace-normal mb-8 ${className} relative inline-block`}>
       {children}
       <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 sm:w-16 h-1 bg-gradient-to-r from-[#DE1484] to-pink-500 rounded-full"></div>
@@ -326,7 +327,6 @@ export const ProductCardSkeleton = () => {
 
 export const ProductGrid = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
   return (
-    // Grid responsive: 1 col móvil, 2 col tablet pequeña, 3 col tablet grande/laptop, 4 col escritorio
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8 ${className}`}>
       {children}
     </div>

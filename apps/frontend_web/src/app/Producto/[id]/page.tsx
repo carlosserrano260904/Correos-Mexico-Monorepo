@@ -16,9 +16,6 @@ export default function ProductDetailPage() {
   const { product, loading, error } = useProductById(productId);
   const { products } = useProducts();
 
-  // ---------------------------
-  // LOADING STATE
-  // ---------------------------
   if (loading) {
     return (
       <Plantilla>
@@ -48,9 +45,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  // ---------------------------
-  // ERROR / PRODUCTO NO ENCONTRADO
-  // ---------------------------
+
   if (error || !product) {
     return (
       <Plantilla>
@@ -68,9 +63,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  // ---------------------------
-  // RENDER NORMAL
-  // ---------------------------
+
   return (
     <Plantilla>
       <div className="space-y-12 lg:space-y-16">

@@ -6,9 +6,11 @@ import OrderReview from './Componentes/orderReview'
 import Link from 'next/link'
 import PaymentMethod from './Componentes/paymentMethod'
 import { ResumenCompra } from '@/components/resumenCompra'
+import { useCart } from '@/hooks/useCart'
+import { CartCard } from '../../components/cartcard'
 
 export default function Home() {
-
+  const { items } = useCart();
 
   return (
     <Plantilla>
@@ -35,12 +37,13 @@ export default function Home() {
           </div>
         </div>
         <div id='leftContent' className='w-1/3'>
-          <ResumenCompra className='mt-12'></ResumenCompra>
+          <ResumenCompra className='mt-13'></ResumenCompra>
           {/* <div className='bg-[#DE1484] m-2 rounded-lg text-center text-white py-2 w-1/2 justify-self-center'>
             <button>Confirmar compra</button>
           </div> */}
         </div>
       </div>
+      <CartCard className='lg:basis-2/3  ml-2' items={items}/>
     </Plantilla>
   );
 }

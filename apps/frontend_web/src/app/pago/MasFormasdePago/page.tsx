@@ -6,10 +6,13 @@ import { PaymentMethodProps } from "@/types/interface"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import FormularioPagoTarjeta from "../Componentes/Primitivos/formularioPagoTarjeta"
 import React, { useState } from "react"
+import { ResumenCompra } from '@/components/resumenCompra'
+import { useCart } from '@/hooks/useCart'
+import { CartCard } from '../../../components/cartcard'
 
 export default function MasTarjetas() {
     const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<number | null>(null);
-    
+    const { items } = useCart();
     // Datos de ejemplo para las tarjetas
     const tarjetas = [
         {
@@ -134,9 +137,10 @@ export default function MasTarjetas() {
                 </div>
 
                 <div id='rightContent' className='w-1/4'>
-                    <SumatoriaOrden />
+                    <ResumenCompra className='lg:basis-1/3 h-fit mt-2' />
                 </div>
             </div>
+            <CartCard className='lg:basis-2/3 ml-2' items={items}/>
         </Plantilla>
     )
 }

@@ -21,8 +21,8 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
                 {/* Links movidos completamente a la derecha */}
                 <div className="flex items-center text-black-50 gap-16 ml-auto">
                     <Link href="/" className=" hover:text-pink-500 font-medium transition-colors text-sm">Inicio</Link>
-                    <Link href="/mexposts" className=" hover:text-pink-500 font-medium transition-colors text-sm">MEXPOSTS</Link>
-                    <Link href="/correos-clic" className=" hover:text-pink-500 font-medium transition-colors text-sm">Centro de ayuda</Link>
+                    <Link href="/CorreosMX" className=" hover:text-pink-500 font-medium transition-colors text-sm">MEXPOSTS</Link>
+                    <Link href="/centro-de-ayuda" className=" hover:text-pink-500 font-medium transition-colors text-sm">Centro de ayuda</Link>
                     <Link href="/atencion-cliente" className=" hover:text-pink-500 font-medium transition-colors text-sm mr-18">Ubicaciones y horarios</Link>
                 </div>
             </div>

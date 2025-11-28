@@ -1,4 +1,6 @@
+// components/navbar.tsx
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import {
     IoMenu,
     IoSearchOutline,
@@ -8,44 +10,30 @@ import {
     IoHeartSharp,
     IoBagOutline,
     IoPersonOutline,
-    IoTrashOutline 
+    IoTrashOutline
 } from "react-icons/io5";
+import Link from "next/link";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "./ui/separator"; 
+import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useCart } from "@/hooks/useCart"; 
-import { useAuth } from '@/hooks/useAuth'; 
-
-// Función de enlace simple que simula Link de Next.js
-const SimpleLink = ({ href, children, className = "", onClick }: { href: string, children: React.ReactNode, className?: string, onClick?: () => void }) => (
-    <a href={href} className={className} onClick={onClick}>{children}</a>
-);
+import { useCart } from "@/hooks/useCart";
+import { useAuth } from '@/hooks/useAuth';
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
-// Estructura de un ítem de favorito para tipado 
-interface FavoriteProduct {
-    ProductID: string | number;
-    ProductImageUrl: string;
-    ProductName: string;
-    productPrice: number;
-    quantity?: number; 
-    selectedColor?: string; 
-}
-
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
+    // CORREGIDO: Usar las propiedades correctas del hook useCart
     const { 
         items: cartItems, 
         removeFromCart, 
         getTotalItems, 
-        getTotalPrice,
-        addToCart 
+        getTotalPrice 
     } = useCart();
     
     const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
@@ -70,11 +58,10 @@ export const Navbar = () => {
     };
 
     const formatPrice = (price: number) => {
-        const safePrice = typeof price === 'number' ? price : 0;
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
             currency: 'MXN',
-        }).format(safePrice);
+        }).format(price);
     };
 
     const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -99,87 +86,21 @@ export const Navbar = () => {
         }));
     };
 
-    const FavoriteDropdownItem = ({ product }: { product: FavoriteProduct }) => {
-
-        const onRemove = () => {
-            removeFromFavorites(product.ProductID);
-        };
-
-        const onAddToCart = () => {
-            if (addToCart) {
-                addToCart({ ...product, quantity: 1 }, 1); 
-            }
-        };
-
-        return (
-            <div className="flex items-start py-4 border-b border-dotted border-gray-300 last:border-b-0">
-                <div className="relative w-20 h-20 flex-shrink-0 mr-4 rounded-lg overflow-hidden border">
-                    <img
-                        src={product.ProductImageUrl}
-                        alt={product.ProductName}
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-
-                {/* 2. Contenido (Nombre, Precio, Iconos) */}
-                <div className="flex flex-col flex-grow">
-                    
-                    {/* Nombre */}
-                    <h3 className="text-sm sm:text-base font-normal text-gray-800 line-clamp-2">
-                        {product.ProductName}
-                    </h3>
-
-                    {/* Precio */}
-                    <p className="text-lg font-bold text-gray-900 mt-1">
-                        {formatPrice(product.productPrice)}
-                    </p>
-
-                    {/* Contenedor de Iconos */}
-                    <div className="flex space-x-2 mt-2">
-                        
-                        {/* Quitar de Favoritos */}
-                        <button 
-                            onClick={onRemove}
-                            className="p-1 border border-gray-200 rounded-full text-red-500 bg-white shadow-sm hover:shadow-md transition-all duration-200"
-                            aria-label="Quitar de favoritos"
-                            title="Quitar de favoritos"
-                        >
-                            <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                        
-                        {/* Añadir al Carrito */}
-                        <button
-                            onClick={onAddToCart}
-                            className="p-1 border border-gray-200 rounded-full text-gray-600 bg-white shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-200"
-                            aria-label="Añadir al carrito"
-                            title="Añadir al carrito"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3">
-                                <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 17.2 44.6 39L147.7 392C150.8 413.8 171.3 430 193.3 430H464c22 0 41.5-17.2 44.6-39L561.5 138C564.6 116.2 553 96 531 96H107.4l-3.3-23.7C101.4 49 84.7 24 62.6 24H24C10.7 24 0 13.3 0 0zm128 480a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm320 0a48 48 0 1 1 96 0 48 48 0 1 1-96 0z" fill="currentColor"/>
-                            </svg>
-                        </button>
-                        
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     // Renderizar versión simplificada durante la hidratación
     if (!isMounted) {
         return (
             <div className="flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
                 {/* Logo */}
                 <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                    <a href={'/'}>
-                        <img
+                    <Link href={'/'}>
+                        <Image
                             src="/logoCorreos.png"
                             alt="Logo de correos"
                             width={70}
                             height={26}
                             className="w-12 h-4 sm:w-14 sm:h-5 md:w-16 md:h-6 lg:w-20 lg:h-7 xl:w-24 xl:h-8"
                         />
-                    </a>
+                    </Link>
                     {/* Menú hamburguesa móvil */}
                     <div className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
                         <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -235,22 +156,24 @@ export const Navbar = () => {
         );
     }
 
+    // Solo obtener datos después del montaje - CORREGIDO
     const totalFavorites = getTotalFavorites();
     const totalCartItems = getTotalItems();
-    const cartSubtotal = getTotalPrice(); 
-    const favoritesList = Favorites as FavoriteProduct[]; 
-    const cartItemsList = cartItems; 
+    const cartSubtotal = getTotalPrice(); // ← CORREGIDO: usar getTotalPrice
+    const favoritesList = Favorites;
+    const cartItemsList = cartItems; // ← CORREGIDO: usar cartItems
 
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
             {/* Logo */}
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                <SimpleLink href={'/'} className="flex items-center">
-                    <img
+                <Link href={'/'} className="flex items-center">
+                    <Image
                     src="/logoCorreos.png"
                     alt="Logo de correos"
                     width={100}  
                     height={38}
+                    priority
                     className="
                         h-9 w-auto object-contain
                         sm:h-10
@@ -258,7 +181,7 @@ export const Navbar = () => {
                         lg:h-12
                         xl:h-14"
                     />
-                </SimpleLink>
+                </Link>
                 
                 {/* Menú hamburguesa */}
                 <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
@@ -268,9 +191,9 @@ export const Navbar = () => {
                     <DropdownMenuContent align="start" className="w-[280px] sm:w-[300px] max-h-[400px] sm:max-h-[450px] overflow-y-auto">
                         {categories.map((category, index) => (
                             <DropdownMenuItem key={index} className="first:mb-4 sm:first:mb-6 last:mt-4 sm:last:mt-6 [&:not(:first-child):not(:last-child)]:my-4 sm:[&:not(:first-child):not(:last-child)]:my-6 text-sm sm:text-base">
-                                <SimpleLink href={`./categories?category=${encodeURIComponent(category)}`} onClick={handleDropdownClose}>
+                                <Link href={`./categories?category=${encodeURIComponent(category)}`} onClick={handleDropdownClose}>
                                     {category}
-                                </SimpleLink>
+                                </Link>
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
@@ -313,12 +236,12 @@ export const Navbar = () => {
                             <div className="text-black/50 text-xs sm:text-sm mt-1">Escanee con la cámara de su teléfono o la aplicación de código QR para descargarlo</div>
                         </div>
                         <div className="p-2 sm:p-3 mt-2">
-                            <img src={'/qr2.png'} alt="qr" width={150} height={150} className="w-full h-full max-w-[120px] sm:max-w-[150px] mx-auto" />
+                            <Image src={'/qr2.png'} alt="qr" width={150} height={150} className="w-full h-full max-w-[120px] sm:max-w-[150px] mx-auto" />
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* FAVORITOS */}
+                {/* Favoritos */}
                 <DropdownMenu open={openDropdown === 'favorites'} onOpenChange={(open) => open ? handleDropdownToggle('favorites') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoHeartOutline className={`w-4 h-4 sm:w-5 sm:h-5 ${totalFavorites > 0 ? 'hidden' : 'block'}`} />
@@ -327,18 +250,15 @@ export const Navbar = () => {
                             {totalFavorites}
                         </span>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[320px] sm:w-[350px] p-3 sm:p-4 max-h-[400px] overflow-y-auto">
+                    <DropdownMenuContent align="end" className="w-[320px] sm:w-[350px] p-3 sm:p-4 overflow-y-auto max-h-[350px] sm:max-h-[400px]">
                         <div className="flex-col">
-                            
-                            {/* --- HEADER NUEVO --- */}
-                            <div className="flex items-center pb-3 sm:pb-4 border-b-2 border-pink-300 border-dotted">
-                                <div className="text-lg sm:text-xl font-semibold text-gray-800">
-                                    Mis Favoritos
-                                </div>
-                                <SimpleLink href={"/favoritos"} className="ms-auto text-sm text-pink-600 hover:text-black-800 transition-colors" onClick={handleDropdownClose}>
-                                    Visualizar más
-                                </SimpleLink>
+                            <div className="flex items-center">
+                                <div className="text-base sm:text-lg font-semibold">Mis Favoritos ({totalFavorites})</div>
+                                <Link href={"/favoritos"} className="ms-auto text-xs sm:text-sm underline" onClick={handleDropdownClose}>
+                                    Ver favoritos
+                                </Link>
                             </div>
+                            <Separator className="my-2 sm:my-3" />
                             
                             {favoritesList.length === 0 ? (
                                 <div className="text-center py-6 sm:py-8 text-gray-500">
@@ -347,16 +267,39 @@ export const Navbar = () => {
                                     <p className="text-xs">Agrega productos a tu lista</p>
                                 </div>
                             ) : (
-                                <div className="flex-col pt-3"> 
-                                    {/* Usamos el nuevo componente de ítem dentro del loop */}
-                                    {favoritesList.slice(0, 3).map((product) => (
-                                        <FavoriteDropdownItem 
-                                            key={product.ProductID} 
-                                            product={product} 
-                                        />
+                                <div className="flex-col space-y-2 sm:space-y-3">
+                                    {favoritesList.slice(0, 3).map((product, index) => (
+                                        <div 
+                                            key={product.ProductID ? `favorite-${product.ProductID}` : `favorite-${index}-${product.ProductName}`}
+                                            className="flex items-stretch"
+                                        >
+                                            <div className="basis-1/3">
+                                                <img 
+                                                    src={product.ProductImageUrl} 
+                                                    alt={product.ProductName} 
+                                                    className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl object-cover" 
+                                                />
+                                            </div>
+                                            <div className="basis-2/3 ms-2 flex flex-col justify-between text-xs sm:text-sm">
+                                                <div className="font-semibold line-clamp-2">{product.ProductName}</div>
+                                                <div className="text-gray-500 text-xs">{product.ProductBrand}</div>
+                                                <div className="font-bold">{formatPrice(product.productPrice)}</div>
+                                            </div>
+                                            <div className="basis-1/12 flex items-center justify-center">
+                                                <button 
+                                                    onClick={() => {
+                                                        removeFromFavorites(product.ProductID);
+                                                        handleDropdownClose();
+                                                    }}
+                                                    className="p-1 hover:bg-gray-100 rounded text-red-500"
+                                                >
+                                                    <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     ))}
                                     {favoritesList.length > 3 && (
-                                        <div className="text-center text-xs sm:text-sm text-gray-500 pt-4">
+                                        <div className="text-center text-xs sm:text-sm text-gray-500 pt-2">
                                             Y {favoritesList.length - 3} productos más...
                                         </div>
                                     )}
@@ -365,9 +308,8 @@ export const Navbar = () => {
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                {/* FIN FAVORITOS */}
 
-                {/* Carrito */}
+                {/* Carrito - CORREGIDO */}
                 <DropdownMenu open={openDropdown === 'cart'} onOpenChange={(open) => open ? handleDropdownToggle('cart') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -402,7 +344,6 @@ export const Navbar = () => {
                                                 className="flex items-stretch"
                                             >
                                                 <div className="basis-1/4">
-                                                    {/* FIX: Usando <img> */}
                                                     <img 
                                                         src={item.ProductImageUrl} 
                                                         alt={item.ProductName} 
@@ -453,14 +394,13 @@ export const Navbar = () => {
 
                                     {/* Botón para ir al carrito completo */}
                                     <div className="mt-3 sm:mt-4">
-                                        {/* FIX: Usando <a> */}
-                                        <SimpleLink 
+                                        <Link 
                                             href="/Carrito" 
                                             className="w-full bg-[#DE1484] hover:bg-pink-700 text-white py-2 sm:py-3 px-4 rounded-lg font-semibold text-sm sm:text-base transition-colors flex items-center justify-center"
                                             onClick={handleDropdownClose}
                                         >
                                             Ver Carrito Completo
-                                        </SimpleLink>
+                                        </Link>
                                     </div>
                                 </>
                             )}
@@ -520,14 +460,13 @@ export const Navbar = () => {
                                 </form>
                                 
                                 <div className="text-center">
-                                    {/* FIX: Usando <a> */}
-                                    <SimpleLink 
+                                    <Link 
                                         href="/registro"
                                         onClick={handleDropdownClose}
                                         className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors"
                                     >
                                         ¿No tienes cuenta? Regístrate
-                                    </SimpleLink>
+                                    </Link>
                                 </div>
                             </div>
                         ) : (
@@ -549,8 +488,7 @@ export const Navbar = () => {
                                 <Separator className="mb-3 sm:mb-4" />
 
                                 <div className="flex flex-col space-y-2 sm:space-y-3">
-                                    {/* FIX: Usando <a> */}
-                                    <SimpleLink 
+                                    <Link 
                                         href="/Perfil" 
                                         className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                         onClick={handleDropdownClose}
@@ -559,10 +497,9 @@ export const Navbar = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                         Mi Perfil
-                                    </SimpleLink>
+                                    </Link>
                                     
-                                    {/* FIX: Usando <a> */}
-                                    <SimpleLink 
+                                    <Link 
                                         href="/historial" 
                                         className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                         onClick={handleDropdownClose}
@@ -571,10 +508,9 @@ export const Navbar = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                         </svg>
                                         Historial de Compras
-                                    </SimpleLink>
+                                    </Link>
                                     
-                                    {/* FIX: Usando <a> */}
-                                    <SimpleLink 
+                                    <Link 
                                         href="/solicitar_cuenta" 
                                         className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                         onClick={handleDropdownClose}
@@ -583,11 +519,10 @@ export const Navbar = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                         Ser Vendedor
-                                    </SimpleLink>
+                                    </Link>
                                     
                                     {user?.role === 'vendor' && (
-                                        // FIX: Usando <a>
-                                        <SimpleLink 
+                                        <Link 
                                             href="/Vendedor/app" 
                                             className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                             onClick={handleDropdownClose}
@@ -596,7 +531,7 @@ export const Navbar = () => {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                             </svg>
                                             Panel Vendedor
-                                        </SimpleLink>
+                                        </Link>
                                     )}
                                 </div>
 

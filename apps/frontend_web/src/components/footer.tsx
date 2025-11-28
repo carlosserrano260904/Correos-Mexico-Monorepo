@@ -35,6 +35,9 @@ const Footer: React.FC = () => {
             <li>Nuevos productos</li>
             <li>Oficinas postales</li>
             <li>SolucionesClic vendedor</li>
+            <p className="text-pink-600 mt-1">
+              <Link href="/CorreosMX">MEXPOST</Link>
+            </p>
           </ul>
         </div>
 

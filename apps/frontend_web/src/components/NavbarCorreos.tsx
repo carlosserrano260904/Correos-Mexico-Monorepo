@@ -1,31 +1,76 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 interface NavbarCorreosProps {
-    transparent?: boolean;
+  transparent?: boolean;
 }
 
 export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
-    return(
-        <div className={`w-full ${transparent ? 'bg-transparent absolute top-0 left-0 z-10' : 'bg-white-100'}`}>
-            <div className="flex items-center justify-between w-full px-4 py-2">
-                
-                <Image 
-                    src="/logoCorreos.png" 
-                    alt="Logo de correos" 
-                    width={100} 
-                    height={38}
-                />
+  const [open, setOpen] = useState(false);
 
-                {/* Links movidos completamente a la derecha */}
-                <div className="flex items-center text-black-50 gap-16 ml-auto">
-                    <Link href="/" className=" hover:text-pink-500 font-medium transition-colors text-sm">Inicio</Link>
-                    <Link href="/mexposts" className=" hover:text-pink-500 font-medium transition-colors text-sm">MEXPOSTS</Link>
-                    <Link href="/correos-clic" className=" hover:text-pink-500 font-medium transition-colors text-sm">Centro de ayuda</Link>
-                    <Link href="/atencion-cliente" className=" hover:text-pink-500 font-medium transition-colors text-sm mr-18">Ubicaciones y horarios</Link>
-                </div>
-            </div>
+  return (
+    <div
+      className={`w-full ${
+        transparent ? "bg-transparent absolute top-0 left-0 z-10" : "bg-white"
+      }`}
+    >
+      <div className="flex items-center justify-between w-full px-4 py-3">
+        {/* LOGO */}
+        <Image
+          src="/logoCorreos.png"
+          alt="Logo de correos"
+          width={100}
+          height={38}
+        />
+
+        {/* BOTÓN HAMBURGUESA */}
+        <button
+          className="md:hidden text-black text-3xl mr-6"
+          onClick={() => setOpen(!open)}
+        >
+          ☰
+        </button>
+
+        {/* LINKS - Desktop */}
+        <div className="hidden md:flex items-center text-black gap-16 ml-auto">
+          <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            Inicio
+          </Link>
+          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            MEXPOSTS
+          </Link>
+          <Link href="/centro-de-ayuda" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            Centro de ayuda
+          </Link>
+          <Link href="/CorreosMX/ubicaciones" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            Ubicaciones y horarios
+          </Link>
         </div>
-    )
-}
+      </div>
+
+      {/* MENÚ MOBILE */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ${
+          open ? "max-h-64" : "max-h-0"
+        }`}
+      >
+        <div className="flex flex-col bg-white px-4 pb-4 text-black gap-4">
+          <Link href="/" className="hover:text-pink-500 font-medium">
+            Inicio
+          </Link>
+          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium">
+            MEXPOSTS
+          </Link>
+          <Link href="/centro-de-ayuda" className="hover:text-pink-500 font-medium">
+            Centro de ayuda
+          </Link>
+          <Link href="/CorreosMX/ubicaciones" className="hover:text-pink-500 font-medium">
+            Ubicaciones y horarios
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};

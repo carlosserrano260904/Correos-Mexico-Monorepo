@@ -3,23 +3,27 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { useProductById } from '@/hooks/useProduct';
+import { useProductById, useProducts } from '@/hooks/useProduct';
 import { ProductDetails } from '@/components/primitivos/ProductDetails';
 import { ProductStory } from '@/components/primitivos/ProductStory';
 import { Plantilla } from '@/components/plantilla';
+import { CarrouselProducts } from '@/components/CarouselProducts';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
   
   const { product, loading, error } = useProductById(productId);
+  const { products } = useProducts();
 
+  // ---------------------------
+  // LOADING STATE
+  // ---------------------------
   if (loading) {
     return (
       <Plantilla>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            {/* Skeleton loader */}
             <div className="space-y-4">
               <div className="aspect-square bg-gray-200 animate-pulse rounded-2xl"></div>
               <div className="grid grid-cols-3 gap-2">
@@ -44,6 +48,9 @@ export default function ProductDetailPage() {
     );
   }
 
+  // ---------------------------
+  // ERROR / PRODUCTO NO ENCONTRADO
+  // ---------------------------
   if (error || !product) {
     return (
       <Plantilla>
@@ -61,13 +68,17 @@ export default function ProductDetailPage() {
     );
   }
 
+  // ---------------------------
+  // RENDER NORMAL
+  // ---------------------------
   return (
     <Plantilla>
       <div className="space-y-12 lg:space-y-16">
+
         {/* Detalles principales del producto */}
         <ProductDetails product={product} />
         
-        {/* Historia/Descripción detallada del producto */}
+        {/* Historia / descripción del producto */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ProductStory
             title={product.ProductName}
@@ -77,7 +88,28 @@ export default function ProductDetailPage() {
           />
         </div>
 
-        {/* Aquí puedes agregar más secciones como productos relacionados, reseñas, etc. */}
+        {/* Productos relacionados */}
+        {products && products.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CarrouselProducts
+              entradas={products}
+              title="Productos relacionados"
+              className="mi-clase-personalizada"
+            />
+          </div>
+        )}
+
+        {/* También te puede interesar */}
+        {products && products.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CarrouselProducts
+              entradas={products}
+              title="También te puede interesar"
+              className="mi-clase-personalizada"
+            />
+          </div>
+        )}
+
       </div>
     </Plantilla>
   );

@@ -8,6 +8,9 @@ import { ProductDetails } from '@/components/primitivos/ProductDetails';
 import { ProductStory } from '@/components/primitivos/ProductStory';
 import { Plantilla } from '@/components/plantilla';
 import { CarrouselProducts } from '@/components/CarouselProducts';
+import { CarouselDetalles } from '@/components/CarouselDetalles';
+
+
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -70,14 +73,30 @@ export default function ProductDetailPage() {
 
         {/* Detalles principales del producto */}
         <ProductDetails product={product} />
+
+        
         
         {/* Historia / descripción del producto */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ProductStory
-            title={product.ProductName}
-            description={product.ProductDescription || 'Producto de alta calidad con los mejores materiales y diseño único.'}
-            imageUrl={product.ProductImageUrl}
-            imageAlt={product.ProductName}
+          <ProductStory title={product.ProductName} description={product.ProductDescription || 'Producto de alta calidad con los mejores materiales y diseño único.'} imageUrl={product.ProductImageUrl} imageAlt={product.ProductName}/></div>
+
+        {/* 🔥 Carousel Detalles */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CarouselDetalles
+            items={[
+              {
+                image: product.ProductImageUrl,
+                description: product.ProductDescription || "Sin descripción",
+              },
+              {
+                image: product.ProductImageUrl,
+                description: product.ProductDescription || "Sin descripción",
+              },
+              {
+                image: product.ProductImageUrl,
+                description: product.ProductDescription || "Sin descripción",
+              }
+            ]}
           />
         </div>
 

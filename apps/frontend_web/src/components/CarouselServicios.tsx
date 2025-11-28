@@ -19,17 +19,17 @@ export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
 
   const handleCardClick = (servicioId: string) => {
     switch (servicioId) {
-      case 'correspondencia':
+      case 'servicios-ventanilla':
+        router.push('/servicios-ventanilla')
+        break
+      case 'prohibidos':
+        router.push('/articulosprohibidos')
+        break
+      case 'enviar':
         router.push('/como-enviar')
         break
-      case 'paqueteria':
-        router.push('/como-enviar')
-        break
-      case 'impresos':
-        router.push('/como-enviar')
-        break
-      case 'embalajes':
-        router.push('/como-enviar')
+      case 'corporativos':
+        router.push('/corporativos')
         break
       // Agregar más casos cuando tengamos más páginas
       default:
@@ -70,7 +70,8 @@ export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
                 {/* Botón "Más información" */}
                 <button 
                   onClick={() => handleCardClick(servicio.id)}
-                  className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-pointer w-full">
+                  className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-pointer w-full"
+                >
                   <span className="text-sm font-medium text-gray-700">
                     Más información
                   </span>

@@ -17,13 +17,17 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
       }`}
     >
       <div className="flex items-center justify-between w-full px-4 py-3">
-        {/* LOGO */}
-        <Image
-          src="/logoCorreos.png"
-          alt="Logo de correos"
-          width={100}
-          height={38}
-        />
+        
+      
+        <Link href="/CorreosMX">
+          <Image
+            src="/logoCorreos.png"
+            alt="Logo de correos"
+            width={100}
+            height={38}
+            className="cursor-pointer"
+          />
+        </Link>
 
         {/* BOTÓN HAMBURGUESA */}
         <button
@@ -35,11 +39,11 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
 
         {/* LINKS - Desktop */}
         <div className="hidden md:flex items-center text-black gap-16 ml-auto">
-          <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
+          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium transition-colors text-sm">
             Inicio
           </Link>
-          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium transition-colors text-sm">
-            MEXPOSTS
+          <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            CorreosClic
           </Link>
           <Link href="/centro-de-ayuda" className="hover:text-pink-500 font-medium transition-colors text-sm">
             Centro de ayuda

@@ -31,7 +31,7 @@ export const CartCard = ({ className, items }: { className: string, items: CartI
 
   if (validItems.length === 0) {
     return (
-      <div className={`w-full h-fit bg-[#F7F7F7] p-8 rounded-2xl text-center ${className}`}>
+      <div className={`w-auto h-fit bg-[#F7F7F7] p-8 rounded-2xl text-center ${className}`}>
         <div className="text-6xl mb-4">🛒</div>
         <h3 className="text-xl font-semibold text-gray-800 mb-2">Tu carrito está vacío</h3>
         <p className="text-gray-600 mb-4">Agrega algunos productos increíbles a tu carrito</p>
@@ -46,7 +46,7 @@ export const CartCard = ({ className, items }: { className: string, items: CartI
   }
 
   return (
-    <div className={`w-full h-fit bg-[#F7F7F7] p-5 rounded-2xl ${className}`}>
+    <div className={`w-auto h-fit bg-[#F7F7F7] p-5 rounded-2xl ${className}`}>
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-gray-900">Mi Carrito</h2>
         <p className="text-gray-600 text-sm">

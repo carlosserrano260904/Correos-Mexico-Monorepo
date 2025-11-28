@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-    
     IoMenu,
     IoSearchOutline,
     IoMicOutline,
@@ -10,17 +9,17 @@ import {
     IoBagOutline,
     IoPersonOutline,
     IoTrashOutline 
-} from "react-icons/io5"; 
+} from "react-icons/io5";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "./ui/separator";
-import { useFavorites } from "@/hooks/useFavorites"; 
+import { Separator } from "./ui/separator"; 
+import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart"; 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth'; 
 
 // Función de enlace simple que simula Link de Next.js
 const SimpleLink = ({ href, children, className = "", onClick }: { href: string, children: React.ReactNode, className?: string, onClick?: () => void }) => (
@@ -29,7 +28,7 @@ const SimpleLink = ({ href, children, className = "", onClick }: { href: string,
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
-// Estructura de un ítem de favorito para tipado (asumiendo ProductID, ProductImageUrl, ProductName, productPrice)
+// Estructura de un ítem de favorito para tipado 
 interface FavoriteProduct {
     ProductID: string | number;
     ProductImageUrl: string;
@@ -71,7 +70,6 @@ export const Navbar = () => {
     };
 
     const formatPrice = (price: number) => {
-        // Asegura que el precio sea un número y aplica formato MXN
         const safePrice = typeof price === 'number' ? price : 0;
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -101,7 +99,6 @@ export const Navbar = () => {
         }));
     };
 
-    // --- Componente interno para renderizar un ítem de favorito (Nuevo Diseño) ---
     const FavoriteDropdownItem = ({ product }: { product: FavoriteProduct }) => {
 
         const onRemove = () => {
@@ -116,8 +113,6 @@ export const Navbar = () => {
 
         return (
             <div className="flex items-start py-4 border-b border-dotted border-gray-300 last:border-b-0">
-                
-                {/* 1. Imagen (W: 80px, H: 80px) - FIX: Usando <img> estándar */}
                 <div className="relative w-20 h-20 flex-shrink-0 mr-4 rounded-lg overflow-hidden border">
                     <img
                         src={product.ProductImageUrl}
@@ -139,20 +134,20 @@ export const Navbar = () => {
                         {formatPrice(product.productPrice)}
                     </p>
 
-                    {/* Contenedor de Iconos (Basura y Bolsa) */}
+                    {/* Contenedor de Iconos */}
                     <div className="flex space-x-2 mt-2">
                         
-                        {/* 1. Corazón Relleno (Quitar de Favoritos) - FIX: Usando SVG Inline */}
+                        {/* Quitar de Favoritos */}
                         <button 
                             onClick={onRemove}
-                            className="p-1 border border-gray-200 rounded-full text-pink-500 bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                            className="p-1 border border-gray-200 rounded-full text-red-500 bg-white shadow-sm hover:shadow-md transition-all duration-200"
                             aria-label="Quitar de favoritos"
                             title="Quitar de favoritos"
                         >
                             <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                         
-                        {/* 2. Bolsa (Añadir al Carrito) - FIX: Usando SVG Inline */}
+                        {/* Añadir al Carrito */}
                         <button
                             onClick={onAddToCart}
                             className="p-1 border border-gray-200 rounded-full text-gray-600 bg-white shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-200"
@@ -176,12 +171,10 @@ export const Navbar = () => {
             <div className="flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
                 {/* Logo */}
                 <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                    {/* FIX: Usando <img> y <a> */}
                     <a href={'/'}>
                         <img
                             src="/logoCorreos.png"
                             alt="Logo de correos"
-                            // FIX: Se usan tamaños fijos para <img>
                             width={70}
                             height={26}
                             className="w-12 h-4 sm:w-14 sm:h-5 md:w-16 md:h-6 lg:w-20 lg:h-7 xl:w-24 xl:h-8"
@@ -242,18 +235,16 @@ export const Navbar = () => {
         );
     }
 
-    // Solo obtener datos después del montaje
     const totalFavorites = getTotalFavorites();
     const totalCartItems = getTotalItems();
     const cartSubtotal = getTotalPrice(); 
-    const favoritesList = Favorites as FavoriteProduct[]; // Casteo para usar la interfaz
+    const favoritesList = Favorites as FavoriteProduct[]; 
     const cartItemsList = cartItems; 
 
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
             {/* Logo */}
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                {/* FIX: Usando <img> y <a> */}
                 <SimpleLink href={'/'} className="flex items-center">
                     <img
                     src="/logoCorreos.png"
@@ -322,13 +313,12 @@ export const Navbar = () => {
                             <div className="text-black/50 text-xs sm:text-sm mt-1">Escanee con la cámara de su teléfono o la aplicación de código QR para descargarlo</div>
                         </div>
                         <div className="p-2 sm:p-3 mt-2">
-                            {/* FIX: Usando <img> */}
                             <img src={'/qr2.png'} alt="qr" width={150} height={150} className="w-full h-full max-w-[120px] sm:max-w-[150px] mx-auto" />
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* FAVORITOS (MODIFICADO) */}
+                {/* FAVORITOS */}
                 <DropdownMenu open={openDropdown === 'favorites'} onOpenChange={(open) => open ? handleDropdownToggle('favorites') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoHeartOutline className={`w-4 h-4 sm:w-5 sm:h-5 ${totalFavorites > 0 ? 'hidden' : 'block'}`} />
@@ -345,12 +335,10 @@ export const Navbar = () => {
                                 <div className="text-lg sm:text-xl font-semibold text-gray-800">
                                     Mis Favoritos
                                 </div>
-                                {/* FIX: Usando <a> */}
-                                <SimpleLink href={"/favoritos"} className="ms-auto text-sm text-pink-600 hover:text-black-500 transition-colors" onClick={handleDropdownClose}>
+                                <SimpleLink href={"/favoritos"} className="ms-auto text-sm text-pink-600 hover:text-black-800 transition-colors" onClick={handleDropdownClose}>
                                     Visualizar más
                                 </SimpleLink>
                             </div>
-                            {/* --- FIN HEADER NUEVO --- */}
                             
                             {favoritesList.length === 0 ? (
                                 <div className="text-center py-6 sm:py-8 text-gray-500">
@@ -379,7 +367,7 @@ export const Navbar = () => {
                 </DropdownMenu>
                 {/* FIN FAVORITOS */}
 
-                {/* Carrito - CORREGIDO */}
+                {/* Carrito */}
                 <DropdownMenu open={openDropdown === 'cart'} onOpenChange={(open) => open ? handleDropdownToggle('cart') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />

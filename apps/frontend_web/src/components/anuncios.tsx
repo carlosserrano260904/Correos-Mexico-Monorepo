@@ -25,7 +25,7 @@ export const Anuncios = () => {
         if (emblaApi) emblaApi.scrollNext()
     }, [emblaApi])
 
-// 2. Definición de los banners
+// 2. Definición de los banners 
 const banners = [
     { 
         id: 1, 

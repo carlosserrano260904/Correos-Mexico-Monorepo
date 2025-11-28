@@ -4,7 +4,7 @@ import { CategoriesCarousel } from "./CategoriesCarousel";
 const categories = [
   {
     imageSrc: "/ropa.png",
-    label: "Ropa, moda y calzado",
+    label: "Ropa",
   },
   {
     imageSrc: "/sillon2.png",
@@ -27,40 +27,16 @@ const categories = [
     label: "Cocina",
   },
     {
-    imageSrc: "planta.png",
-    label: "Decoración para el Hogar",
+    imageSrc: "",
+    label: "Electronica",
   },
     {
-    imageSrc: "libros.png",
-    label: "Libros",
-  },
-    {
-    imageSrc: "Elefante.png",
-    label: "Juegos y Jueguetes", 
+    imageSrc: "",
+    label: "Herramienta",
   },
     {
     imageSrc: "/muneca.png",
-    label: "Artesanías Mexicanas",
-  },
-    {
-    imageSrc: "voleto.png",
-    label: "Filatelia Mexicana",
-  },
-    {
-    imageSrc: "cosa.png",
-    label: "FONART",
-  },
-    {
-    imageSrc: "/monos.png",
-    label: "Jovenes Constryendo El Futuro",
-  },
-    {
-    imageSrc: "/Orgien.png",
-    label: "SEDECO Michoacán",
-  },
-    {
-    imageSrc: "/Tamaulipas.png",
-    label: "Hecho en Tamaulipas",
+    label: "Artesanal",
   },
 ];
 

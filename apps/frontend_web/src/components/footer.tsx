@@ -4,9 +4,9 @@ import Link from "next/link";
 // 🔗 Aquí centralizamos las rutas solo cambiar los strings si hace falta
 const ROUTES = {
   account: {
-    myAccount: "/Perfil",                // Mi cuenta
-    orders: "/historial",               // Órdenes PARA DONDE?
-    addresses: "/direcciones",          // TODO: ajusta cuando tengas esta página PARA DONDE?x2
+    myAccount: "/Perfil",               // Mi cuenta
+    orders: "/historial-de-compras",    // Órdenes PARA DONDE?
+    addresses: "/pago/MasDirecciones",          // TODO: ajusta cuando tengas esta página PARA DONDE?x2
     cart: "/Carrito",                   // Carrito de compras
     sellerRequest: "/registro_vendedor", // Solicitar cuenta de vendedor
   },
@@ -153,7 +153,7 @@ const Footer: React.FC = () => {
             href={ROUTES.legal.terms}
             className="hover:text-pink-600 transition-colors"
           >
-            Términos y condiciones
+            Términos y condiciones 
           </Link>
           <Link
             href={ROUTES.legal.sitemap}

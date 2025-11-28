@@ -1,5 +1,27 @@
 import React from "react";
-import Link from "next/link"
+import Link from "next/link";
+
+// 🔗 Aquí centralizamos las rutas solo cambiar los strings si hace falta
+const ROUTES = {
+  account: {
+    myAccount: "/Perfil",               // Mi cuenta
+    orders: "/historial-de-compras",    // Órdenes PARA DONDE?
+    addresses: "/direcciones",          // TODO: ajusta cuando tengas esta página PARA DONDE?x2
+    cart: "/Carrito",                   // Carrito de compras
+    sellerRequest: "/registro_vendedor", // Solicitar cuenta de vendedor
+  },
+  customerService: {
+    viewedProducts: "/productos-vistos",// Productos vistos (ajusta si usas otro path) PARA DONDE?x3
+    newProducts: "/nuevos-productos",   // Nuevos productos PARA DONDE?4
+    offices: "/CorreosMX/ubicaciones",  // Oficinas postales
+    sellerSolutions: "/Vendedor/app",   // SolucionesClic vendedor (panel vendedor)
+    mexpost: "/CorreosMX",              // MEXPOST
+  },
+  legal: {
+    terms: "/terminos-condiciones",
+    sitemap: "/mapa-sitio",             // Ajusta cuando tengas esta vista
+  },
+};
 
 const Footer: React.FC = () => {
   return (
@@ -8,8 +30,12 @@ const Footer: React.FC = () => {
         {/* Logo y nombre */}
         <div>
           <div className="flex items-center space-x-2 mb-2">
-            <img src="/logoCorreos.png" alt="Logo de Correos" width={150} 
-                    height={58}  />
+            <img
+              src="/logoCorreos.png"
+              alt="Logo de Correos"
+              width={150}
+              height={58}
+            />
           </div>
           <p className="text-xs">SERVICIO POSTAL MEXICANO</p>
         </div>
@@ -18,11 +44,46 @@ const Footer: React.FC = () => {
         <div>
           <h3 className="font-semibold mb-2">Mi cuenta</h3>
           <ul className="space-y-1">
-            <li>Mi cuenta</li>
-            <li>Órdenes</li>
-            <li>Direcciones</li>
-            <li>Carrito de compras</li>
-            <li>Solicitar cuenta de vendedor</li>
+            <li>
+              <Link
+                href={ROUTES.account.myAccount}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Mi cuenta
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.account.orders}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Órdenes
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.account.addresses}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Direcciones
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.account.cart}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Carrito de compras
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.account.sellerRequest}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Solicitar cuenta de vendedor
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -30,14 +91,46 @@ const Footer: React.FC = () => {
         <div>
           <h3 className="font-semibold mb-2">Servicio al cliente</h3>
           <ul className="space-y-1">
-            <li>Búsqueda</li>
-            <li>Productos vistos</li>
-            <li>Nuevos productos</li>
-            <li>Oficinas postales</li>
-            <li>SolucionesClic vendedor</li>
-            <p className="text-pink-600 mt-1">
-              <Link href="/CorreosMX">MEXPOST</Link>
-            </p>
+            <li>
+              <Link
+                href={ROUTES.customerService.viewedProducts}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Productos vistos
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.customerService.newProducts}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Nuevos productos
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.customerService.offices}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Oficinas postales
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.customerService.sellerSolutions}
+                className="hover:text-pink-600 transition-colors"
+              >
+                SolucionesClic vendedor
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.customerService.mexpost}
+                className="text-pink-600 hover:text-pink-700 font-medium transition-colors inline-block mt-1"
+              >
+                MEXPOST
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -56,8 +149,18 @@ const Footer: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 mt-10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 border-t pt-4">
         <p>©2025 Correos Clic. Todos los derechos reservados</p>
         <div className="flex space-x-4 mt-2 md:mt-0">
-          <Link href="/terminos-condiciones">Términos y condiciones</Link>
-          <a href="#">Mapa del sitio</a>
+          <Link
+            href={ROUTES.legal.terms}
+            className="hover:text-pink-600 transition-colors"
+          >
+            Términos y condiciones
+          </Link>
+          <Link
+            href={ROUTES.legal.sitemap}
+            className="hover:text-pink-600 transition-colors"
+          >
+            Mapa del sitio
+          </Link>
         </div>
       </div>
     </footer>

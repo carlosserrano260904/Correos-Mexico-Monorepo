@@ -272,181 +272,69 @@ export const Anuncios3 = () => {
 
 export const Anuncios4 = () => {
     return (
-        // Contenedor principal: Grid de 1 columna en móvil y 2 columnas en lg+. 
-        <div className='w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
-            
+        <div className='w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[350px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[600px]'>
             {/* Columna Izquierda - Anuncio Grande de Fragancias */}
-            <div 
-                // Mantenemos la clase de altura que ya habíamos definido.
-                className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[350px] sm:min-h-[450px] md:min-h-[550px] lg:min-h-[650px] xl:min-h-[700px]' 
-                style={{
-                    backgroundImage: 'url(/Perfume.png)', 
-                    backgroundSize: 'cover', 
-                    backgroundPosition: 'center', 
-                    backgroundRepeat: 'no-repeat'
-                }}
-            >
+            <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group'>
                 {/* Overlay sutil al hover */}
                 <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500 z-10'></div>
                 
-                {/* Contenedor de Textos y Botón. 
-                    Ajustamos el `top` y `left` para mover el bloque de texto y botón.
-                    Ajustamos el `w-` para el ancho de los textos.
-                */}
-<div 
-    // Se mantiene la altura definida
-    className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[350px] sm:min-h-[450px] md:min-h-[550px] lg:min-h-[650px] xl:min-h-[700px]' 
-    style={{
-        backgroundImage: 'url(/Perfume.png)', 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center', 
-        backgroundRepeat: 'no-repeat'
-    }}
->
-    {/* Overlay sutil al hover */}
-    <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500 z-10'></div>
-    
-    {/* Contenedor general de textos y botón, con posicionamiento absoluto para mayor control */}
-    <div className='absolute inset-0 flex flex-col justify-start items-start p-4 sm:p-6 md:p-8 lg:p-10 z-20'>
-        
-        {/* Título Principal - AJUSTADO: Eliminar text-center, mantener tamaño grande. */}
-        {/* Título Principal - AJUSTADO: Eliminar text-center, mantener tamaño grande. */}
-        <h2 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black leading-snug mb-3 sm:mb-4 md:mb-5'>
-            Fragancias que te enamoran
-        </h2>
-        {/* Contenedor para subtítulo y botón - Alineado a la derecha del contenedor absoluto */}
-        {/* Usamos ml-auto para empujar este div a la derecha y text-right para alinear su contenido */}
-        <div className='ml-auto text-right pr-4 sm:pr-6 md:pr-8 lg:pr-10'> {/* pr- para padding derecho */}
-            {/* Subtítulo - TAMAÑO AJUSTADO Y SALTO DE LÍNEA, alineado a la derecha */}
-            <p className='text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mb-4 sm:mb-6 md:mb-8'>
-                Descubre perfumes con<br /> hasta 35% de descuento
-            </p>
-            
-            {/* Botón - TAMAÑO AJUSTADO, alineado a la derecha */}
-            <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal" passHref legacyBehavior>
-                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-5 py-2 sm:px-6 sm:py-2.5 md:px-7 md:py-3 lg:px-8 lg:py-3.5 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                    {/* Efecto de brillo en el botón */}
-                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                    
-                    <span className='relative'>
-                        Descubrir más
-                    </span>
-                </button>
-            </Link>
-        </div>
-    </div>
-</div>
-
-            </div>
-
-            {/* Columna Derecha - Contenedor con altura flexible, toma la altura del sibling (NO MODIFICADO) */}
-            <div className='flex flex-col gap-4 sm:gap-6'> 
-                
-                {/* Banner Superior - Dale vida a tu look (NO MODIFICADO) */}
-                <div 
-                    className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group flex-grow-[2]' 
-                    style={{
-                        backgroundImage: 'url(/Brochas.png)', 
-                        backgroundSize: 'cover', 
-                        backgroundPosition: 'bottom center', 
-                        backgroundRepeat: 'no-repeat'
-                    }}
-                >
-                    {/* Overlay sutil al hover */}
-                    <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                    
-                    {/* Contenido: Título, Descuento y Botón, centrado en la parte superior. */}
-                    <div className='flex flex-col items-center justify-start w-full mt-6 sm:mt-10 md:mt-12 lg:mt-16 z-10 px-2 sm:px-0'> 
-                        
-                        <h3 className='text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-black leading-snug mb-1 sm:mb-2 text-center'>
-                            Dale vida a tu look
-                        </h3>
-                        
-                        <p className='text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 md:mb-5 text-center'>
-                            30% de descuento en la segunda pieza
-                        </p>
-                        
-                        <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal" passHref legacyBehavior>
-                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                {/* Efecto de brillo en el botón */}
-                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div> 
-                                
-                                <span className='relative'>
-                                    Ver colección
-                                </span>
-                            </button>
-                        </Link>
-                    </div>
-
-                    <div className='absolute inset-0'></div>
-                </div>
-
-                {/* Grid Inferior - 2 tarjetas (Piel y Cabello) (NO MODIFICADO) */}
-                <div className='grid grid-cols-2 gap-4 sm:gap-6 flex-grow'> 
-                    
-                    {/* Tarjeta Izquierda - Cuida tu piel */}
-                    <div 
-                        className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group' 
-                        style={{
-                            backgroundImage: 'url(/skincare.png)', 
-                            backgroundSize: 'contain', 
-                            backgroundPosition: 'right bottom', 
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    >
-                        {/* Overlay sutil al hover */}
-                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                        
-                        {/* Contenido. */}
-                        <div className='p-4 sm:p-6 md:p-8 w-full z-10'> 
-                            <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1 leading-snug'>
-                                Cuida tu piel
-                            </h4>
-                            <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
-                                30% de descuento
+                <div className='w-full h-full bg-[url(/Perfume.png)] bg-cover bg-center bg-no-repeat'>
+                    <div className='absolute top-3 right-3 sm:top-6 sm:right-6 md:top-8 md:right-8 lg:top-8 lg:right-12 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 z-20 px-3 sm:px-0'>
+                        <div className='ml-0'>
+                            <h2 className='text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black leading-snug mb-2 sm:mb-3 md:mb-4'>
+                                Fragancias que te enamoran
+                            </h2>
+                        </div>
+                        <div className='ml-0 sm:ml-4 md:ml-8'>
+                            <p className='text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed mb-3 sm:mb-4 md:mb-6'>
+                                Descubre perfumes con hasta 35% de descuento
                             </p>
-                            <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal" passHref legacyBehavior>
-                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                        </div>
+                        <div className='ml-0 sm:ml-8 md:ml-12 lg:ml-16'>
+                            <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
                                     {/* Efecto de brillo en el botón */}
                                     <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
                                     
-                                    <span className='relative'>
-                                        Comprar ahora
+                                    <span className='relative flex items-center gap-1 sm:gap-2'>
+                                        Descubrir más
+                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
                                     </span>
                                 </button>
                             </Link>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    {/* Tarjeta Derecha - Tu cabello */}
-                    <div 
-                        className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group' 
-                        style={{
-                            backgroundImage: 'url(/bote.png)', 
-                            backgroundSize: 'contain', 
-                            backgroundPosition: 'right bottom', 
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    >
-                        {/* Overlay sutil al hover */}
-                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                        
-                        {/* Contenido. */}
-                        <div className='p-4 sm:p-6 md:p-8 w-full z-10'>
-                            <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1 leading-snug'>
-                                Tu cabello
-                            </h4>
-                            <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
-                                25% de descuento
+            {/* Columna Derecha - Grid de 3 elementos */}
+            <div className='flex flex-col gap-3 sm:gap-4 min-h-[320px] sm:min-h-[380px] md:min-h-[450px]'>
+                {/* Banner Superior - Dale vida a tu look */}
+                <div className='bg-[#F5F5F5] rounded-2xl min-h-[120px] sm:min-h-[160px] md:min-h-[200px] relative overflow-hidden group'>
+                    {/* Overlay sutil al hover */}
+                    <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
+                    
+                    <div className='w-full h-full bg-[url(/Brochas.png)] bg-contain bg-top bg-no-repeat flex items-start'>
+                        <div className='flex flex-col justify-center place-items-center w-full mt-3 sm:mt-6 md:mt-7 z-10 px-2 sm:px-0'>
+                            <h3 className='text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-black leading-snug mb-1 sm:mb-2 text-center'>
+                                Dale vida a tu look
+                            </h3>
+                            <p className='text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 text-center'>
+                                30% de descuento en la segunda pieza
                             </p>
                             <div>
-                                <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal" passHref legacyBehavior>
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
                                         {/* Efecto de brillo en el botón */}
                                         <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
                                         
-                                        <span className='relative'>
-                                            Ver productos
+                                        <span className='relative flex items-center gap-1'>
+                                            Ver colección
+                                            <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                            </svg>
                                         </span>
                                     </button>
                                 </Link>
@@ -454,10 +342,76 @@ export const Anuncios4 = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Grid Inferior - 2 tarjetas */}
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-h-[200px] sm:min-h-[260px]'>
+                    {/* Tarjeta Izquierda - Cuida tu piel */}
+                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
+                        {/* Overlay sutil al hover */}
+                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
+                        
+                        <div className='w-full h-full bg-[url(/skincare.png)] bg-contain bg-center bg-no-repeat flex items-start'>
+                            <div className='p-2 sm:p-3 md:p-4 w-full z-10'>
+                                <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1 leading-snug'>
+                                    Cuida tu piel
+                                </h4>
+                                <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
+                                    30% de descuento
+                                </p>
+                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                        {/* Efecto de brillo en el botón */}
+                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                        
+                                        <span className='relative flex items-center gap-1'>
+                                            Comprar ahora
+                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tarjeta Derecha - Tu cabello */}
+                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
+                        {/* Overlay sutil al hover */}
+                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
+                        
+                        <div className='w-full h-full bg-[url(/bote.png)] bg-contain bg-center bg-no-repeat flex items-start'>
+                            <div className='p-2 sm:p-3 md:p-4 w-full flex-row justify-items-end z-10'>
+                                <h4 className='text-sm sm:text-base md:text-lg font-bold text-black mb-1 leading-snug'>
+                                    Tu cabello
+                                </h4>
+                                <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
+                                    25% de descuento
+                                </p>
+                                <div>
+                                    <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                            {/* Efecto de brillo en el botón */}
+                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                            
+                                            <span className='relative flex items-center gap-1'>
+                                                Ver productos
+                                                <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    );
+    )
 }
+
 
 export const Anuncios5 = () => {
     return (

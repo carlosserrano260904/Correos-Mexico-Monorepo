@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation' // <-- NUEVA IMPORTACIÓN
 import { IoArrowBackOutline } from 'react-icons/io5' // <-- NUEVA IMPORTACIÓN
 import { NavbarCorreos } from '@/components/NavbarCorreos'
-import Footer from '@/components/footerCorreos'
 
 export default function TarifasPage() {
     // --- NUEVO HOOK ---
@@ -306,7 +305,13 @@ export default function TarifasPage() {
                 </main>
 
                 {/* footer*/}
-                <Footer />
+                <footer className="bg-gray-100 border-t border-gray-200 py-6 text-sm text-gray-600 text-center flex flex-wrap justify-center gap-6 px-4 font-semibold">
+                    <span className="cursor-pointer hover:underline">Términos y condiciones</span>
+                    <span className="cursor-pointer hover:underline">Promociones</span>
+                    <span className="cursor-pointer hover:underline">Cómo cuidamos tu privacidad</span>
+                    <span className="cursor-pointer hover:underline">Accesibilidad</span>
+                    <span className="cursor-pointer hover:underline">Ayuda</span>
+                </footer>
             </div>
         </>
     )

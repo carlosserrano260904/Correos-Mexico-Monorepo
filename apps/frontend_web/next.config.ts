@@ -14,7 +14,8 @@ const nextConfig: NextConfig = {
       'correos-de-mexico.s3.us-east-2.amazonaws.com',
       'via.placeholder.com',
       'localhost',
-      '192.168.1.98'
+      '192.168.1.98',
+      'correos-storage.emmanuelbayona.dev'   // ← agregado
     ],
     remotePatterns: [
       {
@@ -41,6 +42,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'correos-storage.emmanuelbayona.dev',  // ← agregado
+        port: '',
+        pathname: '/**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },
@@ -57,13 +64,6 @@ const nextConfig: NextConfig = {
     return config
   },
   
-  // Configuración del servidor de desarrollo
-  // devIndicators: {
-  //   buildActivity: true,
-  // },
-  
-  // Si necesitas transpilar paquetes específicos del monorepo
-  // transpilePackages: ['@your-monorepo/shared-lib'],
   eslint: {
     ignoreDuringBuilds: true,
   },

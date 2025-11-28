@@ -1,34 +1,140 @@
+'use client'
 import Link from 'next/link'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Badge } from "@/components/ui/badge"
 import { FaCircle } from "react-icons/fa6";
 
+// Importación para el carrusel
+import useEmblaCarousel from 'embla-carousel-react'
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+
 export const Anuncios = () => {
+    // 1. Configuración de Embla Carousel
+    const [emblaRef, emblaApi] = useEmblaCarousel({ 
+        loop: true,          
+        dragFree: false,     
+        duration: 40,        
+    })
+
+    // Funciones para la navegación
+    const scrollPrev = useCallback(() => {
+        if (emblaApi) emblaApi.scrollPrev()
+    }, [emblaApi])
+
+    const scrollNext = useCallback(() => {
+        if (emblaApi) emblaApi.scrollNext()
+    }, [emblaApi])
+
+// 2. Definición de los banners
+const banners = [
+    { 
+        id: 1, 
+        image: '/banners/descuentos.png', 
+        buttonText: 'Ver ofertas', 
+        link: '/ofertas', 
+        badgeText: '¡Gran Venta!'
+    },
+    { 
+        id: 2, 
+        image: '/banners/envios.png', 
+        buttonText: 'Comprar ahora', 
+        link: '/verano',
+        badgeText: 'Tendencias'
+    },
+    { 
+        id: 3, 
+        image: '/banners/joyeria.png', 
+        buttonText: 'Descargar App', 
+        link: '/app',
+        badgeText: 'Exclusivo'
+    },
+]
+
+    // Estilos comunes para los botones de navegación
+    const navButtonClass = 'absolute top-1/2 transform -translate-y-1/2 p-2 sm:p-3 bg-white/50 hover:bg-white/80 text-black rounded-full shadow-lg z-20 transition-all duration-300 backdrop-blur-sm';
+
     return (
-        <div className='bg-[url(/Bannerdescuentos.png)] w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] bg-cover bg-center bg-no-repeat rounded-2xl relative overflow-hidden group'>
-            {/* Overlay sutil al hover */}
-            <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-            
-            {/* Botón responsive en esquina inferior derecha */}
-            <div className='absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 z-10'>
-                <Link href="./categories?category=Ropa">
-                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                        {/* Efecto de brillo en el botón */}
-                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+        <div className='w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] rounded-2xl relative overflow-hidden group'>
+            {/* Contenedor del Carrusel (Viewport de Embla) */}
+            <div className="h-full overflow-hidden" ref={emblaRef}>
+                {/* Contenedor de las Slides */}
+                <div className="flex h-full">
+                    {banners.map((banner, index) => (
                         
-                        <span className='relative flex items-center gap-1 sm:gap-2'>
-                            Ver ofertas
-                            <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                            </svg>
-                        </span>
-                    </button>
-                </Link>
+                        <div 
+                            key={banner.id} 
+                            className="flex-shrink-0 w-full h-full relative" 
+                            style={{ flex: '0 0 100%' }} // Asegura que cada slide ocupe el 100%
+                        >
+                            {/* Slide de Banner */}
+                            <div 
+                                className={`w-full h-full bg-cover bg-center bg-no-repeat`}
+                                style={{ backgroundImage: `url(${banner.image})` }}
+                            >
+                                {/* Overlay sutil al hover */}
+                                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
+                                
+                                {/* Contenido del Banner (Etiqueta y Botón) */}
+                                <div className='absolute top-4 left-4 sm:top-6 sm:left-6 z-10'>
+                                    <Badge className='bg-[#DE1484] text-white font-bold text-xs sm:text-sm md:text-base'>
+                                        {banner.badgeText}
+                                    </Badge>
+                                </div>
+
+                                {/* Botón responsive en esquina inferior derecha */}
+                                <div className='absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 z-10'>
+                                    <Link href={banner.link}>
+                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                            {/* Efecto de brillo en el botón */}
+                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                            
+                                            <span className='relative flex items-center gap-1 sm:gap-2'>
+                                                {banner.buttonText}
+                                                <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            {/* Elementos decorativos */}
-            <div className='absolute top-2 left-2 sm:top-4 sm:left-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500/10 rounded-full blur-lg sm:blur-xl'></div>
-            <div className='absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-blue-500/10 rounded-full blur-md sm:blur-lg'></div>
+            {/* Botón de Navegación Izquierdo */}
+            <button 
+                className={`${navButtonClass} left-4`} 
+                onClick={scrollPrev} 
+                aria-label="Anterior Banner"
+            >
+                <IoIosArrowBack className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            
+            {/* Botón de Navegación Derecho */}
+            <button 
+                className={`${navButtonClass} right-4`} 
+                onClick={scrollNext} 
+                aria-label="Siguiente Banner"
+            >
+                <IoIosArrowForward className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            
+            {/* Indicadores de Puntos (Dots) */}
+            <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20'>
+                {banners.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => emblaApi && emblaApi.scrollTo(index)}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            emblaApi && index === emblaApi.selectedScrollSnap() ? 'bg-[#DE1484] w-5' : 'bg-gray-300 hover:bg-white'
+                        }`}
+                        aria-label={`Ir al banner ${index + 1}`}
+                    />
+                ))}
+            </div>
+
         </div>
     )
 }
@@ -60,7 +166,7 @@ export const Anuncios2 = () => {
                                     Productos
                                 </span>
                             </h3>
-                            <Link href="./categories?category=Electronica">
+                            
                             <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
                                 {/* Efecto de brillo en el botón */}
                                 <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
@@ -72,7 +178,6 @@ export const Anuncios2 = () => {
                                     </svg>
                                 </span>
                             </button>
-                            </Link>
                         </div>
                     </div>
 
@@ -97,18 +202,17 @@ export const Anuncios2 = () => {
                                     Mexicanas
                                 </span>
                             </h3>
-                            <Link href="./categories?category=Artesanal">
-                                <button className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                    
-                                    <span className='relative flex items-center gap-1 sm:gap-2'>
-                                        Descubrir más
-                                        <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                        </svg>
-                                    </span>
-                                </button>
-                            </Link>
+                            
+                            <button className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                
+                                <span className='relative flex items-center gap-1 sm:gap-2'>
+                                    Descubrir más
+                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                    </svg>
+                                </span>
+                            </button>
                         </div>
                     </div>
 
@@ -143,19 +247,17 @@ export const Anuncios3 = () => {
                         Personaliza cada rincón de tu hogar con muebles únicos, funcionales y a tu estilo.
                     </p>
                     <div>
-                        <Link href="./categories?category=Hogar">
-                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                {/* Efecto de brillo en el botón */}
-                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                
-                                <span className='relative flex items-center gap-1 sm:gap-2'>
-                                    Descubrir más
-                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                    </svg>
-                                </span>
-                            </button>
-                        </Link>
+                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                            {/* Efecto de brillo en el botón */}
+                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                            
+                            <span className='relative flex items-center gap-1 sm:gap-2'>
+                                Descubrir más
+                                <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                </svg>
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -184,19 +286,17 @@ export const Anuncios4 = () => {
                             </p>
                         </div>
                         <div className='ml-0 sm:ml-8 md:ml-12 lg:ml-16'>
-                            <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal">
-                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                    {/* Efecto de brillo en el botón */}
-                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                    
-                                    <span className='relative flex items-center gap-1 sm:gap-2'>
-                                        Descubrir más
-                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                        </svg>
-                                    </span>
-                                </button>
-                            </Link>
+                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                {/* Efecto de brillo en el botón */}
+                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                
+                                <span className='relative flex items-center gap-1 sm:gap-2'>
+                                    Descubrir más
+                                    <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                    </svg>
+                                </span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -218,18 +318,17 @@ export const Anuncios4 = () => {
                                 30% de descuento en la segunda pieza
                             </p>
                             <div>
-                                <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal">
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>                                    
-                                        <span className='relative flex items-center gap-1'>
-                                            Ver colección
-                                            <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
-                                </Link>
+                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                    {/* Efecto de brillo en el botón */}
+                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                    
+                                    <span className='relative flex items-center gap-1'>
+                                        Ver colección
+                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -250,19 +349,17 @@ export const Anuncios4 = () => {
                                 <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
                                     30% de descuento
                                 </p>
-                                <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal">
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                        
-                                        <span className='relative flex items-center gap-1'>
-                                            Comprar ahora
-                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
-                                </Link>
+                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                    {/* Efecto de brillo en el botón */}
+                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                    
+                                    <span className='relative flex items-center gap-1'>
+                                        Comprar ahora
+                                        <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -281,19 +378,17 @@ export const Anuncios4 = () => {
                                     25% de descuento
                                 </p>
                                 <div>
-                                    <Link href="./categories?category=Belleza%20y%20Cuidado%20Personal">
-                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                            {/* Efecto de brillo en el botón */}
-                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                            
-                                            <span className='relative flex items-center gap-1'>
-                                                Ver productos
-                                                <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    </Link>
+                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                        {/* Efecto de brillo en el botón */}
+                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                        
+                                        <span className='relative flex items-center gap-1'>
+                                            Ver productos
+                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                            </svg>
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { useProductById } from '@/hooks/useProduct';
 import { ProductDetails } from '@/components/primitivos/ProductDetails';
+import { ProductStory } from '@/components/primitivos/ProductStory';
 import { Plantilla } from '@/components/plantilla';
 
 export default function ProductDetailPage() {
@@ -62,7 +63,22 @@ export default function ProductDetailPage() {
 
   return (
     <Plantilla>
-      <ProductDetails product={product} />
+      <div className="space-y-12 lg:space-y-16">
+        {/* Detalles principales del producto */}
+        <ProductDetails product={product} />
+        
+        {/* Historia/Descripción detallada del producto */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductStory
+            title={product.ProductName}
+            description={product.ProductDescription || 'Producto de alta calidad con los mejores materiales y diseño único.'}
+            imageUrl={product.ProductImageUrl}
+            imageAlt={product.ProductName}
+          />
+        </div>
+
+        {/* Aquí puedes agregar más secciones como productos relacionados, reseñas, etc. */}
+      </div>
     </Plantilla>
   );
 }

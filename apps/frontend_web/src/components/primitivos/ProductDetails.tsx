@@ -1,3 +1,4 @@
+//apps\frontend_web\src\components\primitivos\ProductDetails.tsx
 'use client';
 
 import React, { useState } from 'react';

@@ -1,5 +1,5 @@
 'use client'
-import { CarrouselProducts, CarrouselColection } from '@/components/CarouselProducts'
+import { CarrouselProducts} from '@/components/CarouselProducts'
 import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/components/anuncios'
 import { Boletin } from '@/components/boletin'
 import Link from 'next/link'
@@ -62,11 +62,11 @@ const comentariosEjemplo = [
 ];
 
 export default function Home() {
-  const { Products } = useProducts();
+  const { products } = useProducts();
 
   return (
     <Plantilla>
-      {/* Sección principal con espaciado responsive */}
+      {/* anuncio principal*/}
       <div className='mb-4 sm:mb-6 md:mb-8'>
         <Anuncios />
       </div>
@@ -84,13 +84,13 @@ export default function Home() {
       {/* Carrousel Products con padding responsive */}
       <div className='py-4 sm:py-6 md:py-8'>
         <CarrouselProducts 
-          entradas={Products} 
+          entradas={products} 
           title="Productos Destacados" 
           className="mi-clase-personalizada"
         />
       </div>
 
-      {/* Anuncios3 con espaciado consistente */}
+      {/* Anuncios3 con espaciado consistente, imagen del sofa*/}
       <div className='my-4 sm:my-6 md:my-8'>
         <Anuncios3 />
       </div>
@@ -99,14 +99,14 @@ export default function Home() {
       <div className='space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12'>
         <div className='py-4 sm:py-6 md:py-8'>
           <CarrouselProducts 
-            entradas={Products} 
+            entradas={products} 
             title='Relacionados con lo último que viste' 
           />
         </div>
         
         <div className='py-4 sm:py-6 md:py-8'>
           <CarrouselProducts 
-            entradas={Products} 
+            entradas={products} 
             title='Pensados para ti en Joyería y Bisutería' 
           />
         </div>
@@ -120,17 +120,17 @@ export default function Home() {
       {/* Último carrousel con espaciado superior */}
       <div className='pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6 md:pb-8'>
         <CarrouselProducts 
-          entradas={Products} 
+          entradas={products} 
           title='Tu historial de productos' 
         />
       </div>
 
-      {/* Anuncios5 con espaciado adaptativo */}
+      {/* Anuncios5 con espaciado adaptativo  CELULAR */}
       <div className='my-4 sm:my-6 md:my-8 lg:my-10'>
         <Anuncios5 />
       </div>
 
-      {/* Boletin final con padding generoso */}
+      {/* Boletin final SUSCRIBETE */}
       <div className='py-6 sm:py-8 md:py-10 lg:py-12'>
         <Boletin />
       </div>

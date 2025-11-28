@@ -39,7 +39,7 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
 
         {/* LINKS - Desktop */}
         <div className="hidden md:flex items-center text-black gap-16 ml-auto">
-          <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
+          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium transition-colors text-sm">
             Inicio
           </Link>
           <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">

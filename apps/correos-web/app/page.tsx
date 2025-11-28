@@ -1,15 +1,15 @@
-'use client'
-import { CarrouselProducts } from '@/components/CarouselProducts'
-import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/components/anuncios'
-import { Boletin } from '@/components/boletin'
+//'use client'
+//import { CarrouselProducts } from '@/components/CarouselProducts'
+import { Anuncios, Anuncios2, Anuncios3, Anuncios4, Anuncios5 } from '@/app/components/anuncios'
+import { Boletin } from '@/app/components/boletin'
 import React from 'react'
-import { Plantilla } from '@/components/plantilla'
-import { useProducts } from '@/hooks/useProduct'
-import Categories from '@/components/Categories'
+import { Plantilla } from '@/app/components/plantilla'
+//import { useProducts } from '@/hooks/useProduct'
+//import Categories from '@/components/Categories'
 
 
 export default function Home() {
-  const { Products } = useProducts();
+  //const { Products } = useProducts();
 
   return (
     <Plantilla>
@@ -19,9 +19,9 @@ export default function Home() {
       </div>
       
       {/* Categories con margen responsive */}
-      <div className='mb-4 sm:mb-6 md:mb-8'>
+      {/*<div className='mb-4 sm:mb-6 md:mb-8'>
         <Categories />
-      </div>
+      </div>*/}
       
       {/* Anuncios2 con espaciado adaptativo */}
       <div className='my-4 sm:my-6 md:my-8'>
@@ -29,12 +29,12 @@ export default function Home() {
       </div>
 
       {/* Carrousel Products con padding responsive */}
-      <div className='py-4 sm:py-6 md:py-8'>
+      {/*<div className='py-4 sm:py-6 md:py-8'>
         <CarrouselProducts 
           entradas={Products} 
           title="Productos Destacados" 
         />
-      </div>
+      </div>*/}
 
       {/* Anuncios3 con espaciado consistente */}
       <div className='my-4 sm:my-6 md:my-8'>
@@ -42,7 +42,7 @@ export default function Home() {
       </div>
 
       {/* Grid de carrousels para móvil, stack en desktop */}
-      <div className='space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12'>
+      {/*<div className='space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12'>
         <div className='py-4 sm:py-6 md:py-8'>
           <CarrouselProducts 
             entradas={Products} 
@@ -56,7 +56,7 @@ export default function Home() {
             title='Pensados para ti en Joyería y Bisutería' 
           />
         </div>
-      </div>
+      </div>*/}
 
       {/* Anuncios4 con espaciado responsive */}
       <div className='my-4 sm:my-6 md:my-8 lg:my-10'>
@@ -64,12 +64,12 @@ export default function Home() {
       </div>
 
       {/* Último carrousel con espaciado superior */}
-      <div className='pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6 md:pb-8'>
+      {/*<div className='pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6 md:pb-8'>
         <CarrouselProducts 
           entradas={Products} 
           title='Tu historial de productos' 
         />
-      </div>
+      </div>*/}
 
       {/* Anuncios5 con espaciado adaptativo */}
       <div className='my-4 sm:my-6 md:my-8 lg:my-10'>

@@ -18,7 +18,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const DEFAULT_PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x300/cccccc/969696?text=Imagen+No+Disponible';
 
 class ProductsApiService {
-  private baseUrl = `${API_BASE_URL}/api/products`;
+  private baseUrl = 'https://correos-mexico-monorepo-backend-a3i2h55wu.vercel.app/api/products';
   private cache: FrontendProduct[] | null = null;
   private lastFetch: number = 0;
   private CACHE_DURATION = 30000; //cache

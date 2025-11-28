@@ -43,8 +43,6 @@ export const CategoriesCarousel = ({ categories }: CategoriesCarouselProps) => {
               >
                 <div className="h-full">
                   {/* Efecto de fondo gradiente sutil */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover/category:opacity-100 transition-opacity duration-500 pointer-events-none -z-10" />
-                  
                   <CategoryItem imageSrc={cat.imageSrc} label={cat.label} />
                 </div>
               </Link>

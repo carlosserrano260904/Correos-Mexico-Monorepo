@@ -5,7 +5,6 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { useProductById } from '@/hooks/useProduct';
 import { ProductDetails } from '@/components/primitivos/ProductDetails';
-import { ProductCardSkeleton } from '@/components/primitivos';
 import { Plantilla } from '@/components/plantilla';
 
 export default function ProductDetailPage() {
@@ -44,26 +43,17 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <Plantilla>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-            <p className="text-gray-600">{error}</p>
-          </div>
-        </div>
-      </Plantilla>
-    );
-  }
-
-  if (!product) {
-    return (
-      <Plantilla>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Producto no encontrado</h2>
-            <p className="text-gray-600">El producto que buscas no existe.</p>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">
+              {error ? 'Error' : 'Producto no encontrado'}
+            </h2>
+            <p className="text-gray-600">
+              {error || 'El producto que buscas no existe.'}
+            </p>
           </div>
         </div>
       </Plantilla>

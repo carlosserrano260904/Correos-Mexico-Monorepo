@@ -1,6 +1,7 @@
+// app/Carrito/page.tsx
 'use client'
 import { Plantilla } from '@/components/plantilla'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { CartCard } from '../../components/cartcard'
 import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
@@ -9,15 +10,18 @@ import { CarrouselProducts } from '@/components/CarouselProducts'
 
 export default function Page() {
   const { products } = useProducts();
-  const { CartItems} = useCart();
+  const { items } = useCart(); // ✅ Cambiar CartItems por items
+
+  console.log('🛒 Carrito - items:', items); // Debug
 
   return (
     <Plantilla>
-      <div className='flex gap-x-3'>
-        <CartCard className='basis-2/3' cartItems={CartItems}/>
-        <ResumenCompra className='basis-1/3 h-fit' />
+      <div className='flex flex-col lg:flex-row gap-6'>
+        {/* ✅ Pasar items en lugar de cartItems */}
+        <CartCard className='lg:basis-2/3' items={items}/>
+        <ResumenCompra className='lg:basis-1/3 h-fit' />
       </div>
-      <CarrouselProducts entradas={products} title='Tambien te podria interesar'/>
+      <CarrouselProducts entradas={products} title='También te podría interesar'/>
     </Plantilla>
   )
 }

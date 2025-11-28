@@ -1,3 +1,4 @@
+// components/resumenCompra.tsx
 'use client'
 import React, { useState, useEffect } from 'react'
 import { Separator } from './ui/separator'
@@ -114,8 +115,8 @@ export const ResumenCompra = ({ className }: { className: string }) => {
       const applicableItems = selectedItems.filter(item => {
         const fullProduct = getProduct(item.ProductID);
         return fullProduct && (
-          fullProduct.ProductCupons.includes(cuponId) ||
-          cupon.CuponProductsId.includes(item.ProductID)
+          (fullProduct.ProductCupons && fullProduct.ProductCupons.includes(cuponId)) ||
+          (cupon.CuponProductsId && cupon.CuponProductsId.includes(item.ProductID))
         );
       });
       
@@ -123,7 +124,7 @@ export const ResumenCompra = ({ className }: { className: string }) => {
       
       // Calcular subtotal de productos aplicables
       const applicableSubtotal = applicableItems.reduce((sum, item) => 
-        sum + (item.productPrice * item.prodcutQuantity), 0
+        sum + (item.productPrice * item.quantity), 0 // ← CORREGIDO: quantity en lugar de prodcutQuantity
       );
       
       // Aplicar descuento porcentual
@@ -181,10 +182,10 @@ export const ResumenCompra = ({ className }: { className: string }) => {
             <div key={item.ProductID} className='flex mx-4 mb-2'>
               <div className='text-start basis-3/5 text-sm'>
                 <span>{item.ProductName}</span>
-                <span className='text-gray-500 ml-1'>x{item.prodcutQuantity}</span>
+                <span className='text-gray-500 ml-1'>x{item.quantity}</span> {/* ← CORREGIDO */}
               </div>
               <div className='text-end basis-2/5 text-sm'>
-                {formatPrice(item.productPrice * item.prodcutQuantity)}
+                {formatPrice(item.productPrice * item.quantity)} {/* ← CORREGIDO */}
               </div>
             </div>
           ))
@@ -282,13 +283,14 @@ export const ResumenCompra = ({ className }: { className: string }) => {
       
       <div className='w-full mt-4'>
         <Link href={'/pago/'}>
-        <button 
-          onClick={handleContinueCheckout}
-          disabled={selectedItems.length === 0}
-          className='rounded-3xl bg-[#DE1484] text-white font-semibold w-full px-3 py-2 hover:bg-[#c41374] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          Continuar Compra ({selectedItems.length} productos)
-        </button></Link>
+          <button 
+            onClick={handleContinueCheckout}
+            disabled={selectedItems.length === 0}
+            className='rounded-3xl bg-[#DE1484] text-white font-semibold w-full px-3 py-2 hover:bg-[#c41374] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          >
+            Continuar Compra ({selectedItems.length} productos)
+          </button>
+        </Link>
       </div>
     </div>
   )

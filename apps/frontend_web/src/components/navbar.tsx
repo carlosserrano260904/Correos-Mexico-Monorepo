@@ -78,6 +78,21 @@ export const Navbar = () => {
         }));
     };
 
+    // Función temporal para debug del subtotal
+    const getSafeSubtotal = () => {
+        try {
+            const subtotal = CartItems.reduce((total, item) => {
+                const price = Number(item.productPrice) || 0;
+                const quantity = Number(item.productQuantity) || 0;
+                return total + (price * quantity);
+            }, 0);
+            return isNaN(subtotal) ? 0 : subtotal;
+        } catch (error) {
+            console.error('Error calculating subtotal:', error);
+            return 0;
+        }
+    };
+
     // Renderizar versión simplificada durante la hidratación
     if (!isMounted) {
         return (
@@ -173,8 +188,6 @@ export const Navbar = () => {
                         lg:h-12
                         xl:h-14"
                     />
-
-
                 </Link>
                 
                 {/* Menú hamburguesa */}
@@ -262,8 +275,11 @@ export const Navbar = () => {
                                 </div>
                             ) : (
                                 <div className="flex-col space-y-2 sm:space-y-3">
-                                    {favoritesList.slice(0, 3).map((product) => (
-                                        <div key={product.ProductID} className="flex items-stretch">
+                                    {favoritesList.slice(0, 3).map((product, index) => (
+                                        <div 
+                                            key={product.ProductID ? `favorite-${product.ProductID}` : `favorite-${index}-${product.ProductName}`}
+                                            className="flex items-stretch"
+                                        >
                                             <div className="basis-1/3">
                                                 <img 
                                                     src={product.ProductImageUrl} 
@@ -330,10 +346,13 @@ export const Navbar = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {/* Items del carrito */}
+                                    {/* Items del carrito - CORREGIDO */}
                                     <div className="flex flex-col space-y-3 sm:space-y-4">
-                                        {CartItems.slice(0, 3).map((item) => (
-                                            <div key={item.ProductID} className="flex items-stretch">
+                                        {CartItems.slice(0, 3).map((item, index) => (
+                                            <div 
+                                                key={item.ProductID ? `cart-${item.ProductID}` : `cart-${index}-${item.ProductName}`}
+                                                className="flex items-stretch"
+                                            >
                                                 <div className="basis-1/4">
                                                     <img 
                                                         src={item.ProductImageUrl} 
@@ -345,7 +364,8 @@ export const Navbar = () => {
                                                     <div className="font-medium line-clamp-2">{item.ProductName}</div>
                                                     <div className="font-semibold">{formatPrice(item.productPrice)}</div>
                                                     <div className="flex items-center space-x-1 sm:space-x-2">
-                                                        <span className="text-xs text-gray-500">Cant: {item.prodcutQuantity}</span>
+                                                        {/* CORREGIDO: productQuantity en lugar de prodcutQuantity */}
+                                                        <span className="text-xs text-gray-500">Cant: {item.productQuantity}</span>
                                                         <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${item.isSelected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                                                     </div>
                                                 </div>
@@ -368,12 +388,13 @@ export const Navbar = () => {
                                             </div>
                                         )}
                                     </div>
-
-                                    {/* Subtotal */}
-                                    <div className="flex justify-between items-center mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
-                                        <span className="font-semibold text-sm sm:text-base">Subtotal:</span>
-                                        <span className="font-bold text-base sm:text-lg">{formatPrice(getSubtotal())}</span>
-                                    </div>
+{/* Subtotal - FUNCIÓN NORMAL */}
+<div className="flex justify-between items-center mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
+    <span className="font-semibold text-sm sm:text-base">Subtotal:</span>
+    <span className="font-bold text-base sm:text-lg">
+        {formatPrice(getSubtotal())}
+    </span>
+</div>
 
                                     {/* Botón Comprar ahora */}
                                     <button 
@@ -396,7 +417,7 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Usuario - CON AUTENTICACIÓN REAL Y DEBUG */}
+                {/* Usuario */}
                 <DropdownMenu open={openDropdown === 'user'} onOpenChange={(open) => open ? handleDropdownToggle('user') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
                         <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -404,7 +425,6 @@ export const Navbar = () => {
                     
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-3 sm:p-4">
                         {!isAuthenticated ? (
-                            // Usuario NO autenticado - Mostrar formulario de login
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 text-center">Iniciar Sesión</h3>
                                 
@@ -449,19 +469,17 @@ export const Navbar = () => {
                                 </form>
                                 
                                 <div className="text-center">
-                                         <Link 
+                                    <Link 
                                         href="/registro"
                                         onClick={handleDropdownClose}
                                         className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors"
-                                     >
+                                    >
                                         ¿No tienes cuenta? Regístrate
                                     </Link>
                                 </div>
                             </div>
                         ) : (
-                            // Usuario autenticado - Mostrar menú de usuario con datos reales
                             <div className="flex-col">
-                                {/* Header con info     del usuario real desde tu API */}
                                 <div className="flex items-center mb-3 sm:mb-4">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
                                         {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -478,7 +496,6 @@ export const Navbar = () => {
 
                                 <Separator className="mb-3 sm:mb-4" />
 
-                                {/* Opciones del menú */}
                                 <div className="flex flex-col space-y-2 sm:space-y-3">
                                     <Link 
                                         href="/Perfil" 
@@ -529,7 +546,6 @@ export const Navbar = () => {
 
                                 <Separator className="my-3 sm:my-4" />
 
-                                {/* Botón cerrar sesión */}
                                 <button 
                                     onClick={() => {
                                         logout();

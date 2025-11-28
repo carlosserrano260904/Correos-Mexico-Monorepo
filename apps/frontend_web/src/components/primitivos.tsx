@@ -38,29 +38,141 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
 
   const Colors: string[] = ProductColors ? ProductColors.filter(c => c.includes('#')) : [];
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault(); // Previene navegación
-    e.stopPropagation(); // Detiene que el clic suba al Link (si hubiera uno)
+  // ✅ FUNCIÓN CORREGIDA - Maneja favoritos
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('❤️ Toggle favorite for:', ProductID);
     
     if (isProductFavorite) {
+      console.log('➖ Removing from favorites');
       removeFromFavorites(ProductID);
     } else {
-      const fullProduct = getProduct(ProductID);
-      if (fullProduct) addToFavorites(fullProduct);
+      console.log('➕ Adding to favorites');
+      try {
+        const fullProduct = await getProduct(ProductID);
+        console.log('📦 Full product from API:', fullProduct);
+        
+        if (fullProduct) {
+          addToFavorites(fullProduct);
+        } else {
+          // ✅ CREAR OBJETO PRODUCTO COMPATIBLE si getProduct falla
+          const compatibleProduct = {
+            ProductID,
+            ProductName,
+            productPrice: ProductPrice, // ← minúscula 'p' para compatibilidad
+            ProductImageUrl: ProductImage, // ← convertir ProductImage → ProductImageUrl
+            ProductDescription: '',
+            ProductCategory: '',
+            productStockQuantity: 1,
+            ProductColors: ProductColors || [],
+            ProductBrand: '',
+            ProductWeight: 0,
+            ProductDimensions: '',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          console.log('🔄 Using compatible product:', compatibleProduct);
+          addToFavorites(compatibleProduct);
+        }
+      } catch (error) {
+        console.error('❌ Error getting product:', error);
+        // ✅ FALLBACK: Crear producto compatible
+        const fallbackProduct = {
+          ProductID,
+          ProductName,
+          productPrice: ProductPrice,
+          ProductImageUrl: ProductImage,
+          ProductDescription: '',
+          ProductCategory: '',
+          productStockQuantity: 1,
+          ProductColors: ProductColors || [],
+          ProductBrand: '',
+          ProductWeight: 0,
+          ProductDimensions: '',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        addToFavorites(fallbackProduct);
+      }
     }
   };
 
-  const handleToggleCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Previene navegación
-    e.stopPropagation(); // Detiene que el clic suba
+  // ✅ FUNCIÓN CORREGIDA - Maneja carrito
+  const handleToggleCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🛒 Toggle cart for:', ProductID);
     
     if (isInCart) {
+      console.log('➖ Removing from cart');
       removeFromCart(ProductID);
     } else {
-      const fullProduct = getProduct(ProductID);
-      if (fullProduct) addToCart(fullProduct, 1);
+      console.log('➕ Adding to cart');
+      try {
+        const fullProduct = await getProduct(ProductID);
+        console.log('📦 Full product for cart:', fullProduct);
+        
+        if (fullProduct) {
+          addToCart(fullProduct, 1);
+        } else {
+          // ✅ CREAR OBJETO PRODUCTO COMPATIBLE si getProduct falla
+          const compatibleProduct = {
+            ProductID,
+            ProductName,
+            productPrice: ProductPrice, // ← minúscula 'p' para compatibilidad
+            ProductImageUrl: ProductImage, // ← convertir ProductImage → ProductImageUrl
+            ProductDescription: '',
+            ProductCategory: '',
+            productStockQuantity: 1,
+            ProductColors: ProductColors || [],
+            ProductBrand: '',
+            ProductWeight: 0,
+            ProductDimensions: '',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          console.log('🔄 Using compatible product for cart:', compatibleProduct);
+          addToCart(compatibleProduct, 1);
+        }
+      } catch (error) {
+        console.error('❌ Error getting product for cart:', error);
+        // ✅ FALLBACK: Crear producto compatible
+        const fallbackProduct = {
+          ProductID,
+          ProductName,
+          productPrice: ProductPrice,
+          ProductImageUrl: ProductImage,
+          ProductDescription: '',
+          ProductCategory: '',
+          productStockQuantity: 1,
+          ProductColors: ProductColors || [],
+          ProductBrand: '',
+          ProductWeight: 0,
+          ProductDimensions: '',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        addToCart(fallbackProduct, 1);
+      }
     }
   };
+
+  // ✅ DEBUG: Verificar estado actual
+  React.useEffect(() => {
+    console.log(`🔍 ProductCard ${ProductID}:`, {
+      isFavorite: isProductFavorite,
+      isInCart: isInCart,
+      price: ProductPrice,
+      image: ProductImage
+    });
+  }, [ProductID, isProductFavorite, isInCart, ProductPrice, ProductImage]);
 
   return (
     <Card className="w-full h-full mx-auto border-0 shadow-none bg-[#F9FAFB] rounded-[24px] overflow-hidden group/card font-sans hover:bg-[#F3F4F6] transition-colors duration-300 flex flex-col">
@@ -92,21 +204,37 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
             )) : <div className="h-3"></div>}
           </div>
 
-          {/* BOTONES INTERACTIVOS - FUERA DE CUALQUIER LINK */}
+          {/* ✅ BOTONES INTERACTIVOS CORREGIDOS */}
           <div className="flex gap-2 sm:gap-3 text-gray-400 z-10 relative">
             <button 
               onClick={handleToggleFavorite}
-              className="hover:text-red-500 transition-colors p-1 hover:bg-white rounded-full"
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isProductFavorite 
+                  ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                  : 'hover:text-red-500 hover:bg-white'
+              }`}
               type="button"
+              title={isProductFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
             >
-              {isProductFavorite ? <IoHeartSharp className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" /> : <IoHeartOutline className="w-5 h-5 sm:w-6 sm:h-6" />}
+              {isProductFavorite ? 
+                <IoHeartSharp className="w-4 h-4 sm:w-5 sm:h-5" /> : 
+                <IoHeartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+              }
             </button>
             <button 
               onClick={handleToggleCart}
-              className="hover:text-gray-800 transition-colors p-1 hover:bg-white rounded-full"
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isInCart 
+                  ? 'text-gray-800 bg-gray-100 hover:bg-gray-200' 
+                  : 'hover:text-gray-800 hover:bg-white'
+              }`}
               type="button"
+              title={isInCart ? "Quitar del carrito" : "Agregar al carrito"}
             >
-              {isInCart ? <IoBag className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" /> : <IoBagOutline className="w-5 h-5 sm:w-6 sm:h-6" />}
+              {isInCart ? 
+                <IoBag className="w-4 h-4 sm:w-5 sm:h-5" /> : 
+                <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+              }
             </button>
           </div>
         </div>
@@ -123,7 +251,6 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
             </div>
           </div>
         </Link>
-
       </CardContent>
     </Card>
   )

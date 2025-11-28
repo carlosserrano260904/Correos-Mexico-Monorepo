@@ -42,8 +42,8 @@ export const NavbarCorreos = ({ transparent = false }: NavbarCorreosProps) => {
           <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
             Inicio
           </Link>
-          <Link href="/CorreosMX" className="hover:text-pink-500 font-medium transition-colors text-sm">
-            MEXPOSTS
+          <Link href="/" className="hover:text-pink-500 font-medium transition-colors text-sm">
+            CorreosClic
           </Link>
           <Link href="/centro-de-ayuda" className="hover:text-pink-500 font-medium transition-colors text-sm">
             Centro de ayuda

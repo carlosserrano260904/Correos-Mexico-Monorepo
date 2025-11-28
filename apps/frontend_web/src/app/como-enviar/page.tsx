@@ -1,6 +1,6 @@
 import React from "react";
 import {NavbarCorreos} from "@/components/NavbarCorreos";
-import Footer from "@/components/footer";
+import Footer from "@/components/footerCorreos";
 
 
 const EnviarCarta: React.FC = () => {

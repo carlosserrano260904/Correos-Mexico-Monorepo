@@ -19,17 +19,17 @@ export const CarouselServicios = ({ servicios }: CarouselServiciosProps) => {
 
   const handleCardClick = (servicioId: string) => {
     switch (servicioId) {
-      case 'servicios-ventanilla':
-        router.push('/servicios-ventanilla')
+      case 'correspondencia':
+        router.push2('/como-enviar')
         break
-      case 'prohibidos':
-        router.push('/articulosprohibidos')
+      case 'paqueteria':
+        router.push2('/como-enviar')
         break
-      case 'enviar':
-        router.push('/como-enviar')
+      case 'impresos':
+        router.push2('/como-enviar')
         break
-      case 'corporativos':
-        router.push('/corporativos')
+      case 'embalajes':
+        router.push2('/como-enviar')
         break
       // Agregar más casos cuando tengamos más páginas
       default:

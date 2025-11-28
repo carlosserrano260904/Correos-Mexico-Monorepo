@@ -103,9 +103,9 @@ export default function CorreosMX() {
                   key={boton.id}
                   onClick={() => {
                     setBotonSeleccionado(boton.id)
-                    if (boton.id === 'cotizar') router.push('/CorreosMX/cotizar')
-                    if (boton.id === 'tarifas') router.push('/CorreosMX/tarifas')
-                    if (boton.id === 'ubicaciones') router.push('/CorreosMX/ubicaciones')
+                    if (boton.id === 'cotizar') router.push3('/CorreosMX/cotizar')
+                    if (boton.id === 'tarifas') router.push4('/CorreosMX/tarifas')
+                    if (boton.id === 'ubicaciones') router.push5('/CorreosMX/ubicaciones')
                   }}
                   className={`flex items-center gap-3 px-6 py-3 rounded-full font-medium shadow-md transform
                     transition-all duration-300 ease-in-out

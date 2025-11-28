@@ -31,21 +31,22 @@ const banners = [
         id: 1, 
         image: '/banners/descuentos.png', 
         buttonText: 'Ver ofertas', 
-        link: '/ofertas', 
+        link: '/categories?category=Ropa', 
         badgeText: '¡Gran Venta!'
     },
+
     { 
         id: 2, 
         image: '/banners/envios.png', 
         buttonText: 'Comprar ahora', 
-        link: '/verano',
+        link: '/categories?category=Alimentos%20y%20Bebidas',
         badgeText: 'Tendencias'
     },
     { 
         id: 3, 
         image: '/banners/joyeria.png', 
-        buttonText: 'Descargar App', 
-        link: '/app',
+        buttonText: 'Ver Mas', 
+        link: '/categories?category=Joyeria',
         badgeText: 'Exclusivo'
     },
 ]
@@ -166,18 +167,19 @@ export const Anuncios2 = () => {
                                     Productos
                                 </span>
                             </h3>
-                            
-                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                {/* Efecto de brillo en el botón */}
-                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                
-                                <span className='relative flex items-center gap-1 sm:gap-2'>
-                                    Ver más
-                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                    </svg>
-                                </span>
-                            </button>
+                            <Link href="/categories?category=Electronica">
+                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                    {/* Efecto de brillo en el botón */}
+                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                    
+                                    <span className='relative flex items-center gap-1 sm:gap-2'>
+                                        Ver más
+                                        <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </Link>
                         </div>
                     </div>
 
@@ -202,17 +204,18 @@ export const Anuncios2 = () => {
                                     Mexicanas
                                 </span>
                             </h3>
-                            
-                            <button className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                
-                                <span className='relative flex items-center gap-1 sm:gap-2'>
-                                    Descubrir más
-                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                    </svg>
-                                </span>
-                            </button>
+                            <Link href="/categories?category=Artesanal">
+                                <button className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                    
+                                    <span className='relative flex items-center gap-1 sm:gap-2'>
+                                        Descubrir más
+                                        <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </Link>
                         </div>
                     </div>
 
@@ -247,17 +250,19 @@ export const Anuncios3 = () => {
                         Personaliza cada rincón de tu hogar con muebles únicos, funcionales y a tu estilo.
                     </p>
                     <div>
-                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                            {/* Efecto de brillo en el botón */}
-                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                            
-                            <span className='relative flex items-center gap-1 sm:gap-2'>
-                                Descubrir más
-                                <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                </svg>
-                            </span>
-                        </button>
+                        <Link href="/categories?category=Hogar">
+                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                {/* Efecto de brillo en el botón */}
+                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                
+                                <span className='relative flex items-center gap-1 sm:gap-2'>
+                                    Descubrir más
+                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                    </svg>
+                                </span>
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -286,17 +291,19 @@ export const Anuncios4 = () => {
                             </p>
                         </div>
                         <div className='ml-0 sm:ml-8 md:ml-12 lg:ml-16'>
-                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                {/* Efecto de brillo en el botón */}
-                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                
-                                <span className='relative flex items-center gap-1 sm:gap-2'>
-                                    Descubrir más
-                                    <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                    </svg>
-                                </span>
-                            </button>
+                            <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                    {/* Efecto de brillo en el botón */}
+                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                    
+                                    <span className='relative flex items-center gap-1 sm:gap-2'>
+                                        Descubrir más
+                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -318,17 +325,19 @@ export const Anuncios4 = () => {
                                 30% de descuento en la segunda pieza
                             </p>
                             <div>
-                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                    {/* Efecto de brillo en el botón */}
-                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                    
-                                    <span className='relative flex items-center gap-1'>
-                                        Ver colección
-                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                        </svg>
-                                    </span>
-                                </button>
+                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                        {/* Efecto de brillo en el botón */}
+                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                        
+                                        <span className='relative flex items-center gap-1'>
+                                            Ver colección
+                                            <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -349,17 +358,19 @@ export const Anuncios4 = () => {
                                 <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
                                     30% de descuento
                                 </p>
-                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                    {/* Efecto de brillo en el botón */}
-                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                    
-                                    <span className='relative flex items-center gap-1'>
-                                        Comprar ahora
-                                        <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                        </svg>
-                                    </span>
-                                </button>
+                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                        {/* Efecto de brillo en el botón */}
+                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                        
+                                        <span className='relative flex items-center gap-1'>
+                                            Comprar ahora
+                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -378,17 +389,19 @@ export const Anuncios4 = () => {
                                     25% de descuento
                                 </p>
                                 <div>
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                        
-                                        <span className='relative flex items-center gap-1'>
-                                            Ver productos
-                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
+                                    <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
+                                            {/* Efecto de brillo en el botón */}
+                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                            
+                                            <span className='relative flex items-center gap-1'>
+                                                Ver productos
+                                                <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>

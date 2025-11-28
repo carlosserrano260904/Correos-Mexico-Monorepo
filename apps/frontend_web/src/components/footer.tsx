@@ -153,7 +153,7 @@ const Footer: React.FC = () => {
             href={ROUTES.legal.terms}
             className="hover:text-pink-600 transition-colors"
           >
-            Términos y condiciones
+            Términos y condiciones 
           </Link>
           <Link
             href={ROUTES.legal.sitemap}

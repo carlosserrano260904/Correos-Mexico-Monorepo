@@ -5,15 +5,16 @@ import Link from "next/link";
 const ROUTES = {
   account: {
     myAccount: "/Perfil",                // Mi cuenta
-    orders: "/historial",               // Órdenes PARA DONDE?
-    addresses: "/direcciones",          // TODO: ajusta cuando tengas esta página PARA DONDE?x2
+    orders: "/historial",               // Órdenes
+    addresses: "/direcciones",          // TODO: ajusta cuando tengas esta página
     cart: "/Carrito",                   // Carrito de compras
-    sellerRequest: "/registro_vendedor", // Solicitar cuenta de vendedor
+    sellerRequest: "/solicitar_cuenta", // Solicitar cuenta de vendedor
   },
   customerService: {
-    viewedProducts: "/productos-vistos",// Productos vistos (ajusta si usas otro path) PARA DONDE?x3
-    newProducts: "/nuevos-productos",   // Nuevos productos PARA DONDE?4
-    offices: "/CorreosMX/ubicaciones",  // Oficinas postales
+    search: "/buscar",                  // Búsqueda
+    viewedProducts: "/productos-vistos",// Productos vistos (ajusta si usas otro path)
+    newProducts: "/nuevos-productos",   // Nuevos productos
+    offices: "/oficinas-postales",      // Oficinas postales
     sellerSolutions: "/Vendedor/app",   // SolucionesClic vendedor (panel vendedor)
     mexpost: "/CorreosMX",              // MEXPOST
   },
@@ -91,6 +92,14 @@ const Footer: React.FC = () => {
         <div>
           <h3 className="font-semibold mb-2">Servicio al cliente</h3>
           <ul className="space-y-1">
+            <li>
+              <Link
+                href={ROUTES.customerService.search}
+                className="hover:text-pink-600 transition-colors"
+              >
+                Búsqueda
+              </Link>
+            </li>
             <li>
               <Link
                 href={ROUTES.customerService.viewedProducts}

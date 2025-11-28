@@ -29,7 +29,7 @@ export default function CentroDeAyuda() {
         <div className="flex flex-col gap-6 items-center">
             <div className="w-full h-[32rem] relative rounded-xl overflow-hidden border">
                 <Image
-                    src="/imgCentroAyuda.png"
+                    src="/imgCentroDeAyuda.png"
                     alt="Correos de Mexico"
                     fill
                     className="object-cover"

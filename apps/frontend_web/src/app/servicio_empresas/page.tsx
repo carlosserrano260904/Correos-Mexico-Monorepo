@@ -204,7 +204,7 @@ export default function Oficinas() {
           <div className="absolute inset-0 bg-gradient-to-r from-pink-600/90 via-pink-500/80 to-pink-400/70"></div>
 
           <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4">
-            <a href="/CorreosMX/centro-de-ayuda">
+            <a href="/centro-de-ayuda">
               <div className="bg-white text-black-600 text-sm md:text-base font-bold px-6 py-2 rounded-full mb-6 shadow-sm inline-block tracking-wide">
                 Centro de Ayuda
               </div>

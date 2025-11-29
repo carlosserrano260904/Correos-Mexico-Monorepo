@@ -31,23 +31,24 @@ async function setupNestApp(expressApp: express.Express): Promise<any> {
     console.log('[Swagger] Documentation available at /docs');
   }
 
-  // Agregar dominios de Vercel
-  const allowedOrigins = [
+  const allowedOrigins: (string | RegExp)[] = [ 
     'http://localhost:4200',
     'https://midominio.com',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
-    // ✅ TUS DOMINIOS DE VERCEL
+    'http://192.168.1.98:3000',
+    'http://192.168.1.98:3001',
+    // Dominios de producción
     'https://correos-mexico-monorepo-frontend-hx8ajj8j7.vercel.app',
     'https://correos-mexico-monorepo-git-8d0e31-emmanuels-projects-e8897a1f.vercel.app',
     'https://correos-mexico-monorepo-backend.vercel.app',
   ];
 
-  // Permite cualquier subdominio de vercel.app
+  // Para subdominios de Vercel
   if (IS_VERCEL) {
     allowedOrigins.push(/\.vercel\.app$/); 
-    allowedOrigins.push(/\.vercel\.app:\d+$/); 
+    allowedOrigins.push(/\.vercel\.app:\d+$/);
   }
 
   app.use(

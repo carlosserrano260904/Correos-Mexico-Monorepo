@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <Plantilla>
-      <BotonRegresar redirectTo='/' />
+      <BotonRegresar redirectTo='/Carrito' />
       <div id='painPage' className='flex'>
         <div id='rigthContent' className='w-2/3'>
           <div id='Direccion de Envio'>

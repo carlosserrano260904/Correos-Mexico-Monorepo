@@ -70,14 +70,14 @@ export const CartProductItem = ({ item }: CartProductItemProps) => {
             <button
               onClick={() => handleQuantityChange(item.quantity - 1)}
               disabled={item.quantity <= 1}
-              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               -
             </button>
             <span className="w-8 text-center font-medium">{item.quantity}</span>
             <button
               onClick={() => handleQuantityChange(item.quantity + 1)}
-              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 cursor-pointer"
             >
               +
             </button>
@@ -97,7 +97,7 @@ export const CartProductItem = ({ item }: CartProductItemProps) => {
       {/* Botón eliminar */}
       <button
         onClick={handleRemove}
-        className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors p-2"
+        className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors p-2 cursor-pointer"
         title="Eliminar producto"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

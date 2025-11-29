@@ -6,6 +6,7 @@ import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
 import { CarrouselProducts } from '@/components/CarouselProducts'
 import { HistorialDeCompras } from '@/components/HistorialDeCompras'
+import { CompraExitosa } from '@/components/CompraExitosa'
 
 export default function Page() {
   const { products } = useProducts();
@@ -15,7 +16,7 @@ export default function Page() {
         ProductID: 1,
         ProductName: "Cámara Fotográfica Pro",
         productPrice: 3500,
-        ProductImageUrl: "https://via.placeholder.com/150",
+        ProductImageUrl: "/placeholder-bolsos.png",
         ProductColors: ["Negro"],
         ProductDescription: "Cámara profesional con lente intercambiable.",
         ProductCategory: "Tecnología",
@@ -35,7 +36,7 @@ export default function Page() {
         ProductID: 2,
         ProductName: "Audífonos Bluetooth",
         productPrice: 799,
-        ProductImageUrl: "https://via.placeholder.com/150",
+        ProductImageUrl: "/placeholder-chamarras.png",
         ProductColors: ["Blanco"],
         ProductDescription: "Audífonos inalámbricos con cancelación de ruido.",
         ProductCategory: "Tecnología",
@@ -44,18 +45,16 @@ export default function Page() {
         selectedSize: "Único",
         isSelected: true,
 
-        delivered: true, // ❗ No entregado todavía
+        delivered: true, // No entregado todavía
         orderDate: "18 de mayo",
         storeName: "AudioTech MX",
         sellerName: "Proveedor Oficial"
     }
     ];
 
-  console.log('Carrito - items:', items); // Debug
-
   return (
     <Plantilla>
-      <HistorialDeCompras items={items}></HistorialDeCompras>
+      <CompraExitosa items={items}></CompraExitosa>
       <CarrouselProducts entradas={products} title='También te podría interesar'/>
     </Plantilla>
   )

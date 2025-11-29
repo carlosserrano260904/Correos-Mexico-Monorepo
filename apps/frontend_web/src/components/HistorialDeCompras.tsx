@@ -75,11 +75,11 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
               </div>
 
               {/* MIDDLE SECTION */}
-              <div className="flex flex-col text-sm text-gray-700">
+              <div className="flex flex-col items-center text-center text-sm text-gray-700">
                 <span className="font-medium">Tienda oficial artesanal</span>
                 <span className="text-xs text-gray-500">CorreosMexico MX</span>
 
-                <button className="text-pink-600 text-sm mt-2 hover:underline">
+                <button className="text-pink-600 text-sm mt-2 hover:underline cursor-pointer">
                   Enviar mensaje
                 </button>
               </div>
@@ -87,15 +87,18 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
               {/* RIGHT SECTION */}
               <div className="flex flex-col items-end gap-2">
 
-                <button className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700">
+                <button className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700 cursor-pointer">
                   Ver compras
                 </button>
 
                 {/* NUEVO BOTÓN: Solo si NO está entregado */}
                 {!isDelivered && (
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm hover:bg-blue-700">
-                    Rastrear paquete
-                  </button>
+                  <a
+                    href="#"
+                    className="text-pink-500 hover:text-pink-600 underline cursor-pointer text-sm mr-2"
+                    >
+                      Rastrear paquete
+                  </a>
                 )}
 
                 <p className="text-xs text-gray-600">Productos destacados</p>

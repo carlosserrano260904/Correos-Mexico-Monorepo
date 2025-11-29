@@ -1,9 +1,9 @@
-// services/productsApi.ts
 import { 
   BackendProduct, 
   FrontendProduct, 
   BackendCreateProductDto 
 } from '@/schemas/products';
+
 const bolsaImg = '/placeholder-bolsos.png';
 const accesoriosImg = '/placeholder-accesorios.png';
 const zapatosImg = '/placeholder-zapatos.png';
@@ -21,7 +21,7 @@ class ProductsApiService {
   private baseUrl = `${API_BASE_URL}/api/products`;
   private cache: FrontendProduct[] | null = null;
   private lastFetch: number = 0;
-  private CACHE_DURATION = 30000; //cache
+  private CACHE_DURATION = 30000; // cache de 30 segundos
 
   private validateImageUrl(url: string | null | undefined): string {
     // Si no hay URL, usar placeholder
@@ -31,7 +31,13 @@ class ProductsApiService {
 
     const cleanUrl = url.trim();
 
-    return cleanUrl;
+    // Verificar si es una URL válida
+    try {
+      new URL(cleanUrl);
+      return cleanUrl;
+    } catch {
+      return DEFAULT_PLACEHOLDER_IMAGE;
+    }
   }
 
   /**
@@ -72,19 +78,30 @@ class ProductsApiService {
     let imageUrl = DEFAULT_PLACEHOLDER_IMAGE;
     
     if (backendProduct.images && Array.isArray(backendProduct.images) && backendProduct.images.length > 0) {
-      // Tomar la primera imagen del array
-      imageUrl = this.validateImageUrl(backendProduct.images[0]?.url);
+      // Tomar la primera imagen del array - VERIFICAR BIEN LA ESTRUCTURA
+      const firstImage = backendProduct.images[0];
+      imageUrl = this.validateImageUrl(
+        typeof firstImage === 'string' ? firstImage : firstImage?.url
+      );
     } else if (backendProduct.imagen) {
       // Fallback a imagen individual
       imageUrl = this.validateImageUrl(backendProduct.imagen);
     }
+
+    // DEBUG: Verificar qué imagen se está asignando
+    console.log(`🖼️ Producto ${backendProduct.id}:`, {
+      nombre: backendProduct.nombre,
+      imagenAPI: backendProduct.imagen,
+      imagesArray: backendProduct.images,
+      imagenFinal: imageUrl
+    });
 
     return {
       ProductID: backendProduct.id,
       ProductName: backendProduct.nombre,
       ProductDescription: backendProduct.descripcion,
       productPrice: backendProduct.precio,
-      ProductImageUrl: imageUrl,
+      ProductImageUrl: imageUrl, // ← Esta es la imagen REAL de la API
       ProductCategory: backendProduct.categoria,
       productStockQuantity: backendProduct.inventario,
       ProductColors: colors,
@@ -144,34 +161,47 @@ class ProductsApiService {
         'FONART': chamarrasImg,
         'Calzado': tenisImg,
         'Ropa': pantalonesImg,
-        'Accesorios': accesoriosImg, // Agregado si esta categoría existe
-        // Asegúrate de que los nombres de categoría sean EXACTOS
+        'Accesorios': accesoriosImg,
       };
 
-      const productsWithLocalImages = validProducts.map(p => {
-    const localImagePath = p.ProductCategory && categoryMapping[p.ProductCategory];
-    
-    if (localImagePath) {
-        return {
-            ...p,
-          ProductImageUrl: localImagePath,
-        };
-      }
-      return p; 
-    });
+      const productsWithFallbackImages = validProducts.map(p => {
+        // Si la imagen actual es el placeholder por defecto o está vacía, usar placeholder local
+        const hasValidImage = p.ProductImageUrl && 
+                             p.ProductImageUrl !== DEFAULT_PLACEHOLDER_IMAGE && 
+                             p.ProductImageUrl !== '';
+        
+        if (!hasValidImage) {
+          const localImagePath = p.ProductCategory && categoryMapping[p.ProductCategory];
+          if (localImagePath) {
+            console.log(`🔄 Usando placeholder local para producto sin imagen: ${p.ProductName}`);
+            return {
+              ...p,
+              ProductImageUrl: localImagePath,
+            };
+          }
+        }
+        
+        // Mantener la imagen original de la API
+        return p;
+      });
 
-      // Reemplazamos la lista de la API con la lista modificada
-      validProducts = productsWithLocalImages;
+      // ✅ NO reemplazar todos los productos, solo los que necesitan fallback
+      validProducts = productsWithFallbackImages;
 
       // Guardar en cache
       this.cache = validProducts;
       this.lastFetch = Date.now();
 
+      // DEBUG: Verificar imágenes finales
+      console.log('🔍 Imágenes finales de productos:');
+      validProducts.forEach((p, i) => {
+        console.log(`${i + 1}. ${p.ProductName}: ${p.ProductImageUrl}`);
+      });
+
       return validProducts;
 
     } catch (error) {
       console.error(' Error fetching products:', error);
-      // Devolver cache aunque sea viejo si hay error
       return this.cache || [];
     }
   }

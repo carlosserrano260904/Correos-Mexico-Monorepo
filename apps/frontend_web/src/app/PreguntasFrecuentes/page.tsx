@@ -40,39 +40,41 @@ export default function PreguntasFrecuentes() {
       <NavbarCorreos />
       <main className="flex-grow">
         <section className="max-w-8xl mx-auto px-4 pt-6 pb-12 md:px-8 md:pt-1"> 
-        <div className="relative w-full h-[400px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <div 
-            className="absolute inset-0 w-full h-full bg-pink-500 transition-transform duration-700 hover:scale-105"
-            style={{
-                backgroundImage: "url('/PreguntasFrecuentes.png')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center' 
-            }}
-            >
-            {/* Gradiente superpuesto */}
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-pink-400/80 to-pink-400/50 mix-blend-multiply md:mix-blend-normal"></div>
-            </div>
+          <div className="relative w-full h-[400px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div 
+                className="absolute inset-0 w-full h-full bg-pink-500 transition-transform duration-700 hover:scale-105"
+                style={{
+                    backgroundImage: "url('/PreguntasFrecuentes.png')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center' 
+                }}
+                >
+                {/* Gradiente superpuesto */}
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-pink-400/80 to-pink-400/50 mix-blend-multiply md:mix-blend-normal"></div>
+              </div>
 
-            {/* CONTENIDO DE TEXTO */}
-            <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4">
-            
-            {/* Badge (Pastilla blanca) */}
-            <div className="bg-white text-black-600 text-sm md:text-base font-bold px-6 py-2 rounded-full mb-6 shadow-sm inline-block tracking-wide">
-                Centro de Ayuda
-            </div>
+              {/* CONTENIDO DE TEXTO */}
+              <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4">
+              
+                {/* Badge (Pastilla blanca) */}
+                <a href="/centro-de-ayuda">
+                  <div className="bg-white text-black-600 text-sm md:text-base font-bold px-6 py-2 rounded-full mb-6 shadow-sm inline-block tracking-wide">
+                      Centro de Ayuda
+                  </div>
+                </a>
 
-            {/* Título Principal */}
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
-                Preguntas Frecuentes
-            </h1>
+                {/* Título Principal */}
+                <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
+                    Preguntas Frecuentes
+                </h1>
 
-            {/* Subtítulo */}
-            <p className="text-pink-50 text-lg md:text-xl font-medium max-w-2xl mx-auto drop-shadow-md">
-                Encuentra aquí las respuestas a diferentes preguntas.
-            </p>
-            </div>
+                {/* Subtítulo */}
+                <p className="text-pink-50 text-lg md:text-xl font-medium max-w-2xl mx-auto drop-shadow-md">
+                    Encuentra aquí las respuestas a diferentes preguntas.
+                </p>
+              </div>
 
-        </div>
+          </div>
         </section>
 
         {/* --- SECCIÓN DE CONTENIDO --- */}

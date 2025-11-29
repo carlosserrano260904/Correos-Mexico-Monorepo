@@ -1,3 +1,4 @@
+// components/primitivos.tsx
 'use client'
 import React from 'react'
 import { ColetcionCardProps, ProductCardProps } from '@/types/interface'
@@ -24,7 +25,7 @@ export const Btn = ({children, className, link}: {children: React.ReactNode, cla
 
 export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductName, ProductPrice, onClick }: ProductCardProps) => {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
-  const { addToCart, removeFromCart, getCartItem } = useCart();
+  const { addToCart, removeFromCart, getCartItem, isInCart } = useCart(); // ✅ Agregar isInCart
   const { getProduct } = useProducts();
 
   const formattedPrice = new Intl.NumberFormat('es-MX', {
@@ -34,33 +35,148 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
   }).format(ProductPrice);
 
   const isProductFavorite = isFavorite(ProductID);
-  const isInCart = getCartItem(ProductID) !== undefined;
+  
+  // ✅ CORREGIDO: Usar isInCart si existe, o getCartItem como fallback
+  const cartItem = getCartItem ? getCartItem(ProductID) : undefined;
+  const isInCartBoolean = isInCart ? isInCart(ProductID) : cartItem !== undefined;
 
   const Colors: string[] = ProductColors ? ProductColors.filter(c => c.includes('#')) : [];
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault(); // Previene navegación
-    e.stopPropagation(); // Detiene que el clic suba al Link (si hubiera uno)
+  // ✅ FUNCIÓN CORREGIDA - Maneja favoritos
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('❤️ Toggle favorite for:', ProductID);
     
     if (isProductFavorite) {
+      console.log('➖ Removing from favorites');
       removeFromFavorites(ProductID);
     } else {
-      const fullProduct = getProduct(ProductID);
-      if (fullProduct) addToFavorites(fullProduct);
+      console.log('➕ Adding to favorites');
+      try {
+        const fullProduct = await getProduct(ProductID);
+        console.log('📦 Full product from API:', fullProduct);
+        
+        if (fullProduct) {
+          addToFavorites(fullProduct);
+        } else {
+          // ✅ CREAR OBJETO PRODUCTO COMPATIBLE si getProduct falla
+          const compatibleProduct = {
+            ProductID,
+            ProductName,
+            productPrice: ProductPrice,
+            ProductImageUrl: ProductImage,
+            ProductDescription: '',
+            ProductCategory: '',
+            productStockQuantity: 1,
+            ProductColors: ProductColors || [],
+            ProductBrand: '',
+            ProductWeight: 0,
+            ProductDimensions: '',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          console.log('🔄 Using compatible product:', compatibleProduct);
+          addToFavorites(compatibleProduct);
+        }
+      } catch (error) {
+        console.error('❌ Error getting product:', error);
+        // ✅ FALLBACK: Crear producto compatible
+        const fallbackProduct = {
+          ProductID,
+          ProductName,
+          productPrice: ProductPrice,
+          ProductImageUrl: ProductImage,
+          ProductDescription: '',
+          ProductCategory: '',
+          productStockQuantity: 1,
+          ProductColors: ProductColors || [],
+          ProductBrand: '',
+          ProductWeight: 0,
+          ProductDimensions: '',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        addToFavorites(fallbackProduct);
+      }
     }
   };
 
-  const handleToggleCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Previene navegación
-    e.stopPropagation(); // Detiene que el clic suba
+  // ✅ FUNCIÓN CORREGIDA - Maneja carrito
+  const handleToggleCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (isInCart) {
+    console.log('🛒 Toggle cart for:', ProductID);
+    
+    if (isInCartBoolean) {
+      console.log('➖ Removing from cart');
       removeFromCart(ProductID);
     } else {
-      const fullProduct = getProduct(ProductID);
-      if (fullProduct) addToCart(fullProduct, 1);
+      console.log('➕ Adding to cart');
+      try {
+        const fullProduct = await getProduct(ProductID);
+        console.log('📦 Full product for cart:', fullProduct);
+        
+        if (fullProduct) {
+          addToCart(fullProduct, 1);
+        } else {
+          // ✅ CREAR OBJETO PRODUCTO COMPATIBLE si getProduct falla
+          const compatibleProduct = {
+            ProductID,
+            ProductName,
+            productPrice: ProductPrice,
+            ProductImageUrl: ProductImage,
+            ProductDescription: '',
+            ProductCategory: '',
+            productStockQuantity: 1,
+            ProductColors: ProductColors || [],
+            ProductBrand: '',
+            ProductWeight: 0,
+            ProductDimensions: '',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          console.log('🔄 Using compatible product for cart:', compatibleProduct);
+          addToCart(compatibleProduct, 1);
+        }
+      } catch (error) {
+        console.error('❌ Error getting product for cart:', error);
+        // ✅ FALLBACK: Crear producto compatible
+        const fallbackProduct = {
+          ProductID,
+          ProductName,
+          productPrice: ProductPrice,
+          ProductImageUrl: ProductImage,
+          ProductDescription: '',
+          ProductCategory: '',
+          productStockQuantity: 1,
+          ProductColors: ProductColors || [],
+          ProductBrand: '',
+          ProductWeight: 0,
+          ProductDimensions: '',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        addToCart(fallbackProduct, 1);
+      }
     }
   };
+
+  // ✅ DEBUG: Verificar estado actual
+  React.useEffect(() => {
+    console.log(`🔍 ProductCard ${ProductID}:`, {
+      isFavorite: isProductFavorite,
+      isInCart: isInCartBoolean,
+      price: ProductPrice,
+      image: ProductImage
+    });
+  }, [ProductID, isProductFavorite, isInCartBoolean, ProductPrice, ProductImage]);
 
   return (
     <Card className="w-full h-full mx-auto border-0 shadow-none bg-[#F9FAFB] rounded-[24px] overflow-hidden group/card font-sans hover:bg-[#F3F4F6] transition-colors duration-300 flex flex-col">
@@ -92,21 +208,37 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
             )) : <div className="h-3"></div>}
           </div>
 
-          {/* BOTONES INTERACTIVOS - FUERA DE CUALQUIER LINK */}
+          {/* ✅ BOTONES INTERACTIVOS CORREGIDOS */}
           <div className="flex gap-2 sm:gap-3 text-gray-400 z-10 relative">
             <button 
               onClick={handleToggleFavorite}
-              className="hover:text-red-500 transition-colors p-1 hover:bg-white rounded-full"
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isProductFavorite 
+                  ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                  : 'hover:text-red-500 hover:bg-white'
+              }`}
               type="button"
+              title={isProductFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
             >
-              {isProductFavorite ? <IoHeartSharp className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" /> : <IoHeartOutline className="w-5 h-5 sm:w-6 sm:h-6" />}
+              {isProductFavorite ? 
+                <IoHeartSharp className="w-4 h-4 sm:w-5 sm:h-5" /> : 
+                <IoHeartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+              }
             </button>
             <button 
               onClick={handleToggleCart}
-              className="hover:text-gray-800 transition-colors p-1 hover:bg-white rounded-full"
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isInCartBoolean 
+                  ? 'text-gray-800 bg-gray-100 hover:bg-gray-200' 
+                  : 'hover:text-gray-800 hover:bg-white'
+              }`}
               type="button"
+              title={isInCartBoolean ? "Quitar del carrito" : "Agregar al carrito"}
             >
-              {isInCart ? <IoBag className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" /> : <IoBagOutline className="w-5 h-5 sm:w-6 sm:h-6" />}
+              {isInCartBoolean ? 
+                <IoBag className="w-4 h-4 sm:w-5 sm:h-5" /> : 
+                <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+              }
             </button>
           </div>
         </div>
@@ -123,7 +255,6 @@ export const ProductCard = ({ ProductID, ProductImage, ProductColors, ProductNam
             </div>
           </div>
         </Link>
-
       </CardContent>
     </Card>
   )
@@ -146,8 +277,6 @@ export const ColectionCard = ({ ProductID, ProductImage, ProductName, onClick }:
         </div>
 
         <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0 flex-grow flex flex-col justify-end">
-           {/* Se puede personalizar más si es necesario */}
-           {/* ... contenido similar ... */}
            <div>
             <h3 className="text-gray-500 text-sm font-medium mb-1 text-left truncate tracking-wide">
               {ProductName}
@@ -164,7 +293,6 @@ export const ColectionCard = ({ ProductID, ProductImage, ProductName, onClick }:
 
 export const Title = ({ children, className = "" }: { children: string; className?: string }) => {
   return (
-    // Responsive text size
     <h2 className={`text-2xl sm:text-3xl font-bold text-gray-900 text-center break-words whitespace-normal mb-8 ${className} relative inline-block`}>
       {children}
       <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 sm:w-16 h-1 bg-gradient-to-r from-[#DE1484] to-pink-500 rounded-full"></div>
@@ -199,7 +327,6 @@ export const ProductCardSkeleton = () => {
 
 export const ProductGrid = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
   return (
-    // Grid responsive: 1 col móvil, 2 col tablet pequeña, 3 col tablet grande/laptop, 4 col escritorio
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8 ${className}`}>
       {children}
     </div>

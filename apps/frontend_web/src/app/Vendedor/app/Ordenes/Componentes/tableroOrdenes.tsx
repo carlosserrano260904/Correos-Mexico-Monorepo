@@ -23,7 +23,7 @@ export default function TableroOrdenes({entradas}: Data) {
           </TableRow>
         </TableHeader>
         <TableBody>
-            {entradas.map((entrada) => (
+            {entradas?.map((entrada) => (
                   <Orden 
                     key={entrada.OrderID}
                     NoProducts={entrada.NoProducts}

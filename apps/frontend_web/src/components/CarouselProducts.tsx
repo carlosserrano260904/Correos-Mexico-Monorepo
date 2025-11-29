@@ -3,7 +3,8 @@
 
 import { useFeaturedProducts } from '@/hooks/useProduct';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
-import { ProductCard } from "./primitivos"; // Asegúrate que esta ruta sea correcta
+import { ProductCard } from "./primitivos";
+import { useEffect } from 'react';
 
 // Definimos la interfaz para las props si planeas usarlas después, 
 // aunque por ahora el hook usa un límite interno.
@@ -15,6 +16,20 @@ interface CarrouselProductsProps {
 export const CarrouselProducts = ({ title = 'Productos Destacados' }: CarrouselProductsProps) => {
   // Pedimos 9 productos para tener suficientes para el scroll
   const { featuredProducts, loading, error } = useFeaturedProducts(9);
+
+  // DEBUG temporal
+  useEffect(() => {
+    if (featuredProducts.length > 0) {
+      console.log('🔍 PRODUCTOS EN CARRUSEL:', featuredProducts);
+      featuredProducts.forEach((product, index) => {
+        console.log(`${index + 1}. ${product.ProductName}:`, {
+          imagen: product.ProductImageUrl,
+          precio: product.productPrice,
+          categoria: product.ProductCategory
+        });
+      });
+    }
+  }, [featuredProducts]);
 
   // Skeleton de carga minimalista
   if (loading) {

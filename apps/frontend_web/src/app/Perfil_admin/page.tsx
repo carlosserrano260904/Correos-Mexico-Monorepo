@@ -5,7 +5,7 @@ import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
 import { FiEdit2 } from "react-icons/fi";
 
-export default function perfil(){
+export default function Perfil(){
     const [nombre, setNombre] = useState("Mayela");
     const [apellidos, setApellidos] = useState("Díaz");
     const [correo, setCorreo] = useState("Mayela@gmail.com")

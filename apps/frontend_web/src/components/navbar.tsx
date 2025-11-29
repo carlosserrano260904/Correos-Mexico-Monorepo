@@ -1,3 +1,4 @@
+// components/navbar.tsx
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
@@ -27,7 +28,14 @@ const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebid
 
 export const Navbar = () => {
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
-    const { CartItems, removeFromCart, getTotalItems, getSubtotal } = useCart();
+    // CORREGIDO: Usar las propiedades correctas del hook useCart
+    const { 
+        items: cartItems, 
+        removeFromCart, 
+        getTotalItems, 
+        getTotalPrice 
+    } = useCart();
+    
     const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -148,12 +156,12 @@ export const Navbar = () => {
         );
     }
 
-    // Solo obtener datos después del montaje
+    // Solo obtener datos después del montaje - CORREGIDO
     const totalFavorites = getTotalFavorites();
     const totalCartItems = getTotalItems();
-    const cartSubtotal = getSubtotal();
+    const cartSubtotal = getTotalPrice(); // ← CORREGIDO: usar getTotalPrice
     const favoritesList = Favorites;
-    const cartItemsList = CartItems;
+    const cartItemsList = cartItems; // ← CORREGIDO: usar cartItems
 
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
@@ -173,13 +181,11 @@ export const Navbar = () => {
                         lg:h-12
                         xl:h-14"
                     />
-
-
                 </Link>
                 
                 {/* Menú hamburguesa */}
                 <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
-                    <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6]h-[40px] w-[40px] sm:h-[45px] sm:w-[45px] md:h-[51px] md:w-[54px] flex-shrink-0">
+                    <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] h-[40px] w-[40px] sm:h-[45px] sm:w-[45px] md:h-[51px] md:w-[54px] flex-shrink-0">
                         <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[280px] sm:w-[300px] max-h-[400px] sm:max-h-[450px] overflow-y-auto">
@@ -262,8 +268,11 @@ export const Navbar = () => {
                                 </div>
                             ) : (
                                 <div className="flex-col space-y-2 sm:space-y-3">
-                                    {favoritesList.slice(0, 3).map((product) => (
-                                        <div key={product.ProductID} className="flex items-stretch">
+                                    {favoritesList.slice(0, 3).map((product, index) => (
+                                        <div 
+                                            key={product.ProductID ? `favorite-${product.ProductID}` : `favorite-${index}-${product.ProductName}`}
+                                            className="flex items-stretch"
+                                        >
                                             <div className="basis-1/3">
                                                 <img 
                                                     src={product.ProductImageUrl} 
@@ -300,13 +309,13 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Carrito */}
+                {/* Carrito - CORREGIDO */}
                 <DropdownMenu open={openDropdown === 'cart'} onOpenChange={(open) => open ? handleDropdownToggle('cart') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-                        {getTotalItems() > 0 && (
+                        {totalCartItems > 0 && (
                             <span className="absolute -top-1 -right-1 bg-[#DE1484] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                                {getTotalItems()}
+                                {totalCartItems}
                             </span>
                         )}
                     </DropdownMenuTrigger>
@@ -314,15 +323,12 @@ export const Navbar = () => {
                         <div className="flex-col">
                             {/* Header */}
                             <div className="flex items-center mb-3 sm:mb-4">
-                                <div className="text-base sm:text-lg font-semibold">Mi Carrito ({getTotalItems()})</div>
-                                <Link href={"/Carrito"} className="ms-auto text-xs sm:text-sm underline" onClick={handleDropdownClose}>
-                                    Ver más
-                                </Link>
+                                <div className="text-base sm:text-lg font-semibold">Mi Carrito ({totalCartItems})</div>
                             </div>
 
                             <Separator className="mb-3 sm:mb-4" />
 
-                            {CartItems.length === 0 ? (
+                            {cartItemsList.length === 0 ? (
                                 <div className="text-center py-6 sm:py-8 text-gray-500">
                                     <IoBagOutline className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-300" />
                                     <p className="text-sm">Tu carrito está vacío</p>
@@ -330,10 +336,13 @@ export const Navbar = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {/* Items del carrito */}
+                                    {/* Items del carrito - CORREGIDO */}
                                     <div className="flex flex-col space-y-3 sm:space-y-4">
-                                        {CartItems.slice(0, 3).map((item) => (
-                                            <div key={item.ProductID} className="flex items-stretch">
+                                        {cartItemsList.slice(0, 3).map((item, index) => (
+                                            <div 
+                                                key={item.ProductID ? `cart-${item.ProductID}` : `cart-${index}-${item.ProductName}`}
+                                                className="flex items-stretch"
+                                            >
                                                 <div className="basis-1/4">
                                                     <img 
                                                         src={item.ProductImageUrl} 
@@ -345,8 +354,14 @@ export const Navbar = () => {
                                                     <div className="font-medium line-clamp-2">{item.ProductName}</div>
                                                     <div className="font-semibold">{formatPrice(item.productPrice)}</div>
                                                     <div className="flex items-center space-x-1 sm:space-x-2">
-                                                        <span className="text-xs text-gray-500">Cant: {item.prodcutQuantity}</span>
-                                                        <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${item.isSelected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                                        <span className="text-xs text-gray-500">Cant: {item.quantity}</span>
+                                                        {item.selectedColor && (
+                                                            <div 
+                                                                className="w-3 h-3 rounded-full border border-gray-300"
+                                                                style={{ backgroundColor: item.selectedColor }}
+                                                                title={item.selectedColor}
+                                                            />
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="basis-1/12 flex items-center justify-center">
@@ -362,41 +377,38 @@ export const Navbar = () => {
                                                 </div>
                                             </div>
                                         ))}
-                                        {CartItems.length > 3 && (
+                                        {cartItemsList.length > 3 && (
                                             <div className="text-center text-xs sm:text-sm text-gray-500 pt-2">
-                                                Y {CartItems.length - 3} productos más...
+                                                Y {cartItemsList.length - 3} productos más...
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Subtotal */}
+                                    {/* Subtotal - CORREGIDO */}
                                     <div className="flex justify-between items-center mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
                                         <span className="font-semibold text-sm sm:text-base">Subtotal:</span>
-                                        <span className="font-bold text-base sm:text-lg">{formatPrice(getSubtotal())}</span>
+                                        <span className="font-bold text-base sm:text-lg">
+                                            {formatPrice(cartSubtotal)}
+                                        </span>
                                     </div>
 
-                                    {/* Botón Comprar ahora */}
-                                    <button 
-                                        className="w-full bg-[#DE1484] hover:bg-pink-700 text-white font-medium py-2 sm:py-3 px-4 rounded-full mt-3 sm:mt-4 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group/btn relative overflow-hidden"
-                                        onClick={handleDropdownClose}
-                                    >
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                        
-                                        <span className='relative flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base'>
-                                            Comprar ahora
-                                            <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
+                                    {/* Botón para ir al carrito completo */}
+                                    <div className="mt-3 sm:mt-4">
+                                        <Link 
+                                            href="/Carrito" 
+                                            className="w-full bg-[#DE1484] hover:bg-pink-700 text-white py-2 sm:py-3 px-4 rounded-lg font-semibold text-sm sm:text-base transition-colors flex items-center justify-center"
+                                            onClick={handleDropdownClose}
+                                        >
+                                            Ver Carrito Completo
+                                        </Link>
+                                    </div>
                                 </>
                             )}
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Usuario - CON AUTENTICACIÓN REAL Y DEBUG */}
+                {/* Usuario */}
                 <DropdownMenu open={openDropdown === 'user'} onOpenChange={(open) => open ? handleDropdownToggle('user') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
                         <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -404,7 +416,6 @@ export const Navbar = () => {
                     
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-3 sm:p-4">
                         {!isAuthenticated ? (
-                            // Usuario NO autenticado - Mostrar formulario de login
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 text-center">Iniciar Sesión</h3>
                                 
@@ -449,19 +460,17 @@ export const Navbar = () => {
                                 </form>
                                 
                                 <div className="text-center">
-                                         <Link 
+                                    <Link 
                                         href="/registro"
                                         onClick={handleDropdownClose}
                                         className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors"
-                                     >
+                                    >
                                         ¿No tienes cuenta? Regístrate
                                     </Link>
                                 </div>
                             </div>
                         ) : (
-                            // Usuario autenticado - Mostrar menú de usuario con datos reales
                             <div className="flex-col">
-                                {/* Header con info     del usuario real desde tu API */}
                                 <div className="flex items-center mb-3 sm:mb-4">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
                                         {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -478,7 +487,6 @@ export const Navbar = () => {
 
                                 <Separator className="mb-3 sm:mb-4" />
 
-                                {/* Opciones del menú */}
                                 <div className="flex flex-col space-y-2 sm:space-y-3">
                                     <Link 
                                         href="/Perfil" 
@@ -529,7 +537,6 @@ export const Navbar = () => {
 
                                 <Separator className="my-3 sm:my-4" />
 
-                                {/* Botón cerrar sesión */}
                                 <button 
                                     onClick={() => {
                                         logout();

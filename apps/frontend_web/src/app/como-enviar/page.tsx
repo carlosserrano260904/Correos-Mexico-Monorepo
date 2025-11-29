@@ -1,6 +1,6 @@
 import React from "react";
 import {NavbarCorreos} from "@/components/NavbarCorreos";
-import Footer from "@/components/footer";
+import Footer from "@/components/footerCorreos";
 
 
 const EnviarCarta: React.FC = () => {
@@ -10,18 +10,43 @@ const EnviarCarta: React.FC = () => {
 
     <NavbarCorreos/>
       {/* Hero superior */}
-      <div className="bg-pink-100 w-full px-4 md:px-20 py-10">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-20">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 text-center md:text-left">
-            Cómo <span className="text-[#E6007E]">enviar.</span>
-          </h1>
-          <img
-            src="/3cajitas.png"
-            alt="Cajas apiladas"
-            className="w-32 md:w-40"
-          />
+      <section className="max-w-8xl mx-auto px-4 pt-6 pb-12 md:px-8 md:pt-1"> 
+        <div className="relative w-full h-[400px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div 
+            className="absolute inset-0 w-full h-full bg-pink-500 transition-transform duration-700 hover:scale-105"
+            style={{
+                backgroundImage: "url('/hacerEnvio.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center' 
+            }}
+            >
+            {/* Gradiente superpuesto */}
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-pink-400/80 to-pink-400/50 mix-blend-multiply md:mix-blend-normal"></div>
+            </div>
+
+            {/* CONTENIDO DE TEXTO */}
+            <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4">
+            
+            {/* Badge (Pastilla blanca) */}
+            <a href="/centro-de-ayuda">
+              <div className="bg-white text-black-600 text-sm md:text-base font-bold px-6 py-2 rounded-full mb-6 shadow-sm inline-block tracking-wide">
+                  Centro de Ayuda
+              </div>
+            </a>
+
+            {/* Título Principal */}
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
+                ¿Cómo hacer un envío?
+            </h1>
+
+            {/* Subtítulo */}
+            <p className="text-pink-50 text-lg md:text-xl font-medium max-w-2xl mx-auto drop-shadow-md">
+                Conoce las formas en las que puedes enviar distintos paquetes con nuestros servicios.
+            </p>
+            </div>
+
         </div>
-      </div>
+        </section>
 
       {/* Contenido */}
       <div className="bg-white px-4 md:px-20 py-12">

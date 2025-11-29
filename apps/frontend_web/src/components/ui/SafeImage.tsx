@@ -31,6 +31,21 @@ export const SafeImage = ({
     setImgSrc(DEFAULT_PLACEHOLDER);
   };
 
+  // ✅ SOLUCIÓN: Usar img nativo en lugar de next/image para dominios no configurados
+  if (imgSrc.includes('correos-storage.emmanuelbayona.dev')) {
+    return (
+      <img
+        src={imgSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        className={className}
+        onError={handleError}
+        loading="lazy"
+      />
+    );
+  }
+
   return (
     <Image
       src={imgSrc}

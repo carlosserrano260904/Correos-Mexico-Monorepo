@@ -31,18 +31,33 @@ async function setupNestApp(expressApp: express.Express): Promise<any> {
     console.log('[Swagger] Documentation available at /docs');
   }
 
+  // Agregar dominios de Vercel
+  const allowedOrigins = [
+    'http://localhost:4200',
+    'https://midominio.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    // ✅ TUS DOMINIOS DE VERCEL
+    'https://correos-mexico-monorepo-frontend-hx8ajj8j7.vercel.app',
+    'https://correos-mexico-monorepo-git-8d0e31-emmanuels-projects-e8897a1f.vercel.app',
+    'https://correos-mexico-monorepo-backend.vercel.app',
+  ];
+
+  // Permite cualquier subdominio de vercel.app
+  if (IS_VERCEL) {
+    allowedOrigins.push(/\.vercel\.app$/); 
+    allowedOrigins.push(/\.vercel\.app:\d+$/); 
+  }
+
   app.use(
     cors({
-      origin: [
-        'http://localhost:4200',
-        'https://midominio.com',
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-      ],
+      origin: allowedOrigins,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
       credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     }),
   );
 

@@ -22,7 +22,7 @@ import {
 import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
-import { useAuth } from '@/hooks/useAuth';
+import { useUser, useClerk } from '@clerk/nextjs'; // ✅ Reemplazar useAuth con Clerk
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
@@ -36,12 +36,12 @@ export const Navbar = () => {
         getTotalPrice 
     } = useCart();
     
-    const { user, isAuthenticated, login, logout, isLoading: authLoading } = useAuth();
+    // ✅ Reemplazar useAuth con hooks de Clerk
+    const { user, isLoaded: userLoaded } = useUser();
+    const { signOut, openSignIn } = useClerk();
+    
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-    const [loginData, setLoginData] = useState({ email: '', password: '' });
-    const [loginError, setLoginError] = useState<string | null>(null);
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -53,8 +53,6 @@ export const Navbar = () => {
 
     const handleDropdownClose = () => {
         setOpenDropdown(null);
-        setLoginError(null);
-        setLoginData({ email: '', password: '' });
     };
 
     const formatPrice = (price: number) => {
@@ -64,26 +62,14 @@ export const Navbar = () => {
         }).format(price);
     };
 
-    const handleLoginSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoginError(null);
-        setIsLoggingIn(true);
-
-        try {
-            await login(loginData);
-            handleDropdownClose();
-        } catch (error: any) {
-            setLoginError(error.message);
-        } finally {
-            setIsLoggingIn(false);
-        }
+    const handleLoginClick = () => {
+        openSignIn();
+        handleDropdownClose();
     };
 
-    const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLoginData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
+    const handleLogout = async () => {
+        await signOut();
+        handleDropdownClose();
     };
 
     // Renderizar versión simplificada durante la hidratación
@@ -159,9 +145,9 @@ export const Navbar = () => {
     // Solo obtener datos después del montaje - CORREGIDO
     const totalFavorites = getTotalFavorites();
     const totalCartItems = getTotalItems();
-    const cartSubtotal = getTotalPrice(); // ← CORREGIDO: usar getTotalPrice
+    const cartSubtotal = getTotalPrice();
     const favoritesList = Favorites;
-    const cartItemsList = cartItems; // ← CORREGIDO: usar cartItems
+    const cartItemsList = cartItems;
 
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
@@ -408,58 +394,29 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Usuario */}
+                {/* Usuario - CORREGIDO CON CLERK */}
                 <DropdownMenu open={openDropdown === 'user'} onOpenChange={(open) => open ? handleDropdownToggle('user') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
-                        <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+                        {!userLoaded ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                        ) : (
+                            <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+                        )}
                     </DropdownMenuTrigger>
                     
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-3 sm:p-4">
-                        {!isAuthenticated ? (
+                        {!user ? ( // ✅ Verificar si NO hay usuario
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 text-center">Iniciar Sesión</h3>
                                 
-                                {loginError && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
-                                        {loginError}
-                                    </div>
-                                )}
-                                
-                                <form onSubmit={handleLoginSubmit} className="space-y-3">
-                                    <div>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={loginData.email}
-                                            onChange={handleLoginChange}
-                                            placeholder="Email"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DE1484] text-sm"
-                                            required
-                                            disabled={isLoggingIn}
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            value={loginData.password}
-                                            onChange={handleLoginChange}
-                                            placeholder="Contraseña"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DE1484] text-sm"
-                                            required
-                                            disabled={isLoggingIn}
-                                        />
-                                    </div>
+                                <div className="text-center space-y-3">
                                     <button 
-                                        type="submit"
-                                        disabled={isLoggingIn}
-                                        className="w-full bg-[#DE1484] hover:bg-pink-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        onClick={handleLoginClick}
+                                        className="w-full bg-[#DE1484] hover:bg-pink-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors text-sm"
                                     >
-                                        {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                                        Iniciar Sesión
                                     </button>
-                                </form>
-                                
-                                <div className="text-center">
+                                    
                                     <Link 
                                         href="/registro"
                                         onClick={handleDropdownClose}
@@ -473,14 +430,14 @@ export const Navbar = () => {
                             <div className="flex-col">
                                 <div className="flex items-center mb-3 sm:mb-4">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#DE1484] rounded-full flex items-center justify-center text-white font-medium mr-2 sm:mr-3 text-sm">
-                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        {user.firstName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
                                     </div>
                                     <div className="flex-col">
                                         <div className="font-semibold text-sm sm:text-base">
-                                            {user?.name || 'Usuario'}
+                                            {user.fullName || user.username || 'Usuario'}
                                         </div>
                                         <div className="text-xs sm:text-sm text-gray-500">
-                                            {user?.email || 'user@example.com'}
+                                            {user.primaryEmailAddress?.emailAddress || 'user@example.com'}
                                         </div>
                                     </div>
                                 </div>
@@ -489,7 +446,7 @@ export const Navbar = () => {
 
                                 <div className="flex flex-col space-y-2 sm:space-y-3">
                                     <Link 
-                                        href="/Perfil" 
+                                        href="/perfil" 
                                         className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                         onClick={handleDropdownClose}
                                     >
@@ -521,9 +478,10 @@ export const Navbar = () => {
                                         Ser Vendedor
                                     </Link>
                                     
-                                    {user?.role === 'vendor' && (
+                                    {/* Si necesitas roles personalizados */}
+                                    {user.publicMetadata?.role === 'vendor' && (
                                         <Link 
-                                            href="/Vendedor/app" 
+                                            href="/vendedor/app" 
                                             className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                             onClick={handleDropdownClose}
                                         >
@@ -538,10 +496,7 @@ export const Navbar = () => {
                                 <Separator className="my-3 sm:my-4" />
 
                                 <button 
-                                    onClick={() => {
-                                        logout();
-                                        handleDropdownClose();
-                                    }}
+                                    onClick={handleLogout}
                                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base flex items-center justify-center gap-2"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

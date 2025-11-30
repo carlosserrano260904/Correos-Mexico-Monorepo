@@ -7,18 +7,7 @@ import { ProductDetails } from '@/components/primitivos/ProductDetails';
 import { ProductStory } from '@/components/primitivos/ProductStory';
 import { Plantilla } from '@/components/plantilla';
 import { CarrouselProducts } from '@/components/CarouselProducts';
-import { CarouselDetalles } from "@/components/CarouselDetalles";
-
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious
-} from "@/components/ui/carousel";
-
-
+import { ReviewsSection } from '@/components/ReviewsSection'; // Importar el ReviewsSection completo
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -57,7 +46,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  /* ERROR O PRODUCTO NO ENCONTRADO */
   if (error || !product) {
     return (
       <Plantilla>
@@ -73,7 +61,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  /* TODO OK */
   return (
     <Plantilla>
       <div className="space-y-12 lg:space-y-16">
@@ -100,6 +87,13 @@ export default function ProductDetailPage() {
   limit={3}
 />
 
+        </div>
+
+        {/* Sección de Reseñas - Usando el componente completo */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="border-t border-gray-200 pt-12">
+            <ReviewsSection productId={product.ProductID} />
+          </div>
         </div>
 
         {/* Productos relacionados */}

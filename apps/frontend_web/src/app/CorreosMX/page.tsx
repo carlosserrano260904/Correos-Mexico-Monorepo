@@ -39,7 +39,6 @@ export default function CorreosMX() {
     }
   ]
 
-  // --- ARRAY DE SERVICIOS ACTUALIZADO ---
   const servicios = [
     {
       id: 'correspondencia',
@@ -60,11 +59,11 @@ export default function CorreosMX() {
       icono: <IoPrintOutline className="w-8 h-8" /> 
     },
     {
-    id: 'embalajes',
-    titulo: 'Embalajes',
-    descripcion: 'Garantiza la entrega adecuada y segura de tus empaques y embalajes por toda la República.',
-    icono: <IoBriefcaseOutline className="w-8 h-8" /> 
-   }
+      id: 'embalajes',
+      titulo: 'Embalajes',
+      descripcion: 'Garantiza la entrega adecuada y segura de tus empaques y embalajes por toda la República.',
+      icono: <IoBriefcaseOutline className="w-8 h-8" /> 
+    }
   ]
 
   return (
@@ -86,7 +85,7 @@ export default function CorreosMX() {
           <div className="max-w-7xl mx-auto px-6 py-16 relative z-10">
             {/* Título principal */}
             <div className="mb-12">
-              <h1 className="text-6xl font-bold leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
                 <span className="text-pink-500">Envíos</span>{" "}
                 <span className="text-gray-900">para</span>
                 <br />
@@ -97,15 +96,15 @@ export default function CorreosMX() {
             </div>
 
             {/* Botones animados */}
-            <div className="flex gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               {botones.map((boton) => (
                 <button
                   key={boton.id}
                   onClick={() => {
                     setBotonSeleccionado(boton.id)
-                    if (boton.id === 'cotizar') router.push3('/CorreosMX/cotizar')
-                    if (boton.id === 'tarifas') router.push4('/CorreosMX/tarifas')
-                    if (boton.id === 'ubicaciones') router.push5('/CorreosMX/ubicaciones')
+                    if (boton.id === 'cotizar') router.push('/CorreosMX/cotizar')
+                    if (boton.id === 'tarifas') router.push('/CorreosMX/tarifas')
+                    if (boton.id === 'ubicaciones') router.push('/CorreosMX/ubicaciones')
                   }}
                   className={`flex items-center gap-3 px-6 py-3 rounded-full font-medium shadow-md transform
                     transition-all duration-300 ease-in-out
@@ -122,7 +121,7 @@ export default function CorreosMX() {
             </div>
 
             {/* Búsqueda por guía */}
-            <div className="max-w-2xl mb-96">
+            <div className="w-full max-w-2xl mb-96">
               <div className="relative">
                 <input
                   type="text"
@@ -142,8 +141,10 @@ export default function CorreosMX() {
           </div>
         </div>
 
-        <div className="w-full -mx-10 mt-16 relative min-h-[800px] bg-gray-100">
-          <div className="absolute top-40 left-0" style={{ width: '42%', height: '540px' }}>
+        {/* Sección de estadísticas - Completamente rediseñada para móvil */}
+        <div className="w-full mt-12 sm:mt-16 relative bg-gray-100">
+          {/* Fondo rosa - Solo visible en desktop */}
+          <div className="hidden lg:block absolute top-40 left-0" style={{ width: '42%', height: '540px' }}>
             <div
               className="h-full bg-pink-500"
               style={{
@@ -155,47 +156,53 @@ export default function CorreosMX() {
             ></div>
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-              {/* Imagen */}
-              <div className="flex justify-center -ml-32 overflow-visible -mt-12">
-                <Image
-                  src="/cajitauwu.png"
-                  alt="Caja de Correos de México"
-                  width={1320}
-                  height={1320}
-                  className="object-contain max-w-none"
-                  priority
-                />
+          {/* Fondo rosa para móvil - Círculo en esquina superior izquierda */}
+          <div className="lg:hidden absolute -top-20 -left-20 w-72 h-72 bg-pink-500 rounded-full opacity-90"></div>
+
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:py-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+              {/* Imagen - Centrada y más pequeña en móvil */}
+              <div className="flex justify-center lg:justify-start lg:-ml-32 order-2 lg:order-1">
+                <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-full lg:h-auto">
+                  <Image
+                    src="/cajitauwu.png"
+                    alt="Caja de Correos de México"
+                    width={1320}
+                    height={1320}
+                    className="object-contain w-full h-full"
+                    priority
+                  />
+                </div>
               </div>
 
-              {/* Texto y estadísticas */}
-              <div className="space-y-10 mt-4">
+              {/* Texto y estadísticas - Arriba en móvil */}
+              <div className="space-y-6 sm:space-y-8 lg:space-y-10 order-1 lg:order-2">
                 <div>
-                  <h2 className="text-5xl font-bold mb-8 text-gray-900 leading-tight">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 lg:mb-8 text-gray-900 leading-tight">
                     Tu conexión confiable en todo el país y el mundo
                   </h2>
-                  <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+                  <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 lg:mb-12 leading-relaxed">
                     En Correos de México, trabajamos día con día para conectar a millones de personas a través de nuestro servicio postal.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 w-full max-w-2xl">
-                  <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                    <div className="text-5xl font-bold text-pink-500 mb-3">7,200+</div>
-                    <div className="text-lg text-gray-600 font-medium">Oficinas Postales</div>
+                {/* Grid de estadísticas - 2 columnas en todas las vistas */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6 w-full">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg text-center">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-500 mb-2 sm:mb-3">7,200+</div>
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 font-medium">Oficinas Postales</div>
                   </div>
-                  <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                    <div className="text-5xl font-bold text-green-500 mb-3">100 +</div>
-                    <div className="text-lg text-gray-600 font-medium">Años de experiencia</div>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg text-center">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-green-500 mb-2 sm:mb-3">100+</div>
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 font-medium">Años de experiencia</div>
                   </div>
-                  <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                    <div className="text-5xl font-bold text-green-500 mb-3">2,659</div>
-                    <div className="text-lg text-gray-600 font-medium">Rutas</div>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg text-center">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-green-500 mb-2 sm:mb-3">2,659</div>
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 font-medium">Rutas</div>
                   </div>
-                  <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                    <div className="text-5xl font-bold text-pink-500 mb-3">7,345</div>
-                    <div className="text-lg text-gray-600 font-medium">Empleados</div>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg text-center">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-500 mb-2 sm:mb-3">7,345</div>
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 font-medium">Empleados</div>
                   </div>
                 </div>
               </div>

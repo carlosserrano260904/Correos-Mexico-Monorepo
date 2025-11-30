@@ -1,3 +1,4 @@
+// components/Comentario.tsx
 import React from "react"
 import { Star } from "lucide-react"
 
@@ -28,8 +29,7 @@ export const Comentario = ({ imagen, nombre, calificacion, puntaje, fecha, comen
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mt-2git mt-3">
-
+    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mt-3">
       {/* Header del comentario */}
       <div className="flex items-start gap-4 mb-4">
         {/* Imagen del usuario */}

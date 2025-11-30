@@ -9,6 +9,8 @@ import React, { useState } from "react"
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../../components/cartcard'
+import { BotonRegresar } from "@/components/BotonRegresar";
+import { useRouter } from "next/navigation";
 
 export default function MasTarjetas() {
     const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<number | null>(null);
@@ -44,6 +46,8 @@ export default function MasTarjetas() {
         }
     ];
 
+    const router = useRouter();
+
     const handleSeleccionarTarjeta = (id: number) => {
         setTarjetaSeleccionada(id);
     };
@@ -54,13 +58,15 @@ export default function MasTarjetas() {
             console.log('Tarjeta seleccionada:', tarjeta);
             // Aquí puedes agregar la lógica para proceder con la tarjeta seleccionada
             alert(`Tarjeta ${tarjeta?.TipoTarjeta} de ${tarjeta?.NombreDeTarjeta} seleccionada correctamente`);
+            router.push('/pago');
         }
     };
 
     return (
         <Plantilla>
+            <BotonRegresar className="ml-5" redirectTo="/pago"/>
             <div id='mainPage' className='flex'>
-                <div id='leftContent' className='w-3/4 bg-[#f5f5f5] rounded-lg m-2 p-4'>
+                <div id='leftContent' className='w-3/4 rounded-lg m-2 p-4'>
                     <h2 className="text-xl font-semibold text-gray-800 mb-6">
                         Seleccionar método de pago
                     </h2>
@@ -73,22 +79,28 @@ export default function MasTarjetas() {
                                 onClick={() => handleSeleccionarTarjeta(tarjeta.id)}
                                 className={`
                                     relative cursor-pointer transition-all duration-200 rounded-lg overflow-hidden
+                                    bg-gray-100
                                     ${tarjetaSeleccionada === tarjeta.id 
                                         ? 'ring-2 ring-pink-500 shadow-lg transform scale-[1.02]' 
                                         : 'hover:shadow-md hover:scale-[1.01]'
                                     }
                                 `}
                             >
-                                {/* Indicador de selección */}
-                                {tarjetaSeleccionada === tarjeta.id && (
-                                    <div className="absolute top-4 right-4 z-10">
-                                        <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center">
+
+                                {/* Indicador de selección / no selección */}
+                                <div className="absolute top-4 right-4 z-10">
+                                    {tarjetaSeleccionada === tarjeta.id ? (
+                                        // CÍRCULO ROSA CON CHECK
+                                        <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center shadow">
                                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
                                         </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        // CÍRCULO GRIS SIN CHECK
+                                        <div className="w-6 h-6 bg-gray-300 rounded-full shadow-inner"></div>
+                                    )}
+                                </div>
                                 
                                 {/* Overlay para indicar selección */}
                                 <div className={`
@@ -103,18 +115,21 @@ export default function MasTarjetas() {
                             </div>
                         ))}
                     </div>
-                    
+
                     {/* Botón de confirmación */}
-                    {tarjetaSeleccionada && (
-                        <div className="flex justify-center mb-4">
-                            <button
-                                onClick={handleConfirmarSeleccion}
-                                className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-pink-300"
+                    <div className="flex justify-center mb-4">
+                        <button
+                            onClick={handleConfirmarSeleccion}
+                            disabled={!tarjetaSeleccionada}
+                            className={`font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-4
+                            ${tarjetaSeleccionada
+                            ? "bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white focus:ring-pink-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-0.5"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"}`}
                             >
                                 Confirmar tarjeta seleccionada
-                            </button>
-                        </div>
-                    )}
+                        </button>
+                    </div>
+
                     
                     {/* Botón para agregar nueva tarjeta */}
                     <div className="flex justify-center">
@@ -137,7 +152,7 @@ export default function MasTarjetas() {
                 </div>
 
                 <div id='rightContent' className='w-1/4'>
-                    <ResumenCompra className='lg:basis-1/3 h-fit mt-2' />
+                    <ResumenCompra className='lg:basis-1/3 h-fit mt-19' />
                 </div>
             </div>
             <CartCard className='lg:basis-2/3 ml-2' items={items}/>

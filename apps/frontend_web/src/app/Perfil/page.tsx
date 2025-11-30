@@ -1,11 +1,10 @@
+// apps/frontend_web/src/app/Perfil/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-// Asegúrate de que este servicio exista y acepte los campos que enviamos
-import { usuarioPorId, actualizarUsuarioPorId } from "@/services/profileService";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 interface PerfilForm {
   nombre: string;
@@ -16,9 +15,53 @@ interface PerfilForm {
   foto: string;
 }
 
+// Servicios mock - reemplaza con tus servicios reales
+const usuarioPorId = async (userId: string): Promise<any> => {
+  try {
+    // Reemplaza con tu endpoint real
+    const response = await fetch(`/api/users/${userId}`);
+    if (!response.ok) throw new Error("Error al cargar usuario");
+    return await response.json();
+  } catch (error) {
+    console.error("Error en usuarioPorId:", error);
+    // Datos de ejemplo como fallback
+    return {
+      nombre: "",
+      apellido: "",
+      apellido_paterno: "",
+      email: "",
+      correo: "",
+      numero: "",
+      celular: "",
+      rfc: "",
+      imagen: "",
+      avatar: ""
+    };
+  }
+};
+
+const actualizarUsuarioPorId = async (userId: string, datos: any): Promise<any> => {
+  try {
+    // Reemplaza con tu endpoint real
+    const response = await fetch(`/api/users/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) throw new Error("Error al actualizar usuario");
+    return await response.json();
+  } catch (error) {
+    console.error("Error en actualizarUsuarioPorId:", error);
+    throw error;
+  }
+};
+
 export default function Perfil() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
+  const { openSignIn } = useClerk();
 
   const [form, setForm] = useState<PerfilForm>({
     nombre: "",
@@ -26,51 +69,68 @@ export default function Perfil() {
     correo: "",
     celular: "",
     rfc: "",
-    foto:
-      "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg",
+    foto: "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg",
   });
 
   const [perfilOriginal, setPerfilOriginal] = useState<PerfilForm | null>(null);
-
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
+  // Redirigir si no está autenticado
+  useEffect(() => {
+    if (userLoaded && !user) {
+      openSignIn();
+      router.push("/");
+    }
+  }, [userLoaded, user, openSignIn, router]);
+
+  // Cargar perfil cuando el usuario esté disponible
   useEffect(() => {
     if (user?.id) {
       cargarPerfil();
     }
   }, [user]);
 
-  useEffect(() => {
-    if (isAuthenticated === false && user === null) {
-      router.push("/Perfil");
-    }
-  }, [isAuthenticated, user, router]);
-
   const cargarPerfil = async () => {
     if (!user?.id) return;
+    
     try {
       setCargando(true);
       setError("");
+      
       const perfilData = await usuarioPorId(user.id);
 
+      // Mapear datos del backend al formulario
       const datos: PerfilForm = {
-        nombre: perfilData.nombre || "",
-        apellidos: perfilData.apellido || perfilData.apellido_paterno || "",
-        correo: perfilData.email || perfilData.correo || user.email || "",
-        celular: perfilData.numero || perfilData.celular || "",
+        nombre: perfilData.nombre || user.firstName || "",
+        apellidos: perfilData.apellido || perfilData.apellido_paterno || user.lastName || "",
+        correo: perfilData.email || perfilData.correo || user.primaryEmailAddress?.emailAddress || "",
+        celular: perfilData.numero || perfilData.celular || user.primaryPhoneNumber?.phoneNumber || "",
         rfc: perfilData.rfc || "",
-        foto: perfilData.imagen || perfilData.avatar || form.foto,
+        foto: perfilData.imagen || perfilData.avatar || user.imageUrl || form.foto,
       };
 
       setForm(datos);
       setPerfilOriginal(datos);
     } catch (err) {
       console.error("Error cargando perfil:", err);
-      setError("Error al cargar el perfil");
+      setError("Error al cargar el perfil. Mostrando datos básicos.");
+      
+      // Datos de fallback desde Clerk
+      const fallbackData: PerfilForm = {
+        nombre: user.firstName || "",
+        apellidos: user.lastName || "",
+        correo: user.primaryEmailAddress?.emailAddress || "",
+        celular: user.primaryPhoneNumber?.phoneNumber || "",
+        rfc: "",
+        foto: user.imageUrl || form.foto,
+      };
+      
+      setForm(fallbackData);
+      setPerfilOriginal(fallbackData);
     } finally {
       setCargando(false);
     }
@@ -95,15 +155,14 @@ export default function Perfil() {
     setError("");
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
     if (!user?.id) return;
+    
     try {
       setGuardando(true);
       setError("");
@@ -129,13 +188,27 @@ export default function Perfil() {
     }
   };
 
-  if (cargando) {
+  // Mostrar loading mientras se verifica la autenticación
+  if (!userLoaded || cargando) {
     return (
       <Plantilla>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#DE1484] mx-auto" />
             <p className="mt-4 text-gray-600">Cargando perfil...</p>
+          </div>
+        </div>
+      </Plantilla>
+    );
+  }
+
+  // Si no hay usuario después de cargar, mostrar mensaje
+  if (!user) {
+    return (
+      <Plantilla>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600">Redirigiendo al login...</p>
           </div>
         </div>
       </Plantilla>
@@ -173,7 +246,7 @@ export default function Perfil() {
                     {form.nombre} {form.apellidos}
                   </h1>
                   <p className="text-sm text-gray-500">
-                    Victoria de Durango // Artesanías Mexicanas S. A. de C. V.
+                    {user.primaryEmailAddress?.emailAddress || "Usuario"}
                   </p>
                 </div>
 
@@ -227,7 +300,6 @@ export default function Perfil() {
 
               {/* Grid de campos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-
                 <CampoPerfil
                   label="Nombre"
                   name="nombre"
@@ -271,7 +343,6 @@ export default function Perfil() {
                 />
               </div>
             </div>
-
           </section>
         </div>
       </main>

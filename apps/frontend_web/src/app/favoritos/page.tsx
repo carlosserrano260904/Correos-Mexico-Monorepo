@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plantilla } from '@/components/plantilla';
 import { TabsSwitcher } from './componentes/tabs';
 import { FavoritesList } from './componentes/lista';
@@ -10,6 +10,8 @@ import { useLists } from '@/hooks/useLists';
 
 export default function Page() {
   const [tab, setTab] = useState('Favoritos');
+  const [isMounted, setIsMounted] = useState(false);
+
   const { getTotalFavorites } = useFavorites();
   const { 
     Lists, 
@@ -20,6 +22,10 @@ export default function Page() {
     getListProductCount, 
     getListCoverImage 
   } = useLists();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleCreateList = (name: string) => {
     createList(name);
@@ -39,28 +45,40 @@ export default function Page() {
     }
   };
 
+  if (!isMounted) {
+    return <Plantilla><div className="min-h-screen bg-white" /></Plantilla>;
+  }
+
   return (
     <Plantilla>
-      <div className="px-8 py-6 max-w-6xl mx-auto">
-        <TabsSwitcher activeTab={tab} onTabChange={setTab} />
+      <div className="px-4 sm:px-8 py-10 max-w-7xl mx-auto">
         
+        {/* TÍTULO PRINCIPAL GRANDE */}
+        <h1 className="text-4xl font-bold text-black mb-8">
+          Mis favoritos
+        </h1>
+
+        {/* CABECERA (Tabs a la izquierda, Botón a la derecha) */}
+        <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="w-full sm:w-auto">
+                <TabsSwitcher activeTab={tab} onTabChange={setTab} />
+            </div>
+            <div className="mt-4 sm:mt-0">
+                <CreateListButton onClick={handleCreateList} />
+            </div>
+        </div>
+        
+        {/* PESTAÑA FAVORITOS */}
         {tab === 'Favoritos' && (
-          <>
-            <CreateListButton onClick={handleCreateList} />
+          <div className="mt-0">
             <FavoritesList />
-            {getTotalFavorites() === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <p className="text-lg">No tienes productos en favoritos</p>
-                <p className="text-sm mt-2">Agrega productos a tus favoritos para verlos aquí</p>
-              </div>
-            )}
-          </>
+          </div>
         )}
         
+        {/* PESTAÑA LISTAS */}
         {tab === 'Listas' && (
-          <>
-            <CreateListButton onClick={handleCreateList} />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
+          <div className="mt-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {Lists.map((lista) => (
                 <ListaCard
                   key={lista.ListaID}
@@ -74,12 +92,12 @@ export default function Page() {
               ))}
             </div>
             {getTotalLists() === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <p className="text-lg">No tienes listas creadas</p>
+              <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg mt-4">
+                <p className="text-lg font-medium">No tienes listas creadas</p>
                 <p className="text-sm mt-2">Crea una lista para organizar tus productos favoritos</p>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </Plantilla>

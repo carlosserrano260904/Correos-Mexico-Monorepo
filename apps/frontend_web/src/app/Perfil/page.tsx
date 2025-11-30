@@ -203,7 +203,6 @@ export default function Perfil() {
                 <CampoPerfil label="Nombre" name="nombre" value={form.nombre} onChange={handleChange} isEditing={isEditing} />
                 <CampoPerfil label="Apellidos" name="apellidos" value={form.apellidos} onChange={handleChange} isEditing={isEditing} />
                 <CampoPerfil label="Correo" name="correo" type="email" value={form.correo} onChange={handleChange} isEditing={isEditing} />
-                <CampoPerfil label="Número de teléfono" name="celular" type="tel" value={form.celular} onChange={handleChange} isEditing={isEditing} />
                 <CampoPerfil label="Tarjeta" name="tarjetas" value={datosAdicionales.tarjetas} onChange={handleChange} isEditing={false} />
               </div>
             </div>

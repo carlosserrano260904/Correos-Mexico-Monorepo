@@ -7,18 +7,8 @@ import { ProductDetails } from '@/components/primitivos/ProductDetails';
 import { ProductStory } from '@/components/primitivos/ProductStory';
 import { Plantilla } from '@/components/plantilla';
 import { CarrouselProducts } from '@/components/CarouselProducts';
-import { CarouselDetalles } from "@/components/CarouselDetalles";
-
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious
-} from "@/components/ui/carousel";
-
-
+import { ReviewsSection } from '@/components/ReviewsSection'; 
+import { CarouselDetalles } from '@/components/CarouselDetalles';
 
 export default function ProductDetailPage() {
   const params = useParams();

@@ -7,17 +7,17 @@ import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { CarrouselProducts } from '@/components/CarouselProducts'
-import { BotonRegresar } from "@/components/BotonRegresar";
+import BotonRegresar  from "@/components/BotonRegresar";
 
 export default function Page() {
   const { products } = useProducts();
-  const { items } = useCart(); // ✅ Cambiar CartItems por items
+  const { items } = useCart(); 
 
   console.log('Carrito - items:', items); // Debug
 
   return (
     <Plantilla>
-      <BotonRegresar redirectTo='/' />
+      <BotonRegresar texto="Regresar" />
       <div className='flex flex-col lg:flex-row gap-6'>
         {/* ✅ Pasar items en lugar de cartItems */}
         <CartCard className='lg:basis-2/3' items={items}/>

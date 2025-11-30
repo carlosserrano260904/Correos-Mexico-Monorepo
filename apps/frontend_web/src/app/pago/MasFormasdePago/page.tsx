@@ -9,7 +9,7 @@ import React, { useState } from "react"
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../../components/cartcard'
-import { BotonRegresar } from "@/components/BotonRegresar";
+import BotonRegresar  from "@/components/BotonRegresar";
 import { useRouter } from "next/navigation";
 
 export default function MasTarjetas() {

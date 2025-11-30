@@ -13,7 +13,7 @@ import { ResumenCompra } from '@/components/resumenCompra';
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../../components/cartcard'
 import { DireccionesSchema } from '@/schemas/addresses';
-import { BotonRegresar } from "@/components/BotonRegresar";
+import BotonRegresar  from "@/components/BotonRegresar";
 // import { useMyAuth } from '../../../context/AuthContext'; este debe ser reemplazado cuando se agregue ya que no existe aun a fecha de 11/28/2025 para que funcione
     // const { userId } = useMyAuth();
 

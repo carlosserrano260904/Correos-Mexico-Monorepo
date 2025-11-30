@@ -8,14 +8,14 @@ import PaymentMethod from './Componentes/paymentMethod'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../components/cartcard'
-import { BotonRegresar } from "@/components/BotonRegresar";
+import BotonRegresar  from "@/components/BotonRegresar";
 
 export default function Home() {
   const { items } = useCart();
 
   return (
     <Plantilla>
-      <BotonRegresar redirectTo='/Carrito' />
+      <BotonRegresar texto="Regresar" />
       <div id='painPage' className='flex'>
         <div id='rigthContent' className='w-2/3'>
           <div id='Direccion de Envio'>

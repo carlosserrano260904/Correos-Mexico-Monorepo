@@ -1,139 +1,150 @@
-'use client';
+'use client'
+import Link from 'next/link'
+import { Badge } from "@/components/ui/badge"
+import React, { useCallback, useState, useEffect } from 'react'
 
-import React, { useRef, useState, useEffect } from 'react';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-import { Badge } from "@/components/ui/badge";
-import Link from 'next/link'; 
-import { FaCircle } from "react-icons/fa";
+import { FaCircle } from "react-icons/fa6";
+
+// Importación para el carrusel
+import useEmblaCarousel from 'embla-carousel-react'
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+
+export const Anuncios = () => {
+    // 1. Configuración de Embla Carousel
+    const [emblaRef, emblaApi] = useEmblaCarousel({ 
+        loop: true,           
+        dragFree: false,     
+        duration: 40,        
+    })
+
+    // Estado para rastrear el índice actual
+    const [selectedIndex, setSelectedIndex] = useState(0)
+
+    // Función para actualizar el índice seleccionado
+    const onSelect = useCallback((api: any) => {
+        if (!api) return
+        setSelectedIndex(api.selectedScrollSnap())
+    }, [])
+
+    // Efecto para escuchar el evento 'select' de Embla
+    useEffect(() => {
+        if (!emblaApi) return
+
+        onSelect(emblaApi)
+        emblaApi.on('select', onSelect)
+        emblaApi.on('reInit', onSelect)
+
+        return () => {
+            emblaApi.off('select', onSelect)
+            emblaApi.off('reInit', onSelect)
+        }
+    }, [emblaApi, onSelect])
+
+    // Funciones para la navegación
+    const scrollPrev = useCallback(() => {
+        if (emblaApi) emblaApi.scrollPrev()
+    }, [emblaApi])
+
+    const scrollNext = useCallback(() => {
+        if (emblaApi) emblaApi.scrollNext()
+    }, [emblaApi])
+
+    // 2. Definición de los banners 
+    const banners = [
+        { 
+            id: 1, 
+            image: '/banners/descuentos.png', 
+            buttonText: 'Ver ofertas', 
+            link: '/categories?category=Ropa', 
+            badgeText: '¡Gran Venta!'
+        },
+
+        { 
+            id: 2, 
+            image: '/banners/envios.png', 
+            //buttonText: 'Comprar ahora', 
+            //link: '/categories?category=Alimentos%20y%20Bebidas',
+            badgeText: 'Tendencias'
+        },
+        { 
+            id: 3, 
+            image: '/banners/joyeria.png', 
+            //buttonText: 'Ver Mas', 
+            //link: '/categories?category=Joyeria',
+            badgeText: 'Exclusivo'
+        },
+    ]
+
+    // Estilos comunes para los botones de navegación
+    const navButtonClass = 'absolute top-1/2 transform -translate-y-1/2 p-2 sm:p-3 bg-white/50 hover:bg-white/80 text-black rounded-full shadow-lg z-20 transition-all duration-300 backdrop-blur-sm';
+
+    return (
+        <div className='w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] rounded-2xl relative overflow-hidden group'>
+            {/* Contenedor del Carrusel (Viewport de Embla) */}
+            <div className="h-full overflow-hidden" ref={emblaRef}>
+                {/* Contenedor de las Slides */}
+                <div className="flex h-full">
+                    {banners.map((banner, index) => (
+                        
+                        <div 
+                            key={banner.id} 
+                            className="flex-shrink-0 w-full h-full relative" 
+                            style={{ flex: '0 0 100%' }} // Asegura que cada slide ocupe el 100%
+                        >
+                            {/* Slide de Banner */}
+                            <div 
+                                className={`w-full h-full bg-cover bg-center bg-no-repeat`}
+                                style={{ backgroundImage: `url(${banner.image})` }}
+                            >
+                                {/* Overlay sutil al hover */}
+                                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
+                                
+                                {/* Contenido del Banner (Etiqueta y Botón) */}
+                                <div className='absolute top-4 left-4 sm:top-6 sm:left-6 z-10'>
+                                    <Badge className='bg-[#DE1484] text-white font-bold text-xs sm:text-sm md:text-base'>
+                                        {banner.badgeText}
+                                    </Badge>
+                                </div>
 
 
-
-const banners = [
-  {
-    id: 1,
-    image: "/banners/descuentos.png",
-    alt: "Descuentos especiales",
-    badge: "¡Gran Venta!"
-  },
-  {
-    id: 2,
-    image: "/banners/envios.png",
-    alt: "Envíos rápidos",
-    badge: "Tendencias"
-  },
-  {
-    id: 3,
-    image: "/banners/joyeria.png",
-    alt: "Joyas exclusivas",
-    badge: "Exclusivo"
-  },
-];
-
-export const Anuncios: React.FC = () => {
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-
-  const plugin = useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
-  );
-
-  useEffect(() => {
-    if (!api) return;
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
-
-  return (
-    <div className="w-full mx-auto rounded-2xl overflow-hidden shadow-sm group relative mb-8">
-
-      <Carousel
-        setApi={setApi}
-        plugins={[plugin.current]}
-        className="w-full"
-        opts={{
-          loop: true,
-          align: "center"
-        }}
-        onMouseEnter={plugin.current.stop}
-        onMouseLeave={plugin.current.reset}
-
-      >
-        <Link href="/categories?category=Hogar">
-        <CarouselContent className="ml-0">
-          {banners.map((banner) => (
-            
-            <CarouselItem key={banner.id} className="pl-0">
-
-              <div className="relative w-full aspect-video">
-
-                <img
-                  src={banner.image}
-                  alt={banner.alt}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-
-                {/* Badge arriba izquierda */}
-                <div className="absolute top-4 left-4 z-20">
-                  <Badge className="bg-[#DE1484] text-white text-xs sm:text-sm font-bold">
-                    {banner.badge}
-                  </Badge>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
               </div>
 
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        </Link>
-
-        {/* Flechas idénticas al HeroBanner */}
-        <CarouselPrevious className="
-          absolute left-4 top-1/2 -translate-y-1/2 
-          h-10 w-10 sm:h-12 sm:w-12 
-          border-0 bg-black/20 hover:bg-black/40 
-          text-white transition-opacity 
-          opacity-0 group-hover:opacity-100 
-          z-20 hidden sm:flex
-        " />
-
-        <CarouselNext className="
-          absolute right-4 top-1/2 -translate-y-1/2 
-          h-10 w-10 sm:h-12 sm:w-12 
-          border-0 bg-black/20 hover:bg-black/40 
-          text-white transition-opacity 
-          opacity-0 group-hover:opacity-100 
-          z-20 hidden sm:flex
-        " />
-      </Carousel>
-
-      {/* Indicadores iguales */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
-        {banners.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => api?.scrollTo(index)}
-            className={`
-              h-2 sm:h-3 rounded-full transition-all duration-500 pointer-events-auto 
-              ${index + 1 === current
-                ? "bg-[#DE1484] w-6 sm:w-8"
-                : "bg-white/80 hover:bg-white w-2 sm:w-3"
-              }
-            `}
-            aria-label={`Ir a banner ${index + 1}`}
-          />
-        ))}
-      </div>
+            {/* Botón de Navegación Izquierdo */}
+            <button 
+                className={`${navButtonClass} left-4`} 
+                onClick={scrollPrev} 
+                aria-label="Anterior Banner"
+            >
+                <IoIosArrowBack className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            
+            {/* Botón de Navegación Derecho */}
+            <button 
+                className={`${navButtonClass} right-4`} 
+                onClick={scrollNext} 
+                aria-label="Siguiente Banner"
+            >
+                <IoIosArrowForward className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            
+            {/* Indicadores de Puntos (Dots) */}
+            <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20'>
+                {banners.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => emblaApi && emblaApi.scrollTo(index)}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            index === selectedIndex ? 'bg-[#DE1484] w-5' : 'bg-gray-300 hover:bg-white'
+                        }`}
+                        aria-label={`Ir al banner ${index + 1}`}
+                    />
+                ))}
+            </div>
 
     </div>
   );

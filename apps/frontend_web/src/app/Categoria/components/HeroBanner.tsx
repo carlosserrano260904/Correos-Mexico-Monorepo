@@ -60,33 +60,30 @@ export const HeroBanner: React.FC = () => {
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
-        <Link href="/categories?category=Hogar">
-          <CarouselContent className="ml-0">
-            {banners.map((banner, index) => (
-              <CarouselItem key={banner.id} className="pl-0">
-                {/* --- TAMAÑOS AJUSTADOS --- */}
-                {/* Alturas reducidas para que no ocupe tanto espacio:
-                    Móvil: 200px 
-                    Tablet: 300px 
-                    Laptop: 400px 
-                    Desktop: 500px 
-                */}
-                <div className="relative w-full aspect-video">
-                  <img
-                    src={banner.image}
-                    alt={banner.alt}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-
-
-
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Link>
-        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
-        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
+        <CarouselContent className="ml-0">
+          {banners.map((banner, index) => (
+            <CarouselItem key={banner.id} className="pl-0">
+              {/* --- CAMBIO CLAVE AQUÍ --- */}
+              {/* 1. Definimos alturas FIJAS y explícitas para diferentes tamaños de pantalla.
+                  h-[300px] en móvil, h-[450px] en tablet pequeña, h-[550px] en escritorio.
+                  El 'relative' es necesario para que funcione el 'fill' de la imagen. */}
+              <div className="relative w-full h-[300px] sm:h-[450px] md:h-[700px] lg:h-[900px]">
+                <Image
+                  src={banner.image}
+                  alt={banner.alt}
+                  // 2. Usamos 'fill' en lugar de width/height. Esto hace que la imagen llene el 'div' padre.
+                  fill
+                  // 3. 'object-cover' es vital: recorta la imagen para llenar el espacio sin estirarla.
+                  className="object-cover"
+                  priority={index === 0}
+                />
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        
+        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
+        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
       </Carousel>
 
       {/* Indicadores (Puntitos) */}

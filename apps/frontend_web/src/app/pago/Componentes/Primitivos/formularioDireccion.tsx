@@ -1,5 +1,54 @@
 import Link from 'next/link';
 import React, { useState } from "react";
+import { actualizarDireccionAPI, agregarDireccionAPI, eliminarDireccionAPI, obtenerDirecciones } from '../../../../api/direcciones';
+
+// import { useMyAuth } from '../../../context/AuthContext'; este debe ser reemplazado cuando se agregue ya que no existe aun a fecha de 11/28/2025 para que funcione
+    // const { userId } = useMyAuth();
+
+// TEMPORAL - hasta que exista login web
+
+import { DireccionesSchema } from '../../../../schemas/addresses';
+
+export interface Direccion {
+    id?: number;
+    nombre: string;
+    telefono: string;
+    direccion: string;
+    numerointerior: number | null;
+    numeroexterior: number | null;
+    masInfo?: string;
+    codigoPostal: string;
+    municipio: string;
+    colonia: string;
+    estado: string;
+}
+
+interface ListaDireccionesProps {
+    direcciones: Direccion[];
+    onAgregarNueva: () => void;
+    onEditar: (index: number) => void;
+    onEliminar: (index: number) => void;
+    navigation: any;
+    direccionSeleccionada: number | null;
+    setDireccionSeleccionada: (id: number) => void;
+    modoSeleccion: boolean;
+}
+
+function adaptarDireccion(apiDir: typeof DireccionesSchema._type) {
+    return {
+        id: apiDir.id,
+        Nombre: apiDir.nombre,
+        Calle: apiDir.calle,
+        NumeroInterior: apiDir.numero_interior ?? null,
+        Numero: apiDir.numero_exterior ?? null,
+        CodigoPostal: apiDir.codigo_postal,
+        Estado: apiDir.estado,
+        Municipio: apiDir.municipio,
+        Colonia: apiDir.colonia_fraccionamiento,
+        NumeroDeTelefono: String(apiDir.numero_celular),
+        InstruccionesExtra: apiDir.mas_info ?? "",
+    };
+}
 
 export default function FormularioAgregarDireccion(){
     const [formData, setFormData] = useState({
@@ -38,10 +87,18 @@ export default function FormularioAgregarDireccion(){
         }))
     }
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
-        console.log(JSON.stringify(formData));
-        resetForm()
+
+        const userId = 102; // ⚠️ temporal 
+
+        try {
+            await agregarDireccionAPI(formData, userId);
+            alert("Dirección guardada correctamente");
+        } catch (error) {
+            console.error(error);
+            alert("Error guardando dirección");
+        }
     };
 
     return (

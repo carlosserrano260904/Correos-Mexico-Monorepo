@@ -14,6 +14,7 @@ export interface UserAddressDeriveryProps{
   Apellido:string,
   Calle:string,
   Numero:string,
+  NumeroInterior:string,
   CodigoPostal:string,
   Estado:string,
   Municipio:string,

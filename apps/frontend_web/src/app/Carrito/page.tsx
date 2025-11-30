@@ -13,7 +13,7 @@ export default function Page() {
   const { products } = useProducts();
   const { items } = useCart(); // ✅ Cambiar CartItems por items
 
-  console.log('🛒 Carrito - items:', items); // Debug
+  console.log('Carrito - items:', items); // Debug
 
   return (
     <Plantilla>

@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { CartItemProps } from "@/components/cartcard";
+import { SeguimientoPaquete } from "./SeguimientoPaquete";
 
 interface OrderCardListProps {
   className?: string;
@@ -15,6 +16,14 @@ interface OrderCardListProps {
 }
 
 export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps) => {
+
+  const infoEnvio = {
+    numeroDeSeguimiento: "MX123456789",
+    transportista: "Correos de México",
+    destino: "Durango, Durango",
+    puntoActual: "Lugar actual",
+    fechaEstimada: "29 de octubre, 2025",
+  };
 
   const validItems = items?.filter(item =>
     item &&
@@ -93,12 +102,7 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
 
                 {/* NUEVO BOTÓN: Solo si NO está entregado */}
                 {!isDelivered && (
-                  <a
-                    href="#"
-                    className="text-pink-500 hover:text-pink-600 underline cursor-pointer text-sm mr-2"
-                    >
-                      Rastrear paquete
-                  </a>
+                  <SeguimientoPaquete seguimiento={infoEnvio} className={"mr-2.5"}/>
                 )}
 
                 <p className="text-xs text-gray-600">Productos destacados</p>

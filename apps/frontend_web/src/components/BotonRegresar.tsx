@@ -4,10 +4,10 @@ import { IoArrowBackOutline } from 'react-icons/io5'
 
 interface DireccionProps {
     className?: string;
-    redirectTo: string;
+    redirectTo?: string;
   }
 
-export const BotonRegresar = ({className = "", redirectTo = ""}: DireccionProps) => {
+export const BotonRegresar = ({className = "", redirectTo = "/"}: DireccionProps) => {
 
   
   const router = useRouter();

@@ -79,7 +79,10 @@ export const Anuncios = () => {
     const navButtonClass = 'absolute top-1/2 transform -translate-y-1/2 p-2 sm:p-3 bg-white/50 hover:bg-white/80 text-black rounded-full shadow-lg z-20 transition-all duration-300 backdrop-blur-sm';
 
     return (
-        <div className='w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] rounded-2xl relative overflow-hidden group'>
+        /* --- CAMBIO DE TAMAÑO APLICADO AQUÍ --- */
+        /* Se reemplazaron las clases anteriores por las mismas dimensiones que HeroBanner:
+           h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] */
+        <div className='w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] rounded-2xl relative overflow-hidden group'>
             {/* Contenedor del Carrusel (Viewport de Embla) */}
             <div className="h-full overflow-hidden" ref={emblaRef}>
                 {/* Contenedor de las Slides */}
@@ -106,7 +109,25 @@ export const Anuncios = () => {
                                     </Badge>
                                 </div>
 
-
+                                {/* Botón responsive en esquina inferior derecha */}
+                                {/* Solo mostramos el botón si buttonText y link están definidos */}
+                                {banner.buttonText && banner.link && (
+                                    <div className='absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 z-10'>
+                                        <Link href={banner.link}>
+                                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
+                                                {/* Efecto de brillo en el botón */}
+                                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+                                                
+                                                <span className='relative flex items-center gap-1 sm:gap-2'>
+                                                    {banner.buttonText}
+                                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

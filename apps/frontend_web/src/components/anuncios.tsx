@@ -1,174 +1,144 @@
-'use client'
-import Link from 'next/link'
-import { Badge } from "@/components/ui/badge"
-import React, { useCallback, useState, useEffect } from 'react'
+'use client';
 
-import { FaCircle } from "react-icons/fa6";
+import React, { useRef, useState, useEffect } from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { Badge } from "@/components/ui/badge";
+import Link from 'next/link'; 
+import { FaCircle } from "react-icons/fa";
 
-// Importación para el carrusel
-import useEmblaCarousel from 'embla-carousel-react'
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
-export const Anuncios = () => {
-    // 1. Configuración de Embla Carousel
-    const [emblaRef, emblaApi] = useEmblaCarousel({ 
-        loop: true,           
-        dragFree: false,     
-        duration: 40,        
-    })
 
-    // Estado para rastrear el índice actual
-    const [selectedIndex, setSelectedIndex] = useState(0)
+const banners = [
+  {
+    id: 1,
+    image: "/banners/descuentos.png",
+    alt: "Descuentos especiales",
+    badge: "¡Gran Venta!"
+  },
+  {
+    id: 2,
+    image: "/banners/envios.png",
+    alt: "Envíos rápidos",
+    badge: "Tendencias"
+  },
+  {
+    id: 3,
+    image: "/banners/joyeria.png",
+    alt: "Joyas exclusivas",
+    badge: "Exclusivo"
+  },
+];
 
-    // Función para actualizar el índice seleccionado
-    const onSelect = useCallback((api: any) => {
-        if (!api) return
-        setSelectedIndex(api.selectedScrollSnap())
-    }, [])
+export const Anuncios: React.FC = () => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
-    // Efecto para escuchar el evento 'select' de Embla
-    useEffect(() => {
-        if (!emblaApi) return
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
 
-        onSelect(emblaApi)
-        emblaApi.on('select', onSelect)
-        emblaApi.on('reInit', onSelect)
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap() + 1);
 
-        return () => {
-            emblaApi.off('select', onSelect)
-            emblaApi.off('reInit', onSelect)
-        }
-    }, [emblaApi, onSelect])
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
-    // Funciones para la navegación
-    const scrollPrev = useCallback(() => {
-        if (emblaApi) emblaApi.scrollPrev()
-    }, [emblaApi])
+  return (
+    <div className="w-full mx-auto rounded-2xl overflow-hidden shadow-sm group relative mb-8">
 
-    const scrollNext = useCallback(() => {
-        if (emblaApi) emblaApi.scrollNext()
-    }, [emblaApi])
+      <Carousel
+        setApi={setApi}
+        plugins={[plugin.current]}
+        className="w-full"
+        opts={{
+          loop: true,
+          align: "center"
+        }}
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
 
-    // 2. Definición de los banners 
-    const banners = [
-        { 
-            id: 1, 
-            image: '/banners/descuentos.png', 
-            buttonText: 'Ver ofertas', 
-            link: '/categories?category=Ropa', 
-            badgeText: '¡Gran Venta!'
-        },
+      >
+        <Link href="/categories?category=Hogar">
+        <CarouselContent className="ml-0">
+          {banners.map((banner) => (
+            
+            <CarouselItem key={banner.id} className="pl-0">
 
-        { 
-            id: 2, 
-            image: '/banners/envios.png', 
-            //buttonText: 'Comprar ahora', 
-            //link: '/categories?category=Alimentos%20y%20Bebidas',
-            badgeText: 'Tendencias'
-        },
-        { 
-            id: 3, 
-            image: '/banners/joyeria.png', 
-            //buttonText: 'Ver Mas', 
-            //link: '/categories?category=Joyeria',
-            badgeText: 'Exclusivo'
-        },
-    ]
+              <div className="relative w-full aspect-video">
 
-    // Estilos comunes para los botones de navegación
-    const navButtonClass = 'absolute top-1/2 transform -translate-y-1/2 p-2 sm:p-3 bg-white/50 hover:bg-white/80 text-black rounded-full shadow-lg z-20 transition-all duration-300 backdrop-blur-sm';
+                <img
+                  src={banner.image}
+                  alt={banner.alt}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
 
-    return (
-        /* --- CAMBIO DE TAMAÑO APLICADO AQUÍ --- */
-        /* Se reemplazaron las clases anteriores por las mismas dimensiones que HeroBanner:
-           h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] */
-        <div className='w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] rounded-2xl relative overflow-hidden group'>
-            {/* Contenedor del Carrusel (Viewport de Embla) */}
-            <div className="h-full overflow-hidden" ref={emblaRef}>
-                {/* Contenedor de las Slides */}
-                <div className="flex h-full">
-                    {banners.map((banner, index) => (
-                        
-                        <div 
-                            key={banner.id} 
-                            className="flex-shrink-0 w-full h-full relative" 
-                            style={{ flex: '0 0 100%' }} // Asegura que cada slide ocupe el 100%
-                        >
-                            {/* Slide de Banner */}
-                            <div 
-                                className={`w-full h-full bg-cover bg-center bg-no-repeat`}
-                                style={{ backgroundImage: `url(${banner.image})` }}
-                            >
-                                {/* Overlay sutil al hover */}
-                                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                                
-                                {/* Contenido del Banner (Etiqueta y Botón) */}
-                                <div className='absolute top-4 left-4 sm:top-6 sm:left-6 z-10'>
-                                    <Badge className='bg-[#DE1484] text-white font-bold text-xs sm:text-sm md:text-base'>
-                                        {banner.badgeText}
-                                    </Badge>
-                                </div>
-
-                                {/* Botón responsive en esquina inferior derecha */}
-                                {/* Solo mostramos el botón si buttonText y link están definidos */}
-                                {banner.buttonText && banner.link && (
-                                    <div className='absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 z-10'>
-                                        <Link href={banner.link}>
-                                            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                                {/* Efecto de brillo en el botón */}
-                                                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                                
-                                                <span className='relative flex items-center gap-1 sm:gap-2'>
-                                                    {banner.buttonText}
-                                                    <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                                    </svg>
-                                                </span>
-                                            </button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                {/* Badge arriba izquierda */}
+                <div className="absolute top-4 left-4 z-20">
+                  <Badge className="bg-[#DE1484] text-white text-xs sm:text-sm font-bold">
+                    {banner.badge}
+                  </Badge>
                 </div>
-            </div>
 
-            {/* Botón de Navegación Izquierdo */}
-            <button 
-                className={`${navButtonClass} left-4`} 
-                onClick={scrollPrev} 
-                aria-label="Anterior Banner"
-            >
-                <IoIosArrowBack className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            
-            {/* Botón de Navegación Derecho */}
-            <button 
-                className={`${navButtonClass} right-4`} 
-                onClick={scrollNext} 
-                aria-label="Siguiente Banner"
-            >
-                <IoIosArrowForward className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            
-            {/* Indicadores de Puntos (Dots) */}
-            <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20'>
-                {banners.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => emblaApi && emblaApi.scrollTo(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            index === selectedIndex ? 'bg-[#DE1484] w-5' : 'bg-gray-300 hover:bg-white'
-                        }`}
-                        aria-label={`Ir al banner ${index + 1}`}
-                    />
-                ))}
-            </div>
+              </div>
 
-        </div>
-    )
-}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        </Link>
+
+        {/* Flechas idénticas al HeroBanner */}
+        <CarouselPrevious className="
+          absolute left-4 top-1/2 -translate-y-1/2 
+          h-10 w-10 sm:h-12 sm:w-12 
+          border-0 bg-black/20 hover:bg-black/40 
+          text-white transition-opacity 
+          opacity-0 group-hover:opacity-100 
+          z-20 hidden sm:flex
+        " />
+
+        <CarouselNext className="
+          absolute right-4 top-1/2 -translate-y-1/2 
+          h-10 w-10 sm:h-12 sm:w-12 
+          border-0 bg-black/20 hover:bg-black/40 
+          text-white transition-opacity 
+          opacity-0 group-hover:opacity-100 
+          z-20 hidden sm:flex
+        " />
+      </Carousel>
+
+      {/* Indicadores iguales */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => api?.scrollTo(index)}
+            className={`
+              h-2 sm:h-3 rounded-full transition-all duration-500 pointer-events-auto 
+              ${index + 1 === current
+                ? "bg-[#DE1484] w-6 sm:w-8"
+                : "bg-white/80 hover:bg-white w-2 sm:w-3"
+              }
+            `}
+            aria-label={`Ir a banner ${index + 1}`}
+          />
+        ))}
+      </div>
+
+    </div>
+  );
+};
+
 
 export const Anuncios2 = () => {
     return (

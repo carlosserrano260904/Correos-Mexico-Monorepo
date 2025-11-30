@@ -121,7 +121,7 @@ export const CategoryCarousel: React.FC = () => {
         {STATIC_CATEGORIES.map((cat, index) => (
           <Link
             key={index}
-            href={`/categorias?category=${encodeURIComponent(cat.slug)}`}
+            href="/categories?category=Hogar"
             className="flex-shrink-0 flex flex-col items-center group/cat cursor-pointer"
           >
             {/* CÍRCULO - ESTILO MINIMALISTA (IMAGEN 2) */}

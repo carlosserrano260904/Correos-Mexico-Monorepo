@@ -1,3 +1,4 @@
+//components/HistorialDeCompras.tsx
 'use client';
 
 import React from "react";
@@ -5,6 +6,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { CartItemProps } from "@/components/cartcard";
 import { SeguimientoPaquete } from "./SeguimientoPaquete";
+import { useRouter } from "next/navigation";
 
 interface OrderCardListProps {
   className?: string;
@@ -16,7 +18,7 @@ interface OrderCardListProps {
 }
 
 export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps) => {
-
+  const router = useRouter();
   const infoEnvio = {
     numeroDeSeguimiento: "MX123456789",
     transportista: "Correos de México",
@@ -36,26 +38,30 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
     <div className={`space-y-4 ${className}`}>
 
       {validItems.map((item, index) => {
-
         const isDelivered = item.delivered ?? true;
 
         return (
           <Card key={index} className="rounded-2xl shadow-sm p-4">
-            <CardContent className="flex items-center w-full justify-between gap-6 py-4">
+            <CardContent
+              className="
+                flex flex-col gap-6
+                md:flex-row md:items-center md:justify-between
+                w-full py-4
+              "
+            >
 
               {/* LEFT SECTION */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 md:w-1/3">
 
                 <Image
                   src={item.ProductImageUrl}
                   alt={item.ProductName}
                   width={90}
                   height={90}
-                  className="rounded-xl object-cover"
+                  className="object-cover w-20 h-20 md:w-[90px] md:h-[90px]"
                 />
 
                 <div>
-
                   <p className="text-sm text-gray-600 font-medium">
                     {item.orderDate ?? "Fecha no disponible"}
                   </p>
@@ -84,7 +90,13 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
               </div>
 
               {/* MIDDLE SECTION */}
-              <div className="flex flex-col items-center text-center text-sm text-gray-700">
+              <div
+                className="
+                  flex flex-col items-center 
+                  text-center text-sm text-gray-700
+                  md:w-1/3
+                "
+              >
                 <span className="font-medium">Tienda oficial artesanal</span>
                 <span className="text-xs text-gray-500">CorreosMexico MX</span>
 
@@ -94,15 +106,21 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
               </div>
 
               {/* RIGHT SECTION */}
-              <div className="flex flex-col items-end gap-2">
-
-                <button className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700 cursor-pointer">
+              <div
+                className="
+                  flex flex-col items-center md:items-center gap-2
+                  md:w-1/3 w-full text-center
+                  md:ml-auto
+                "
+              >
+                <button 
+                onClick={() => router.push("/historial-de-compras/resumen")}
+                className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700 cursor-pointer w-full md:w-auto">
                   Ver compras
                 </button>
 
-                {/* NUEVO BOTÓN: Solo si NO está entregado */}
                 {!isDelivered && (
-                  <SeguimientoPaquete seguimiento={infoEnvio} className={"mr-2.5"}/>
+                  <SeguimientoPaquete seguimiento={infoEnvio} className={"mr-2.5 md:mr-0"} />
                 )}
 
                 <p className="text-xs text-gray-600">Productos destacados</p>

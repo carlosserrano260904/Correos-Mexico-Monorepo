@@ -8,12 +8,14 @@ import PaymentMethod from './Componentes/paymentMethod'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../components/cartcard'
+import { BotonRegresar } from "@/components/BotonRegresar";
 
 export default function Home() {
   const { items } = useCart();
 
   return (
     <Plantilla>
+      <BotonRegresar redirectTo='/Carrito' />
       <div id='painPage' className='flex'>
         <div id='rigthContent' className='w-2/3'>
           <div id='Direccion de Envio'>
@@ -23,7 +25,7 @@ export default function Home() {
             <DeliveryAdress></DeliveryAdress>
             <div className="m-2 justify-self-end">
               <Link href={'/pago/MasDirecciones'}>
-                <button className="text-sm text-[#DE1484]"> Cambiar Direccion de entrega</button>
+                <button className="text-sm text-[#DE1484] cursor-pointer"> Cambiar Direccion de entrega</button>
               </Link>
             </div>
           </div>
@@ -31,13 +33,13 @@ export default function Home() {
             <PaymentMethod></PaymentMethod>
             <div className="m-2 justify-self-end">
               <Link href={'/pago/MasFormasdePago'}>
-                  <button className="text-sm text-[#DE1484]"> Cambiar Forma de pago</button>
+                  <button className="text-sm text-[#DE1484] cursor-pointer"> Cambiar Forma de pago</button>
               </Link>
             </div>
           </div>
         </div>
         <div id='leftContent' className='w-1/3'>
-          <ResumenCompra className='mt-13'></ResumenCompra>
+          <ResumenCompra className='mt-13' texto="Pagar Ahora" link="/pago/compra-exitosa"></ResumenCompra>
           {/* <div className='bg-[#DE1484] m-2 rounded-lg text-center text-white py-2 w-1/2 justify-self-center'>
             <button>Confirmar compra</button>
           </div> */}

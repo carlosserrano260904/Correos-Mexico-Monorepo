@@ -1,68 +1,35 @@
 'use client';
-import React, { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import { useLists } from "@/hooks/useLists";
-import { useProducts } from "@/hooks/useProduct";
+import React from 'react';
+import Image from 'next/image';
+import { useCart } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
+import { 
+  IoCartOutline, 
+  IoTrashOutline, 
+  IoListOutline, 
+  IoAlertCircleOutline 
+} from 'react-icons/io5';
 
-interface FavoriteProductCardProps {
-  productId: number;
-  image: string;
-  title: string;
-  price: number;
-  available?: boolean;
-  freeShipping?: boolean;
-  onAddToList: (listName: string) => void;
-  onDelete: () => void;
+// Definimos la estructura exacta de tus datos
+interface Product {
+  ProductID: number | string;
+  ProductName: string;
+  ProductImageUrl: string;
+  productPrice: number;
+  ProductDescription?: string;
+  // Agrega aquí otros campos si tu backend los manda
 }
 
-export const FavoriteProductCard: React.FC<FavoriteProductCardProps> = ({
-  productId,
-  image,
-  title,
-  price,
-  available = true,
-  freeShipping = false,
-  onAddToList,
-  onDelete,
-}) => {
-  const [newListName, setNewListName] = useState("");
-  const [selectedListId, setSelectedListId] = useState<number | null>(null);
-  const { Lists, createList, addProductToList } = useLists();
-  const { getProduct } = useProducts();
+interface FavoriteProductCardProps {
+  product: Product;
+  onAddToList?: () => void;
+}
 
-  const handleConfirm = () => {
-    const product = getProduct(productId);
-    if (!product) return;
+export const FavoriteProductCard = ({ product, onAddToList }: FavoriteProductCardProps) => {
+  const { addToCart } = useCart();
+  const { removeFromFavorites } = useFavorites();
 
-    if (selectedListId) {
-      // Agregar a lista existente
-      addProductToList(selectedListId, product);
-      const selectedList = Lists.find(list => list.ListaID === selectedListId);
-      onAddToList(selectedList?.ListaName || "Lista");
-    } else if (newListName.trim()) {
-      // Crear nueva lista y agregar producto
-      createList(newListName.trim());
-      // Obtener la lista recién creada (será la última)
-      const newListId = Lists.length > 0 ? Math.max(...Lists.map(l => l.ListaID)) + 1 : 1;
-      setTimeout(() => {
-        addProductToList(newListId, product);
-      }, 100);
-      onAddToList(newListName.trim());
-    }
-    
-    setNewListName("");
-    setSelectedListId(null);
-  };
-
+  // Formateador de precio
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -71,91 +38,67 @@ export const FavoriteProductCard: React.FC<FavoriteProductCardProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-4 border-b py-4">
-      <img src={image} alt={title} className="w-24 h-28 object-cover" />
-      <div className="flex-1">
-        <h3 className="font-semibold text-gray-800">{title}</h3>
-        <p className="text-black font-bold">{formatPrice(price)}</p>
-        {available ? (
-          <p className="text-pink-600 text-sm">Producto disponible</p>
-        ) : (
-          <p className="text-red-600 text-sm">No disponible</p>
-        )}
-        {freeShipping && (
-          <p className="text-green-500 text-sm">Envío gratis</p>
-        )}
-        <div className="mt-2 flex gap-4 text-sm text-pink-600">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button className="hover:underline">Agregar a lista</button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Agregar a lista</AlertDialogTitle>
-              </AlertDialogHeader>
-              <div className="space-y-4">
-                {Lists.length > 0 && (
-                  <div>
-                    <p className="text-gray-700 text-sm mb-2">Listas existentes:</p>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {Lists.map((lista) => (
-                        <div
-                          key={lista.ListaID}
-                          className={`border px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                            selectedListId === lista.ListaID
-                              ? 'border-pink-500 bg-pink-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => setSelectedListId(
-                            selectedListId === lista.ListaID ? null : lista.ListaID
-                          )}
-                        >
-                          <p className="text-sm font-medium">{lista.ListaName}</p>
-                          <p className="text-xs text-gray-500">
-                            {lista.ListaProducts.length} productos
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    O crear nueva lista:
-                  </label>
-                  <input
-                    type="text"
-                    value={newListName}
-                    onChange={(e) => setNewListName(e.target.value)}
-                    placeholder="Lista para navidad"
-                    className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  />
-                </div>
-              </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel 
-                  onClick={() => {
-                    setNewListName("");
-                    setSelectedListId(null);
-                  }}
-                  className="rounded-lg"
-                >
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleConfirm}
-                  disabled={!selectedListId && !newListName.trim()}
-                  className="bg-pink-600 hover:bg-pink-500 text-white rounded-lg disabled:opacity-50"
-                >
-                  Confirmar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <button onClick={onDelete} className="hover:underline">
-            Eliminar
+    <div className="flex flex-col sm:flex-row border-b border-gray-200 py-6 last:border-b-0">
+      {/* 1. IMAGEN DEL PRODUCTO (Izquierda - Grande) */}
+      <div className="flex-shrink-0 w-full sm:w-48 h-48 relative mb-4 sm:mb-0 bg-white rounded-lg overflow-hidden border border-gray-100">
+        <Image
+          src={product.ProductImageUrl || '/placeholder.png'}
+          alt={product.ProductName}
+          fill
+          className="object-contain p-2"
+        />
+      </div>
+
+      {/* 2. INFORMACIÓN (Derecha) */}
+      <div className="flex-1 sm:ml-8 flex flex-col justify-center">
+        {/* Título */}
+        <h3 className="text-xl font-medium text-gray-900 mb-2">
+          {product.ProductName}
+        </h3>
+
+        {/* Precio - Color Rosa */}
+        <div className="text-2xl font-bold text-[#DE1484] mb-3">
+          {formatPrice(product.productPrice)}
+        </div>
+
+        {/* Estado - SIMULADO NECESITA BACKEND */}
+        <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center text-amber-600 text-sm font-medium bg-amber-50 px-2 py-1 rounded">
+               <IoAlertCircleOutline className="w-4 h-4 mr-1" />
+               <span>Producto no disponible</span> 
+            </div>
+        </div>
+
+        {/* 3. BOTONES DE ACCIÓN (Iconos + Texto) */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-500">
+          
+          {/* Botón Carrito */}
+          <button 
+            onClick={() => addToCart({ ...product, quantity: 1 }, 1)}
+            className="flex items-center gap-2 hover:text-[#DE1484] transition-colors group"
+          >
+            <IoCartOutline className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>Agregar al carrito</span>
           </button>
+
+          {/* Botón Lista */}
+          <button 
+            onClick={onAddToList}
+            className="flex items-center gap-2 hover:text-[#DE1484] transition-colors group"
+          >
+            <IoListOutline className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>Agregar a una lista</span>
+          </button>
+
+          {/* Botón Eliminar */}
+          <button 
+            onClick={() => removeFromFavorites(product.ProductID)}
+            className="flex items-center gap-2 hover:text-red-600 transition-colors group"
+          >
+            <IoTrashOutline className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>Eliminar</span>
+          </button>
+
         </div>
       </div>
     </div>

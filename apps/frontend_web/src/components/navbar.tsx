@@ -1,47 +1,37 @@
 // components/navbar.tsx
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import {
-    IoMenu,
-    IoSearchOutline,
-    IoMicOutline,
-    IoAppsOutline,
-    IoHeartOutline,
-    IoHeartSharp,
-    IoBagOutline,
-    IoPersonOutline,
-    IoTrashOutline
-} from "react-icons/io5";
 import Link from "next/link";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import {IoMenu, IoSearchOutline, IoMicOutline, IoAppsOutline, IoHeartOutline, IoHeartSharp, IoBagOutline, IoPersonOutline, IoTrashOutline} from "react-icons/io5";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Separator } from "./ui/separator";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
-import { useUser, useClerk } from '@clerk/nextjs'; // ✅ Reemplazar useAuth con Clerk
+import { useUser, useClerk } from '@clerk/nextjs'; 
 
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
 export const Navbar = () => {
+    const router = useRouter();
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
-    // CORREGIDO: Usar las propiedades correctas del hook useCart
+    
+    // Agregamos 'addToCart' para la funcionalidad de favoritos
     const { 
         items: cartItems, 
         removeFromCart, 
+        addToCart,
         getTotalItems, 
         getTotalPrice 
     } = useCart();
     
-    // ✅ Reemplazar useAuth con hooks de Clerk
+    // Reemplazar useAuth con hooks de Clerk
     const { user, isLoaded: userLoaded } = useUser();
     const { signOut, openSignIn } = useClerk();
     
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
 
     useEffect(() => {
         setIsMounted(true);
@@ -56,10 +46,11 @@ export const Navbar = () => {
     };
 
     const formatPrice = (price: number) => {
+        const safePrice = typeof price === 'number' ? price : 0;
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
             currency: 'MXN',
-        }).format(price);
+        }).format(safePrice);
     };
 
     const handleLoginClick = () => {
@@ -72,82 +63,43 @@ export const Navbar = () => {
         handleDropdownClose();
     };
 
-    // Renderizar versión simplificada durante la hidratación
-    if (!isMounted) {
-        return (
-            <div className="flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
-                {/* Logo */}
-                <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                    <Link href={'/'}>
-                        <Image
-                            src="/logoCorreos.png"
-                            alt="Logo de correos"
-                            width={70}
-                            height={26}
-                            className="w-12 h-4 sm:w-14 sm:h-5 md:w-16 md:h-6 lg:w-20 lg:h-7 xl:w-24 xl:h-8"
-                        />
-                    </Link>
-                    {/* Menú hamburguesa móvil */}
-                    <div className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
-                        <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                    </div>
-                </div>
+    // Función para manejar la búsqueda
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (searchTerm.trim()) {
+            // Navegar a la página de resultados de búsqueda
+            router.push(`/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm(""); // Limpiar el input después de buscar
+            handleDropdownClose();
+        }
+    };
 
-                {/* Barra de búsqueda - Ocultar en móvil pequeño */}
-                <div className="hidden sm:flex flex-1 w-full me-2 md:me-4 ms-1">
-                    <div className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <IoSearchOutline className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Buscar un producto..."
-                            className="block w-full pl-10 pr-3 py-2 rounded-4xl min-h-[40px] sm:min-h-[45px] md:min-h-[51px] bg-[#F3F4F6] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 text-sm sm:text-base"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <IoMicOutline className="w-4 h-4 sm:w-5 sm:h-5 stroke-[6]" />
-                        </div>
-                    </div>
-                </div>
+    // Función para búsqueda con Enter
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch(e);
+        }
+    };
 
-                {/* Íconos simplificados */}
-                <div className="flex items-center gap-x-1 sm:gap-x-2">
-                    {/* Botón búsqueda móvil */}
-                    <div className="sm:hidden p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px]">
-                        <IoSearchOutline className="w-4 h-4" />
-                    </div>
-
-                    <div className="hidden sm:flex p-2 hover:bg-gray-100 rounded-full text-gray-600 items-center gap-1 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
-                        <IoAppsOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span className="hidden lg:inline text-sm font-medium">App</span>
-                    </div>
-                    
-                    <div className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
-                        <IoHeartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    
-                    <div className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
-                        <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    
-                    <div className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
-                        <IoPersonOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    
-                    <div className="hidden sm:flex p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
-                        <span className="text-xs sm:text-sm font-medium">ES</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Solo obtener datos después del montaje - CORREGIDO
+     // Variables de estado
     const totalFavorites = getTotalFavorites();
     const totalCartItems = getTotalItems();
     const cartSubtotal = getTotalPrice();
     const favoritesList = Favorites;
     const cartItemsList = cartItems;
+
+    // Renderizar versión simplificada durante la hidratación
+    if (!isMounted) {
+        return (
+            <div className="flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
+                 {/* Logo Placeholder */}
+                <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+                    <Image src="/logoCorreos.png" alt="Logo" width={70} height={26} className="w-12 h-4" />
+                </div>
+            </div>
+        );  
+    }
 
     return (
         <div className="sticky top-0 z-50 bg-white shadow-md flex items-center justify-between w-full px-2 sm:px-3 md:px-4 py-2">
@@ -155,60 +107,88 @@ export const Navbar = () => {
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
                 <Link href={'/'} className="flex items-center">
                     <Image
-                    src="/logoCorreos.png"
-                    alt="Logo de correos"
-                    width={100}  
-                    height={38}
-                    priority
-                    className="
-                        h-9 w-auto object-contain
-                        sm:h-10
-                        md:h-11
-                        lg:h-12
-                        xl:h-14"
+                        src="/logoCorreos.png"
+                        alt="Logo de correos"
+                        width={100}  
+                        height={38}
+                        priority
+                        className="
+                            h-9 w-auto object-contain
+                            sm:h-10
+                            md:h-11
+                            lg:h-12
+                            xl:h-14"
                     />
                 </Link>
                 
-                {/* Menú hamburguesa */}
-                <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
-                    <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] h-[40px] w-[40px] sm:h-[45px] sm:w-[45px] md:h-[51px] md:w-[54px] flex-shrink-0">
-                        <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[280px] sm:w-[300px] max-h-[400px] sm:max-h-[450px] overflow-y-auto">
-                        {categories.map((category, index) => (
-                            <DropdownMenuItem key={index} className="first:mb-4 sm:first:mb-6 last:mt-4 sm:last:mt-6 [&:not(:first-child):not(:last-child)]:my-4 sm:[&:not(:first-child):not(:last-child)]:my-6 text-sm sm:text-base">
-                                <Link href={`./categories?category=${encodeURIComponent(category)}`} onClick={handleDropdownClose}>
-                                    {category}
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
+                 {/* Menú hamburguesa */}
+                 <DropdownMenu open={openDropdown === 'menu'} onOpenChange={(open) => open ? handleDropdownToggle('menu') : handleDropdownClose()}>
+                     <DropdownMenuTrigger className="flex items-center justify-center hover:bg-gray-100 rounded-full bg-[#F3F4F6] h-[40px] w-[40px] sm:h-[45px] sm:w-[45px] md:h-[51px] md:w-[54px] flex-shrink-0">
+                         <IoMenu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent align="start" className="w-[280px] sm:w-[300px] max-h-[400px] sm:max-h-[450px] overflow-y-auto">
+                         {categories.map((category, index) => (
+                             <DropdownMenuItem key={index} className="first:mb-4 sm:first:mb-6 last:mt-4 sm:last:mt-6 [&:not(:first-child):not(:last-child)]:my-4 sm:[&:not(:first-child):not(:last-child)]:my-6 text-sm sm:text-base">
+                                 <Link href={`./categories?category=${encodeURIComponent(category)}`} onClick={handleDropdownClose} className="w-full">
+                                     {category}
+                                 </Link>
+                             </DropdownMenuItem>
+                         ))}
+                     </DropdownMenuContent>
+                 </DropdownMenu>
+             </div>
 
             {/* Barra de búsqueda - Ocultar en móvil pequeño */}
             <div className="hidden sm:flex flex-1 w-full me-2 md:me-4 ms-1">
-                <div className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+                <form onSubmit={handleSearch} className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <IoSearchOutline className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     </div>
                     <input
                         type="text"
                         placeholder="Buscar un producto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         className="block w-full pl-10 pr-3 py-2 rounded-4xl min-h-[40px] sm:min-h-[45px] md:min-h-[51px] bg-[#F3F4F6] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 text-sm sm:text-base"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <IoMicOutline className="w-4 h-4 sm:w-5 sm:h-5 stroke-[6]" />
-                    </div>
-                </div>
+                    <button 
+                        type="submit"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-100 rounded-full p-1 transition-colors"
+                    >
+                        <IoMicOutline className="w-4 h-4 sm:w-5 sm:h-5 stroke-[6] text-gray-500 hover:text-gray-700" />
+                    </button>
+                </form>
             </div>
 
             {/* Íconos de la derecha */}
             <div className="flex items-center gap-x-1 sm:gap-x-2">
                 {/* Botón búsqueda móvil */}
-                <div className="sm:hidden p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px]">
-                    <IoSearchOutline className="w-4 h-4" />
-                </div>
+                <DropdownMenu open={openDropdown === 'search'} onOpenChange={(open) => open ? handleDropdownToggle('search') : handleDropdownClose()}>
+                    <DropdownMenuTrigger className="sm:hidden p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px]">
+                        <IoSearchOutline className="w-4 h-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[300px] p-4">
+                        <div className="flex-col">
+                            <h3 className="text-lg font-semibold mb-3">Buscar productos</h3>
+                            <form onSubmit={handleSearch} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="¿Qué estás buscando?"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 text-sm"
+                                />
+                                <button 
+                                    type="submit"
+                                    className="px-4 py-2 bg-[#DE1484] text-white rounded-lg hover:bg-pink-700 transition-colors"
+                                >
+                                    <IoSearchOutline className="w-4 h-4" />
+                                </button>
+                            </form>
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* App */}
                 <DropdownMenu open={openDropdown === 'app'} onOpenChange={(open) => open ? handleDropdownToggle('app') : handleDropdownClose()}>
@@ -236,15 +216,17 @@ export const Navbar = () => {
                             {totalFavorites}
                         </span>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[320px] sm:w-[350px] p-3 sm:p-4 overflow-y-auto max-h-[350px] sm:max-h-[400px]">
+                    <DropdownMenuContent align="end" className="w-[320px] sm:w-[350px] p-3 sm:p-4 max-h-[400px] overflow-y-auto">
                         <div className="flex-col">
-                            <div className="flex items-center">
-                                <div className="text-base sm:text-lg font-semibold">Mis Favoritos ({totalFavorites})</div>
-                                <Link href={"/favoritos"} className="ms-auto text-xs sm:text-sm underline" onClick={handleDropdownClose}>
-                                    Ver favoritos
+                            {/* Header Nuevo */}
+                            <div className="flex items-center pb-3 sm:pb-4 border-b-2 border-pink-300 border-dotted">
+                                <div className="text-lg sm:text-xl font-semibold text-gray-800">
+                                    Mis Favoritos
+                                </div>
+                                <Link href={"/favoritos"} className="ms-auto text-sm text-pink-500 hover:text-pink-800 transition-colors" onClick={handleDropdownClose}>
+                                    Visualizar más
                                 </Link>
                             </div>
-                            <Separator className="my-2 sm:my-3" />
                             
                             {favoritesList.length === 0 ? (
                                 <div className="text-center py-6 sm:py-8 text-gray-500">
@@ -253,39 +235,50 @@ export const Navbar = () => {
                                     <p className="text-xs">Agrega productos a tu lista</p>
                                 </div>
                             ) : (
-                                <div className="flex-col space-y-2 sm:space-y-3">
+                                <div className="flex-col pt-3">
                                     {favoritesList.slice(0, 3).map((product, index) => (
-                                        <div 
-                                            key={product.ProductID ? `favorite-${product.ProductID}` : `favorite-${index}-${product.ProductName}`}
-                                            className="flex items-stretch"
-                                        >
-                                            <div className="basis-1/3">
-                                                <img 
+                                        <div key={product.ProductID || index} className="flex items-start py-4 border-b border-dotted border-gray-300 last:border-b-0">
+                                            {/* Imagen */}
+                                            <div className="relative w-20 h-20 flex-shrink-0 mr-4 rounded-lg overflow-hidden border">
+                                                <Image 
                                                     src={product.ProductImageUrl} 
                                                     alt={product.ProductName} 
-                                                    className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl object-cover" 
+                                                    fill
+                                                    className="object-cover" 
                                                 />
                                             </div>
-                                            <div className="basis-2/3 ms-2 flex flex-col justify-between text-xs sm:text-sm">
-                                                <div className="font-semibold line-clamp-2">{product.ProductName}</div>
-                                                <div className="text-gray-500 text-xs">{product.ProductBrand}</div>
-                                                <div className="font-bold">{formatPrice(product.productPrice)}</div>
-                                            </div>
-                                            <div className="basis-1/12 flex items-center justify-center">
-                                                <button 
-                                                    onClick={() => {
-                                                        removeFromFavorites(product.ProductID);
-                                                        handleDropdownClose();
-                                                    }}
-                                                    className="p-1 hover:bg-gray-100 rounded text-red-500"
-                                                >
-                                                    <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                </button>
+                                            {/* Contenido */}
+                                            <div className="flex flex-col flex-grow">
+                                                <h3 className="text-sm sm:text-base font-normal text-gray-800 line-clamp-2">
+                                                    {product.ProductName}
+                                                </h3>
+                                                <p className="text-lg font-bold text-gray-900 mt-1">
+                                                    {formatPrice(product.productPrice)}
+                                                </p>
+                                                {/* Botones */}
+                                                <div className="flex space-x-2 mt-2">
+                                                    <button 
+                                                        onClick={() => removeFromFavorites(product.ProductID)}
+                                                        className="p-1 border border-gray-200 rounded-full text-pink-500 bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                                                        title="Quitar de favoritos"
+                                                    >
+                                                        <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (addToCart) addToCart({ ...product, quantity: 1 }, 1);
+                                                        }}
+                                                        className="p-1 border border-gray-200 rounded-full text-gray-600 bg-white shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-200"
+                                                        title="Añadir al carrito"
+                                                    >
+                                                        <IoBagOutline className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
                                     {favoritesList.length > 3 && (
-                                        <div className="text-center text-xs sm:text-sm text-gray-500 pt-2">
+                                        <div className="text-center text-xs sm:text-sm text-gray-500 pt-4">
                                             Y {favoritesList.length - 3} productos más...
                                         </div>
                                     )}
@@ -295,7 +288,7 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Carrito - CORREGIDO */}
+                {/* Carrito */}
                 <DropdownMenu open={openDropdown === 'cart'} onOpenChange={(open) => open ? handleDropdownToggle('cart') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px] relative">
                         <IoBagOutline className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -322,43 +315,80 @@ export const Navbar = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {/* Items del carrito - CORREGIDO */}
+                                    {/* Items del carrito */}
                                     <div className="flex flex-col space-y-3 sm:space-y-4">
                                         {cartItemsList.slice(0, 3).map((item, index) => (
-                                            <div 
-                                                key={item.ProductID ? `cart-${item.ProductID}` : `cart-${index}-${item.ProductName}`}
-                                                className="flex items-stretch"
-                                            >
-                                                <div className="basis-1/4">
-                                                    <img 
+                                            <div key={item.ProductID ? `cart-${item.ProductID}` : `cart-${index}`} className="flex items-stretch">
+                                                {/* Imagen */}
+                                                <div className="basis-1/4 relative h-14 sm:h-16">
+                                                    <Image 
                                                         src={item.ProductImageUrl} 
                                                         alt={item.ProductName} 
-                                                        className="w-full h-14 sm:h-16 rounded-lg object-cover" 
+                                                        fill
+                                                        className="rounded-lg object-cover" 
                                                     />
                                                 </div>
+
+                                                {/* Detalles */}
                                                 <div className="basis-2/3 ms-2 sm:ms-3 flex flex-col justify-between text-xs sm:text-sm">
                                                     <div className="font-medium line-clamp-2">{item.ProductName}</div>
                                                     <div className="font-semibold">{formatPrice(item.productPrice)}</div>
-                                                    <div className="flex items-center space-x-1 sm:space-x-2">
-                                                        <span className="text-xs text-gray-500">Cant: {item.quantity}</span>
+                                                    
+                                                    {/* Controles de Cantidad y Color */}
+                                                    <div className="flex items-center mt-1 sm:mt-2">
+                                                        {/* Selector estilo Pill */}
+                                                        <div className="flex items-center justify-between border-2 border-pink-400 rounded-full w-[90px] px-2 py-0.5 bg-white select-none">
+                                                            <button 
+                                                                className="text-lg font-bold text-gray-800 hover:text-yellow-600 leading-none pb-0.5 px-1"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (item.quantity && item.quantity > 1) {
+                                                                        if (addToCart) {
+                                                                            addToCart(item, -1);
+                                                                        }
+                                                                    } else {
+                                                                        removeFromCart(item.ProductID);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <span className="text-sm font-bold text-gray-900 mx-1">
+                                                                {item.quantity}
+                                                            </span>
+                                                            <button 
+                                                                className="text-lg font-bold text-gray-800 hover:text-yellow-600 leading-none pb-0.5 px-1"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (addToCart) addToCart({ ...item, quantity: 1 }, 1);
+                                                                }}
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Color Indicator */}
                                                         {item.selectedColor && (
                                                             <div 
-                                                                className="w-3 h-3 rounded-full border border-gray-300"
+                                                                className="w-4 h-4 rounded-full border border-gray-300 ms-3 shadow-sm flex-shrink-0"
                                                                 style={{ backgroundColor: item.selectedColor }}
-                                                                title={item.selectedColor}
+                                                                title={`Color: ${item.selectedColor}`}
                                                             />
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                {/* Eliminar */}
                                                 <div className="basis-1/12 flex items-center justify-center">
                                                     <button 
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             removeFromCart(item.ProductID);
-                                                            handleDropdownClose();
                                                         }}
-                                                        className="p-1 hover:bg-gray-100 rounded text-red-500"
+                                                        className="p-1 hover:bg-gray-100 rounded text-red-500 transition-colors"
+                                                        title="Eliminar producto"
                                                     >
-                                                        <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                        <IoTrashOutline className="w-4 h-4 sm:w-5 sm:h-5" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -370,7 +400,7 @@ export const Navbar = () => {
                                         )}
                                     </div>
 
-                                    {/* Subtotal - CORREGIDO */}
+                                    {/* Subtotal */}
                                     <div className="flex justify-between items-center mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
                                         <span className="font-semibold text-sm sm:text-base">Subtotal:</span>
                                         <span className="font-bold text-base sm:text-lg">
@@ -378,7 +408,7 @@ export const Navbar = () => {
                                         </span>
                                     </div>
 
-                                    {/* Botón para ir al carrito completo */}
+                                    {/* Botón Carrito */}
                                     <div className="mt-3 sm:mt-4">
                                         <Link 
                                             href="/Carrito" 
@@ -405,10 +435,9 @@ export const Navbar = () => {
                     </DropdownMenuTrigger>
                     
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-3 sm:p-4">
-                        {!user ? ( // ✅ Verificar si NO hay usuario
+                        {!user ? (
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 text-center">Iniciar Sesión</h3>
-                                
                                 <div className="text-center space-y-3">
                                     <button 
                                         onClick={handleLoginClick}
@@ -416,11 +445,10 @@ export const Navbar = () => {
                                     >
                                         Iniciar Sesión
                                     </button>
-                                    
                                     <Link 
                                         href="/registro"
                                         onClick={handleDropdownClose}
-                                        className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors"
+                                        className="text-[#DE1484] hover:text-pink-700 text-xs font-medium transition-colors block"
                                     >
                                         ¿No tienes cuenta? Regístrate
                                     </Link>
@@ -468,35 +496,22 @@ export const Navbar = () => {
                                         Configuracion
                                     </Link>
                                     
-                                    <Link 
-                                        href="/historial" 
-                                        className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
-                                        onClick={handleDropdownClose}
-                                    >
+                                    <Link href="/historial" onClick={handleDropdownClose} className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                         </svg>
                                         Historial de Compras
                                     </Link>
                                     
-                                    <Link 
-                                        href="/solicitar_cuenta" 
-                                        className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
-                                        onClick={handleDropdownClose}
-                                    >
+                                    <Link href="/solicitar_cuenta" onClick={handleDropdownClose} className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                         Ser Vendedor
                                     </Link>
                                     
-                                    {/* Si necesitas roles personalizados */}
                                     {user.publicMetadata?.role === 'vendor' && (
-                                        <Link 
-                                            href="/vendedor/app" 
-                                            className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
-                                            onClick={handleDropdownClose}
-                                        >
+                                        <Link href="/vendedor/app" onClick={handleDropdownClose} className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                             </svg>
@@ -507,10 +522,7 @@ export const Navbar = () => {
 
                                 <Separator className="my-3 sm:my-4" />
 
-                                <button 
-                                    onClick={handleLogout}
-                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base flex items-center justify-center gap-2"
-                                >
+                                <button onClick={handleLogout} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base flex items-center justify-center gap-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
@@ -521,7 +533,7 @@ export const Navbar = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Selector de idioma */}
+                {/* ---------------- SELECTOR IDIOMA ---------------- */}
                 <DropdownMenu open={openDropdown === 'language'} onOpenChange={(open) => open ? handleDropdownToggle('language') : handleDropdownClose()}>
                     <DropdownMenuTrigger className="hidden sm:flex p-2 items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px] sm:min-h-[45px] sm:min-w-[45px] md:min-h-[51px] md:min-w-[54px]">
                         <span className="text-xs sm:text-sm font-medium">ES</span>
@@ -529,46 +541,27 @@ export const Navbar = () => {
                     <DropdownMenuContent align="end" className="w-[260px] sm:w-[280px] p-2">
                         <div className="flex-col">
                             {/* Español */}
-                            <div 
-                                className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                                onClick={handleDropdownClose}
-                            >
+                            <div className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={handleDropdownClose}>
                                 <div className="flex items-center">
-                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">
-                                        🇲🇽
-                                    </div>
+                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">🇲🇽</div>
                                     <span className="text-xs sm:text-sm font-medium">Español (México)</span>
                                 </div>
                                 <span className="text-xs sm:text-sm font-bold text-gray-600">ES</span>
                             </div>
-
                             <Separator className="my-1" />
-
                             {/* Inglés */}
-                            <div 
-                                className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                                onClick={handleDropdownClose}
-                            >
+                            <div className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={handleDropdownClose}>
                                 <div className="flex items-center">
-                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">
-                                        🇺🇸
-                                    </div>
+                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">🇺🇸</div>
                                     <span className="text-xs sm:text-sm font-medium">Inglés (EE.UU.)</span>
                                 </div>
                                 <span className="text-xs sm:text-sm font-bold text-gray-600">EN</span>
                             </div>
-
                             <Separator className="my-1" />
-
                             {/* Francés */}
-                            <div 
-                                className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                                onClick={handleDropdownClose}
-                            >
+                            <div className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={handleDropdownClose}>
                                 <div className="flex items-center">
-                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">
-                                        🇫🇷
-                                    </div>
+                                    <div className="w-6 h-5 sm:w-8 sm:h-6 mr-2 sm:mr-3 flex items-center justify-center text-base sm:text-lg">🇫🇷</div>
                                     <span className="text-xs sm:text-sm font-medium">Francés (Francia)</span>
                                 </div>
                                 <span className="text-xs sm:text-sm font-bold text-gray-600">FR</span>
@@ -578,5 +571,5 @@ export const Navbar = () => {
                 </DropdownMenu>
             </div>
         </div>
-    )
-}
+    );
+};

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import { Plantilla } from '@/components/plantilla'
-import  DeliveryAdress  from './Componentes/deliveryAdress'
+import  DeliveryAdress  from './Componentes/deliveryAddress'
 import OrderReview from './Componentes/orderReview'
 import Link from 'next/link'
 import PaymentMethod from './Componentes/paymentMethod'

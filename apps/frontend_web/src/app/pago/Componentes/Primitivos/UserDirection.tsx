@@ -2,7 +2,7 @@ import React from "react";
 import { UserAddressDeriveryProps } from "@/types/interface";
 
 
-export default function AdressTable( {Nombre, Apellido, Calle, Numero, CodigoPostal, Estado, Municipio, Ciudad, Colonia, NumeroDeTelefono, InstruccionesExtra}: UserAddressDeriveryProps) {
+export default function AdressTable( {Nombre, Calle, Numero, NumeroInterior, CodigoPostal, Estado, Municipio, Colonia, NumeroDeTelefono, InstruccionesExtra}: UserAddressDeriveryProps) {
     
     return (
     <div className="max-w-3xl mx-auto p-6">
@@ -14,28 +14,7 @@ export default function AdressTable( {Nombre, Apellido, Calle, Numero, CodigoPos
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Nombre
             </label>
-            <p className="text-gray-900 font-medium">{Nombre} {Apellido}</p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Dirección
-            </label>
-            <p className="text-gray-900">{Calle} {Numero}</p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Estado
-            </label>
-            <p className="text-gray-900">{Estado}</p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Código postal
-            </label>
-            <p className="text-gray-900">{CodigoPostal}</p>
+            <p className="text-gray-900 font-medium">{Nombre}</p>
           </div>
           
           <div>
@@ -44,24 +23,25 @@ export default function AdressTable( {Nombre, Apellido, Calle, Numero, CodigoPos
             </label>
             <p className="text-gray-900">{NumeroDeTelefono}</p>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Dirección
+            </label>
+            <p className="text-gray-900">{Calle} #{Numero} {NumeroInterior ? `interior #${NumeroInterior}` : ''}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Código postal
+            </label>
+            <p className="text-gray-900">{CodigoPostal}</p>
+          </div>
+          
         </div>
         
         {/* Columna Derecha */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Apellido
-            </label>
-            <p className="text-gray-900 font-medium">{Apellido}</p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Ciudad
-            </label>
-            <p className="text-gray-900">{Ciudad}</p>
-          </div>
-          
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Colonia
@@ -75,6 +55,15 @@ export default function AdressTable( {Nombre, Apellido, Calle, Numero, CodigoPos
             </label>
             <p className="text-gray-900">{Municipio}</p>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Estado
+            </label>
+            <p className="text-gray-900">{Estado}</p>
+          </div>
+
+          
         </div>
       </div>
       

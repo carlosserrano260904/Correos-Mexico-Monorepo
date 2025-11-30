@@ -1,55 +1,45 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-// 🔗 Aquí centralizamos las rutas solo cambiar los strings si hace falta
+// Rutas simplificadas para que coincidan con el diseño
 const ROUTES = {
   account: {
-    myAccount: "/Perfil",               // Mi cuenta
-    orders: "/historial-de-compras",    // Órdenes PARA DONDE?
-    addresses: "/pago/MasDirecciones",          // TODO: ajusta cuando tengas esta página PARA DONDE?x2
-    cart: "/Carrito",                   // Carrito de compras
-    sellerRequest: "/registro_vendedor", // Solicitar cuenta de vendedor
+    profile: "/Perfil",                 // Mi perfil
+    orders: "/historial-de-compras",    // Órdenes
+    sellerRequest: "/registro_vendedor" // Solicitar cuenta de vendedor
   },
   customerService: {
-    viewedProducts: "/productos-vistos",// Productos vistos (ajusta si usas otro path) PARA DONDE?x3
-    newProducts: "/nuevos-productos",   // Nuevos productos PARA DONDE?4
-    offices: "/CorreosMX/ubicaciones",  // Oficinas postales
-    sellerSolutions: "/Vendedor/app",   // SolucionesClic vendedor (panel vendedor)
-    mexpost: "/CorreosMX",              // MEXPOST
-  },
-  legal: {
-    terms: "/terminos-condiciones",
-    sitemap: "/mapa-sitio",             // Ajusta cuando tengas esta vista
-  },
+    newProducts: "/nuevos-productos",   // Nuevos productos
+    terms: "/terminos-condiciones",     // Términos y condiciones
+    mexpost: "/CorreosMX"               // MEXPOST
+  }
 };
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-white text-gray-700 text-sm mt-10 border-t pt-10 pb-5">
-      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Logo y nombre */}
-        <div>
-          <div className="flex items-center space-x-2 mb-2">
-            <img
-              src="/logoCorreos.png"
-              alt="Logo de Correos"
-              width={150}
-              height={58}
-            />
-          </div>
-          <p className="text-xs">SERVICIO POSTAL MEXICANO</p>
+    <footer className="bg-[#f6f6f6] text-gray-800 text-sm">
+      <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Logo */}
+        <div className="flex items-start">
+          <Image
+            src="/logoCorreos.png"
+            alt="Logo de Correos"
+            width={170}
+            height={60}
+          />
         </div>
 
         {/* Mi cuenta */}
         <div>
-          <h3 className="font-semibold mb-2">Mi cuenta</h3>
-          <ul className="space-y-1">
+          <h3 className="font-semibold mb-3">Mi cuenta</h3>
+          <ul className="space-y-2">
             <li>
               <Link
-                href={ROUTES.account.myAccount}
+                href={ROUTES.account.profile}
                 className="hover:text-pink-600 transition-colors"
               >
-                Mi cuenta
+                Mi perfil
               </Link>
             </li>
             <li>
@@ -58,22 +48,6 @@ const Footer: React.FC = () => {
                 className="hover:text-pink-600 transition-colors"
               >
                 Órdenes
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={ROUTES.account.addresses}
-                className="hover:text-pink-600 transition-colors"
-              >
-                Direcciones
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={ROUTES.account.cart}
-                className="hover:text-pink-600 transition-colors"
-              >
-                Carrito de compras
               </Link>
             </li>
             <li>
@@ -89,16 +63,8 @@ const Footer: React.FC = () => {
 
         {/* Servicio al cliente */}
         <div>
-          <h3 className="font-semibold mb-2">Servicio al cliente</h3>
-          <ul className="space-y-1">
-            <li>
-              <Link
-                href={ROUTES.customerService.viewedProducts}
-                className="hover:text-pink-600 transition-colors"
-              >
-                Productos vistos
-              </Link>
-            </li>
+          <h3 className="font-semibold mb-3">Servicio al cliente</h3>
+          <ul className="space-y-2">
             <li>
               <Link
                 href={ROUTES.customerService.newProducts}
@@ -109,24 +75,16 @@ const Footer: React.FC = () => {
             </li>
             <li>
               <Link
-                href={ROUTES.customerService.offices}
+                href={ROUTES.customerService.terms}
                 className="hover:text-pink-600 transition-colors"
               >
-                Oficinas postales
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={ROUTES.customerService.sellerSolutions}
-                className="hover:text-pink-600 transition-colors"
-              >
-                SolucionesClic vendedor
+                Términos y condiciones
               </Link>
             </li>
             <li>
               <Link
                 href={ROUTES.customerService.mexpost}
-                className="text-pink-600 hover:text-pink-700 font-medium transition-colors inline-block mt-1"
+                className="text-pink-600 font-medium hover:text-pink-700 transition-colors"
               >
                 MEXPOST
               </Link>
@@ -134,33 +92,20 @@ const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* Contacto */}
+        {/* Contáctenos */}
         <div>
-          <h3 className="font-semibold mb-2">Contáctenos</h3>
-          <p>Atención a clientes:</p>
-          <p className="text-pink-600">@contactocc@correosdemexico.gob.mx</p>
-          <p className="mt-2">Horarios de atención:</p>
-          <p>De Lunes a Viernes de 9:00 hrs a 18:00 hrs</p>
-          <p className="text-pink-600 mt-1">Atención solo en días hábiles</p>
-        </div>
-      </div>
+          <h3 className="font-semibold mb-3">Contáctenos</h3>
+          <p className="mb-1">Atención a clientes:</p>
+          <p className="text-pink-600 mb-3">
+            @contactocc@correosdemexico.gob.mx
+          </p>
 
-      {/* Footer inferior */}
-      <div className="max-w-6xl mx-auto px-4 mt-10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 border-t pt-4">
-        <p>©2025 Correos Clic. Todos los derechos reservados</p>
-        <div className="flex space-x-4 mt-2 md:mt-0">
-          <Link
-            href={ROUTES.legal.terms}
-            className="hover:text-pink-600 transition-colors"
-          >
-            Términos y condiciones 
-          </Link>
-          <Link
-            href={ROUTES.legal.sitemap}
-            className="hover:text-pink-600 transition-colors"
-          >
-            Mapa del sitio
-          </Link>
+          <p className="mb-1">Horarios de atención:</p>
+          <p className="mb-3">Lunes a Viernes de 9:00 hrs a 18:00 hrs</p>
+
+          <p className="text-pink-600 font-semibold">
+            Atención solo en días hábiles
+          </p>
         </div>
       </div>
     </footer>

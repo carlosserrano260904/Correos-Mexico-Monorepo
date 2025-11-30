@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { CartItemProps } from "@/components/cartcard";
 import { SeguimientoPaquete } from "./SeguimientoPaquete";
+import { useRouter } from "next/navigation";
 
 interface OrderCardListProps {
   className?: string;
@@ -16,7 +17,7 @@ interface OrderCardListProps {
 }
 
 export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps) => {
-
+  const router = useRouter();
   const infoEnvio = {
     numeroDeSeguimiento: "MX123456789",
     transportista: "Correos de México",
@@ -111,7 +112,9 @@ export const HistorialDeCompras = ({ className = "", items }: OrderCardListProps
                   md:ml-auto
                 "
               >
-                <button className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700 cursor-pointer w-full md:w-auto">
+                <button 
+                onClick={() => router.push("/historial-de-compras/resumen")}
+                className="bg-pink-600 text-white px-6 py-2 rounded-full text-sm hover:bg-pink-700 cursor-pointer w-full md:w-auto">
                   Ver compras
                 </button>
 

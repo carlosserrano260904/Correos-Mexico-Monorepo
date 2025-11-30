@@ -8,7 +8,7 @@ import { useProducts } from '@/hooks/useProduct'
 import { CuponProps } from '@/types/interface'
 import Link from 'next/link'
 
-export const ResumenCompra = ({ className }: { className: string }) => {
+export const ResumenCompra = ({ className, texto="Continuar Compra", link="/pago" }: { className: string, texto?: string, link?: string }) => {
   const { 
     getSelectedItems, 
     getSubtotal, 
@@ -282,13 +282,13 @@ export const ResumenCompra = ({ className }: { className: string }) => {
       </div>
       
       <div className='w-full mt-4'>
-        <Link href={'/pago/'}>
+        <Link href={link}>
           <button 
             onClick={handleContinueCheckout}
             disabled={selectedItems.length === 0}
-            className='rounded-3xl bg-[#DE1484] text-white font-semibold w-full px-3 py-2 hover:bg-[#c41374] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            className='rounded-3xl bg-[#DE1484] text-white font-semibold w-full px-3 py-2 hover:bg-[#c41374] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
           >
-            Continuar Compra ({selectedItems.length} productos)
+            {texto} ({selectedItems.length} productos)
           </button>
         </Link>
       </div>

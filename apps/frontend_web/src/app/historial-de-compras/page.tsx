@@ -9,7 +9,7 @@ import { HistorialDeCompras } from '@/components/HistorialDeCompras'
 
 export default function Page() {
   const { products } = useProducts();
-  //const { items } = useCart(); // ✅ Cambiar CartItems por items
+  //const { items } = useCart(); // Cambiar CartItems por items
   const items = [
     {
         ProductID: 1,
@@ -51,7 +51,7 @@ export default function Page() {
     }
     ];
 
-  console.log('🛒 Carrito - items:', items); // Debug
+  console.log('Carrito - items:', items); // Debug
 
   return (
     <Plantilla>

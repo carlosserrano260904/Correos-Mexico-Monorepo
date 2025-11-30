@@ -16,18 +16,12 @@ interface ProductDetailsProps {
     ProductDescription: string;
     ProductCategory: string;
     ProductStock: number;
-    // ProductSizes?: string[];  ← YA NO SE USA
   };
 }
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
-  // 🔥🔥🔥 TALLAS 100% FRONTEND 🔥🔥🔥
-  const fallbackSizes = ["XS", "S", "M", "L", "XL"];
-  const sizes = fallbackSizes;
-
   const [selectedColor, setSelectedColor] = useState<string>(product.ProductColors?.[0] || '#000');
-  const [selectedSize, setSelectedSize] = useState<string>(sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -41,7 +35,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     currency: 'MXN',
   }).format(product.productPrice);
 
-  // 🔥 Si tu backend trae varias imágenes, las jalas aquí
+  // 🔥 Tus imágenes
   const productImages = [
     product.ProductImageUrl,
     product.ProductImageUrl,
@@ -59,35 +53,15 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+    <div className=" bg-gradient-to-br from-gray-50 to-white rounded-2xl overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center  py-10">
+
 
         {/* LEFT COLUMN */}
-        <div className="flex gap-6">
-          
-          {/* Thumbs */}
-          <div className="flex flex-col gap-3 overflow-y-auto max-h-[520px] pr-2">
-            {productImages.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveImage(index)}
-                className={`w-20 h-24 rounded-lg overflow-hidden border-2 ${
-                  activeImage === index ? 'border-[#DE1484]' : 'border-gray-200'
-                }`}
-              >
-                <SafeImage
-                  src={image}
-                  alt={`${product.ProductName} mini ${index}`}
-                  width={120}
-                  height={120}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-col md:flex-row gap-6">
 
-          {/* Main image */}
-          <div className="relative flex-1">
+          {/* Imagen principal */}
+          <div className="relative flex-1 order-1 md:order-none">
             <SafeImage
               src={productImages[activeImage]}
               alt={product.ProductName}
@@ -107,6 +81,39 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 <IoHeartOutline className="w-6 h-6 text-gray-700" />
               )}
             </button>
+          </div>
+
+          {/* Miniaturas — vertical en desktop, horizontal en móvil */}
+          <div className="
+            flex 
+            md:flex-col 
+            gap-3 
+            overflow-x-auto md:overflow-y-auto 
+            order-2
+            md:order-none
+            mt-4 md:mt-0
+            max-w-full
+          ">
+            {productImages.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveImage(index)}
+                className={`
+                  w-20 h-20 md:w-20 md:h-24 
+                  rounded-lg overflow-hidden border-2 
+                  flex-shrink-0
+                  ${activeImage === index ? 'border-[#DE1484]' : 'border-gray-200'}
+                `}
+              >
+                <SafeImage
+                  src={image}
+                  alt={`${product.ProductName} mini ${index}`}
+                  width={120}
+                  height={120}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
           </div>
 
         </div>
@@ -142,34 +149,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             </div>
           </div>
 
-          {/* TALLAS — SIEMPRE FRONTEND */}
-          {product.ProductCategory === "Moda y Calzado" && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Talla</h3>
-
-              <div className="flex gap-3">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm border 
-                      ${
-                        selectedSize === size
-                          ? 'border-[#DE1484] text-[#DE1484] font-semibold'
-                          : 'border-gray-300 text-gray-800'
-                      }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-
-              <button className="mt-3 text-[#DE1484] text-sm font-medium underline">
-                Encontrar mi talla
-              </button>
-            </div>
-          )}
-
           {/* Quantity */}
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-2">Cantidad</h3>
@@ -203,7 +182,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           </button>
 
         </div>
-
       </div>
     </div>
   );

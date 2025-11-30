@@ -1,4 +1,3 @@
-// apps/frontend_web/app/Producto/[id]/page.tsx
 'use client';
 
 import React from 'react';
@@ -17,6 +16,7 @@ export default function ProductDetailPage() {
   const { product, loading, error } = useProductById(productId);
   const { products } = useProducts();
 
+  /* LOADING */
   if (loading) {
     return (
       <Plantilla>
@@ -49,15 +49,13 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <Plantilla>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              {error ? 'Error' : 'Producto no encontrado'}
-            </h2>
-            <p className="text-gray-600">
-              {error || 'El producto que buscas no existe.'}
-            </p>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            {error ? 'Error' : 'Producto no encontrado'}
+          </h2>
+          <p className="text-gray-600">
+            {error || 'El producto que buscas no existe.'}
+          </p>
         </div>
       </Plantilla>
     );
@@ -66,18 +64,29 @@ export default function ProductDetailPage() {
   return (
     <Plantilla>
       <div className="space-y-12 lg:space-y-16">
+        {/* Detalles del Producto */}
+          <ProductDetails product={product} />
 
-        {/* Detalles principales del producto */}
-        <ProductDetails product={product} />
-        
-        {/* Historia / descripción del producto */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Historia / Descripción */}
           <ProductStory
             title={product.ProductName}
-            description={product.ProductDescription || 'Producto de alta calidad con los mejores materiales y diseño único.'}
+            description={product.ProductDescription || 'Producto de alta calidad.'}
             imageUrl={product.ProductImageUrl}
             imageAlt={product.ProductName}
           />
+
+        {/* Carousel Detalles */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <CarouselDetalles
+          items={[
+            { image: product.ProductImageUrl, description: product.ProductDescription },
+            { image: product.ProductImageUrl, description: product.ProductDescription },
+            { image: product.ProductImageUrl, description: product.ProductDescription },
+            { image: product.ProductImageUrl, description: product.ProductDescription } // ← Esta ya no se mostrará
+          ]}
+  limit={3}
+/>
+
         </div>
 
         {/* Sección de Reseñas - Usando el componente completo */}
@@ -88,8 +97,8 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Productos relacionados */}
-        {products && products.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {products?.length > 0 && (
+          <div className=" mx-auto px-4 sm:px-6 lg:px-8">
             <CarrouselProducts
               entradas={products}
               title="Productos relacionados"
@@ -99,8 +108,8 @@ export default function ProductDetailPage() {
         )}
 
         {/* También te puede interesar */}
-        {products && products.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {products?.length > 0 && (
+          <div className=" mx-auto px-4 sm:px-6 lg:px-8">
             <CarrouselProducts
               entradas={products}
               title="También te puede interesar"

@@ -135,6 +135,11 @@ export default function HomeUser() {
   const [searchText, setSearchText] = React.useState('');
   const insets = useSafeAreaInsets();
 
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [currentIndex2, setCurrentIndex2] = React.useState(0);
+  const carouselRef = React.useRef<ScrollView>(null);
+  const carousel2Ref = React.useRef<ScrollView>(null);
+
   const handleSignOut = async () => {
         try {
         await logout();
@@ -162,25 +167,68 @@ export default function HomeUser() {
   const navigation = useNavigation<NavigationProp>();
 
   const handleNavigateToProducts = (categoria: string) => {
-    // Navega a la pantalla 'Productos' y pasa el parámetro 'categoria'
     navigation.navigate('ProductsScreen', { categoria, searchText: undefined });
   };
 
   const handleSearchSubmit = () => {
     const trimmedText = searchText.trim();
     if (trimmedText) {
-      // Navega a la pantalla de productos pasando el texto de búsqueda
       navigation.navigate('ProductsScreen', { searchText: trimmedText, categoria: undefined });
-      setSearchText(''); // Opcional: limpiar el buscador después de navegar
+      setSearchText('');
     }
   };
+
+  // Función para manejar el scroll del primer carrusel
+  const handleScroll1 = (event: any) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / screenWidth);
+    setCurrentIndex(newIndex);
+  };
+
+  // Función para manejar el scroll del segundo carrusel
+  const handleScroll2 = (event: any) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / screenWidth);
+    setCurrentIndex2(newIndex);
+  };
+
+  // Auto scroll para el primer carrusel
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % imageData.length;
+        carouselRef.current?.scrollTo({
+          x: nextIndex * screenWidth,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+  // Auto scroll para el segundo carrusel
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex2((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % imageData.length;
+        carousel2Ref.current?.scrollTo({
+          x: nextIndex * screenWidth,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       const fetchProducts = async () => {
         try {
           setLoading(true);
-          setError(null); // Limpiar errores previos al reintentar
+          setError(null);
           const response = await fetch(`${API_URL}/api/products/some`);
           if (!response.ok) {
             throw new Error('Error al obtener los productos');
@@ -198,26 +246,6 @@ export default function HomeUser() {
     }, [])
   );
 
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const carouselRef = React.useRef<ScrollView>(null);
-  const carousel2Ref = React.useRef<ScrollView>(null);
-
-  // Auto scroll para el primer carrusel
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % imageData.length;
-        carouselRef.current?.scrollTo({
-          x: nextIndex * screenWidth,
-          animated: true,
-        });
-        return nextIndex;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const renderCarouselItem = (item: any, index: number) => (
     <View key={index} style={[styles.carouselItem, { width: screenWidth }]}>
       <Image source={item.image} style={styles.carouselImage} />
@@ -227,6 +255,14 @@ export default function HomeUser() {
   const onPressPagination = (index: number) => {
     setCurrentIndex(index);
     carouselRef.current?.scrollTo({
+      x: index * screenWidth,
+      animated: true,
+    });
+  };
+
+  const onPressPagination2 = (index: number) => {
+    setCurrentIndex2(index);
+    carousel2Ref.current?.scrollTo({
       x: index * screenWidth,
       animated: true,
     });
@@ -278,6 +314,7 @@ export default function HomeUser() {
 
         <CorreosClicButton />
 
+        {/* PRIMER CARRUSEL */}
         <View style={styles.carouselContainer}>
           <ScrollView
             ref={carouselRef}
@@ -285,15 +322,13 @@ export default function HomeUser() {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.carousel}
-            onScrollEndDrag={(event) => {
-              const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
-              setCurrentIndex(newIndex);
-            }}
+            onScroll={handleScroll1}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={handleScroll1}
           >
             {imageData.map((item, index) => renderCarouselItem(item, index))}
           </ScrollView>
           
-          {/* Pagination dots */}
           <View style={styles.pagination}>
             {imageData.map((_, index) => (
               <TouchableOpacity
@@ -361,6 +396,7 @@ export default function HomeUser() {
           </View>
         </View>
 
+        {/* SEGUNDO CARRUSEL */}
         <View style={styles.carouselContainer}>
           <ScrollView
             ref={carousel2Ref}
@@ -368,19 +404,22 @@ export default function HomeUser() {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.carousel}
+            onScroll={handleScroll2}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={handleScroll2}
           >
             {imageData2.map((item, index) => renderCarouselItem(item, index))}
           </ScrollView>
           
-          {/* Pagination dots */}
           <View style={styles.pagination}>
             {imageData2.map((_, index) => (
-              <View
+              <TouchableOpacity
                 key={index}
                 style={[
                   styles.paginationDot,
-                  index === 0 && styles.paginationDotActive, // Por defecto el primero
+                  currentIndex2 === index && styles.paginationDotActive,
                 ]}
+                onPress={() => onPressPagination2(index)}
               />
             ))}
           </View>
@@ -411,7 +450,6 @@ export default function HomeUser() {
       </TouchableOpacity>
     </>
   )
-  
 }
 
 const styles = StyleSheet.create({
@@ -432,14 +470,14 @@ const styles = StyleSheet.create({
   iconsHeader: {
     width: moderateScale(52),
     height: moderateScale(52),
-    borderRadius: "100%",
+    borderRadius: 100,
     backgroundColor: "#F3F4F6",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: moderateScale(12)
   },
   textLenguage: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(16),
   },
   searchBarContainer: {
@@ -486,7 +524,7 @@ const styles = StyleSheet.create({
     marginRight: moderateScale(12)
   },
   correosClicText: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(24),
     color: "#121212"
   },
@@ -511,7 +549,7 @@ const styles = StyleSheet.create({
   },
   textCategories: {
     paddingLeft: moderateScale(12),
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(20),
     marginBottom: moderateScale(12)
   },
@@ -532,7 +570,7 @@ const styles = StyleSheet.create({
     marginRight: moderateScale(32),
   },
   modulesCategoriesText: {
-    fontWeight: 400,
+    fontWeight: "400",
     fontSize: moderateScale(12),
     textAlign: "center",
     marginTop: moderateScale(4)
@@ -546,12 +584,12 @@ const styles = StyleSheet.create({
     flexDirection: "column"
   },
   textVendedor: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(20),
     marginBottom: moderateScale(12)
   },
   textTitleVendedor: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(16),
     marginBottom: moderateScale(4)
   },
@@ -567,12 +605,12 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(12)
   },
   textVendedorFonart: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(16),
   },
   seeAll: {
     fontSize: moderateScale(14),
-    fontWeight: 400,
+    fontWeight: "400",
     color: "#DE1484"
   },
   featuredProductContainer: {
@@ -588,7 +626,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(12)
   },
   textFeaturedProduct: {
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: moderateScale(16),
   },
   customerServiceContainer: {
@@ -602,7 +640,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Estilos para el carrusel personalizado
   carouselContainer: {
     marginVertical: moderateScale(10),
   },
@@ -614,7 +651,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: screenHeight * 0.22,
   },
-  //Ajustar margen del carrusel
   carouselImage: {
     width: '90%',
     height: '100%',
@@ -622,7 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(10),
     alignSelf: 'center',
     overflow: 'hidden',
-},
+  },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',

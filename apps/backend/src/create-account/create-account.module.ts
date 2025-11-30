@@ -3,7 +3,7 @@ import { CreateAccountService } from './create-account.service';
 import { CreateAccountController } from './create-account.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateAccount } from './entities/create-account.entity';
-import { EnviarCorreosService } from 'src/enviar-correos/enviar-correos.service';
+import { EnviarCorreosService } from '../enviar-correos/enviar-correos.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CreateAccount])],

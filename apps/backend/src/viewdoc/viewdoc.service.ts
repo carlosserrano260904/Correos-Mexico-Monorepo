@@ -15,9 +15,11 @@ export class ViewdocService {
     const region = this.config.get<string>('AWS_REGION')!;
     const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID')!;
     const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY')!;
+    const endpoint = config.get<string>('AWS_S3_ENDPOINT');
 
     this.s3 = new S3Client({
       region,
+      endpoint,
       credentials: { accessKeyId, secretAccessKey },
       forcePathStyle: true,
     });

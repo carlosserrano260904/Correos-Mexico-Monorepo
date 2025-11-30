@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateCardDto } from './dto/create-card.dto';
 import { Card } from './entities/card.entity';
 import { ConfigService } from '@nestjs/config';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class CardsService {
@@ -27,7 +27,7 @@ export class CardsService {
     private readonly cardRepository: Repository<Card>,
     private readonly configService: ConfigService,
   ) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRETE_KEY!, {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2025-08-27.basil',
     });
   }

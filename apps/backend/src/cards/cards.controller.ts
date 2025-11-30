@@ -1,9 +1,9 @@
 import { Controller, Post, Body, Get, Param, Delete, UseGuards, NotFoundException, Req } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../profile/entities/profile.entity';
 import { Repository } from 'typeorm';
 
 @Controller('cards')

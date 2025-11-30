@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Favorito } from 'src/favoritos/entities/favorito.entity';
-import { Carrito } from 'src/carrito/entities/carrito.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Favorito } from '../../favoritos/entities/favorito.entity';
+import { Carrito } from '../../carrito/entities/carrito.entity';
+import { Profile } from '../../profile/entities/profile.entity';
 
 @Entity('usuarios')
 export class CreateAccount {

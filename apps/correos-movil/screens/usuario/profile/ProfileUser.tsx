@@ -24,7 +24,7 @@ type ProfileNavProp = NativeStackNavigationProp<RootStackParamList, 'ProfileUser
 
 export default function ProfileUser({ navigation }: { navigation: ProfileNavProp }) {
   const isFocused = useIsFocused();
-  const { logout, userId } = useMyAuth();
+  const { logout, userId, userRol } = useMyAuth();
   const { user } = useUser();
   const [usuario, setUsuario] = useState<SchemaProfileUser | null>(null);
 
@@ -34,9 +34,10 @@ export default function ProfileUser({ navigation }: { navigation: ProfileNavProp
     (async () => {
 
       try {
-        if (userId) {
+        if (userId && userRol) {
           const perfil = await usuarioPorId(parseInt(userId, 10));
           setUsuario(perfil);
+          console.log('Rol del usuario:', userRol);
         } else {
           console.warn('⚠️ No se encontró userId en AuthContext');
         }
@@ -194,17 +195,32 @@ if (!usuario) {
               <Icon name="chevron-right" size={20} color="red" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.item}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('FormularioVendedor')}
-            >
-              <View style={styles.itemLeft}>
-                <Icon name="box" size={20} color="#E6007A" />
-                <Text style={[styles.itemText, { color: '#E6007A' }]}>Convierte en vendedor</Text>
-              </View>
-              <Icon name="chevron-right" size={20} color="#E6007A" />
-            </TouchableOpacity>
+            {
+              userRol !== 'vendedor' ? 
+              <TouchableOpacity
+                style={styles.item}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('FormularioVendedor')}
+              >
+                <View style={styles.itemLeft}>
+                  <Icon name="box" size={20} color="#E6007A" />
+                  <Text style={[styles.itemText, { color: '#E6007A' }]}>Convierte en vendedor</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color="#E6007A" />
+              </TouchableOpacity> 
+              : 
+              <TouchableOpacity
+                style={styles.itemSeller}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('TabsVendedor' as never)}
+              >
+                <View style={styles.itemLeft}>
+                  <Icon name="box" size={20} color="#fff" />
+                  <Text style={[styles.itemText, { color: '#fff' }]}>Panel de vendedor</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color="#fff" />
+              </TouchableOpacity>
+            } 
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -275,6 +291,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
+    padding: moderateScale(14),
+    marginBottom: moderateScale(10),
+    borderRadius: moderateScale(10),
+  },
+  itemSeller: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#E6007A',
     padding: moderateScale(14),
     marginBottom: moderateScale(10),
     borderRadius: moderateScale(10),

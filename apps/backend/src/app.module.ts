@@ -34,7 +34,7 @@ import { ClerkModule } from './clerk/clerk.module';
 import { ShippingRateModule } from './shipping_rates/shipping_rates.module';
 import { Ubicaciones } from './ubicaciones/ubicaciones.module';
 import { EnviosModule } from './envios/envios.module';
-import { StripeModule } from './stripe/stripe.module';
+import { StripeModule } from './payments/stripe.module';
 import { CardsModule } from './cards/cards.module';
 import { VendedorModule } from './vendedor/vendedor.module';
 import { EmailModule } from './enviar-correos/enviar-correos.module';
@@ -43,7 +43,7 @@ import { EjemploUsarGuiasModule } from './ejemploUsarGuias/ejemploUsarGuias.modu
 import { CategoriesModule } from './categories/categories.module';
 import { ReviewModule } from './review/review.module';
 import {PDFGeneratorModule} from './guias_trazabilidad/infrastructure/pdf-generator/pdf-generator.module';
-
+import { CouponModule } from './coupons/coupons.module';
 
 @Module({
   imports: [
@@ -91,6 +91,7 @@ import {PDFGeneratorModule} from './guias_trazabilidad/infrastructure/pdf-genera
     CategoriesModule,
     ReviewModule,
     PDFGeneratorModule,
+    CouponModule,
   ],
   controllers: [AppController, PostalController],
   providers: [AppService, PostalService],

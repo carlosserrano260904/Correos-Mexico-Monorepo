@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileService } from './profile.service';
 import { ProfileController } from './profile.controller';
 import { Profile } from './entities/profile.entity';
-import { UploadImageModule } from 'src/upload-image/upload-image.module';
+import { UploadImageModule } from '../upload-image/upload-image.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Profile]), UploadImageModule],

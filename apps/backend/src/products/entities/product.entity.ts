@@ -4,7 +4,8 @@ import { Favorito } from "../../favoritos/entities/favorito.entity";
 import { Carrito } from "../../carrito/entities/carrito.entity";
 import { ProductImage } from "./product-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { Review } from "src/review/entities/review.entity"; 
+import { Review } from "../../review/entities/review.entity"; 
+import { CreatedCouponEntity } from "../../coupons/entities/created-coupon.entity";
 
 @Entity("productos")
 export class Product {
@@ -114,4 +115,8 @@ export class Product {
   })
   @OneToMany(() => Review, (review) => review.product, { cascade: true })
   reviews: Review[];
+
+  @OneToMany(() => CreatedCouponEntity, (coupon) => coupon.product)
+  createdCoupons?: CreatedCouponEntity[];
+
 }

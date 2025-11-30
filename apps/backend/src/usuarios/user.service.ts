@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Not, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateAccount } from 'src/create-account/entities/create-account.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { CreateAccount } from '../create-account/entities/create-account.entity';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class UserService {

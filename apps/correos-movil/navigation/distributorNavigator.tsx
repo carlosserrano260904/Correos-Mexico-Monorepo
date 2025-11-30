@@ -7,14 +7,10 @@ import MainPageDistributor from '../screens/repartidor/MainPageDistributor';
 import NameOfReceivePerson from '../screens/repartidor/NameOfReceivePerson';
 import PackageScreen from '../screens/repartidor/PackageScreen';
 import PackagesListCarrier from '../screens/repartidor/PackagesListCarrier';
-import PackagesListDistributor from '../screens/repartidor/PackagesListDistributor';
 import QRScannerScreen from '../screens/repartidor/QRScannerScreen';
 import ReceivePackage from '../screens/repartidor/ReceivePackage';
-import RoutesView from '../screens/repartidor/RoutesView';
-import TakeEvidenceScreen from '../screens/repartidor/TakeEvidenceScreen';
 import MainLoadPackagesDistributor from '../screens/repartidor/MainLoadPackagesDistributor';
 import MapRouteView from '../screens/repartidor/MapRouteView';
-import ListViewDistributor from '../screens/repartidor/ListViewDistributor';
 import TakeEvidencePhotoScreen from '../screens/repartidor/TakeEvidencePhotoScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,14 +25,10 @@ export default function DistributorNavigator() {
             <Stack.Screen name="NombreQuienRecibe" component={NameOfReceivePerson} options={{headerShown: false}} />
             <Stack.Screen name="PackageScreen" component={PackageScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PackagesListCarrier" component={PackagesListCarrier} options={{headerShown: false}} />
-            <Stack.Screen name="PackagesList" component={PackagesListDistributor} options={{ headerShown: false, gestureEnabled: false }} />
             <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ headerShown: false }} />
             <Stack.Screen name="RecibirPaquete" component={ReceivePackage} options={{ headerShown: false }} />
-            <Stack.Screen name="RoutesView" component={RoutesView} options={{ headerShown: false }} />
-            <Stack.Screen name="TomarEvidencia" component={TakeEvidenceScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MainLoadPackagesDistributor" component={MainLoadPackagesDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="MapRouteView" component={MapRouteView} options={{ headerShown: false }} />
-            <Stack.Screen name="ListViewDistributor" component={ListViewDistributor} options={{ headerShown: false }} />
             <Stack.Screen name="TakeEvidencePhoto" component={TakeEvidencePhotoScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );

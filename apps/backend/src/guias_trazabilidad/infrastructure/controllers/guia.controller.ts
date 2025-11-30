@@ -12,8 +12,8 @@ import { ObtenerGuiaPorNumeroQuery } from "../../application/use-cases/obtener-g
 import { ListarGuiasQuery } from "../../application/use-cases/listar-guias/listar-guias.query";
 import { ListarIncidenciasQuery } from "../../application/use-cases/listar-incidencias/listar-incidencias.query";
 import { ListarContactosQuery } from "../../application/use-cases/listar-contactos/listar-contactos.query";
-import { CrearQRDto } from "src/guias_trazabilidad/application/use-cases/crear-QR-guia-terminal/dtos/crear-qr.dto";
-import { CrearQRCommand } from "src/guias_trazabilidad/application/use-cases/crear-QR-guia-terminal/crear-qr.command";
+import { CrearQRDto } from '../../../guias_trazabilidad/application/use-cases/crear-QR-guia-terminal/dtos/crear-qr.dto';
+import { CrearQRCommand } from '../../../guias_trazabilidad/application/use-cases/crear-QR-guia-terminal/crear-qr.command';
 
 @ApiTags('Guías')
 @Controller('guias')

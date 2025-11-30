@@ -5,7 +5,7 @@ import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
-// 1. Interfaz actualizada: Eliminamos 'rfc'
+
 interface PerfilForm {
   nombre: string;
   apellidos: string;
@@ -79,7 +79,6 @@ export default function Perfil() {
     setForm(datos);
     setPerfilOriginal(datos);
     setCargando(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user]); 
 
   const handleBack = () => {

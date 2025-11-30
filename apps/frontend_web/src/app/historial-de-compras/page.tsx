@@ -55,6 +55,9 @@ export default function Page() {
 
   return (
     <Plantilla>
+      <h1 className="text-3xl font-bold my-6 ml-4 text-gray-800">
+        Historial de compras
+      </h1>
       <HistorialDeCompras items={items}></HistorialDeCompras>
       <CarrouselProducts entradas={products} title='También te podría interesar'/>
     </Plantilla>

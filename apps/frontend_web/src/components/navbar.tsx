@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {IoMenu, IoSearchOutline, IoMicOutline, IoAppsOutline, IoHeartOutline, IoHeartSharp, IoBagOutline, IoPersonOutline, IoTrashOutline} from "react-icons/io5";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Separator } from "./ui/separator";
@@ -12,6 +13,7 @@ import { useUser, useClerk } from '@clerk/nextjs';
 const categories = ["Ropa", "Hogar", "Joyería y Bisutería", "Alimentos y Bebidas", "Belleza y Cuidado Personal", "Cocina", "Electronica", "Herramienta", "Artesanal"];
 
 export const Navbar = () => {
+    const router = useRouter();
     const { Favorites, removeFromFavorites, getTotalFavorites } = useFavorites();
     
     // Agregamos 'addToCart' para la funcionalidad de favoritos
@@ -29,6 +31,7 @@ export const Navbar = () => {
     
     const [isMounted, setIsMounted] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
 
     useEffect(() => {
         setIsMounted(true);
@@ -58,6 +61,25 @@ export const Navbar = () => {
     const handleLogout = async () => {
         await signOut();
         handleDropdownClose();
+    };
+
+    // Función para manejar la búsqueda
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (searchTerm.trim()) {
+            // Navegar a la página de resultados de búsqueda
+            router.push(`/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm(""); // Limpiar el input después de buscar
+            handleDropdownClose();
+        }
+    };
+
+    // Función para búsqueda con Enter
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch(e);
+        }
     };
 
      // Variables de estado
@@ -118,27 +140,55 @@ export const Navbar = () => {
 
             {/* Barra de búsqueda - Ocultar en móvil pequeño */}
             <div className="hidden sm:flex flex-1 w-full me-2 md:me-4 ms-1">
-                <div className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+                <form onSubmit={handleSearch} className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <IoSearchOutline className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     </div>
                     <input
                         type="text"
                         placeholder="Buscar un producto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         className="block w-full pl-10 pr-3 py-2 rounded-4xl min-h-[40px] sm:min-h-[45px] md:min-h-[51px] bg-[#F3F4F6] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 text-sm sm:text-base"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <IoMicOutline className="w-4 h-4 sm:w-5 sm:h-5 stroke-[6]" />
-                    </div>
-                </div>
+                    <button 
+                        type="submit"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-100 rounded-full p-1 transition-colors"
+                    >
+                        <IoMicOutline className="w-4 h-4 sm:w-5 sm:h-5 stroke-[6] text-gray-500 hover:text-gray-700" />
+                    </button>
+                </form>
             </div>
 
             {/* Íconos de la derecha */}
             <div className="flex items-center gap-x-1 sm:gap-x-2">
                 {/* Botón búsqueda móvil */}
-                <div className="sm:hidden p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px]">
-                    <IoSearchOutline className="w-4 h-4" />
-                </div>
+                <DropdownMenu open={openDropdown === 'search'} onOpenChange={(open) => open ? handleDropdownToggle('search') : handleDropdownClose()}>
+                    <DropdownMenuTrigger className="sm:hidden p-2 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-600 bg-[#F3F4F6] min-h-[40px] min-w-[40px]">
+                        <IoSearchOutline className="w-4 h-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[300px] p-4">
+                        <div className="flex-col">
+                            <h3 className="text-lg font-semibold mb-3">Buscar productos</h3>
+                            <form onSubmit={handleSearch} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="¿Qué estás buscando?"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 text-sm"
+                                />
+                                <button 
+                                    type="submit"
+                                    className="px-4 py-2 bg-[#DE1484] text-white rounded-lg hover:bg-pink-700 transition-colors"
+                                >
+                                    <IoSearchOutline className="w-4 h-4" />
+                                </button>
+                            </form>
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* App */}
                 <DropdownMenu open={openDropdown === 'app'} onOpenChange={(open) => open ? handleDropdownToggle('app') : handleDropdownClose()}>

@@ -60,28 +60,31 @@ export const HeroBanner: React.FC = () => {
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
-        <CarouselContent className="ml-0">
-          {banners.map((banner, index) => (
-            <CarouselItem key={banner.id} className="pl-0">
-              {/* --- TAMAÑOS AJUSTADOS --- */}
-              {/* Alturas reducidas para que no ocupe tanto espacio:
-                  Móvil: 200px 
-                  Tablet: 300px 
-                  Laptop: 400px 
-                  Desktop: 500px 
-              */}
-              <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px]">
-                {/* Reemplazo de Next Image por img estándar */}
-                <img
-                  src={banner.image}
-                  alt={banner.alt}
-                  className="w-full h-full object-cover absolute inset-0"
-                />
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        
+        <Link href="/categories?category=Hogar">
+          <CarouselContent className="ml-0">
+            {banners.map((banner, index) => (
+              <CarouselItem key={banner.id} className="pl-0">
+                {/* --- TAMAÑOS AJUSTADOS --- */}
+                {/* Alturas reducidas para que no ocupe tanto espacio:
+                    Móvil: 200px 
+                    Tablet: 300px 
+                    Laptop: 400px 
+                    Desktop: 500px 
+                */}
+                <div className="relative w-full aspect-video">
+                  <img
+                    src={banner.image}
+                    alt={banner.alt}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </div>
+
+
+
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Link>
         <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
         <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 border-0 bg-black/20 hover:bg-black/40 text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 hidden sm:flex" />
       </Carousel>

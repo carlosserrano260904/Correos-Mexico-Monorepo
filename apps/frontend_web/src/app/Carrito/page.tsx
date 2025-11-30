@@ -1,3 +1,4 @@
+//app/Carrito/page.tsx
 // app/Carrito/page.tsx
 'use client'
 import { Plantilla } from '@/components/plantilla'
@@ -7,7 +8,7 @@ import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { CarrouselProducts } from '@/components/CarouselProducts'
-import BotonRegresar  from "@/components/BotonRegresar";
+
 
 export default function Page() {
   const { products } = useProducts();
@@ -17,7 +18,7 @@ export default function Page() {
 
   return (
     <Plantilla>
-      <BotonRegresar texto="Regresar" />
+
       <div className='flex flex-col lg:flex-row gap-6'>
         {/* ✅ Pasar items en lugar de cartItems */}
         <CartCard className='lg:basis-2/3' items={items}/>

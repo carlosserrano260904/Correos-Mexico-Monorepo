@@ -1,4 +1,4 @@
-//app/historial-de-compras/page.tsx
+//app/historial-de-compras/resumen/page.tsx
 'use client'
 import { Plantilla } from '@/components/plantilla'
 import React from 'react'
@@ -6,6 +6,8 @@ import { useProducts } from '@/hooks/useProduct'
 import { useCart } from '@/hooks/useCart'
 import { CarrouselProducts } from '@/components/CarouselProducts'
 import { HistorialDeCompras } from '@/components/HistorialDeCompras'
+import { ResumenDeCompra } from '@/components/ResumenDeCompra'
+import { BotonRegresar } from '@/components/BotonRegresar'
 
 export default function Page() {
   const { products } = useProducts();
@@ -55,11 +57,8 @@ export default function Page() {
 
   return (
     <Plantilla>
-      <h1 className="text-3xl font-bold my-6 ml-4 text-gray-800">
-        Historial de compras
-      </h1>
-      <HistorialDeCompras items={items}></HistorialDeCompras>
-      <CarrouselProducts entradas={products} title='También te podría interesar'/>
+        <BotonRegresar redirectTo='/historial-de-compras' className="ml-2 sm:ml-4 md:ml-19 lg:ml-39"/>
+        <ResumenDeCompra fecha={"21 de Septiembre 2025"} items={items}/>
     </Plantilla>
   )
 }

@@ -1,3 +1,4 @@
+//comonents/SeleccionarDireccion.tsx
 'use client';
 
 import React, { useState } from "react";
@@ -49,7 +50,19 @@ export const SeleccionarDireccion = ({ id="", className = "", direcciones }: Dir
         }
     };
   return (
-    <div id={id} className='w-3/4 rounded-lg m-2 p-4'>
+    <div
+    id={id}
+    className={`
+        w-full              /* móvil */
+        md:w-4/5           /* pantallas medianas (80%) */
+        lg:w-full           /* pantallas grandes (75%) */
+        xl:w-2/3           /* pantallas muy grandes (66%) */
+        rounded-lg
+        m-2
+        p-4
+        ${className}
+    `}
+    >
         <h2 className="text-xl font-semibold text-gray-800 mb-6">
             Seleccionar dirección de entrega
         </h2>

@@ -1,8 +1,8 @@
+//components/CompraExitosa.tsx
 import React from "react";
 import Image from "next/image";
 import { CartItemProps } from "@/components/cartcard";
 import { SeguimientoPaquete } from "./SeguimientoPaquete";
-import { BotonRegresarHomePage } from "./BotonRegresarHomePage";
 
 interface OrderCardListProps {
   className?: string;
@@ -23,7 +23,6 @@ export const CompraExitosa = ({ className = "", items }: OrderCardListProps) => 
   };
   return (
     <div>
-      <BotonRegresarHomePage className="ml-70"/>
       <div className="w-full min-h-screen flex justify-center py-10 bg-white text-gray-800">
         <div className="w-full max-w-3xl px-6">
           {/* Icono y título */}

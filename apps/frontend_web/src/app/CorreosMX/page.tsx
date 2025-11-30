@@ -59,7 +59,7 @@ export default function CorreosMX() {
       icono: <IoPrintOutline className="w-8 h-8" /> 
     },
     {
-      id: 'embalajes',
+   id: 'embalajes',
       titulo: 'Embalajes',
       descripcion: 'Garantiza la entrega adecuada y segura de tus empaques y embalajes por toda la República.',
       icono: <IoBriefcaseOutline className="w-8 h-8" /> 
@@ -173,7 +173,7 @@ export default function CorreosMX() {
                     priority
                   />
                 </div>
-              </div>
+          </div>
 
               {/* Texto y estadísticas - Arriba en móvil */}
               <div className="space-y-6 sm:space-y-8 lg:space-y-10 order-1 lg:order-2">

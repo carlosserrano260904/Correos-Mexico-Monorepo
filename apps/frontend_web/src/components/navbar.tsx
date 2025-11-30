@@ -446,7 +446,7 @@ export const Navbar = () => {
 
                                 <div className="flex flex-col space-y-2 sm:space-y-3">
                                     <Link 
-                                        href="/perfil" 
+                                        href="/Perfil" 
                                         className="text-gray-700 hover:text-gray-900 font-medium text-sm sm:text-base flex items-center gap-2 transition-colors"
                                         onClick={handleDropdownClose}
                                     >

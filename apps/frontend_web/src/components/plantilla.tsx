@@ -21,7 +21,7 @@ export const Plantilla = ({
           
           md:m-4 md:px-8 md:py-6 md:pt-10 /* 💻 pantallas medianas */
           
-          lg:m-6 lg:px-10 lg:py-8 lg:pt-12 /* 🖥️ grandes */
+          lg:m-10 lg:px-24 lg:py-8 lg:pt-12 /* 🖥️ grandes */
         "
       >
         {children}

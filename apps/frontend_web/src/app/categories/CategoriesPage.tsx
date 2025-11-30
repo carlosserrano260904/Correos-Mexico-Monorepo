@@ -4,7 +4,6 @@ import { CategoryCarousel } from "../Categoria/components/CategoryCarousel";
 import { HeroBanner } from "../Categoria/components/HeroBanner";
 import SummerTrends from "../Categoria/components/SummerTrends";
 import CategoryGrid from "../Categoria/components/CategoryGrid";
-import HeroVideoBanner from "../Categoria/components/HeroVideoBanner";
 import { CarrouselProducts } from "@/components/CarouselProducts";
 import { useProducts } from "@/hooks/useProduct";
 import Promo from "../Categoria/components/promo";

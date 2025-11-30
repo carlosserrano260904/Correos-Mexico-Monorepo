@@ -27,12 +27,12 @@ const categories = [
     label: "Cocina",
   },
     {
-    imageSrc: "",
-    label: "Electronica",
+    imageSrc: "/decoracion.png",
+    label: "Decoración para el hogar",
   },
     {
-    imageSrc: "",
-    label: "Herramienta",
+    imageSrc: "/libros.png",
+    label: "Libros",
   },
     {
     imageSrc: "/muneca.png",

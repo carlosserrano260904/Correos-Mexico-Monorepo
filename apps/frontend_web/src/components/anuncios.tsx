@@ -1,144 +1,144 @@
-'use client'
-import Link from 'next/link'
-import React, { useCallback } from 'react'
-import { Badge } from "@/components/ui/badge"
-import { FaCircle } from "react-icons/fa6";
+'use client';
 
-// Importación para el carrusel
-import useEmblaCarousel from 'embla-carousel-react'
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import React, { useRef, useState, useEffect } from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { Badge } from "@/components/ui/badge";
+import Link from 'next/link'; 
+import { FaCircle } from "react-icons/fa";
 
-export const Anuncios = () => {
-    // 1. Configuración de Embla Carousel
-    const [emblaRef, emblaApi] = useEmblaCarousel({ 
-        loop: true,          
-        dragFree: false,     
-        duration: 40,        
-    })
 
-    // Funciones para la navegación
-    const scrollPrev = useCallback(() => {
-        if (emblaApi) emblaApi.scrollPrev()
-    }, [emblaApi])
 
-    const scrollNext = useCallback(() => {
-        if (emblaApi) emblaApi.scrollNext()
-    }, [emblaApi])
-
-// 2. Definición de los banners 
 const banners = [
-    { 
-        id: 1, 
-        image: '/banners/descuentos.png', 
-        buttonText: 'Ver ofertas', 
-        link: '/categories?category=Ropa', 
-        badgeText: '¡Gran Venta!'
-    },
+  {
+    id: 1,
+    image: "/banners/descuentos.png",
+    alt: "Descuentos especiales",
+    badge: "¡Gran Venta!"
+  },
+  {
+    id: 2,
+    image: "/banners/envios.png",
+    alt: "Envíos rápidos",
+    badge: "Tendencias"
+  },
+  {
+    id: 3,
+    image: "/banners/joyeria.png",
+    alt: "Joyas exclusivas",
+    badge: "Exclusivo"
+  },
+];
 
-    { 
-        id: 2, 
-        image: '/banners/envios.png', 
-        buttonText: 'Comprar ahora', 
-        link: '/categories?category=Alimentos%20y%20Bebidas',
-        badgeText: 'Tendencias'
-    },
-    { 
-        id: 3, 
-        image: '/banners/joyeria.png', 
-        buttonText: 'Ver Mas', 
-        link: '/categories?category=Joyeria',
-        badgeText: 'Exclusivo'
-    },
-]
+export const Anuncios: React.FC = () => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
-    // Estilos comunes para los botones de navegación
-    const navButtonClass = 'absolute top-1/2 transform -translate-y-1/2 p-2 sm:p-3 bg-white/50 hover:bg-white/80 text-black rounded-full shadow-lg z-20 transition-all duration-300 backdrop-blur-sm';
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
 
-    return (
-        <div className='w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[800px] rounded-2xl relative overflow-hidden group'>
-            {/* Contenedor del Carrusel (Viewport de Embla) */}
-            <div className="h-full overflow-hidden" ref={emblaRef}>
-                {/* Contenedor de las Slides */}
-                <div className="flex h-full">
-                    {banners.map((banner, index) => (
-                        
-                        <div 
-                            key={banner.id} 
-                            className="flex-shrink-0 w-full h-full relative" 
-                            style={{ flex: '0 0 100%' }} // Asegura que cada slide ocupe el 100%
-                        >
-                            {/* Slide de Banner */}
-                            <div 
-                                className={`w-full h-full bg-cover bg-center bg-no-repeat`}
-                                style={{ backgroundImage: `url(${banner.image})` }}
-                            >
-                                {/* Overlay sutil al hover */}
-                                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                                
-                                {/* Contenido del Banner (Etiqueta y Botón) */}
-                                <div className='absolute top-4 left-4 sm:top-6 sm:left-6 z-10'>
-                                    <Badge className='bg-[#DE1484] text-white font-bold text-xs sm:text-sm md:text-base'>
-                                        {banner.badgeText}
-                                    </Badge>
-                                </div>
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap() + 1);
 
-                                {/* Botón responsive en esquina inferior derecha */}
-                                <div className='absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 z-10'>
-                                    <Link href={banner.link}>
-                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                            {/* Efecto de brillo en el botón */}
-                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                            
-                                            <span className='relative flex items-center gap-1 sm:gap-2'>
-                                                {banner.buttonText}
-                                                <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
+  return (
+    <div className="w-full mx-auto rounded-2xl overflow-hidden shadow-sm group relative mb-8">
+
+      <Carousel
+        setApi={setApi}
+        plugins={[plugin.current]}
+        className="w-full"
+        opts={{
+          loop: true,
+          align: "center"
+        }}
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
+
+      >
+        <Link href="/categories?category=Hogar">
+        <CarouselContent className="ml-0">
+          {banners.map((banner) => (
+            
+            <CarouselItem key={banner.id} className="pl-0">
+
+              <div className="relative w-full aspect-video">
+
+                <img
+                  src={banner.image}
+                  alt={banner.alt}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+
+                {/* Badge arriba izquierda */}
+                <div className="absolute top-4 left-4 z-20">
+                  <Badge className="bg-[#DE1484] text-white text-xs sm:text-sm font-bold">
+                    {banner.badge}
+                  </Badge>
                 </div>
-            </div>
 
-            {/* Botón de Navegación Izquierdo */}
-            <button 
-                className={`${navButtonClass} left-4`} 
-                onClick={scrollPrev} 
-                aria-label="Anterior Banner"
-            >
-                <IoIosArrowBack className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            
-            {/* Botón de Navegación Derecho */}
-            <button 
-                className={`${navButtonClass} right-4`} 
-                onClick={scrollNext} 
-                aria-label="Siguiente Banner"
-            >
-                <IoIosArrowForward className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            
-            {/* Indicadores de Puntos (Dots) */}
-            <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20'>
-                {banners.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => emblaApi && emblaApi.scrollTo(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            emblaApi && index === emblaApi.selectedScrollSnap() ? 'bg-[#DE1484] w-5' : 'bg-gray-300 hover:bg-white'
-                        }`}
-                        aria-label={`Ir al banner ${index + 1}`}
-                    />
-                ))}
-            </div>
+              </div>
 
-        </div>
-    )
-}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        </Link>
+
+        {/* Flechas idénticas al HeroBanner */}
+        <CarouselPrevious className="
+          absolute left-4 top-1/2 -translate-y-1/2 
+          h-10 w-10 sm:h-12 sm:w-12 
+          border-0 bg-black/20 hover:bg-black/40 
+          text-white transition-opacity 
+          opacity-0 group-hover:opacity-100 
+          z-20 hidden sm:flex
+        " />
+
+        <CarouselNext className="
+          absolute right-4 top-1/2 -translate-y-1/2 
+          h-10 w-10 sm:h-12 sm:w-12 
+          border-0 bg-black/20 hover:bg-black/40 
+          text-white transition-opacity 
+          opacity-0 group-hover:opacity-100 
+          z-20 hidden sm:flex
+        " />
+      </Carousel>
+
+      {/* Indicadores iguales */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => api?.scrollTo(index)}
+            className={`
+              h-2 sm:h-3 rounded-full transition-all duration-500 pointer-events-auto 
+              ${index + 1 === current
+                ? "bg-[#DE1484] w-6 sm:w-8"
+                : "bg-white/80 hover:bg-white w-2 sm:w-3"
+              }
+            `}
+            aria-label={`Ir a banner ${index + 1}`}
+          />
+        ))}
+      </div>
+
+    </div>
+  );
+};
+
 
 export const Anuncios2 = () => {
     return (
@@ -269,149 +269,142 @@ export const Anuncios3 = () => {
         </div>
     )
 }
-
 export const Anuncios4 = () => {
-    return (
-        <div className='w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[350px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[600px]'>
-            {/* Columna Izquierda - Anuncio Grande de Fragancias */}
-            <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group'>
-                {/* Overlay sutil al hover */}
-                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500 z-10'></div>
-                
-                <div className='w-full h-full bg-[url(/Perfume.png)] bg-cover bg-center bg-no-repeat'>
-                    <div className='absolute top-3 right-3 sm:top-6 sm:right-6 md:top-8 md:right-8 lg:top-8 lg:right-12 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 z-20 px-3 sm:px-0'>
-                        <div className='ml-0'>
-                            <h2 className='text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black leading-snug mb-2 sm:mb-3 md:mb-4'>
-                                Fragancias que te enamoran
-                            </h2>
-                        </div>
-                        <div className='ml-0 sm:ml-4 md:ml-8'>
-                            <p className='text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed mb-3 sm:mb-4 md:mb-6'>
-                                Descubre perfumes con hasta 35% de descuento
-                            </p>
-                        </div>
-                        <div className='ml-0 sm:ml-8 md:ml-12 lg:ml-16'>
-                            <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
-                                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                                    {/* Efecto de brillo en el botón */}
-                                    <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                    
-                                    <span className='relative flex items-center gap-1 sm:gap-2'>
-                                        Descubrir más
-                                        <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                        </svg>
-                                    </span>
-                                </button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
-            {/* Columna Derecha - Grid de 3 elementos */}
-            <div className='flex flex-col gap-3 sm:gap-4 min-h-[320px] sm:min-h-[380px] md:min-h-[450px]'>
-                {/* Banner Superior - Dale vida a tu look */}
-                <div className='bg-[#F5F5F5] rounded-2xl min-h-[120px] sm:min-h-[160px] md:min-h-[200px] relative overflow-hidden group'>
-                    {/* Overlay sutil al hover */}
-                    <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                    
-                    <div className='w-full h-full bg-[url(/Brochas.png)] bg-contain bg-top bg-no-repeat flex items-start'>
-                        <div className='flex flex-col justify-center place-items-center w-full mt-3 sm:mt-6 md:mt-7 z-10 px-2 sm:px-0'>
-                            <h3 className='text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-black leading-snug mb-1 sm:mb-2 text-center'>
-                                Dale vida a tu look
-                            </h3>
-                            <p className='text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 text-center'>
-                                30% de descuento en la segunda pieza
-                            </p>
-                            <div>
-                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                        
-                                        <span className='relative flex items-center gap-1'>
-                                            Ver colección
-                                            <svg className='w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      {/* IZQUIERDA — Banner grande */}
+      <div className="relative bg-[#F5F5F5] rounded-2xl overflow-hidden group min-h-[320px] sm:min-h-[420px] md:min-h-[520px] lg:min-h-[600px]">
 
-                {/* Grid Inferior - 2 tarjetas */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-h-[200px] sm:min-h-[260px]'>
-                    {/* Tarjeta Izquierda - Cuida tu piel */}
-                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
-                        {/* Overlay sutil al hover */}
-                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                        
-                        <div className='w-full h-full bg-[url(/skincare.png)] bg-contain bg-center bg-no-repeat flex items-start'>
-                            <div className='p-2 sm:p-3 md:p-4 w-full z-10'>
-                                <h4 className='text-sm sm:text-base md:text-lg lg:text-xl font-bold text-black mb-1 leading-snug'>
-                                    Cuida tu piel
-                                </h4>
-                                <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
-                                    30% de descuento
-                                </p>
-                                <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
-                                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                        {/* Efecto de brillo en el botón */}
-                                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                        
-                                        <span className='relative flex items-center gap-1'>
-                                            Comprar ahora
-                                            <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                            </svg>
-                                        </span>
-                                    </button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+        {/* Imagen */}
+        <div className="absolute inset-0 bg-[url('/Perfume.png')] bg-cover bg-center"></div>
 
-                    {/* Tarjeta Derecha - Tu cabello */}
-                    <div className='bg-[#F5F5F5] rounded-2xl relative overflow-hidden group min-h-[120px]'>
-                        {/* Overlay sutil al hover */}
-                        <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500'></div>
-                        
-                        <div className='w-full h-full bg-[url(/bote.png)] bg-contain bg-center bg-no-repeat flex items-start'>
-                            <div className='p-2 sm:p-3 md:p-4 w-full flex-row justify-items-end z-10'>
-                                <h4 className='text-sm sm:text-base md:text-lg font-bold text-black mb-1 leading-snug'>
-                                    Tu cabello
-                                </h4>
-                                <p className='text-xs text-gray-600 mb-2 sm:mb-3'>
-                                    25% de descuento
-                                </p>
-                                <div>
-                                    <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
-                                        <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group/btn relative overflow-hidden'>
-                                            {/* Efecto de brillo en el botón */}
-                                            <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                                            
-                                            <span className='relative flex items-center gap-1'>
-                                                Ver productos
-                                                <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {/* Overlay hover */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-500"></div>
+
+        {/* Contenido */}
+        <div className="relative z-10 h-full flex flex-col justify-start pt-10 sm:pt-14 md:pt-16 lg:pt-20 px-6 sm:px-10 md:px-14 lg:px-16 xl:px-20 max-w-[600px] ml-auto text-right">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-black mb-3 leading-tight drop-shadow">
+            Fragancias que te enamoran
+          </h2>
+
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-6">
+            Descubre perfumes con hasta 35% de descuento
+          </p>
+
+          <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+            <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl relative overflow-hidden group/btn'>
+              <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+
+              <span className='relative flex items-center gap-1 sm:gap-2'>
+                Descubrir más
+                <svg className='w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                </svg>
+              </span>
+            </button>
+          </Link>
         </div>
-    )
-}
+      </div>
 
+      {/* DERECHA — contenedores */}
+      <div className="flex flex-col gap-4 h-full md:h-[600px] lg:h-[600px]">
+
+        {/* 1 — Dale vida a tu look (agrandado en mobile) */}
+        <div
+          className="
+            relative bg-[#F5F5F5] rounded-2xl overflow-hidden group 
+            flex-1
+            min-h-[220px]
+            sm:min-h-[260px]
+            md:min-h-0
+          "
+        >
+          <div className="absolute inset-0 bg-[url('/Brochas.png')] bg-contain bg-right bg-no-repeat opacity-90"></div>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-500"></div>
+
+          <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-8 text-center max-w-[440px] mx-auto">
+
+            <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2">
+              Dale vida a tu look
+            </h3>
+
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
+              30% de descuento en la segunda pieza
+            </p>
+
+            <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+              <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-4 sm:py-2 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg relative overflow-hidden group/btn'>
+                <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+
+                <span className='relative flex items-center gap-1 justify-center'>
+                  Ver colección
+                  <svg className='w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                  </svg>
+                </span>
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* GRID inferior */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* 2 — Piel */}
+          <div className="relative bg-[#F5F5F5] rounded-2xl overflow-hidden group min-h-[160px]">
+            <div className="absolute inset-0 bg-[url('/skincare.png')] bg-contain bg-right bg-no-repeat"></div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-500"></div>
+
+            <div className="relative z-10 p-4 max-w-[240px]">
+              <h4 className="text-base md:text-lg font-semibold">Cuida tu piel</h4>
+              <p className="text-xs text-gray-600 mb-3">30% de descuento</p>
+
+              <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg relative overflow-hidden group/btn'>
+                  <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+
+                  <span className='relative flex items-center gap-1'>
+                    Comprar ahora
+                    <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                    </svg>
+                  </span>
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {/* 3 — Cabello */}
+          <div className="relative bg-[#F5F5F5] rounded-2xl overflow-hidden group min-h-[160px]">
+            <div className="absolute inset-0 bg-[url('/bote.png')] bg-contain bg-right bg-no-repeat"></div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-500"></div>
+
+            <div className="relative z-10 p-4 max-w-[240px]">
+              <h4 className="text-base md:text-lg font-semibold">Tu cabello</h4>
+              <p className="text-xs text-gray-600 mb-3">25% de descuento</p>
+
+              <Link href="/categories?category=Belleza%20y%20Cuidado%20Personal">
+                <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg relative overflow-hidden group/btn'>
+                  <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
+
+                  <span className='relative flex items-center gap-1'>
+                    Ver productos
+                    <svg className='w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14 5l7 7m0 0l-7 7m7-7H3' />
+                    </svg>
+                  </span>
+                </button>
+              </Link>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+};
 
 export const Anuncios5 = () => {
     return (
@@ -432,17 +425,6 @@ export const Anuncios5 = () => {
                             Escanea el código QR y descarga <Link href={"/"} className='text-[#DE1484] hover:text-pink-700 font-semibold transition-colors duration-300'>nuestra app</Link>
                         </div>
                     </div>
-                    <button className='bg-[#DE1484] hover:bg-pink-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl sm:hover:shadow-2xl group/btn relative overflow-hidden'>
-                        {/* Efecto de brillo en el botón */}
-                        <div className='absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700'></div>
-                        
-                        <span className='relative flex items-center gap-1 sm:gap-2'>
-                            Descargar Ahora
-                            <svg className='w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover/btn:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                            </svg>
-                        </span>
-                    </button>
                 </div>
                 <div className='basis-full lg:basis-1/2 bg-[url(/celular.png)] bg-contain bg-center bg-no-repeat h-32 sm:h-48 md:h-64 lg:h-full transform transition-transform duration-500 group-hover:scale-105'>
                 </div>

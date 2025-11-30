@@ -8,44 +8,32 @@ const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
   },
-  
+
   images: {
-    domains: [
-      'correos-de-mexico.s3.us-east-2.amazonaws.com',
-      'via.placeholder.com',
-      'localhost',
-      '192.168.1.98',
-      'correos-storage.emmanuelbayona.dev'   // ← agregado
-    ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'correos-de-mexico.s3.us-east-2.amazonaws.com',
-        port: '',
         pathname: '/images/**',
       },
       {
         protocol: 'https',
         hostname: 'via.placeholder.com',
-        port: '',
         pathname: '/**',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '',
         pathname: '/**',
       },
       {
         protocol: 'http',
         hostname: '192.168.1.98',
-        port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'correos-storage.emmanuelbayona.dev',  // ← agregado
-        port: '',
+        hostname: 'correos-storage.emmanuelbayona.dev',
         pathname: '/**',
       },
     ],

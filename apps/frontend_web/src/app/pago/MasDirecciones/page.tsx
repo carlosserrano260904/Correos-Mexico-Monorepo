@@ -14,7 +14,7 @@ import { ResumenCompra } from '@/components/resumenCompra';
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../../components/cartcard'
 import { DireccionesSchema } from '@/schemas/addresses';
-import { BotonRegresar }  from "@/components/BotonRegresar";
+import BotonRegresarCarrito from "@/components/BotonRegresarCarrito";
 // import { useMyAuth } from '../../../context/AuthContext'; este debe ser reemplazado cuando se agregue ya que no existe aun a fecha de 11/28/2025 para que funcione
     // const { userId } = useMyAuth();
 
@@ -113,7 +113,7 @@ export default function MasDirecciones() {
 
     return (
         <Plantilla>
-            <BotonRegresar className="ml-5" redirectTo="/pago" />
+            <BotonRegresarCarrito className="ml-5" redirectTo="/pago" />
 
             <div
                 id="mainPage"

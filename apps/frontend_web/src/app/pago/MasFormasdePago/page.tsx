@@ -10,7 +10,7 @@ import React, { useState } from "react"
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../../components/cartcard'
-import { BotonRegresar }  from "@/components/BotonRegresar";
+import BotonRegresarCarrito from "@/components/BotonRegresarCarrito";
 import { useRouter } from "next/navigation";
 
 export default function MasTarjetas() {
@@ -65,7 +65,7 @@ export default function MasTarjetas() {
 
     return (
         <Plantilla>
-            <BotonRegresar className="ml-5" redirectTo="/pago" />
+            <BotonRegresarCarrito className="ml-5" redirectTo="/pago" />
 
             <div
                 id="mainPage"

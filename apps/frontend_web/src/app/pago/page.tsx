@@ -9,7 +9,7 @@ import PaymentMethod from './Componentes/paymentMethod'
 import { ResumenCompra } from '@/components/resumenCompra'
 import { useCart } from '@/hooks/useCart'
 import { CartCard } from '../../components/cartcard'
-import { BotonRegresar }  from "@/components/BotonRegresar";
+import BotonRegresarCarrito from "@/components/BotonRegresarCarrito";
 
 export default function Home() {
   const { items } = useCart();
@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <Plantilla>
 
-      <BotonRegresar redirectTo='/Carrito' />
+      <BotonRegresarCarrito redirectTo='/Carrito' />
 
       {/* CONTENEDOR PRINCIPAL RESPONSIVO */}
       <div

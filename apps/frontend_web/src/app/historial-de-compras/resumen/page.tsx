@@ -7,7 +7,7 @@ import { useCart } from '@/hooks/useCart'
 import { CarrouselProducts } from '@/components/CarouselProducts'
 import { HistorialDeCompras } from '@/components/HistorialDeCompras'
 import { ResumenDeCompra } from '@/components/ResumenDeCompra'
-import { BotonRegresar } from '@/components/BotonRegresar'
+import BotonRegresarCarrito from '@/components/BotonRegresarCarrito'
 
 export default function Page() {
   const { products } = useProducts();
@@ -57,7 +57,7 @@ export default function Page() {
 
   return (
     <Plantilla>
-        <BotonRegresar redirectTo='/historial-de-compras' className="ml-2 sm:ml-4 md:ml-19 lg:ml-39"/>
+        <BotonRegresarCarrito redirectTo='/historial-de-compras' className="ml-2 sm:ml-4 md:ml-19 lg:ml-39"/>
         <ResumenDeCompra fecha={"21 de Septiembre 2025"} items={items}/>
     </Plantilla>
   )

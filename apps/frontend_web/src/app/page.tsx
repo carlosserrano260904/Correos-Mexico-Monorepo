@@ -10,36 +10,6 @@ import { Comentario } from '@/components/Comentario'
 import { useProducts } from '@/hooks/useProduct'
 import Categories from '@/components/Categories'
 
-const carouselItems = [
-  {
-    image: "https://merxstore.mx/cdn/shop/files/074732-R01.jpg?v=1686248236&width=1500",
-    description: "El bordado, realizado completamente a mano, destaca flores de pétalos amplios en tonos vibrantes."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=800",
-    description: "Confeccionada en tela de algodón ligera y fresca, de tono rojo profundo, esta blusa ofrece comodidad sin perder elegancia."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=400",
-    description: "Los acabados a mano, con atención al detalle, garantizan una prenda única."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=600",
-    description: "Diseño tradicional mexicano con técnicas ancestrales de bordado."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=700",
-    description: "Perfecto para ocasiones especiales y uso casual elegante."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=900",
-    description: "Materiales de alta calidad y acabados duraderos."
-  },
-  {
-    image: "https://merxstore.mx/cdn/shop/files/076998E-R01.jpg?v=1696884033&width=1200",
-    description: "Pieza única hecha por artesanos especializados."
-  }
-];
 
 // Datos de ejemplo para comentarios
 const comentariosEjemplo = [

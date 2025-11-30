@@ -4,7 +4,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
-import cors from 'cors';
 
 let cachedServer: any;
 const IS_VERCEL = process.env.VERCEL === '1';
@@ -17,6 +16,7 @@ async function setupNestApp(expressApp: express.Express): Promise<any> {
   );
 
   app.setGlobalPrefix('api');
+  
   if (!IS_VERCEL) {
     // ONLY set up Swagger in local/dev environment
     const configDocs = new DocumentBuilder()
@@ -31,20 +31,50 @@ async function setupNestApp(expressApp: express.Express): Promise<any> {
     console.log('[Swagger] Documentation available at /docs');
   }
 
-  app.use(
-    cors({
-      origin: [
-        'http://localhost:4200',
-        'https://midominio.com',
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-      ],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true,
-    }),
-  );
+  const allowedOrigins = [
+    'http://localhost:4200',
+    'https://midominio.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://192.168.1.98:3000',
+    'http://192.168.1.98:3001',
+    'https://correos-mexico-monorepo-frontend-h6ur31uht.vercel.app',
+    'https://correos-mexico-monorepo-git-8d0e31-emmanuels-projects-e8897a1f.vercel.app',
+    'https://correos-mexico-monorepo-backend.vercel.app',
+  ];
+
+  // EN PRODUCCIÓN, PERMITE CUALQUIER SUBDOMINIO DE VERCEL
+  if (IS_VERCEL) {
+    allowedOrigins.push('https://*.vercel.app');
+  }
+
+  //  USAR enableCors() DE NESTJS EN LUGAR DE app.use(cors())
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (como mobile apps o curl)
+      if (!origin) return callback(null, true);
+      
+      // Verificar si el origin está en la lista permitida
+      if (allowedOrigins.some(allowedOrigin => {
+        if (allowedOrigin.includes('*')) {
+          const regex = new RegExp(allowedOrigin.replace('*', '.*'));
+          return regex.test(origin);
+        }
+        return allowedOrigin === origin;
+      })) {
+        return callback(null, true);
+      } else {
+        console.log('CORS Blocked:', origin);
+        return callback(new Error('Not allowed by CORS'), false);
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -64,14 +94,13 @@ export default async (req: any, res: any) => {
   if (!cachedServer) {
     const expressApp = express();
     cachedServer = await setupNestApp(expressApp);
-    // Use the NestJS internal logger if available, otherwise console.log
     console.log('[Nest] Vercel Serverless function initialized (Cold Start)');
   }
   // Execute the cached Express handler
   cachedServer(req, res);
 };
 
-// This runs when VERCEL environment variable is NOT set (e.g., when running 'npm start' or 'npm run dev')
+// This runs when VERCEL environment variable is NOT set
 async function localBootstrap() {
   const expressApp = express();
   const server = await setupNestApp(expressApp);
@@ -82,9 +111,8 @@ async function localBootstrap() {
   });
 }
 
-// Only run the traditional listener if we are not in the Vercel environment
 if (!IS_VERCEL) {
   localBootstrap().catch((err) => {
-    console.error('❌ Nest failed to start:', err);
+    console.error('Nest failed to start:', err);
   });
 }

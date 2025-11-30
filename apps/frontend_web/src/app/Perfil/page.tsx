@@ -3,81 +3,86 @@
 import React, { useState, useEffect } from "react";
 import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-// Asegúrate de que este servicio exista y acepte los campos que enviamos
-import { usuarioPorId, actualizarUsuarioPorId } from "@/services/profileService";
+import { useUser } from "@clerk/nextjs";
+
 
 interface PerfilForm {
   nombre: string;
   apellidos: string;
   correo: string;
   celular: string;
-  rfc: string;
   foto: string;
 }
 
+interface DatosAdicionales {
+  tarjetas: string;
+}
+
+// Estilos de la foto/icono para el diseño
+const getInitials = (nombre: string, apellidos: string) => {
+  const firstInitial = nombre ? nombre.charAt(0) : "";
+  const lastInitial = apellidos ? apellidos.charAt(0) : "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+};
+
 export default function Perfil() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   const [form, setForm] = useState<PerfilForm>({
     nombre: "",
     apellidos: "",
     correo: "",
     celular: "",
-    rfc: "",
-    foto:
-      "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg",
+    foto: "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg",
+  });
+
+  const [datosAdicionales] = useState<DatosAdicionales>({
+    tarjetas: "----",
   });
 
   const [perfilOriginal, setPerfilOriginal] = useState<PerfilForm | null>(null);
-
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
+  // Redirección
   useEffect(() => {
-    if (user?.id) {
-      cargarPerfil();
+    if (!isLoaded) return;
+    if (!isSignedIn || !user) {
+      router.push("/");
     }
-  }, [user]);
+  }, [isLoaded, isSignedIn, user, router]);
 
+  // Carga de datos
   useEffect(() => {
-    if (isAuthenticated === false && user === null) {
-      router.push("/Perfil");
-    }
-  }, [isAuthenticated, user, router]);
+    if (!isLoaded || !user) return;
 
-  const cargarPerfil = async () => {
-    if (!user?.id) return;
-    try {
-      setCargando(true);
-      setError("");
-      const perfilData = await usuarioPorId(user.id);
+    // NOTA: Usamos user.imageUrl directamente si existe, si no, el default.
+    const fotoUrl = user.imageUrl || "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg";
 
-      const datos: PerfilForm = {
-        nombre: perfilData.nombre || "",
-        apellidos: perfilData.apellido || perfilData.apellido_paterno || "",
-        correo: perfilData.email || perfilData.correo || user.email || "",
-        celular: perfilData.numero || perfilData.celular || "",
-        rfc: perfilData.rfc || "",
-        foto: perfilData.imagen || perfilData.avatar || form.foto,
-      };
+    const nombre = user.firstName || user.fullName?.split(" ")[0] || "";
+    const apellidos = user.lastName || user.fullName?.split(" ").slice(1).join(" ") || "";
+    const correo = user.primaryEmailAddress?.emailAddress || "";
+    const celular = user.primaryPhoneNumber?.phoneNumber || "";
 
-      setForm(datos);
-      setPerfilOriginal(datos);
-    } catch (err) {
-      console.error("Error cargando perfil:", err);
-      setError("Error al cargar el perfil");
-    } finally {
-      setCargando(false);
-    }
-  };
+    const datos: PerfilForm = {
+      nombre,
+      apellidos,
+      correo,
+      celular,
+      foto: fotoUrl,
+    };
+
+    setForm(datos);
+    setPerfilOriginal(datos);
+    setCargando(false);
+  }, [isLoaded, user]); 
 
   const handleBack = () => {
-    router.push("/");
+    router.back();
   };
 
   const handleEditar = () => {
@@ -87,40 +92,32 @@ export default function Perfil() {
   };
 
   const handleCancel = () => {
-    if (perfilOriginal) {
-      setForm(perfilOriginal);
-    }
+    if (perfilOriginal) setForm(perfilOriginal);
     setIsEditing(false);
     setMensaje("");
     setError("");
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Si manejas la edición de tarjetas, necesitarías una lógica para ellas
+    // if (name === 'tarjetas') { setDatosAdicionales... } else { setForm... }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
-    if (!user?.id) return;
     try {
       setGuardando(true);
       setError("");
       setMensaje("");
 
-      await actualizarUsuarioPorId(user.id, {
-        nombre: form.nombre,
-        apellidos: form.apellidos,
-        correo: form.correo,
-        numero: form.celular,
-        rfc: form.rfc,
-        imagen: form.foto,
-      });
+      console.log("Datos a guardar:", { ...form, ...datosAdicionales });
+      // TODO: Implementar lógica de guardado real
 
       setPerfilOriginal(form);
+      // No restauramos el estado de edición de tarjetas, ya que es simulado
       setIsEditing(false);
-      setMensaje("Datos actualizados correctamente.");
+      setMensaje("Datos actualizados (en pantalla).");
     } catch (err) {
       console.error("Error guardando perfil:", err);
       setError("Ocurrió un error al guardar los cambios.");
@@ -129,9 +126,9 @@ export default function Perfil() {
     }
   };
 
-  if (cargando) {
+  if (!isLoaded || cargando) {
     return (
-      <Plantilla>
+      <Plantilla sinHeader>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#DE1484] mx-auto" />
@@ -142,136 +139,75 @@ export default function Perfil() {
     );
   }
 
+  if (!isSignedIn || !user) {
+    return (
+      <Plantilla sinHeader>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-gray-600">Debes iniciar sesión para ver tu perfil.</p>
+        </div>
+      </Plantilla>
+    );
+  }
+
+  const nombreCompleto = `${form.nombre} ${form.apellidos}`.trim();
+
   return (
-    <Plantilla>
+    <Plantilla> 
       <main className="min-h-screen bg-white">
         <div className="max-w-5xl mx-auto px-6 py-10">
-
-          {/* Botón regresar */}
-          <button
-            onClick={handleBack}
-            className="inline-flex items-center px-5 py-2 mb-6 rounded-full bg-[#DE1484] text-white text-sm font-medium shadow-sm hover:bg-[#c41373] transition"
-          >
-            ← Regresar
-          </button>
-
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 px-10 py-8">
-
-            {/* Header: foto + nombre + subtítulo + botón EDITAR*/}
-            <div className="flex items-center gap-6 pb-6 border-b border-gray-200">
-              <div className="w-24 h-24 rounded-full overflow-hidden">
-                <img
-                  src={form.foto}
-                  alt="Foto de perfil"
-                  className="w-full h-full object-cover"
-                />
+          <section className="bg-white rounded-xl shadow-none p-0 w-full">
+            
+            {/* Header */}
+            <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
+              <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                {form.foto && form.foto !== "https://res.cloudinary.com/dgpd2ljyh/image/upload/v1748920792/default_nlbjlp.jpg" ? (
+                  <img src={form.foto} alt="Foto de perfil" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-3xl font-bold">
+                    <span>{getInitials(form.nombre, form.apellidos)}</span>
+                  </div>
+                )}
               </div>
+              <div className="flex-1 flex flex-col justify-center h-28">
+                <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                  {nombreCompleto || "Usuario Desconocido"}
+                </h1>
+              </div>
+            </div>
 
-              <div className="flex-1 flex justify-between items-center">
-                <div className="flex flex-col">
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    {form.nombre} {form.apellidos}
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    Victoria de Durango // Artesanías Mexicanas S. A. de C. V.
-                  </p>
-                </div>
-
-                {!isEditing && (
-                  <button
-                    onClick={handleEditar}
-                    className="px-6 py-2 rounded-md bg-[#DE1484] text-white text-sm font-medium shadow-sm hover:bg-[#c41373] transition"
-                  >
-                    ✎ Editar
+            {/* Datos Personales */}
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-6">
+                <div className="text-xl font-bold text-gray-900">Datos personales</div>
+                {isEditing ? (
+                  <div className="flex gap-3">
+                    <button onClick={handleCancel} className="px-5 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition">Cancelar</button>
+                    <button onClick={handleSave} disabled={guardando} className="px-6 py-2 rounded-md bg-[#DE1484] text-white text-sm font-medium shadow-sm hover:bg-[#c41373] disabled:opacity-70 disabled:cursor-not-allowed transition">
+                      {guardando ? "Guardando..." : "Guardar"}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={handleEditar} className="px-8 py-3 rounded-md bg-[#DE1484] text-white text-base font-medium shadow-lg hover:bg-[#c41373] transition">
+                    Editar <span className="ml-1 text-lg">✎</span>
                   </button>
                 )}
               </div>
-            </div>
 
-            {/* errores/mensaje */}
-            {error && (
-              <div className="mt-4 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-            {mensaje && (
-              <div className="mt-4 rounded-md bg-green-50 border border-green-200 px-4 py-2 text-sm text-green-700">
-                {mensaje}
-              </div>
-            )}
-
-            {/* SECCIÓN de datos personales */}
-            <div className="mt-6">
-              <div className="mb-6 text-base font-semibold text-gray-900">
-                Datos personales
-              </div>
-
-              {/* Si está editando mostramos Cancelar / Guardar */}
-              {isEditing && (
-                <div className="flex gap-3 mb-6 justify-end">
-                  <button
-                    onClick={handleCancel}
-                    className="px-5 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={guardando}
-                    className="px-6 py-2 rounded-md bg-[#DE1484] text-white text-sm font-medium shadow-sm hover:bg-[#c41373] disabled:opacity-70 disabled:cursor-not-allowed transition"
-                  >
-                    {guardando ? "Guardando..." : "Guardar"}
-                  </button>
+              {(error || mensaje) && (
+                <div className={`mb-4 rounded-md border px-4 py-2 text-sm ${error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
+                  {error || mensaje}
                 </div>
               )}
 
-              {/* Grid de campos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-
-                <CampoPerfil
-                  label="Nombre"
-                  name="nombre"
-                  value={form.nombre}
-                  onChange={handleChange}
-                  isEditing={isEditing}
-                />
-
-                <CampoPerfil
-                  label="Apellidos"
-                  name="apellidos"
-                  value={form.apellidos}
-                  onChange={handleChange}
-                  isEditing={isEditing}
-                />
-
-                <CampoPerfil
-                  label="Correo"
-                  name="correo"
-                  type="email"
-                  value={form.correo}
-                  onChange={handleChange}
-                  isEditing={isEditing}
-                />
-
-                <CampoPerfil
-                  label="Número de teléfono"
-                  name="celular"
-                  type="tel"
-                  value={form.celular}
-                  onChange={handleChange}
-                  isEditing={isEditing}
-                />
-
-                <CampoPerfil
-                  label="RFC"
-                  name="rfc"
-                  value={form.rfc}
-                  onChange={handleChange}
-                  isEditing={isEditing}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-6 mt-8">
+                <CampoPerfil label="Nombre" name="nombre" value={form.nombre} onChange={handleChange} isEditing={isEditing} />
+                <CampoPerfil label="Apellidos" name="apellidos" value={form.apellidos} onChange={handleChange} isEditing={isEditing} />
+                <CampoPerfil label="Correo" name="correo" type="email" value={form.correo} onChange={handleChange} isEditing={isEditing} />
+                <CampoPerfil label="Correo" name="correoAlternativo" value={form.correo} onChange={handleChange} isEditing={isEditing} />
+                <CampoPerfil label="Número de teléfono" name="celular" type="tel" value={form.celular} onChange={handleChange} isEditing={isEditing} />
+                <CampoPerfil label="Tarjeta" name="tarjetas" value={datosAdicionales.tarjetas} onChange={handleChange} isEditing={false} />
               </div>
             </div>
-
           </section>
         </div>
       </main>
@@ -279,7 +215,7 @@ export default function Perfil() {
   );
 }
 
-/* ——— COMPONENTES AUXILIARES ——— */
+/* ——— COMPONENTE AUXILIAR ——— */
 
 type CampoPerfilProps = {
   label: string;
@@ -297,20 +233,36 @@ const CampoPerfil: React.FC<CampoPerfilProps> = ({
   onChange,
   isEditing,
   type = "text",
-}) => (
-  <div className="flex flex-col">
-    <span className="text-xs font-medium text-gray-500 mb-1">{label}</span>
+}) => {
+  // Formato para teléfono
+  const formattedValue = name === 'celular' && value && !isEditing 
+    ? value.replace(/(\+\d{2})(\d{4})(\d{6})/, "$1 XXXX XX XX XX")
+    : value;
+  
+  // Lógica simplificada: siempre mostramos 'value' para tarjetas a menos que quieras enmascararlo
+  let displayValue = value;
+  if (name === 'celular') {
+      displayValue = formattedValue;
+  }
 
-    {!isEditing ? (
-      <span className="text-sm text-gray-900">{value || "—"}</span>
-    ) : (
-      <input
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-[#DE1484] focus:border-[#DE1484] outline-none transition"
-      />
-    )}
-  </div>
-);
+  return (
+    <div className="flex flex-col">
+      <span className="text-sm font-medium text-gray-500 mb-1">{label}</span>
+      {!isEditing ? (
+        <span className="text-lg font-semibold text-gray-900 h-10 flex items-center">
+          {displayValue.trim() || "—"} 
+        </span>
+      ) : (
+        <input
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 focus:ring-1 focus:ring-offset-0 focus:ring-[#DE1484] focus:border-[#DE1484] outline-none transition h-10"
+          placeholder={`Ingresa tu ${label.toLowerCase()}`}
+          disabled={name === 'tarjetas'} 
+        />
+      )}
+    </div>
+  );
+};

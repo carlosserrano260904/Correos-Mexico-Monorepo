@@ -65,7 +65,7 @@ export const HeroBanner: React.FC = () => {
               {/* 1. Definimos alturas FIJAS y explícitas para diferentes tamaños de pantalla.
                   h-[300px] en móvil, h-[450px] en tablet pequeña, h-[550px] en escritorio.
                   El 'relative' es necesario para que funcione el 'fill' de la imagen. */}
-              <div className="relative w-full h-[300px] sm:h-[450px] md:h-[550px] lg:h-[600px]">
+              <div className="relative w-full h-[300px] sm:h-[450px] md:h-[700px] lg:h-[900px]">
                 <Image
                   src={banner.image}
                   alt={banner.alt}

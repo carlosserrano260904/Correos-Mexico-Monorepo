@@ -112,15 +112,41 @@ export default function MasDirecciones() {
 
     return (
         <Plantilla>
-            <BotonRegresar className="ml-5" redirectTo="/pago"/>
-            <div id='mainPage' className='flex'>
-                <SeleccionarDireccion id='leftContent' direcciones={direcciones} className='w-3/4 rounded-lg mr-2 ml-2 mb-2 p-4' />
- 
-                <div id='rightContent' className='w-1/4'>
-                    <ResumenCompra className='lg:basis-1/3 h-fit mt-19' />
+            <BotonRegresar className="ml-5" redirectTo="/pago" />
+
+            <div
+                id="mainPage"
+                className="
+                    flex 
+                    flex-col gap-4
+                    md:flex-row md:gap-0
+                "
+            >
+                {/* IZQUIERDA */}
+                <SeleccionarDireccion
+                    id="leftContent"
+                    direcciones={direcciones}
+                    className="
+                        w-full md:w-3/4 
+                        rounded-lg mr-0 md:mr-2 ml-0 md:ml-2 mb-2 p-4
+                    "
+                />
+
+                {/* DERECHA */}
+                <div
+                    id="rightContent"
+                    className="w-full md:w-1/4"
+                >
+                    <ResumenCompra className="lg:basis-1/3 h-fit mt-19" />
                 </div>
             </div>
-            <CartCard className='lg:basis-2/3  ml-2 mt-6' items={items}/>
+
+            {/* CART CARD — se pone abajo en mobile */}
+            <CartCard
+                className="w-full mt-6 px-2"
+                items={items}
+            />
         </Plantilla>
     )
+
 }

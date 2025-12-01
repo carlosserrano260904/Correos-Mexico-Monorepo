@@ -68,33 +68,40 @@ export default function ProductDetailPage() {
     <Plantilla>
       <div className="space-y-12 lg:space-y-16">
         {/* Detalles del Producto */}
-          <ProductDetails product={product} />
+        <ProductDetails product={product} />
 
         {/* Historia / Descripción */}
-          <ProductStory
-            title={product.ProductName}
-            description={product.ProductDescription || 'Producto de alta calidad.'}
-            imageUrl={product.ProductImageUrl}
-            imageAlt={product.ProductName}
-          />
+        <ProductStory
+          title={product.ProductName}
+          description={product.ProductDescription || 'Producto de alta calidad.'}
+          imageUrl={product.ProductImageUrl}
+          imageAlt={product.ProductName}
+        />
 
         {/* Carousel Detalles */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <CarouselDetalles
-          items={[
-            { image: product.ProductImageUrl, description: product.ProductDescription },
-            { image: product.ProductImageUrl, description: product.ProductDescription },
-            { image: product.ProductImageUrl, description: product.ProductDescription },
-            { image: product.ProductImageUrl, description: product.ProductDescription } // ← Esta ya no se mostrará
-          ]}
-  limit={3}
-/>
+          <CarouselDetalles
+            items={[
+              { image: product.ProductImageUrl, description: product.ProductDescription },
+              { image: product.ProductImageUrl, description: product.ProductDescription },
+              { image: product.ProductImageUrl, description: product.ProductDescription },
+              { image: product.ProductImageUrl, description: product.ProductDescription }
+            ]}
+            limit={3}
+          />
+        </div>
 
+        {/* Sección de Reviews */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ReviewsSection 
+            productId={productId}
+            productName={product.ProductName}
+          />
         </div>
 
         {/* Productos relacionados */}
         {products?.length > 0 && (
-          <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto px-4 sm:px-6 lg:px-8">
             <CarrouselProducts
               entradas={products}
               title="Productos relacionados"
@@ -105,7 +112,7 @@ export default function ProductDetailPage() {
 
         {/* También te puede interesar */}
         {products?.length > 0 && (
-          <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto px-4 sm:px-6 lg:px-8">
             <CarrouselProducts
               entradas={products}
               title="También te puede interesar"
@@ -113,7 +120,6 @@ export default function ProductDetailPage() {
             />
           </div>
         )}
-
       </div>
     </Plantilla>
   );

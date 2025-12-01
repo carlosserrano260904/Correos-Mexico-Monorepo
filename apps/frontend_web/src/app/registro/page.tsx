@@ -479,13 +479,14 @@ const Registro = () => {
               </button>
             </div>
 
-            {/* Link inferior */}
+            {/* Link inferior 
+
             <p className="text-center text-xs text-gray-600">
               ¿Ya tienes una cuenta?{" "}
               <Link href="/login" className="text-pink-600 hover:underline">
                 Iniciar sesión
               </Link>
-            </p>
+            </p>*/}
           </div>
 
           {/* Carrusel */}

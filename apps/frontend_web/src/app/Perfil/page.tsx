@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Plantilla } from "../../components/plantilla";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import BotonRegresar from "@/components/BotonRegresar";
 
 
 interface PerfilForm {
@@ -156,6 +157,8 @@ export default function Perfil() {
       <main className="min-h-screen bg-white">
         <div className="max-w-5xl mx-auto px-6 py-10">
           <section className="bg-white rounded-xl shadow-none p-0 w-full">
+
+            <BotonRegresar />
             
             {/* Header */}
             <div className="flex items-start gap-6 pb-6 border-b border-gray-100">

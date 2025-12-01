@@ -12,7 +12,7 @@ const mockOrders: OrderProps[] = [
     status: 'En curso',
     arrivalDate: 'Llego el 22 de mayo',
     productName: 'Blusa artesanal colores de la sierra',
-    storeName: 'Tienda oficial artesanal CorreosMexico MX',
+    storeName: 'Tienda oficial CorreosMexico',
     image: '/placeholder-vestidos.png', 
   },
   {
@@ -21,7 +21,7 @@ const mockOrders: OrderProps[] = [
     status: 'En curso',
     arrivalDate: 'Llego el 22 de mayo',
     productName: 'Blusa artesanal colores de la sierra',
-    storeName: 'Tienda oficial artesanal CorreosMexico MX',
+    storeName: 'Tienda oficial CorreosMexico',
     image: '/placeholder-vestidos.png',
   },
   {
@@ -30,7 +30,7 @@ const mockOrders: OrderProps[] = [
     status: 'En curso',
     arrivalDate: 'Llego el 22 de mayo',
     productName: 'Blusa artesanal colores de la sierra',
-    storeName: 'Tienda oficial artesanal CorreosMexico MX',
+    storeName: 'Tienda oficial CorreosMexico',
     image: '/placeholder-vestidos.png',
   },
 ];

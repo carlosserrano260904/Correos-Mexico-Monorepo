@@ -67,7 +67,7 @@ export const OrderCard: React.FC<{ order: OrderProps }> = ({ order }) => {
             </Link>
             
             <Link 
-              href="/rastrear-pedido"
+              href="/pago/compra-exitosa"
               className="text-[#DE1484] font-medium text-sm hover:underline text-center w-full"
             >
               Rastrear pedido

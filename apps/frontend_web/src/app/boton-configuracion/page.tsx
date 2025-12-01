@@ -117,7 +117,7 @@ export default function ConfiguracionScreen() {
               Conoce los términos y condiciones de CorreosClic para asegurar una buena experiencia de uso.
             </p>
             <button 
-              onClick={() => handleNavigate('/boton-configuracion/terminos-condiciones')}
+              onClick={() => handleNavigate('/terminos-condiciones')}
               className="text-pink-600 hover:text-pink-700 font-semibold text-sm sm:text-base flex items-center gap-1 transition-colors cursor-pointer"
             >
               Ver

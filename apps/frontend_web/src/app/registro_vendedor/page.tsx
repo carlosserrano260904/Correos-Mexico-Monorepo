@@ -1,40 +1,38 @@
-'use client';
+"use client";
 
-import { Plantilla } from '@/components/plantilla';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Plantilla } from "@/components/plantilla";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const RegistroVendedor: React.FC = () => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    curp: '',
-    rfc: '',
-    direccion: '',
-    codigoPostal: '',
-    categoria: '',
+    nombre: "",
+    curp: "",
+    rfc: "",
+    direccion: "",
+    codigoPostal: "",
+    categoria: "",
   });
 
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
 
-    // Convierte la CURP a mayúsculas
-    if (name === 'curp') {
+    if (name === "curp") {
       setFormData({ ...formData, [name]: value.toUpperCase() });
-    }
-    // Acepta solo dígitos en código postal
-    else if (name === 'codigoPostal') {
-      const numericValue = value.replace(/\D/g, ''); // 
+    } else if (name === "codigoPostal") {
+      const numericValue = value.replace(/\D/g, "");
       setFormData({ ...formData, [name]: numericValue });
-    }
-    else {
+    } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
   const generarNumeroSeguimiento = () => {
-    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const numeros = Math.floor(100000000 + Math.random() * 900000000);
     const letra = letras.charAt(Math.floor(Math.random() * letras.length));
     return `${letra}${numeros}`;
@@ -42,13 +40,49 @@ const RegistroVendedor: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formulario enviado:', formData);
+    console.log("Formulario enviado:", formData);
 
     const numeroSeguimiento = generarNumeroSeguimiento();
-    const fecha = encodeURIComponent(new Date().toISOString());
+    const fechaISO = new Date().toISOString();
 
-    router.push(`/estatus_solicitud?seguimiento=${numeroSeguimiento}&fecha=${fecha}`);
+    // Guardar en localStorage que este navegador ya tiene una solicitud
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "sellerRequest",
+        JSON.stringify({
+          numeroSeguimiento,
+          fecha: fechaISO,
+        })
+      );
+    }
+
+    router.push(
+      `/estatus_solicitud?seguimiento=${numeroSeguimiento}&fecha=${encodeURIComponent(
+        fechaISO
+      )}`
+    );
   };
+
+  // Si ya existe una solicitud, no mostrar el formulario: redirigir al estatus
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.localStorage.getItem("sellerRequest");
+    if (!raw) return;
+
+    try {
+      const { numeroSeguimiento, fecha } = JSON.parse(raw);
+      if (numeroSeguimiento && fecha) {
+        router.replace(
+          `/estatus_solicitud?seguimiento=${numeroSeguimiento}&fecha=${encodeURIComponent(
+            fecha
+          )}`
+        );
+      }
+    } catch (error) {
+      console.error("Error leyendo sellerRequest:", error);
+    }
+  }, [router]);
 
   return (
     <Plantilla>
@@ -57,11 +91,15 @@ const RegistroVendedor: React.FC = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-lg p-8 w-full max-w-xl space-y-6"
         >
-          <h2 className="text-2xl font-bold text-center text-[#006666]">Registro de Vendedor</h2>
+          <h2 className="text-2xl font-bold text-center text-[#006666]">
+            Registro de Vendedor
+          </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Nombre</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Nombre
+              </label>
               <input
                 type="text"
                 name="nombre"
@@ -73,7 +111,9 @@ const RegistroVendedor: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">CURP</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                CURP
+              </label>
               <input
                 type="text"
                 name="curp"
@@ -86,7 +126,9 @@ const RegistroVendedor: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">RFC</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                RFC
+              </label>
               <input
                 type="text"
                 name="rfc"
@@ -99,7 +141,9 @@ const RegistroVendedor: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Dirección del negocio</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Dirección del negocio
+              </label>
               <input
                 type="text"
                 name="direccion"
@@ -111,7 +155,9 @@ const RegistroVendedor: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Código Postal</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Código Postal
+              </label>
               <input
                 type="text"
                 name="codigoPostal"
@@ -126,7 +172,9 @@ const RegistroVendedor: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Categoría de productos</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Categoría de productos
+              </label>
               <select
                 name="categoria"
                 value={formData.categoria}

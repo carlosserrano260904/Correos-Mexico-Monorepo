@@ -42,9 +42,10 @@ async function setupNestApp(expressApp: express.Express): Promise<any> {
     'https://correos-mexico-monorepo-frontend-h6ur31uht.vercel.app',
     'https://correos-mexico-monorepo-git-8d0e31-emmanuels-projects-e8897a1f.vercel.app',
     'https://correos-mexico-monorepo-backend.vercel.app',
+    'https://correos-mexico-monorepo-frontend-lhvpnd2nb.vercel.app/',
   ];
 
-  // EN PRODUCCIÓN, PERMITE CUALQUIER SUBDOMINIO DE VERCEL
+  // Para aceptar subdominios en Vercel
   if (IS_VERCEL) {
     allowedOrigins.push('https://*.vercel.app');
   }
